@@ -1,0 +1,38 @@
+{
+	"env": {
+		"coverage": {
+			"plugins": [
+				"istanbul",
+				"rewire"
+			]
+		},
+		"test": {
+			"plugins": [
+				"rewire"
+			],
+			"retainLines": true
+		}
+	},
+	"presets": [
+		[
+			"env",
+			{
+				"targets": {
+					"node": true
+				}
+			}
+		]
+	],
+	"plugins": [
+		[
+			"module-resolver",
+			{
+				"root": [
+					"./src"
+				]
+			}
+    ],
+    "syntax-object-rest-spread",
+		"transform-class-properties"
+	]
+}

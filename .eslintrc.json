@@ -1,0 +1,51 @@
+{
+	"extends": [
+		"airbnb-base",
+		"airbnb-base/rules/strict",
+		"prettier"
+	],
+	"env": {
+		"es6": true,
+		"node": true,
+		"mocha": true
+	},
+	"globals": {
+	},
+	"parser": "babel-eslint",
+	"parserOptions": {
+		"sourceType": "module"
+	},
+	"plugins": [
+		"prettier"
+	],
+	"rules": {
+		"import/no-extraneous-dependencies": ["error", {
+			"devDependencies": [
+				"test/**",
+				"**/scripts/**",
+				"**/*.spec.js",
+				"**/*.spec.jsx"
+			],
+			"optionalDependencies": false
+		}],
+		"indent": ["error", "tab", {"SwitchCase": 1}],
+		"no-tabs": "off",
+		"no-underscore-dangle": ["error", {"allow": ["_id", "__v", "__check", "__Rewire__", "__ResetDependency__"]}],
+		"prettier/prettier": ["error", {
+			"useTabs": true,
+			"printWidth": 100,
+			"tabWidth": 2,
+			"singleQuote": true,
+			"trailingComma": "all",
+			"bracketSpacing": true,
+			"jsxBracketSameLine": false,
+			"parser": "babylon",
+			"semi": true
+		}]
+	},
+	"settings": {
+		"import/resolver": {
+			"babel-module": {}
+		}
+	}
+}

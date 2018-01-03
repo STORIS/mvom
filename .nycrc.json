@@ -1,0 +1,17 @@
+{
+	"include": [
+		"src/**/*.js"
+	],
+	"exclude": [
+		"**/*.spec.js"
+	],
+	"all": true,
+	"cache": true,
+	"instrument": false,
+	"require": "babel-register",
+	"sourceMap": false,
+	"branches": 100,
+	"functions": 100,
+	"lines": 100,
+	"statements": 100
+}

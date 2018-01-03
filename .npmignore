@@ -1,0 +1,17 @@
+.eslintcache
+.nyc_output
+.vscode
+coverage
+docs
+src
+test
+.babelrc
+.editorconfig
+.env
+.eslintignore
+.eslintrc.json
+.nycrc.json
+bitbucket-pipelines.yml
+debug.log
+lcov.info
+/**/*.spec.js

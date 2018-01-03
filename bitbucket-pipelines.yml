@@ -1,0 +1,10 @@
+image: node:8.9.1-alpine
+pipelines:
+  default:
+    - step:
+        caches:
+          - node
+        script: # Modify the commands below to build your repository.
+          - apk update && apk upgrade && apk add --no-cache git openssh
+          - npm config set unsafe-perm true && npm install
+          - npm test
