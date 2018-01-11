@@ -1,40 +1,58 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
     {
-        "type": "node",
-        "request": "launch",
-        "name": "Mocha Tests",
-        "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
-        "args": [
-            "--timeout",
-            "999999",
-            "--colors",
-            "${workspaceFolder}/test"
-        ],
-        "internalConsoleOptions": "openOnSessionStart",
-        "env": { "NODE_ENV": "test" },
-        "skipFiles": [
-            "<node_internals>/**/*.js",
-            "${workspaceRoot}/node_modules/**/*.js"
-        ]
+      "type": "node",
+      "request": "launch",
+      "name": "Launch demo program",
+      "program": "${workspaceFolder}/demo/index.js",
+      "runtimeArgs": [
+        "--require",
+        "babel-register"
+      ],
+      "env": {
+        "NODE_ENV": "development",
+        "BABEL_DISABLE_CACHE": "1"
+      },
     },
     {
-        "type": "node",
-        "request": "launch",
-        "name": "Mocha Tests including Node Modules",
-        "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
-        "args": [
-            "--timeout",
-            "999999",
-            "--colors",
-            "${workspaceFolder}/test"
-        ],
-        "internalConsoleOptions": "openOnSessionStart",
-        "env": { "NODE_ENV": "test" }
+      "type": "node",
+      "request": "launch",
+      "name": "Mocha Tests",
+      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+      "args": [
+        "--timeout",
+        "999999",
+        "--colors",
+        "${workspaceFolder}/test"
+      ],
+      "internalConsoleOptions": "openOnSessionStart",
+      "env": {
+        "NODE_ENV": "test"
+      },
+      "skipFiles": [
+        "<node_internals>/**/*.js",
+        "${workspaceRoot}/node_modules/**/*.js"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Mocha Tests including Node Modules",
+      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+      "args": [
+        "--timeout",
+        "999999",
+        "--colors",
+        "${workspaceFolder}/test"
+      ],
+      "internalConsoleOptions": "openOnSessionStart",
+      "env": {
+        "NODE_ENV": "test"
+      }
     }
-    ]
+  ]
 }

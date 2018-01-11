@@ -1,0 +1,221 @@
+$basictype 'U'
+subroutine mvom_entry(input, output, errorCode)
+
+* equate u2 udo definitions
+EQU UDOFORMAT_JSON TO 0
+EQU UDO_ARRAY TO 5
+EQU UDO_OBJECT TO 6
+EQU UDOOPTION_OUTPUTMODE TO 2
+EQU UDO_OUTPUT_COMPACT TO 'COMPACT'
+
+* eliminate all output
+hush on
+
+* ensure compact serialized json output
+if udoSetOption(UDOOPTION_OUTPUTMODE, UDO_OUTPUT_COMPACT) then
+  gosub udoError
+end
+
+* default responses
+if udoCreate(UDO_OBJECT, outputHandle) then
+  gosub udoError
+end
+
+errorCode = 0
+
+* start main program processing
+
+if udoRead(input, UDOFORMAT_JSON, handle) then
+  gosub malformedInputError
+  go response
+end
+
+if udoGetProperty(handle, 'action', action, type) then
+  gosub malformedInputError
+  go response
+end
+
+begin case
+  case action eq 'programList'
+    * return the name of all files in the specified directory which are globally cataloged
+    if udoGetProperty(handle, 'sourceDir', sourceDir, type) then
+      gosub malformedInputError
+      go response
+    end
+
+    open sourceDir readonly to f.sourceDir on error
+      gosub fileOpenError
+      go response
+    end else
+      gosub fileOpenError
+      go response
+    end
+
+    open 'CTLGTB' readonly to f.catalog on error
+      close f.sourceDir
+      gosub fileOpenError
+      go response
+    end else
+      close f.sourceDir
+      gosub fileOpenError
+      go response
+    end
+
+    if udoCreate(UDO_ARRAY, programList) then
+      close f.sourceDir
+      close f.catalog
+      gosub udoError
+      go response
+    end
+
+    if udoSetProperty(outputHandle, 'programs', programList) then
+      close f.sourceDir
+      close f.catalog
+      gosub udoError
+      go response
+    end
+
+    select f.sourceDir
+    loop readnext sourceKey else exit
+      if sourceKey[1] <> '_' then
+        * ignore probable object code
+        readv test from f.catalog, sourceKey, 0 on error
+          close f.sourceDir
+          close f.catalog
+          gosub readError
+          go response
+        end then
+          * only include items in the global catalog table
+          if udoArrayAppendItem(programList, sourceKey) then
+            close f.sourceDir
+            close f.catalog
+            gosub udoError
+            go response
+          end
+        end
+      end
+    repeat
+
+    close f.sourceDir
+    close f.catalog
+  case action eq 'deploy'
+    * deploy source code
+    if udoGetProperty(handle, 'sourceDir', sourceDir, type) then
+      gosub malformedInputError
+      go response
+    end
+
+    if udoGetProperty(handle, 'source', source, type) then
+      gosub malformedInputError
+      go response
+    end
+
+    if udoGetProperty(handle, 'programName', programName, type) then
+      gosub malformedInputError
+      go response
+    end
+
+    open sourceDir to f.sourceDir on error
+      gosub fileOpenError
+      go response
+    end else
+      gosub fileOpenError
+      go response
+    end
+
+    write source on f.sourceDir, programName on error
+      close f.sourceDir
+      gosub writeError
+      go response
+    end
+
+    close f.sourceDir
+
+    * compiling with override and case-insensitive flags
+    execute 'basic ':sourceDir:' ':programName:' -o -i' returning errmsg
+    if @system.return.code then
+      gosub deploymentError
+      go response
+    end
+
+    * cataloging with default catalog (global) with force override
+    execute 'catalog ':sourceDir:' ':programName:' force' returning errmsg
+    if @system.return.code then
+      gosub deploymentError
+      go response
+    end
+
+    if udoSetProperty(outputHandle, 'deployed', programName) then
+      gosub udoError
+      go response
+    end
+  case action eq 'subroutine'
+    * call specified subroutine
+    if udoGetProperty(handle, 'subName', subName, type) then
+      gosub malformedInputError
+      go response
+    end
+
+    if udoGetProperty(handle, 'subInput', subInput, type) then
+      gosub malformedInputError
+      go response
+    end
+
+    call @subName(subInput, outputHandle, errorCode)
+  case 1
+    gosub unsupportedActionError
+    go response
+end case
+
+response:
+  if udoWrite(outputHandle, UDOFORMAT_JSON, output) then
+    close f.sourceDir
+    close f.catalog
+    gosub udoError
+    return; * returning to caller
+  end
+
+  if udoFree(outputHandle) then
+    close f.sourceDir
+    close f.catalog
+    gosub udoError
+    return; * returning to caller
+  end
+  return; * returning to caller
+
+* error routines
+* note that they intentionally do not react to udo errors because it could potentially result in an unending sequence of attempts to set properties
+malformedInputError:
+  errorCode = 1
+  x = udoSetProperty(outputHandle, 'errorCode', errorCode)
+  return
+
+unsupportedActionError:
+  errorCode = 2
+  x = udoSetProperty(outputHandle, 'errorCode', errorCode)
+  return
+
+fileOpenError:
+  errorCode = 3
+  x = udoSetProperty(outputHandle, 'errorCode', errorCode)
+  return
+
+deploymentError:
+  errorCode = 4
+  x = udoSetProperty(outputHandle, 'errorCode', errorCode)
+  return
+
+readError:
+  errorCode = 5
+  x = udoSetProperty(outputHandle, 'errorCode', errorCode)
+  return
+
+writeError:
+  errorCode = 6
+  x = udoSetProperty(outputHandle, 'errorCode', errorCode)
+  return
+
+udoError:
+  errorCode = 7
+  x = udoSetProperty(outputHandle, 'errorCode', errorCode)
+  return

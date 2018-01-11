@@ -1,0 +1,4 @@
+$basictype 'U'
+subroutine mvom_deploy(input, output)
+
+return

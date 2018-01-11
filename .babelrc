@@ -1,38 +1,49 @@
 {
-	"env": {
-		"coverage": {
-			"plugins": [
-				"istanbul",
-				"rewire"
-			]
-		},
-		"test": {
-			"plugins": [
-				"rewire"
-			],
-			"retainLines": true
-		}
-	},
-	"presets": [
-		[
-			"env",
-			{
-				"targets": {
-					"node": true
-				}
-			}
-		]
-	],
-	"plugins": [
-		[
-			"module-resolver",
-			{
-				"root": [
-					"./src"
-				]
-			}
+  "env": {
+    "coverage": {
+      "plugins": [
+        "istanbul",
+        "rewire"
+      ]
+    },
+    "development": {
+      "retainLines": true
+    },
+    "test": {
+      "plugins": [
+        "rewire"
+      ],
+      "retainLines": true
+    }
+  },
+  "presets": [
+    [
+      "env",
+      {
+        "targets": {
+          "node": true
+        }
+      }
+    ]
+  ],
+  "plugins": [
+    [
+      "module-resolver",
+      {
+        "root": [
+          "./src"
+        ]
+      }
+    ],
+    [
+      "inline-import",
+      {
+        "extensions": [
+          ".mvb"
+        ]
+      }
     ],
     "syntax-object-rest-spread",
-		"transform-class-properties"
-	]
+    "transform-class-properties"
+  ]
 }
