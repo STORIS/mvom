@@ -4,7 +4,7 @@ import semver from 'semver';
 const getServerFeatureSet = async (endpoint, sourceDir) => {
 	const data = { action: 'programList', sourceDir };
 	const response = await axios.post(endpoint, { input: data });
-	if (response && response.data && +response.data.errorCode) {
+	if (response && response.data && response.data.output && +response.data.output.errorCode) {
 		// handle specific error returned from subroutine
 		throw new Error();
 	}

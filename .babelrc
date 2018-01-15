@@ -35,14 +35,6 @@
         ]
       }
     ],
-    [
-      "inline-import",
-      {
-        "extensions": [
-          ".mvb"
-        ]
-      }
-    ],
     "syntax-object-rest-spread",
     "transform-class-properties"
   ]

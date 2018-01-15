@@ -1,6 +1,9 @@
 import semver from 'semver';
-import { dependencies as serverDependencies } from 'config/.mvomrc.json';
-import getServerFeatureSet from './getServerFeatureSet';
+// temporarily not using import due to issue with babel-plugin-model-resolver https://github.com/tleunen/babel-plugin-module-resolver/pull/253
+// import { dependencies as serverDependencies } from '.mvomrc.json';
+import getServerFeatureSet from 'shared/getServerFeatureSet';
+
+const { dependencies: serverDependencies } = require('../../.mvomrc.json');
 
 const getFeatureState = async (endpoint, sourceDir) => {
 	const serverFeatures = await getServerFeatureSet(endpoint, sourceDir);

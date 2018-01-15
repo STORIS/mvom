@@ -1,7 +1,7 @@
 import chai, { assert } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { stub } from 'sinon';
-import deployFeatures, { __RewireAPI__ as RewireAPI } from './deployFeatures';
+import deployFeatures, { __RewireAPI__ as RewireAPI } from './';
 
 describe('deployFeatures', () => {
 	const post = stub();
@@ -10,13 +10,13 @@ describe('deployFeatures', () => {
 		chai.use(chaiAsPromised);
 		RewireAPI.__Rewire__('axios', { post });
 		RewireAPI.__Rewire__('getServerProgramName', stub().returnsArg(0));
-		RewireAPI.__Rewire__('deploy', 'foo');
+		RewireAPI.__Rewire__('getUnibasicSource', stub().resolves('foo'));
 	});
 
 	after(() => {
 		RewireAPI.__ResetDependency__('axios');
 		RewireAPI.__ResetDependency__('getServerProgramName');
-		RewireAPI.__ResetDependency__('deploy');
+		RewireAPI.__ResetDependency__('getUnibasicSource');
 	});
 
 	beforeEach(() => {
@@ -30,7 +30,7 @@ describe('deployFeatures', () => {
 
 	it('should reject if the response has a truthy errorCode', () => {
 		const serverFeatureSet = { validFeatures: {} };
-		post.resolves({ data: { errorCode: 1 } });
+		post.resolves({ data: { output: { errorCode: 1 } } });
 		return assert.isRejected(deployFeatures('foo', 'bar', serverFeatureSet));
 	});
 

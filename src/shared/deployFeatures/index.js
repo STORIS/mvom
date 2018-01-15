@@ -1,6 +1,6 @@
 import axios from 'axios';
 import getServerProgramName from 'shared/getServerProgramName';
-import deploy from 'unibasic/deploy.mvb';
+import getUnibasicSource from 'shared/getUnibasicSource';
 
 const deployFeatures = async (endpoint, sourceDir, serverFeatureSet) => {
 	if (!Object.prototype.hasOwnProperty.call(serverFeatureSet.validFeatures, 'deploy')) {
@@ -8,11 +8,11 @@ const deployFeatures = async (endpoint, sourceDir, serverFeatureSet) => {
 		const data = {
 			action: 'deploy',
 			sourceDir,
-			source: deploy,
+			source: await getUnibasicSource('deploy'),
 			programName: getServerProgramName('deploy'),
 		};
 		const response = await axios.post(endpoint, { input: data });
-		if (response && response.data && +response.data.errorCode) {
+		if (response && response.data && response.data.output && +response.data.output.errorCode) {
 			// handle specific error returned from subroutine
 			throw new Error();
 		}

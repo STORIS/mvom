@@ -7,20 +7,6 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Launch demo program",
-      "program": "${workspaceFolder}/demo/index.js",
-      "runtimeArgs": [
-        "--require",
-        "babel-register"
-      ],
-      "env": {
-        "NODE_ENV": "development",
-        "BABEL_DISABLE_CACHE": "1"
-      },
-    },
-    {
-      "type": "node",
-      "request": "launch",
       "name": "Mocha Tests",
       "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
       "args": [

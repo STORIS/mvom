@@ -1,7 +1,7 @@
 import chai, { assert } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { stub } from 'sinon';
-import getServerFeatureSet, { __RewireAPI__ as RewireAPI } from './getServerFeatureSet';
+import getServerFeatureSet, { __RewireAPI__ as RewireAPI } from './';
 
 describe('getServerFeatureSet', () => {
 	const post = stub();
@@ -24,7 +24,7 @@ describe('getServerFeatureSet', () => {
 	});
 
 	it('should reject if the response has a truthy errorCode', () => {
-		post.resolves({ data: { errorCode: 1 } });
+		post.resolves({ data: { output: { errorCode: 1 } } });
 		return assert.isRejected(getServerFeatureSet('foo', 'bar'));
 	});
 

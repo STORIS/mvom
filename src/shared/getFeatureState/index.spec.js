@@ -1,7 +1,7 @@
 import chai, { assert } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { stub } from 'sinon';
-import getFeatureState, { __RewireAPI__ as RewireAPI } from './getFeatureState';
+import getFeatureState, { __RewireAPI__ as RewireAPI } from './';
 
 describe('getFeatureState', () => {
 	const maxSatisfying = stub();

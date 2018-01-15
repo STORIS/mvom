@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<service
+  xmlns="">
+  <subroutine name="mvom_entry@{{ version }}" parameter_count="2" compileAndCatalogOnLoadFailure="true" sourceDir="mvom.bp" createSourceDir="true" catalogOptions="FORCE">
+    <input name="">
+      <parameter name="input" order="1" type="json"/>
+    </input>
+    <output name="">
+      <parameter name="output" order="2" type="json"/>
+    </output>
+    <source>
+      <![CDATA[
+{% include "entry.njk" %}
+      ]]>
+    </source>
+  </subroutine>
+</service>
