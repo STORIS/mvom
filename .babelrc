@@ -31,7 +31,8 @@
       "module-resolver",
       {
         "root": [
-          "./src"
+          "./src",
+          "./test"
         ]
       }
     ],

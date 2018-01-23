@@ -1,8 +1,8 @@
-subroutine error_handler(errorCode, outputHandle)
+subroutine error_handler(errorCode, output)
 
 * note that this routine intentionally does not react to udo errors because it could
 * potentially result in an unending sequence of errors
 
-x = udoSetProperty(outputHandle, 'errorCode', errorCode)
+x = udoSetProperty(output, 'errorCode', errorCode)
 
 return
