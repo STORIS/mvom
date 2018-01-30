@@ -1,5 +1,8 @@
+import assignIn from 'lodash/assignIn';
 import axios from 'axios';
 import semver from 'semver';
+import Document from 'Document';
+import Schema from 'Schema';
 // temporarily not using import due to issue with babel-plugin-module-resolver https://github.com/tleunen/babel-plugin-module-resolver/pull/253
 // import { dependencies as serverDependencies } from '.mvomrc.json';
 import getServerProgramName from 'shared/getServerProgramName';
@@ -11,38 +14,56 @@ const { dependencies: serverDependencies } = require('../.mvomrc.json');
  * @param {Object} options
  * @param {string} options.connectionManagerUri - URI of the connection manager which faciliates access to the mv database
  * @param {string} options.account - Database account that connection will be used against
- * @param {Object} options.logger - Winston logger instance used for diagnostic logging
+ * @param options.logger - Winston logger instance used for diagnostic logging
  */
 class Connection {
 	/**
-	 * @typedef {Object} serverFeatureSet
+	 * Object providing the current state of db server features and availability
+	 * @member {Object} _serverFeatureSet
+	 * @memberof Connection
+	 * @instance
 	 * @private
 	 * @property {Object} validFeatures - Key/value pairs of valid database server features and versions
-	 * @property {Array} invalidFeatures - List of invalid database server features
+	 * @property {string[]} invalidFeatures - List of invalid database server features
 	 */
-	serverFeatureSet = { validFeatures: {}, invalidFeatures: [] };
+	_serverFeatureSet = { validFeatures: {}, invalidFeatures: [] };
 
 	constructor({ connectionManagerUri, account, logger }) {
 		logger.debug(`creating new connection instance`);
-		// establish the full uri for connection
-		this.endpoint = `${connectionManagerUri}/${account}/subroutine/${getServerProgramName(
+		/**
+		 * URI of the full endpoint for communicating with the database
+		 * @member {string} _endpoint
+		 * @memberof Connection
+		 * @instance
+		 * @private
+		 */
+		this._endpoint = `${connectionManagerUri}/${account}/subroutine/${getServerProgramName(
 			'entry',
 		)}`;
+		/**
+		 * Winston logger instance used for diagnostic logging
+		 * @member logger
+		 * @memberof Connection
+		 * @instance
+		 */
 		this.logger = logger;
 	}
 
 	/**
 	 * Open a database connection
+	 * @function open
+	 * @memberof Connection
+	 * @instance
 	 * @async
-	 * @throws
+	 * @throws {Error}
 	 */
 	open = async () => {
 		this.logger.debug(`opening connection`);
 		await this._getFeatureState();
 
-		if (this.serverFeatureSet.invalidFeatures.length > 0) {
+		if (this._serverFeatureSet.invalidFeatures.length > 0) {
 			// prevent connection attempt if features are invalid
-			this.logger.verbose(`invalid features found: ${this.serverFeatureSet.invalidFeatures}`);
+			this.logger.verbose(`invalid features found: ${this._serverFeatureSet.invalidFeatures}`);
 			this.logger.debug('connection will not be opened');
 			throw new Error();
 		}
@@ -52,11 +73,14 @@ class Connection {
 
 	/**
 	 * Deploy database features
+	 * @function deployFeatures
+	 * @memberof Connection
+	 * @instance
 	 * @async
 	 * @param {string} sourceDir - Database server directory to deploy features to
 	 * @param {Object} options
 	 * @param {boolean} [options.createDir=false] - Create deployment directory if it is missing
-	 * @throws
+	 * @throws {Error}
 	 */
 	deployFeatures = async (sourceDir, { createDir = false } = {}) => {
 		this.logger.debug(`deploying features to directory ${sourceDir}`);
@@ -66,7 +90,7 @@ class Connection {
 		}
 		await this._getFeatureState();
 
-		if (this.serverFeatureSet.invalidFeatures.length <= 0) {
+		if (this._serverFeatureSet.invalidFeatures.length <= 0) {
 			// there aren't any invalid features to deploy
 			this.logger.debug(`no missing features to deploy`);
 			return;
@@ -82,7 +106,7 @@ class Connection {
 			await this._executeDb(data);
 		}
 
-		if (!Object.prototype.hasOwnProperty.call(this.serverFeatureSet.validFeatures, 'deploy')) {
+		if (!Object.prototype.hasOwnProperty.call(this._serverFeatureSet.validFeatures, 'deploy')) {
 			// deployment feature is unavailable - use basic deployment to make it available
 			this.logger.debug(`deploying the "deployment" feature to ${sourceDir}`);
 			const data = {
@@ -101,7 +125,7 @@ class Connection {
 
 		// deploy any other missing features
 		await Promise.all(
-			this.serverFeatureSet.invalidFeatures.map(async feature => {
+			this._serverFeatureSet.invalidFeatures.map(async feature => {
 				this.logger.debug(`deploying ${feature} to ${sourceDir}`);
 				const options = {
 					sourceDir,
@@ -115,18 +139,20 @@ class Connection {
 
 	/**
 	 * Execute a database feature
+	 * @function executeDbFeature
+	 * @memberof Connection
+	 * @instance
 	 * @async
 	 * @param {string} feature - Name of feature to execute
 	 * @param {*} options - Options parameter to pass to database feature
 	 * @returns {*} Output from database feature
-	 * @throws
 	 */
 	executeDbFeature = async (feature, options) => {
 		this.logger.debug(`executing database feature "${feature}"`);
 		const data = {
 			action: 'subroutine',
 			// make sure to use the compatible server version of feature
-			subroutineId: getServerProgramName(feature, this.serverFeatureSet.validFeatures[feature]),
+			subroutineId: getServerProgramName(feature, this._serverFeatureSet.validFeatures[feature]),
 			options,
 		};
 
@@ -136,14 +162,91 @@ class Connection {
 	};
 
 	/**
+	 * Define a new model
+	 * @function model
+	 * @memberof Connection
+	 * @instance
+	 * @param {Schema} schema - Schema instance to derive model from
+	 * @param {string} file - Name of database file associated with model
+	 * @returns {Model} Model class
+	 * @throws {Error}
+	 */
+	model = (schema, file) => {
+		this.logger.debug(`creating new model for file ${file}`);
+		if (!(schema instanceof Schema) || file == null) {
+			this.logger.debug('invalid parameters passed to model compiler');
+			throw new Error();
+		}
+
+		// keep a reference to this connection to pass through to the Model class definition
+		const connection = this;
+
+		/**
+		 * Construct a document instance of a compiled model
+		 * @class Model
+		 * @extends Document
+		 * @param {*[]} record - Array data to construct model instance properties from
+		 */
+		return class Model extends Document {
+			/**
+			 * Connection instance which constructed this model defininition
+			 * @member {Connection} _connection
+			 * @memberof Model
+			 * @instance
+			 * @private
+			 */
+			_connection = connection;
+			/**
+			 * Schema instance which defined this model
+			 * @member {Schema} _schema
+			 * @memberof Model
+			 * @instance
+			 * @private
+			 */
+			_schema = schema;
+			/**
+			 * Database file this model acts against
+			 * @member {string} _file
+			 * @memberof Model
+			 * @instance
+			 * @private
+			 */
+			_file = file;
+
+			constructor(record) {
+				super();
+				this._connection.logger.debug(`creating new instance of model for file ${this.file}`);
+				this._protectProperties();
+				/**
+				 * Record array of multivalue data
+				 * @member {*[]} _record
+				 * @memberof Model
+				 * @instance
+				 * @private
+				 */
+				Object.defineProperty(this, '_record', {
+					value: record,
+					configurable: false,
+					enumerable: false,
+					writable: true,
+				});
+				assignIn(this, Model.applySchemaToRecord(this._schema, this._record));
+			}
+		};
+	};
+
+	/**
 	 * Execute a database function remotely
+	 * @function _executeDb
+	 * @memberof Connection
+	 * @instance
 	 * @private
 	 * @async
 	 * @param {Object} data
 	 * @param {string} data.action - Remote action to invoke
 	 * @param {*} data.xxx - Additional properties as required by remote function
 	 * @returns {*} Output from database function execution
-	 * @throws
+	 * @throws {Error}
 	 */
 	_executeDb = async data => {
 		if (data == null || data.action == null) {
@@ -152,7 +255,7 @@ class Connection {
 			throw new Error();
 		}
 		this.logger.debug(`executing database function with action "${data.action}"`);
-		const response = await axios.post(this.endpoint, { input: data });
+		const response = await axios.post(this._endpoint, { input: data });
 		if (!response || !response.data || !response.data.output) {
 			// handle invalid response
 			this.logger.verbose(`received an invalid response from database server`);
@@ -173,15 +276,17 @@ class Connection {
 
 	/**
 	 * Get the state of database server features
+	 * @function _getFeatureState
+	 * @memberof Connection
+	 * @instance
 	 * @private
 	 * @async
-	 * @throws
 	 */
 	_getFeatureState = async () => {
 		this.logger.debug(`getting state of database server features`);
 		const serverFeatures = await this._getServerFeatures();
 
-		this.serverFeatureSet = Object.keys(serverDependencies).reduce(
+		this._serverFeatureSet = Object.keys(serverDependencies).reduce(
 			(acc, dependency) => {
 				if (!Object.prototype.hasOwnProperty.call(serverFeatures, dependency)) {
 					// if the feature doesn't exist on the server then it is invalid
@@ -212,10 +317,12 @@ class Connection {
 
 	/**
 	 * Get a list of database server features
+	 * @function _getServerFeatures
+	 * @memberof Connection
+	 * @instance
 	 * @private
 	 * @async
-	 * @returns {serverFeatureSet}
-	 * @throws
+	 * @returns {Object} Key(s): Feature(s) / Value(s): array(s) of versions
 	 */
 	_getServerFeatures = async () => {
 		this.logger.debug(`getting list of features from database server`);

@@ -13,6 +13,8 @@
     "clean": "npm run clean:build",
     "clean:build": "rimraf ./dist",
     "docgen": "rimraf ./docs && documentation build src/** -f html -o docs --parse-extension js",
+    "docgen:public": "rimraf ./docs && documentation build src/** --access public --access undefined -f html -o docs --parse-extension js",
+    "docgen:private": "rimraf ./docs && documentation build src/** --access protected --access public --access private --access undefined -f html -o docs --parse-extension js",
     "lint": "eslint . --cache && echo \"eslint: no lint errors\"",
     "lint:fix": "eslint . --fix && echo \"eslint: no lint errors\"",
     "prebuild": "npm run clean:build",

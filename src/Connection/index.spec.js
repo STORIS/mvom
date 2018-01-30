@@ -27,7 +27,7 @@ describe('Connection', () => {
 					logger: mockLogger,
 				}),
 				{
-					endpoint: 'foo/bar/subroutine/entry',
+					_endpoint: 'foo/bar/subroutine/entry',
 					logger: mockLogger,
 				},
 			);
@@ -43,16 +43,16 @@ describe('Connection', () => {
 		stub(connection, '_getFeatureState').resolves();
 
 		beforeEach(() => {
-			connection.serverFeatureSet = {};
+			connection._serverFeatureSet = {};
 		});
 
 		it('should resolve if nothing invalid is found', () => {
-			connection.serverFeatureSet = { invalidFeatures: [] };
+			connection._serverFeatureSet = { invalidFeatures: [] };
 			return assert.isFulfilled(connection.open());
 		});
 
 		it('should reject if something invalid is found', () => {
-			connection.serverFeatureSet = { invalidFeatures: ['foo'] };
+			connection._serverFeatureSet = { invalidFeatures: ['foo'] };
 			return assert.isRejected(connection.open());
 		});
 	});
@@ -89,14 +89,14 @@ describe('Connection', () => {
 
 		it('should resolve if all features are already present', () => {
 			getFeatureState.callsFake(function() {
-				this.serverFeatureSet = { validFeatures: { deploy: '1.0.0' }, invalidFeatures: [] };
+				this._serverFeatureSet = { validFeatures: { deploy: '1.0.0' }, invalidFeatures: [] };
 			});
 			return assert.isFulfilled(connection.deployFeatures('foo'));
 		});
 
 		it('should create directory if the option is specified', async () => {
 			getFeatureState.callsFake(function() {
-				this.serverFeatureSet = { validFeatures: { deploy: '1.0.0' }, invalidFeatures: ['foo'] };
+				this._serverFeatureSet = { validFeatures: { deploy: '1.0.0' }, invalidFeatures: ['foo'] };
 			});
 			await connection.deployFeatures('foo', { createDir: true });
 			assert.isTrue(
@@ -109,80 +109,21 @@ describe('Connection', () => {
 
 		it('should resolve if the deploy feature is successfully deployed', () => {
 			getFeatureState.onCall(0).callsFake(function() {
-				this.serverFeatureSet = { validFeatures: {}, invalidFeatures: ['deploy'] };
+				this._serverFeatureSet = { validFeatures: {}, invalidFeatures: ['deploy'] };
 			});
 			getFeatureState.onCall(1).callsFake(function() {
-				this.serverFeatureSet = { validFeatures: { deploy: '1.0.0' }, invalidFeatures: [] };
+				this._serverFeatureSet = { validFeatures: { deploy: '1.0.0' }, invalidFeatures: [] };
 			});
 			return assert.isFulfilled(connection.deployFeatures('foo'));
 		});
 
 		it('should resolve if missing features are successfully deployed', () => {
 			getFeatureState.callsFake(function() {
-				this.serverFeatureSet = { validFeatures: { deploy: '1.0.0' }, invalidFeatures: ['foo'] };
+				this._serverFeatureSet = { validFeatures: { deploy: '1.0.0' }, invalidFeatures: ['foo'] };
 			});
 			return assert.isFulfilled(connection.deployFeatures('foo'));
 		});
 		/* eslint-enable func-names */
-	});
-
-	describe('_getFeatureState method', () => {
-		const connection = new Connection({
-			connectionManagerUri: 'foo',
-			account: 'bar',
-			logger: mockLogger,
-		});
-		const getServerFeatures = stub(connection, '_getServerFeatures');
-		const maxSatisfying = stub();
-
-		before(() => {
-			RewireAPI.__Rewire__('semver', { maxSatisfying });
-		});
-
-		after(() => {
-			RewireAPI.__ResetDependency__('semver');
-			RewireAPI.__ResetDependency__('serverDependencies');
-		});
-
-		beforeEach(() => {
-			maxSatisfying.reset();
-			RewireAPI.__ResetDependency__('serverDependencies');
-		});
-
-		it('should set instance variable serverFeatureSet as valid if all conditions pass', async () => {
-			RewireAPI.__Rewire__('serverDependencies', { foo: '^1.0.0' });
-			getServerFeatures.resolves({ foo: '1.0.0' });
-			maxSatisfying.returns('1.0.0');
-
-			await connection._getFeatureState();
-			assert.deepEqual(connection.serverFeatureSet, {
-				validFeatures: { foo: '1.0.0' },
-				invalidFeatures: [],
-			});
-		});
-
-		it('should set instance variable serverFeatureSet as invalid if the server does not have the feature', async () => {
-			RewireAPI.__Rewire__('serverDependencies', { foo: '^1.0.0' });
-			getServerFeatures.resolves({});
-
-			await connection._getFeatureState();
-			assert.deepEqual(connection.serverFeatureSet, {
-				validFeatures: {},
-				invalidFeatures: ['foo'],
-			});
-		});
-
-		it("should set instance variable serverFeatureSet as invalid if the server's feature version does not satisfy", async () => {
-			RewireAPI.__Rewire__('serverDependencies', { foo: '^1.0.0' });
-			getServerFeatures.resolves({ foo: '2.0.0' });
-			maxSatisfying.returns(null);
-
-			await connection._getFeatureState();
-			assert.deepEqual(connection.serverFeatureSet, {
-				validFeatures: {},
-				invalidFeatures: ['foo'],
-			});
-		});
 	});
 
 	describe('executeDbFeature method', () => {
@@ -207,6 +148,42 @@ describe('Connection', () => {
 			assert.isTrue(
 				executeDb.calledWith({ action: 'subroutine', subroutineId: 'foo', options: 'bar' }),
 			);
+		});
+	});
+
+	describe('model method', () => {
+		const connection = new Connection({
+			connectionManagerUri: 'foo',
+			account: 'bar',
+			logger: mockLogger,
+		});
+
+		const Document = class {
+			static applySchemaToRecord = stub().returns({});
+			_protectProperties = stub();
+		};
+		const Schema = class {};
+		before(() => {
+			RewireAPI.__Rewire__('Document', Document);
+			RewireAPI.__Rewire__('Schema', Schema);
+		});
+
+		after(() => {
+			RewireAPI.__ResetDependency__('Document');
+			RewireAPI.__ResetDependency__('Schema');
+		});
+
+		it('should throw an error if Schema not provided', () => {
+			assert.throws(connection.model.bind(connection, 'foo', 'bar'));
+		});
+
+		it('should throw an error if file not provided', () => {
+			assert.throws(connection.model.bind(connection, new Schema()));
+		});
+
+		it('should return a class definition with an instanceof Document', () => {
+			const Test = connection.model(new Schema(), 'foo');
+			assert.instanceOf(new Test(), Document);
 		});
 	});
 
@@ -259,6 +236,65 @@ describe('Connection', () => {
 		it('should return the data.output property', () => {
 			post.resolves({ data: { output: 'bar' } });
 			return assert.eventually.strictEqual(connection._executeDb({ action: 'foo' }), 'bar');
+		});
+	});
+
+	describe('_getFeatureState method', () => {
+		const connection = new Connection({
+			connectionManagerUri: 'foo',
+			account: 'bar',
+			logger: mockLogger,
+		});
+		const getServerFeatures = stub(connection, '_getServerFeatures');
+		const maxSatisfying = stub();
+
+		before(() => {
+			RewireAPI.__Rewire__('semver', { maxSatisfying });
+		});
+
+		after(() => {
+			RewireAPI.__ResetDependency__('semver');
+			RewireAPI.__ResetDependency__('serverDependencies');
+		});
+
+		beforeEach(() => {
+			maxSatisfying.reset();
+			RewireAPI.__ResetDependency__('serverDependencies');
+		});
+
+		it('should set instance variable serverFeatureSet as valid if all conditions pass', async () => {
+			RewireAPI.__Rewire__('serverDependencies', { foo: '^1.0.0' });
+			getServerFeatures.resolves({ foo: '1.0.0' });
+			maxSatisfying.returns('1.0.0');
+
+			await connection._getFeatureState();
+			assert.deepEqual(connection._serverFeatureSet, {
+				validFeatures: { foo: '1.0.0' },
+				invalidFeatures: [],
+			});
+		});
+
+		it('should set instance variable serverFeatureSet as invalid if the server does not have the feature', async () => {
+			RewireAPI.__Rewire__('serverDependencies', { foo: '^1.0.0' });
+			getServerFeatures.resolves({});
+
+			await connection._getFeatureState();
+			assert.deepEqual(connection._serverFeatureSet, {
+				validFeatures: {},
+				invalidFeatures: ['foo'],
+			});
+		});
+
+		it("should set instance variable serverFeatureSet as invalid if the server's feature version does not satisfy", async () => {
+			RewireAPI.__Rewire__('serverDependencies', { foo: '^1.0.0' });
+			getServerFeatures.resolves({ foo: '2.0.0' });
+			maxSatisfying.returns(null);
+
+			await connection._getFeatureState();
+			assert.deepEqual(connection._serverFeatureSet, {
+				validFeatures: {},
+				invalidFeatures: ['foo'],
+			});
 		});
 	});
 

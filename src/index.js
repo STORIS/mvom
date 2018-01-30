@@ -1,19 +1,24 @@
 import Connection from 'Connection';
+import Schema from 'Schema';
 import winston from 'winston';
 
-/** @module mvom */
-class mvom {
+/**
+ * Main mvom module
+ * @module mvom
+ */
+const mvom = {
 	/**
 	 * Create a new connection instance
-	 * @static
+	 * @function createConnection
+	 * @memberof mvom
 	 * @param {string} connectionManagerUri - URI of the connection manager which faciliates access to the mv database
 	 * @param {string} account - Database account that connection will be used against
 	 * @param {Object} options
-	 * @param {string} options.logLevel - Winston logging level (error, warn, info, verbose, debug, silly)
-	 * @returns {Connection}
-	 * @throws
+	 * @param {string} [options.logLevel = 'error'] - Winston logging level (error, warn, info, verbose, debug, silly)
+	 * @returns {Connection} Connection instance
+	 * @throws {Error}
 	 */
-	static createConnection = (connectionManagerUri, account, { logLevel = 'error' } = {}) => {
+	createConnection: (connectionManagerUri, account, { logLevel = 'error' } = {}) => {
 		if (connectionManagerUri == null || account == null) {
 			throw new Error();
 		}
@@ -32,7 +37,8 @@ class mvom {
 
 		// do some stuff
 		return new Connection({ connectionManagerUri, account, logger });
-	};
-}
+	},
+};
 
 export default mvom;
+export { Schema };
