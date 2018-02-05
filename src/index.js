@@ -1,5 +1,6 @@
 import Connection from 'Connection';
 import Schema from 'Schema';
+import schemaType from 'schemaType';
 import winston from 'winston';
 
 /**
@@ -41,4 +42,4 @@ const mvom = {
 };
 
 export default mvom;
-export { Schema };
+export { Schema, schemaType };

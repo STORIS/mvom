@@ -25,7 +25,7 @@ class Document {
 			if (Array.isArray(schemaValue)) {
 				const arrayValue = schemaValue[0];
 				if (arrayValue instanceof Schema) {
-					// this is an array of schema definitions
+					// this is an array of schema instances - process recursively and transform to array of objects
 					set(
 						document,
 						keyPath,
@@ -35,44 +35,27 @@ class Document {
 				}
 
 				if (Array.isArray(arrayValue)) {
-					// this is a nested array of data definitions
+					// this is a nested array of schema type instances
 					const nestedValue = arrayValue[0];
-					set(
-						document,
-						keyPath,
-						castArray(Document.getFromMvData(record, nestedValue.path)).map(val => castArray(val)),
-					);
+					set(document, keyPath, castArray(nestedValue.get(record)).map(val => castArray(val)));
 					return document;
 				}
 
-				// this is an array of data definitions
-				set(document, keyPath, castArray(Document.getFromMvData(record, arrayValue.path)));
+				// this is an array of schema type instances
+				set(document, keyPath, castArray(arrayValue.get(record)));
 				return document;
 			}
 
 			if (schemaValue instanceof Schema) {
-				// this value is set to the result of nested schema definition
+				// this is a schema instance - process recursively
 				set(document, keyPath, Document.applySchemaToRecord(schemaValue, record));
 				return document;
 			}
 
-			// this value is a data definition
-			set(document, keyPath, Document.getFromMvData(record, schemaValue.path));
+			// this is a schema type instance
+			set(document, keyPath, schemaValue.get(record));
 			return document;
 		}, {});
-
-	/**
-	 * Get data from the specified keypath
-	 * @function getFromMvData
-	 * @memberof Document
-	 * @static
-	 * @protected
-	 * @param {*[]} record - Data to get value from
-	 * @param {number[]} mvPath - Keypath from which to pull data
-	 * @returns {*} Value of data at specified location
-	 */
-	static getFromMvData = (record, mvPath) =>
-		mvPath.reduce((acc, pathPart) => castArray(acc)[pathPart], record);
 
 	/**
 	 * Convert an object containing properties which are arrays to an array of objects

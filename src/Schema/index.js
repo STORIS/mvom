@@ -1,46 +1,40 @@
 import isObject from 'lodash/isObject';
-import toPath from 'lodash/toPath';
+import schemaType from 'schemaType';
 
 /**
  * A schema object
  * @param {Object} definition - A schema definition object
+ * @param {Object} options
+ * @param {string} [options.typeProperty = "type"] The name of the property to use for data typing
  * @example const example = new Schema({ propertyA: [{ property1: { path: '1'} }] })
  */
 class Schema {
-	/**
-	 * Determine if an object matches the structure of a data definition
-	 * @function isDataDefinition
-	 * @memberof Schema
-	 * @static
-	 * @private
-	 * @param {Object} obj - Object to test
-	 * @returns {Boolean} True if object is a data definition; false otherwise
-	 */
-	static isDataDefinition = obj => Object.prototype.hasOwnProperty.call(obj, 'path');
-
-	/**
-	 * Convert a 1-index string array path definition (e.g. '1.1.1') to a 0-index array path definition (e.g. [0, 0, 0])
-	 * @function normalizeMvPath
-	 * @memberof Schema
-	 * @static
-	 * @private
-	 * @param {string} path - 1-indexed String path
-	 * @returns {number[]} 0-indexed Array path
-	 */
-	static normalizeMvPath = path =>
-		toPath(path).map(val => {
-			const numVal = +val;
-			if (!Number.isInteger(numVal) || numVal < 1) {
-				throw new Error();
-			}
-			return numVal - 1;
-		});
-
-	constructor(definition) {
-		this.definition = definition;
+	constructor(definition, { typeProperty = 'type' } = {}) {
+		/**
+		 * @member {Object} _definition - The schema definition passed to the constructor
+		 * @memberof Schema
+		 * @instance
+		 * @private
+		 */
+		this._definition = definition;
+		/**
+		 * @member {string} _typeProperty - The name of the property to use for data typing
+		 * @memberof Schema
+		 * @instance
+		 * @private
+		 */
+		this._typeProperty = typeProperty;
+		/**
+		 * @member {Object} paths - The compiled schema object path stucture
+		 * @memberof Schema
+		 * @instance
+		 */
 		this.paths = {};
+
 		this._buildPaths();
 	}
+
+	/* private instance methods */
 
 	/**
 	 * Construct instance member paths
@@ -75,13 +69,12 @@ class Schema {
 
 					if (Array.isArray(arrayValue)) {
 						const nestedArrayValue = arrayValue[0];
-						if (!Schema.isDataDefinition(nestedArrayValue)) {
+						if (!this._isDataDefinition(nestedArrayValue)) {
 							// a nested array can only be of data definitions
 							throw new Error();
 						}
-						// the array contains an array which contains a data definition; normalize the multivalue path and set as result
-						nestedArrayValue.path = Schema.normalizeMvPath(nestedArrayValue.path);
-						this.paths[newKey] = [[nestedArrayValue]];
+						// the array contains an array which contains a data definition; cast the definition to the appropriate type
+						this.paths[newKey] = [[this._castDefinition(nestedArrayValue)]];
 						return;
 					}
 
@@ -91,10 +84,9 @@ class Schema {
 						return;
 					}
 
-					if (Schema.isDataDefinition(arrayValue)) {
-						// the array appears to contain a data definition; normalize the multivalue path and set path as array of result
-						arrayValue.path = Schema.normalizeMvPath(arrayValue.path);
-						this.paths[newKey] = [arrayValue];
+					if (this._isDataDefinition(arrayValue)) {
+						// the array appears to contain a data definition; cast the definition to the appropriate type
+						this.paths[newKey] = [this._castDefinition(arrayValue)];
 						return;
 					}
 
@@ -112,10 +104,9 @@ class Schema {
 						return;
 					}
 
-					if (Schema.isDataDefinition(value)) {
-						// this appears to be a data definition; normalize the multivalue path and set path as result
-						value.path = Schema.normalizeMvPath(value.path);
-						this.paths[newKey] = value;
+					if (this._isDataDefinition(value)) {
+						// this appears to be a data definition; cast the definition to the appropriate type
+						this.paths[newKey] = this._castDefinition(value);
 						return;
 					}
 
@@ -129,8 +120,53 @@ class Schema {
 			});
 		};
 
-		flatten(this.definition);
+		flatten(this._definition);
 	};
+
+	/**
+	 * @function _castDefinition
+	 * @memberof Schema
+	 * @instance
+	 * @private
+	 * @param {Object} dataDefinition - Schema data definition
+	 * @returns Instance of schemaType class as defined by definition
+	 * @throws {Error}
+	 */
+	_castDefinition = dataDefinition => {
+		if (!this._isDataDefinition(dataDefinition)) {
+			throw new Error();
+		}
+		switch (dataDefinition[this._typeProperty]) {
+			case Boolean:
+			case schemaType.Boolean:
+				return new schemaType.Boolean(dataDefinition);
+			case schemaType.ISOCalendarDateTime:
+				return new schemaType.ISOCalendarDateTime(dataDefinition);
+			case schemaType.ISOCalendarDate:
+				return new schemaType.ISOCalendarDate(dataDefinition);
+			case schemaType.ISOTime:
+				return new schemaType.ISOTime(dataDefinition);
+			case Number:
+			case schemaType.Number:
+				return new schemaType.Number(dataDefinition);
+			case String:
+			case schemaType.String:
+				return new schemaType.String(dataDefinition);
+			default:
+				throw new Error();
+		}
+	};
+
+	/**
+	 * Determine if an object matches the structure of a data definition
+	 * @function _isDataDefinition
+	 * @memberof Schema
+	 * @instance
+	 * @private
+	 * @param {Object} obj - Object to test
+	 * @returns {Boolean} True if object is a data definition; false otherwise
+	 */
+	_isDataDefinition = obj => Object.prototype.hasOwnProperty.call(obj, this._typeProperty);
 }
 
 export default Schema;

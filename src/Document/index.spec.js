@@ -13,9 +13,18 @@ describe('Document', () => {
 			//   so stubbing their behavior is not crucial.  The static helper functions will be tested on their own in separate blocks
 			//   to ensure satisfactory coverage of their individual behavior.
 			describe('arrays of Schemas', () => {
-				const schema = new Schema({
-					propertyA: [new Schema({ property1: { path: '1' }, property2: { path: '2' } })],
+				let schema;
+				before(() => {
+					schema = new Schema({
+						propertyA: [
+							new Schema({
+								property1: { path: '1', type: String },
+								property2: { path: '2', type: String },
+							}),
+						],
+					});
 				});
+
 				it('should properly format well-formatted arrays of Schemas', () => {
 					const record = [['foo', 'bar'], ['baz', 'qux']];
 					assert.deepEqual(Document.applySchemaToRecord(schema, record), {
@@ -53,10 +62,16 @@ describe('Document', () => {
 			});
 
 			describe('arrays of Schemas containing arrays of Schemas', () => {
-				const schema = new Schema({
-					propertyA: [
-						new Schema({ property1: { path: '1' }, propertyB: [{ property2: { path: '2' } }] }),
-					],
+				let schema;
+				before(() => {
+					schema = new Schema({
+						propertyA: [
+							new Schema({
+								property1: { path: '1', type: String },
+								propertyB: [{ property2: { path: '2', type: String } }],
+							}),
+						],
+					});
 				});
 
 				it('should properly format nested sub-schemas', () => {
@@ -71,7 +86,11 @@ describe('Document', () => {
 			});
 
 			describe('nested arrays of data definitions', () => {
-				const schema = new Schema({ propertyA: [[{ path: '1' }]] });
+				let schema;
+				before(() => {
+					schema = new Schema({ propertyA: [[{ path: '1', type: String }]] });
+				});
+
 				it('should properly format well-formatted nested arrays', () => {
 					const record = [[['foo', 'bar'], ['baz', 'qux']]];
 					assert.deepEqual(Document.applySchemaToRecord(schema, record), {
@@ -102,7 +121,11 @@ describe('Document', () => {
 			});
 
 			describe('arrays of data definitions', () => {
-				const schema = new Schema({ propertyA: [{ path: '1' }] });
+				let schema;
+				before(() => {
+					schema = new Schema({ propertyA: [{ path: '1', type: String }] });
+				});
+
 				it('should properly format well-formatted arrays', () => {
 					const record = [['foo', 'bar']];
 					assert.deepEqual(Document.applySchemaToRecord(schema, record), {
@@ -126,7 +149,13 @@ describe('Document', () => {
 			});
 
 			describe('property value is schema', () => {
-				const schema = new Schema({ propertyA: new Schema({ property1: { path: '1' } }) });
+				let schema;
+				before(() => {
+					schema = new Schema({
+						propertyA: new Schema({ property1: { path: '1', type: String } }),
+					});
+				});
+
 				it('should properly format a property whose value is another schema', () => {
 					const record = ['foo'];
 					assert.deepEqual(Document.applySchemaToRecord(schema, record), {
@@ -136,45 +165,17 @@ describe('Document', () => {
 			});
 
 			describe('property value is data definition', () => {
-				const schema = new Schema({ propertyA: { path: '1' } });
+				let schema;
+				before(() => {
+					schema = new Schema({ propertyA: { path: '1', type: String } });
+				});
+
 				it('should properly format a property whose value is a data definition', () => {
 					const record = ['foo'];
 					assert.deepEqual(Document.applySchemaToRecord(schema, record), {
 						propertyA: 'foo',
 					});
 				});
-			});
-		});
-
-		describe('getFromMvData', () => {
-			it('should get value from shallow path', () => {
-				const record = ['foo'];
-				assert.strictEqual(Document.getFromMvData(record, ['0']), 'foo');
-			});
-
-			it('should get value from one-level deep path', () => {
-				const record = [['foo', 'bar']];
-				assert.strictEqual(Document.getFromMvData(record, ['0', '1']), 'bar');
-			});
-
-			it('should get value from one-level deep path not formatted as array', () => {
-				const record = ['foo'];
-				assert.strictEqual(Document.getFromMvData(record, ['0', '0']), 'foo');
-			});
-
-			it('should get value from two-level deep path', () => {
-				const record = [[['foo', 'bar'], ['baz', 'qux']]];
-				assert.strictEqual(Document.getFromMvData(record, ['0', '1', '1']), 'qux');
-			});
-
-			it('should get value from two-level deep path not formatted as deep array', () => {
-				const record = [['foo', 'bar']];
-				assert.strictEqual(Document.getFromMvData(record, ['0', '1', '0']), 'bar');
-			});
-
-			it('should get value from two-level deep path not formatted as array', () => {
-				const record = ['foo'];
-				assert.strictEqual(Document.getFromMvData(record, ['0', '0', '0']), 'foo');
 			});
 		});
 
