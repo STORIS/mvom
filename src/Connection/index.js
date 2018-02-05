@@ -1,12 +1,13 @@
 import assignIn from 'lodash/assignIn';
 import axios from 'axios';
+import fs from 'fs-extra';
+import path from 'path';
 import semver from 'semver';
 import Document from 'Document';
 import Schema from 'Schema';
+import getFeatureVersion from 'shared/getFeatureVersion';
 // temporarily not using import due to issue with babel-plugin-module-resolver https://github.com/tleunen/babel-plugin-module-resolver/pull/253
 // import { dependencies as serverDependencies } from '.mvomrc.json';
-import getServerProgramName from 'shared/getServerProgramName';
-import getUnibasicSource from 'shared/getUnibasicSource';
 
 const { dependencies: serverDependencies } = require('../.mvomrc.json');
 
@@ -17,6 +18,49 @@ const { dependencies: serverDependencies } = require('../.mvomrc.json');
  * @param options.logger - Winston logger instance used for diagnostic logging
  */
 class Connection {
+	/* static properties */
+	/**
+	 * File system path of the Unibasic source code
+	 * @member {string} unibasicPath
+	 * @memberof Connection
+	 * @static
+	 * @private
+	 */
+	static unibasicPath = path.resolve(path.join(__dirname, '../', 'unibasic'));
+
+	/* static methods */
+	/**
+	 * Get the exact name of a program on the database server
+	 * @function getServerProgramName
+	 * @memberof Connection
+	 * @static
+	 * @private
+	 * @param {string} feature - Feature name
+	 * @param {Object} [options={}]
+	 * @param {string} [options.version=PackagedVersion] - Version of feature to use
+	 * @returns {string} Name of the database server program
+	 */
+	static getServerProgramName = (feature, options = {}) => {
+		const version = options.version || getFeatureVersion(feature);
+		return `mvom_${feature}@${version}`;
+	};
+
+	/**
+	 * Get the UniBasic source code for a given feature
+	 * @function getUnibasicSource
+	 * @memberof Connection
+	 * @static
+	 * @private
+	 * @async
+	 * @param {string} feature - Feature name
+	 * @returns {string} UniBasic source code
+	 */
+	static getUnibasicSource = async feature => {
+		const filePath = path.join(Connection.unibasicPath, `${feature}.mvb`);
+		return fs.readFile(filePath, 'utf8');
+	};
+
+	/* instance properties */
 	/**
 	 * Object providing the current state of db server features and availability
 	 * @member {Object} _serverFeatureSet
@@ -37,7 +81,7 @@ class Connection {
 		 * @instance
 		 * @private
 		 */
-		this._endpoint = `${connectionManagerUri}/${account}/subroutine/${getServerProgramName(
+		this._endpoint = `${connectionManagerUri}/${account}/subroutine/${Connection.getServerProgramName(
 			'entry',
 		)}`;
 		/**
@@ -49,6 +93,7 @@ class Connection {
 		this.logger = logger;
 	}
 
+	/* public instance methods */
 	/**
 	 * Open a database connection
 	 * @function open
@@ -112,8 +157,8 @@ class Connection {
 			const data = {
 				action: 'deploy',
 				sourceDir,
-				source: await getUnibasicSource('deploy'),
-				programName: getServerProgramName('deploy'),
+				source: await Connection.getUnibasicSource('deploy'),
+				programName: Connection.getServerProgramName('deploy'),
 			};
 
 			await this._executeDb(data);
@@ -129,8 +174,8 @@ class Connection {
 				this.logger.debug(`deploying ${feature} to ${sourceDir}`);
 				const options = {
 					sourceDir,
-					source: await getUnibasicSource(feature),
-					programName: getServerProgramName(feature),
+					source: await Connection.getUnibasicSource(feature),
+					programName: Connection.getServerProgramName(feature),
 				};
 				await this.executeDbFeature('deploy', options);
 			}),
@@ -152,7 +197,10 @@ class Connection {
 		const data = {
 			action: 'subroutine',
 			// make sure to use the compatible server version of feature
-			subroutineId: getServerProgramName(feature, this._serverFeatureSet.validFeatures[feature]),
+			subroutineId: Connection.getServerProgramName(
+				feature,
+				this._serverFeatureSet.validFeatures[feature],
+			),
 			options,
 		};
 
@@ -215,7 +263,7 @@ class Connection {
 
 			constructor(record) {
 				super();
-				this._connection.logger.debug(`creating new instance of model for file ${this.file}`);
+				this._connection.logger.debug(`creating new instance of model for file ${this._file}`);
 				this._protectProperties();
 				/**
 				 * Record array of multivalue data
@@ -235,6 +283,7 @@ class Connection {
 		};
 	};
 
+	/* private instance methods */
 	/**
 	 * Execute a database function remotely
 	 * @function _executeDb
