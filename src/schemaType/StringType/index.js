@@ -14,6 +14,23 @@ class StringType extends SimpleType {
 		}
 		super(definition);
 	}
+
+	/**
+	 * Transform mv string to js string
+	 * @function transformFromDb
+	 * @memberof StringType
+	 * @instance
+	 * @public
+	 * @override
+	 * @param {string|null} value - Value to transform
+	 * @returns {string} Transformed value
+	 */
+	transformFromDb = value => {
+		if (value == null) {
+			return String();
+		}
+		return String(value);
+	};
 }
 
 export default StringType;

@@ -21,17 +21,21 @@ class ISOCalendarDateType extends SimpleType {
 	 * @instance
 	 * @public
 	 * @override
-	 * @param {integer} value - Value to transform
-	 * @returns {String} Transformed ISO 8601 String Date value (yyyy-mm-dd)
+	 * @param {string|number|null} value - Value to transform
+	 * @returns {string|null} Transformed ISO 8601 String Date value (yyyy-mm-dd)
 	 * @throws {Error}
 	 */
 	transformFromDb = value => {
-		if (!Number.isInteger(value)) {
+		if (value == null) {
+			return null;
+		}
+		const castValue = +value;
+		if (!Number.isInteger(castValue)) {
 			throw new Error();
 		}
 
 		return moment(ISOCalendarDateType.epoch)
-			.add(value, 'days')
+			.add(castValue, 'days')
 			.format('YYYY-MM-DD');
 	};
 }

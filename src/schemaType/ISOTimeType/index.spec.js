@@ -62,6 +62,10 @@ describe('ISOTimeType', () => {
 				assert.throws(isoTimeType.transformFromDb.bind(isoTimeType, 86401));
 			});
 
+			it("should return null if the input value isn't provided", () => {
+				assert.isNull(isoTimeType.transformFromDb());
+			});
+
 			it('should add the number of milliseconds specified by value to the moment', () => {
 				isoTimeType._isDbInMs = true;
 				isoTimeType.transformFromDb(1000);

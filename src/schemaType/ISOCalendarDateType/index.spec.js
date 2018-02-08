@@ -28,6 +28,10 @@ describe('ISOCalendarDate', () => {
 				assert.throws(isoCalendarDateType.transformFromDb.bind(isoCalendarDateType, 'foo'));
 			});
 
+			it("should return null if the input value isn't provided", () => {
+				assert.isNull(isoCalendarDateType.transformFromDb());
+			});
+
 			it('should add the number of days specified by value to the moment', () => {
 				isoCalendarDateType.transformFromDb(1000);
 				assert.isTrue(add.calledWith(1000, 'days'));

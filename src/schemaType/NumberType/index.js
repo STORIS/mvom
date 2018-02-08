@@ -40,16 +40,20 @@ class NumberType extends SimpleType {
 	 * @instance
 	 * @public
 	 * @override
-	 * @param {integer} value - Value to transform
-	 * @returns {Number} Transformed numeric value
+	 * @param {string|number|null} value - Value to transform
+	 * @returns {Number|null} Transformed numeric value
 	 * @throws {Error}
 	 */
 	transformFromDb = value => {
-		if (!isNumber(value)) {
+		if (value == null) {
+			return null;
+		}
+		const castValue = +value;
+		if (!isNumber(castValue)) {
 			throw new Error();
 		}
 
-		return +(Math.round(value, 0) / 10 ** this._dbDecimals).toFixed(this._dbDecimals);
+		return +(Math.round(castValue, 0) / 10 ** this._dbDecimals).toFixed(this._dbDecimals);
 	};
 }
 

@@ -6,6 +6,7 @@ import BaseType from 'schemaType/BaseType';
  * A Simple Schema Type
  * @extends BaseType
  * @hideconstructor
+ * @interface
  * @param {Object} definition - Data definition
  * @param {string} [definition.path = null] - 1-indexed String path
  * @throws {Error}

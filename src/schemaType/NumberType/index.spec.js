@@ -45,6 +45,10 @@ describe('NumberType', () => {
 				assert.throws(numberType.transformFromDb.bind(numberType, 'foo'));
 			});
 
+			it("should return null if the input value isn't provided", () => {
+				assert.isNull(numberType.transformFromDb());
+			});
+
 			it('should return the same as input value if dbDecimals is 0', () => {
 				isNumber.returns(true);
 				numberType._dbDecimals = 0;

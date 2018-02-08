@@ -30,17 +30,20 @@ class ISOCalendarDateTimeType extends SimpleType {
 	/* public instance methods */
 
 	/**
-	 * Transform mv style timestamp data (ddddd.sssss[SSS]) to ISO 8601 approved date/time format (yyyy-mm-ddTkk:mm:ss.SSS)
+	 * Transform mv style timestamp data (ddddd.sssss[SSS]) to ISO 8601 approved date/time format (yyyy-mm-ddTHH:mm:ss.SSS)
 	 * @function transformFromDb
 	 * @memberof ISOCalendarDateTimeType
 	 * @instance
 	 * @public
 	 * @override
-	 * @param {integer} value - Value to transform
-	 * @returns {string} Transformed ISO 8601 String Time value (kk:mm:ss.SSS)
+	 * @param {string|number|null} value - Value to transform
+	 * @returns {string|null} Transformed ISO 8601 String Time value (HH:mm:ss.SSS)
 	 * @throws {Error}
 	 */
 	transformFromDb = value => {
+		if (value == null) {
+			return null;
+		}
 		const valueParts = String(value).split('.');
 
 		const datePart = new ISOCalendarDateType({}).transformFromDb(+valueParts[0]);

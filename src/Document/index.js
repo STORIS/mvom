@@ -1,3 +1,4 @@
+import assignIn from 'lodash/assignIn';
 import castArray from 'lodash/castArray';
 import isPlainObject from 'lodash/isPlainObject';
 import set from 'lodash/set';
@@ -5,64 +6,19 @@ import Schema from 'Schema';
 
 /**
  * A document object
+ * @class Document
+ * @param {Schema} schema - Schema instance to derive document from
+ * @param {*[]} record - Array data to construct document instance properties from
+ * @throws {Error}
  */
 class Document {
 	/* static methods */
-	/**
-	 * Apply schema structure against data
-	 * @function applySchemaToRecord
-	 * @memberof Document
-	 * @static
-	 * @protected
-	 * @param {Schema} schema - Schema to map against data
-	 * @param {*[]} record - Array of data to apply schema against
-	 * @returns {Object} Object created by applying schema to record
-	 */
-	static applySchemaToRecord = (schema, record) =>
-		Object.keys(schema.paths).reduce((document, keyPath) => {
-			const schemaValue = schema.paths[keyPath];
-
-			if (Array.isArray(schemaValue)) {
-				const arrayValue = schemaValue[0];
-				if (arrayValue instanceof Schema) {
-					// this is an array of schema instances - process recursively and transform to array of objects
-					set(
-						document,
-						keyPath,
-						Document.objArrayToArrayObj(Document.applySchemaToRecord(arrayValue, record)),
-					);
-					return document;
-				}
-
-				if (Array.isArray(arrayValue)) {
-					// this is a nested array of schema type instances
-					const nestedValue = arrayValue[0];
-					set(document, keyPath, castArray(nestedValue.get(record)).map(val => castArray(val)));
-					return document;
-				}
-
-				// this is an array of schema type instances
-				set(document, keyPath, castArray(arrayValue.get(record)));
-				return document;
-			}
-
-			if (schemaValue instanceof Schema) {
-				// this is a schema instance - process recursively
-				set(document, keyPath, Document.applySchemaToRecord(schemaValue, record));
-				return document;
-			}
-
-			// this is a schema type instance
-			set(document, keyPath, schemaValue.get(record));
-			return document;
-		}, {});
-
 	/**
 	 * Convert an object containing properties which are arrays to an array of objects
 	 * @function objArrayToArrayObj
 	 * @memberof Document
 	 * @static
-	 * @protected
+	 * @private
 	 * @param {Object} obj - Object to convert
 	 * @returns {Object[]} Array of objects
 	 * @example
@@ -93,23 +49,94 @@ class Document {
 			return acc;
 		}, []);
 
-	/* private instance methods */
-	/**
-	 * Set configurable, enumerable, and writable property descriptors of all instance properties to false
-	 * @function _protectProperties
-	 * @memberof Document
-	 * @instance
-	 * @protected
-	 */
-	_protectProperties = () => {
-		Object.keys(this).forEach(prop => {
-			Object.defineProperty(this, prop, {
+	constructor(schema, record) {
+		if (!(schema instanceof Schema) || !Array.isArray(record)) {
+			throw new Error();
+		}
+		Object.defineProperties(this, {
+			/**
+			 * Schema instance which defined this document
+			 * @member {Schema} _schema
+			 * @memberof Document
+			 * @instance
+			 * @private
+			 */
+			_schema: {
+				value: schema,
+			},
+			/**
+			 * Record array of multivalue data
+			 * @member {*[]} _record
+			 * @memberof Document
+			 * @instance
+			 * @private
+			 */
+			_record: {
+				value: record,
+				writable: true,
+			},
+			_applySchemaToRecord: {
 				configurable: false,
 				enumerable: false,
 				writable: false,
-			});
+			},
 		});
-	};
+
+		assignIn(this, this._applySchemaToRecord());
+	}
+
+	/* private instance methods */
+
+	/**
+	 * Apply schema structure against data
+	 * @function _applySchemaToRecord
+	 * @memberof Document
+	 * @instance
+	 * @private
+	 * @returns {Object} Object created by applying schema to record
+	 */
+	_applySchemaToRecord = () =>
+		Object.keys(this._schema.paths).reduce((document, keyPath) => {
+			const schemaValue = this._schema.paths[keyPath];
+
+			if (Array.isArray(schemaValue)) {
+				const arrayValue = schemaValue[0];
+				if (arrayValue instanceof Schema) {
+					// this is an array of schema instances - construct a new subdocument instance and transform to array of objects
+					set(
+						document,
+						keyPath,
+						Document.objArrayToArrayObj(new Document(arrayValue, this._record)),
+					);
+					return document;
+				}
+
+				if (Array.isArray(arrayValue)) {
+					// this is a nested array of schema type instances
+					const nestedValue = arrayValue[0];
+					set(
+						document,
+						keyPath,
+						castArray(nestedValue.get(this._record)).map(val => castArray(val)),
+					);
+					return document;
+				}
+
+				// this is an array of schema type instances
+				set(document, keyPath, castArray(arrayValue.get(this._record)));
+				return document;
+			}
+
+			if (schemaValue instanceof Schema) {
+				// this is a schema instance - construct a new subdocument instance and destructure into assignment
+				set(document, keyPath, { ...new Document(schemaValue, this._record) });
+				return document;
+			}
+
+			// this is a schema type instance
+			set(document, keyPath, schemaValue.get(this._record));
+			return document;
+		}, {});
 }
 
 export default Document;

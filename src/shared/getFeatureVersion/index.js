@@ -5,6 +5,7 @@ const { dependencies: serverDependencies } = require('../../.mvomrc.json');
 /**
  * Return the packaged specific version number of a feature
  * @function getFeatureVersion
+ * @package
  * @private
  * @param {string} feature - Name of feature
  * @returns {string} Version in semver (x.y.z) format

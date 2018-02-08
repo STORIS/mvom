@@ -18,16 +18,22 @@ class BooleanType extends SimpleType {
 	/* public instance methods */
 
 	/**
-	 * Transform mv style data to js style data
+	 * Transform mv style data to Boolean
 	 * @function transformFromDb
 	 * @memberof BooleanType
 	 * @instance
 	 * @public
 	 * @override
-	 * @param {*} value - Value to transform
+	 * @param {string|number|null} value - Value to transform
 	 * @returns {Boolean} Transformed value
 	 */
-	transformFromDb = value => Boolean(value);
+	transformFromDb = value => {
+		// this logic is intentionally trying to mimic the Boolean rules of the UniBasic interpreter
+		if (value == null || value === '0' || value === 0) {
+			return false;
+		}
+		return true;
+	};
 }
 
 export default BooleanType;

@@ -1,184 +1,10 @@
 /* eslint-disable no-underscore-dangle */
 import { assert } from 'chai';
 import Schema from 'Schema';
-import Document from './';
+import Document, { __RewireAPI__ as RewireAPI } from './';
 
 describe('Document', () => {
 	describe('static methods', () => {
-		describe('applySchemaToRecord', () => {
-			// this set of tests is very intentionally not behaving like a "true" unit test as the function's external dependencies
-			//   are not being stubbed.  This is because of a strong desire to test the input mv-type data structures to the
-			//   anticipated outputs arising from applying the schema.  The external dependencies are either static helper functions
-			//   internal to the Model class or lodash methods.  lodash methods can be considered javascript "language extensions",
-			//   so stubbing their behavior is not crucial.  The static helper functions will be tested on their own in separate blocks
-			//   to ensure satisfactory coverage of their individual behavior.
-			describe('arrays of Schemas', () => {
-				let schema;
-				before(() => {
-					schema = new Schema({
-						propertyA: [
-							new Schema({
-								property1: { path: '1', type: String },
-								property2: { path: '2', type: String },
-							}),
-						],
-					});
-				});
-
-				it('should properly format well-formatted arrays of Schemas', () => {
-					const record = [['foo', 'bar'], ['baz', 'qux']];
-					assert.deepEqual(Document.applySchemaToRecord(schema, record), {
-						propertyA: [
-							{ property1: 'foo', property2: 'baz' },
-							{ property1: 'bar', property2: 'qux' },
-						],
-					});
-				});
-
-				it('should properly format arrays of Schemas not structured as arrays in data', () => {
-					const record = ['foo', 'bar'];
-					assert.deepEqual(Document.applySchemaToRecord(schema, record), {
-						propertyA: [{ property1: 'foo', property2: 'bar' }],
-					});
-				});
-
-				it('should properly format arrays of Schemas with ragged associations', () => {
-					const record = [['foo', 'bar'], 'baz'];
-					assert.deepEqual(Document.applySchemaToRecord(schema, record), {
-						propertyA: [{ property1: 'foo', property2: 'baz' }, { property1: 'bar' }],
-					});
-				});
-
-				it('should properly format arrays of Schemas with sparse associations', () => {
-					const record = [['foo', null, 'bar'], ['baz', null, 'qux']];
-					assert.deepEqual(Document.applySchemaToRecord(schema, record), {
-						propertyA: [
-							{ property1: 'foo', property2: 'baz' },
-							{ property1: null, property2: null },
-							{ property1: 'bar', property2: 'qux' },
-						],
-					});
-				});
-			});
-
-			describe('arrays of Schemas containing arrays of Schemas', () => {
-				let schema;
-				before(() => {
-					schema = new Schema({
-						propertyA: [
-							new Schema({
-								property1: { path: '1', type: String },
-								propertyB: [{ property2: { path: '2', type: String } }],
-							}),
-						],
-					});
-				});
-
-				it('should properly format nested sub-schemas', () => {
-					const record = [['foo', 'bar'], [['baz', 'qux'], ['quux', 'corge']]];
-					assert.deepEqual(Document.applySchemaToRecord(schema, record), {
-						propertyA: [
-							{ property1: 'foo', propertyB: [{ property2: 'baz' }, { property2: 'qux' }] },
-							{ property1: 'bar', propertyB: [{ property2: 'quux' }, { property2: 'corge' }] },
-						],
-					});
-				});
-			});
-
-			describe('nested arrays of data definitions', () => {
-				let schema;
-				before(() => {
-					schema = new Schema({ propertyA: [[{ path: '1', type: String }]] });
-				});
-
-				it('should properly format well-formatted nested arrays', () => {
-					const record = [[['foo', 'bar'], ['baz', 'qux']]];
-					assert.deepEqual(Document.applySchemaToRecord(schema, record), {
-						propertyA: [['foo', 'bar'], ['baz', 'qux']],
-					});
-				});
-
-				it('should properly format nested arrays of length 1', () => {
-					const record = [['foo', 'bar']];
-					assert.deepEqual(Document.applySchemaToRecord(schema, record), {
-						propertyA: [['foo'], ['bar']],
-					});
-				});
-
-				it('should properly format nested arrays that are not array-like in the data', () => {
-					const record = ['foo'];
-					assert.deepEqual(Document.applySchemaToRecord(schema, record), {
-						propertyA: [['foo']],
-					});
-				});
-
-				it('should properly format nested arrays that are null values', () => {
-					const record = [null];
-					assert.deepEqual(Document.applySchemaToRecord(schema, record), {
-						propertyA: [[null]],
-					});
-				});
-			});
-
-			describe('arrays of data definitions', () => {
-				let schema;
-				before(() => {
-					schema = new Schema({ propertyA: [{ path: '1', type: String }] });
-				});
-
-				it('should properly format well-formatted arrays', () => {
-					const record = [['foo', 'bar']];
-					assert.deepEqual(Document.applySchemaToRecord(schema, record), {
-						propertyA: ['foo', 'bar'],
-					});
-				});
-
-				it('should properly format arrays that are not array-like in the data', () => {
-					const record = ['foo'];
-					assert.deepEqual(Document.applySchemaToRecord(schema, record), {
-						propertyA: ['foo'],
-					});
-				});
-
-				it('should properly format arrays that are null values', () => {
-					const record = [null];
-					assert.deepEqual(Document.applySchemaToRecord(schema, record), {
-						propertyA: [null],
-					});
-				});
-			});
-
-			describe('property value is schema', () => {
-				let schema;
-				before(() => {
-					schema = new Schema({
-						propertyA: new Schema({ property1: { path: '1', type: String } }),
-					});
-				});
-
-				it('should properly format a property whose value is another schema', () => {
-					const record = ['foo'];
-					assert.deepEqual(Document.applySchemaToRecord(schema, record), {
-						propertyA: { property1: 'foo' },
-					});
-				});
-			});
-
-			describe('property value is data definition', () => {
-				let schema;
-				before(() => {
-					schema = new Schema({ propertyA: { path: '1', type: String } });
-				});
-
-				it('should properly format a property whose value is a data definition', () => {
-					const record = ['foo'];
-					assert.deepEqual(Document.applySchemaToRecord(schema, record), {
-						propertyA: 'foo',
-					});
-				});
-			});
-		});
-
 		describe('objArrayToArrayObj', () => {
 			it('should transform an object with property values of arrays', () => {
 				assert.deepEqual(Document.objArrayToArrayObj({ propertyA: ['foo', 'bar'] }), [
@@ -201,22 +27,218 @@ describe('Document', () => {
 		});
 	});
 
+	describe('constructor', () => {
+		const SchemaRewire = class {
+			paths = {};
+		};
+		before(() => {
+			RewireAPI.__Rewire__('Schema', SchemaRewire);
+		});
+
+		after(() => {
+			RewireAPI.__ResetDependency__('Schema');
+		});
+
+		it('should throw if Schema instance is not provided', () => {
+			assert.throws(() => new Document('foo', ['bar']));
+		});
+
+		it('should throw if a record array is not provided', () => {
+			assert.throws(() => new Document(new SchemaRewire(), 'foo'));
+		});
+
+		it('should set the expected instance properties', () => {
+			const document = new Document(new SchemaRewire(), ['foo']);
+			assert.instanceOf(document._schema, SchemaRewire);
+			assert.deepEqual(document._record, ['foo']);
+		});
+	});
+
 	describe('instance methods', () => {
-		describe('_protectProperties', () => {
-			it("should define all of the passed object's properties as not configurable/enumerable/writable", () => {
-				const test = new Document();
-				test.property1 = 'foo';
-				test.property2 = 'bar';
-				test._protectProperties();
-				assert.deepInclude(Object.getOwnPropertyDescriptor(test, 'property1'), {
-					configurable: false,
-					enumerable: false,
-					writable: false,
+		describe('applySchemaToRecord', () => {
+			// this set of tests is very intentionally not behaving like a "true" unit test as the function's external dependencies
+			//   are not being stubbed.  This is because of a strong desire to test the input mv-type data structures to the
+			//   anticipated outputs arising from applying the schema.  The external dependencies are either static helper functions
+			//   internal to the Model class or lodash methods.  lodash methods can be considered javascript "language extensions",
+			//   so stubbing their behavior is not crucial.  The static helper functions will be tested on their own in separate blocks
+			//   to ensure satisfactory coverage of their individual behavior.
+			describe('arrays of Schemas', () => {
+				let schema;
+				before(() => {
+					schema = new Schema({
+						propertyA: [
+							new Schema({
+								property1: { path: '1', type: String },
+								property2: { path: '2', type: String },
+							}),
+						],
+					});
 				});
-				assert.deepInclude(Object.getOwnPropertyDescriptor(test, 'property2'), {
-					configurable: false,
-					enumerable: false,
-					writable: false,
+
+				it('should properly format well-formatted arrays of Schemas', () => {
+					const record = [['foo', 'bar'], ['baz', 'qux']];
+					const document = new Document(schema, record);
+					assert.deepEqual(document._applySchemaToRecord(), {
+						propertyA: [
+							{ property1: 'foo', property2: 'baz' },
+							{ property1: 'bar', property2: 'qux' },
+						],
+					});
+				});
+
+				it('should properly format arrays of Schemas not structured as arrays in data', () => {
+					const record = ['foo', 'bar'];
+					const document = new Document(schema, record);
+					assert.deepEqual(document._applySchemaToRecord(), {
+						propertyA: [{ property1: 'foo', property2: 'bar' }],
+					});
+				});
+
+				it('should properly format arrays of Schemas with ragged associations', () => {
+					const record = [['foo', 'bar'], 'baz'];
+					const document = new Document(schema, record);
+					assert.deepEqual(document._applySchemaToRecord(), {
+						propertyA: [{ property1: 'foo', property2: 'baz' }, { property1: 'bar' }],
+					});
+				});
+
+				it('should properly format arrays of Schemas with sparse associations', () => {
+					const record = [['foo', null, 'bar'], ['baz', null, 'qux']];
+					const document = new Document(schema, record);
+					assert.deepEqual(document._applySchemaToRecord(), {
+						propertyA: [
+							{ property1: 'foo', property2: 'baz' },
+							{ property1: '', property2: '' },
+							{ property1: 'bar', property2: 'qux' },
+						],
+					});
+				});
+			});
+
+			describe('arrays of Schemas containing arrays of Schemas', () => {
+				let schema;
+				before(() => {
+					schema = new Schema({
+						propertyA: [
+							new Schema({
+								property1: { path: '1', type: String },
+								propertyB: [{ property2: { path: '2', type: String } }],
+							}),
+						],
+					});
+				});
+
+				it('should properly format nested sub-schemas', () => {
+					const record = [['foo', 'bar'], [['baz', 'qux'], ['quux', 'corge']]];
+					const document = new Document(schema, record);
+					assert.deepEqual(document._applySchemaToRecord(), {
+						propertyA: [
+							{ property1: 'foo', propertyB: [{ property2: 'baz' }, { property2: 'qux' }] },
+							{ property1: 'bar', propertyB: [{ property2: 'quux' }, { property2: 'corge' }] },
+						],
+					});
+				});
+			});
+
+			describe('nested arrays of data definitions', () => {
+				let schema;
+				before(() => {
+					schema = new Schema({ propertyA: [[{ path: '1', type: String }]] });
+				});
+
+				it('should properly format well-formatted nested arrays', () => {
+					const record = [[['foo', 'bar'], ['baz', 'qux']]];
+					const document = new Document(schema, record);
+					assert.deepEqual(document._applySchemaToRecord(), {
+						propertyA: [['foo', 'bar'], ['baz', 'qux']],
+					});
+				});
+
+				it('should properly format nested arrays of length 1', () => {
+					const record = [['foo', 'bar']];
+					const document = new Document(schema, record);
+					assert.deepEqual(document._applySchemaToRecord(), {
+						propertyA: [['foo'], ['bar']],
+					});
+				});
+
+				it('should properly format nested arrays that are not array-like in the data', () => {
+					const record = ['foo'];
+					const document = new Document(schema, record);
+					assert.deepEqual(document._applySchemaToRecord(), {
+						propertyA: [['foo']],
+					});
+				});
+
+				it('should properly format nested arrays that are null values', () => {
+					const record = [null];
+					const document = new Document(schema, record);
+					assert.deepEqual(document._applySchemaToRecord(), {
+						propertyA: [['']],
+					});
+				});
+			});
+
+			describe('arrays of data definitions', () => {
+				let schema;
+				before(() => {
+					schema = new Schema({ propertyA: [{ path: '1', type: String }] });
+				});
+
+				it('should properly format well-formatted arrays', () => {
+					const record = [['foo', 'bar']];
+					const document = new Document(schema, record);
+					assert.deepEqual(document._applySchemaToRecord(), {
+						propertyA: ['foo', 'bar'],
+					});
+				});
+
+				it('should properly format arrays that are not array-like in the data', () => {
+					const record = ['foo'];
+					const document = new Document(schema, record);
+					assert.deepEqual(document._applySchemaToRecord(), {
+						propertyA: ['foo'],
+					});
+				});
+
+				it('should properly format arrays that are null values', () => {
+					const record = [null];
+					const document = new Document(schema, record);
+					assert.deepEqual(document._applySchemaToRecord(), {
+						propertyA: [''],
+					});
+				});
+			});
+
+			describe('property value is schema', () => {
+				let schema;
+				before(() => {
+					schema = new Schema({
+						propertyA: new Schema({ property1: { path: '1', type: String } }),
+					});
+				});
+
+				it('should properly format a property whose value is another schema', () => {
+					const record = ['foo'];
+					const document = new Document(schema, record);
+					assert.deepEqual(document._applySchemaToRecord(), {
+						propertyA: { property1: 'foo' },
+					});
+				});
+			});
+
+			describe('property value is data definition', () => {
+				let schema;
+				before(() => {
+					schema = new Schema({ propertyA: { path: '1', type: String } });
+				});
+
+				it('should properly format a property whose value is a data definition', () => {
+					const record = ['foo'];
+					const document = new Document(schema, record);
+					assert.deepEqual(document._applySchemaToRecord(), {
+						propertyA: 'foo',
+					});
 				});
 			});
 		});

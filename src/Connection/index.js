@@ -1,10 +1,8 @@
-import assignIn from 'lodash/assignIn';
 import axios from 'axios';
 import fs from 'fs-extra';
 import path from 'path';
 import semver from 'semver';
-import Document from 'Document';
-import Schema from 'Schema';
+import compileModel from 'compileModel';
 import getFeatureVersion from 'shared/getFeatureVersion';
 // temporarily not using import due to issue with babel-plugin-module-resolver https://github.com/tleunen/babel-plugin-module-resolver/pull/253
 // import { dependencies as serverDependencies } from '.mvomrc.json';
@@ -219,69 +217,7 @@ class Connection {
 	 * @returns {Model} Model class
 	 * @throws {Error}
 	 */
-	model = (schema, file) => {
-		this.logger.debug(`creating new model for file ${file}`);
-		if (!(schema instanceof Schema) || file == null) {
-			this.logger.debug('invalid parameters passed to model compiler');
-			throw new Error();
-		}
-
-		// keep a reference to this connection to pass through to the Model class definition
-		const connection = this;
-
-		/**
-		 * Construct a document instance of a compiled model
-		 * @class Model
-		 * @extends Document
-		 * @param {*[]} record - Array data to construct model instance properties from
-		 */
-		return class Model extends Document {
-			/**
-			 * Connection instance which constructed this model defininition
-			 * @member {Connection} _connection
-			 * @memberof Model
-			 * @instance
-			 * @private
-			 */
-			_connection = connection;
-			/**
-			 * Schema instance which defined this model
-			 * @member {Schema} _schema
-			 * @memberof Model
-			 * @instance
-			 * @private
-			 */
-			_schema = schema;
-			/**
-			 * Database file this model acts against
-			 * @member {string} _file
-			 * @memberof Model
-			 * @instance
-			 * @private
-			 */
-			_file = file;
-
-			constructor(record) {
-				super();
-				this._connection.logger.debug(`creating new instance of model for file ${this._file}`);
-				this._protectProperties();
-				/**
-				 * Record array of multivalue data
-				 * @member {*[]} _record
-				 * @memberof Model
-				 * @instance
-				 * @private
-				 */
-				Object.defineProperty(this, '_record', {
-					value: record,
-					configurable: false,
-					enumerable: false,
-					writable: true,
-				});
-				assignIn(this, Model.applySchemaToRecord(this._schema, this._record));
-			}
-		};
-	};
+	model = (schema, file) => compileModel(this, schema, file);
 
 	/* private instance methods */
 	/**

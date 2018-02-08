@@ -2,7 +2,6 @@
   "dependencies": {
     "deploy": "^0.0.1",
     "entry": "^0.0.1",
-    "test": "^0.0.1",
-    "test2": "^0.0.2"
+    "findById": "^0.0.1"
   }
 }

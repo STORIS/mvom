@@ -1,6 +1,7 @@
 /**
  * A Base Schema Type
  * @hideconstructor
+ * @interface
  * @throws {Error}
  */
 class BaseType {

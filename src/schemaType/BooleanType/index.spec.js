@@ -23,8 +23,20 @@ describe('BooleanType', () => {
 				assert.isFalse(booleanType.transformFromDb(0));
 			});
 
+			it('should return false when given a string "0"', () => {
+				assert.isFalse(booleanType.transformFromDb('0'));
+			});
+
+			it('should return false when given null', () => {
+				assert.isFalse(booleanType.transformFromDb(null));
+			});
+
 			it('should return true when given a 1', () => {
 				assert.isTrue(booleanType.transformFromDb(1));
+			});
+
+			it('should return true when given any string', () => {
+				assert.isTrue(booleanType.transformFromDb('foo'));
 			});
 		});
 	});

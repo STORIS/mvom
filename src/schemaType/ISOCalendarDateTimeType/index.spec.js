@@ -2,7 +2,7 @@ import { assert } from 'chai';
 import { stub } from 'sinon';
 import ISOCalendarDateTimeType, { __RewireAPI__ as RewireAPI } from './';
 
-describe('ISOCalendarDateTime', () => {
+describe('ISOCalendarDateTimeType', () => {
 	describe('constructor', () => {
 		it('should throw if a path is not provided in the definition', () => {
 			assert.throws(() => new ISOCalendarDateTimeType({}));
@@ -47,8 +47,12 @@ describe('ISOCalendarDateTime', () => {
 				assert.isTrue(timeTransformFromDb.calledWith(6789));
 			});
 
+			it("should return null if the input value isn't provided", () => {
+				assert.isNull(isoCalendarDateTimeType.transformFromDb());
+			});
+
 			it('should return a interpolated string of the results from the Date and Time classes', () => {
-				assert.strictEqual(isoCalendarDateTimeType.transformFromDb(), 'fooTbar');
+				assert.strictEqual(isoCalendarDateTimeType.transformFromDb('foo.bar'), 'fooTbar');
 			});
 		});
 	});

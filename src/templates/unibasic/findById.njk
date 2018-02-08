@@ -1,0 +1,56 @@
+$basictype 'u'
+subroutine mvom_findById(options, output)
+* find and return a document given a filename and record id
+{% include "./partials/udoConstants.njk" %}
+
+{% include "./partials/errorConstants.njk" %}
+
+* get the filename from the options
+if udoGetProperty(options, 'filename', filename, type) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go returnFromSub
+end
+
+* get the recordId from the options
+if udoGetProperty(options, 'id', recordId, type) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go returnFromSub
+end
+
+* open the file
+open filename to f.file on error
+  call error_handler(ERROR_FILE_OPEN, output)
+  go returnFromSub
+end else
+  call error_handler(ERROR_FILE_OPEN, output)
+  go returnFromSub
+end
+
+* read the record from the file
+read record from f.file, recordId on error
+  call error_handler(ERROR_READ, output)
+  go returnFromSub
+end else
+  call error_handler(ERROR_NOT_FOUND, output)
+  go returnFromSub
+end
+
+* format the record into an object structure
+call format_document(record, recordId, document, errorCode)
+if errorCode then
+  call error_handler(errorCode, output)
+  go returnFromSub
+end
+
+* set the result property
+if udoSetProperty(output, 'result', document) then
+  call error_handler(ERROR_UDO, output)
+  go returnFromSub
+end
+
+returnFromSub:
+return; * returning to caller
+
+{% include "./partials/formatDocument.njk" %}
+
+{% include "./partials/errorHandler.njk" %}

@@ -25,34 +25,38 @@ class ISOTimeType extends SimpleType {
 	/* public instance methods */
 
 	/**
-	 * Transform mv style time data to ISO 8601 approved time format (kk:mm:ss.SSS)
+	 * Transform mv style time data to ISO 8601 approved time format (HH:mm:ss.SSS)
 	 * @function transformFromDb
 	 * @memberof ISOTimeType
 	 * @instance
 	 * @public
 	 * @override
-	 * @param {integer} value - Value to transform
-	 * @returns {string} Transformed ISO 8601 String Time value (kk:mm:ss.SSS)
+	 * @param {string|number|null} value - Value to transform
+	 * @returns {string|null} Transformed ISO 8601 String Time value (HH:mm:ss.SSS)
 	 * @throws {Error}
 	 */
 	transformFromDb = value => {
-		if (!Number.isInteger(value) || value < 0) {
+		if (value == null) {
+			return null;
+		}
+		const castValue = +value;
+		if (!Number.isInteger(castValue) || castValue < 0) {
 			throw new Error();
 		}
 
-		if ((this._isDbInMs && value > 86400000) || (!this._isDbInMs && value > 86400)) {
+		if ((this._isDbInMs && castValue > 86400000) || (!this._isDbInMs && castValue > 86400)) {
 			throw new Error();
 		}
 
 		const isoTime = moment().startOf('day');
 
 		if (this._isDbInMs) {
-			isoTime.add(value, 'milliseconds');
+			isoTime.add(castValue, 'milliseconds');
 		} else {
-			isoTime.add(value, 'seconds');
+			isoTime.add(castValue, 'seconds');
 		}
 
-		return isoTime.format('kk:mm:ss.SSS');
+		return isoTime.format('HH:mm:ss.SSS');
 	};
 }
 

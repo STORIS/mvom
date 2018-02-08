@@ -211,38 +211,32 @@ describe('Connection', () => {
 
 		describe('model', () => {
 			let connection;
-
-			const Document = class {
-				static applySchemaToRecord = stub().returns({});
-				_protectProperties = stub();
-			};
-			const Schema = class {};
+			const compileModel = stub().returns('compileModelResult');
 			before(() => {
 				connection = new Connection({
 					connectionManagerUri: 'foo',
 					account: 'bar',
 					logger: mockLogger,
 				});
-				RewireAPI.__Rewire__('Document', Document);
-				RewireAPI.__Rewire__('Schema', Schema);
+
+				RewireAPI.__Rewire__('compileModel', compileModel);
+			});
+
+			beforeEach(() => {
+				compileModel.resetHistory();
 			});
 
 			after(() => {
-				RewireAPI.__ResetDependency__('Document');
-				RewireAPI.__ResetDependency__('Schema');
+				RewireAPI.__ResetDependency__('compileModel');
 			});
 
-			it('should throw an error if Schema not provided', () => {
-				assert.throws(connection.model.bind(connection, 'foo', 'bar'));
+			it('should return the result from compileModel', () => {
+				assert.strictEqual(connection.model(), 'compileModelResult');
 			});
 
-			it('should throw an error if file not provided', () => {
-				assert.throws(connection.model.bind(connection, new Schema()));
-			});
-
-			it('should return a class definition with an instanceof Document', () => {
-				const Test = connection.model(new Schema(), 'foo');
-				assert.instanceOf(new Test(), Document);
+			it('should call compileModel with the expected parameters', () => {
+				connection.model('foo', 'bar');
+				assert.isTrue(compileModel.calledWith(connection, 'foo', 'bar'));
 			});
 		});
 
