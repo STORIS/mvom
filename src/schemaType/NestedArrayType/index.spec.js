@@ -33,7 +33,7 @@ describe('NestedArrayType', () => {
 		});
 
 		beforeEach(() => {
-			castArraySpy.reset();
+			castArraySpy.resetHistory();
 			extension.get.reset();
 		});
 
