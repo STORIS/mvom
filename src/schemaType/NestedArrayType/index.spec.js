@@ -1,40 +1,50 @@
+/* eslint-disable no-underscore-dangle */
 import { assert } from 'chai';
 import castArray from 'lodash/castArray';
 import { spy, stub } from 'sinon';
-import SimpleType from 'schemaType/SimpleType';
 import NestedArrayType, { __RewireAPI__ as RewireAPI } from './';
 
 describe('NestedArrayType', () => {
-	const Extension = class extends SimpleType {
-		get = stub();
+	const SimpleType = class {
+		getFromMvData = stub();
+		transformFromDb = stub();
 	};
+	before(() => {
+		RewireAPI.__Rewire__('SimpleType', SimpleType);
+	});
+
+	after(() => {
+		RewireAPI.__ResetDependency__('SimpleType');
+	});
 
 	describe('constructor', () => {
 		it('should throw when valueSchemaType is not an instance of SimpleType', () => {
 			assert.throws(() => new NestedArrayType('foo'));
 		});
 
-		it('should not throw when valueSchemaType is an instance of a SimpleType child class', () => {
-			// it would be preferable for SimpleType to be rewired for this test, but because both the unit under test
-			// and its parent class test that the variable being passed to the constructor is an instance of SimpleType,
-			// that can't be done
-			assert.doesNotThrow(() => new NestedArrayType(new Extension({})));
+		it('should set _valueSchemaType instance member', () => {
+			const nestedArrayType = new NestedArrayType(new SimpleType());
+			assert.instanceOf(nestedArrayType._valueSchemaType, SimpleType);
 		});
 	});
 
 	describe('instance methods', () => {
 		const castArraySpy = spy(castArray);
+		let simpleType;
 		let nestedArrayType;
-		let extension;
 		before(() => {
 			RewireAPI.__Rewire__('castArray', castArraySpy);
-			extension = new Extension({});
-			nestedArrayType = new NestedArrayType(extension);
+			simpleType = new SimpleType({});
+			simpleType.transformFromDb.withArgs('foo').returns('def');
+			simpleType.transformFromDb.withArgs('bar').returns('henk');
+			simpleType.transformFromDb.withArgs('baz').returns('mos');
+			simpleType.transformFromDb.withArgs('qux').returns('thud');
+			nestedArrayType = new NestedArrayType(simpleType);
 		});
 
 		beforeEach(() => {
 			castArraySpy.resetHistory();
-			extension.get.reset();
+			simpleType.getFromMvData.reset();
 		});
 
 		after(() => {
@@ -42,27 +52,29 @@ describe('NestedArrayType', () => {
 		});
 
 		describe('get', () => {
-			it("should call castArray against the results of the array's schemaType get method", () => {
-				extension.get.returns('foo');
-				nestedArrayType.get();
-				assert.strictEqual(castArraySpy.args[0][0], 'foo');
-				assert.strictEqual(castArraySpy.args[1][0], 'foo');
+			it('should return a transformed nested array when given a primitive value ', () => {
+				simpleType.getFromMvData.returns('foo');
+				assert.deepEqual(nestedArrayType.get(), [['def']]);
 			});
 
-			it("should call castArray against each of the results of the array's schemaType get method", () => {
-				extension.get.returns(['foo', 'bar']);
-				nestedArrayType.get();
-				assert.deepEqual(castArraySpy.args[0][0], ['foo', 'bar']);
-				assert.strictEqual(castArraySpy.args[1][0], 'foo');
-				assert.strictEqual(castArraySpy.args[2][0], 'bar');
+			it('should return a transformed nested array when given an unnested array of length 1', () => {
+				simpleType.getFromMvData.returns(['foo']);
+				assert.deepEqual(nestedArrayType.get(), [['def']]);
 			});
 
-			it('should call castArray against each of the nested arrays returned from the schemaType get method', () => {
-				extension.get.returns([['foo', 'bar'], ['baz', 'qux']]);
-				nestedArrayType.get();
-				assert.deepEqual(castArraySpy.args[0][0], [['foo', 'bar'], ['baz', 'qux']]);
-				assert.deepEqual(castArraySpy.args[1][0], ['foo', 'bar']);
-				assert.deepEqual(castArraySpy.args[2][0], ['baz', 'qux']);
+			it('should return a transformed nested array when given an unnested array of greater than 1', () => {
+				simpleType.getFromMvData.returns(['foo', 'bar']);
+				assert.deepEqual(nestedArrayType.get(), [['def'], ['henk']]);
+			});
+
+			it('should return a transformed nested array when given a single nested array', () => {
+				simpleType.getFromMvData.returns([['foo', 'bar']]);
+				assert.deepEqual(nestedArrayType.get(), [['def', 'henk']]);
+			});
+
+			it('should return a transformed nested array when given more than one nested array', () => {
+				simpleType.getFromMvData.returns([['foo', 'bar'], ['baz', 'qux']]);
+				assert.deepEqual(nestedArrayType.get(), [['def', 'henk'], ['mos', 'thud']]);
 			});
 		});
 	});

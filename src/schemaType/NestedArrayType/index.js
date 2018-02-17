@@ -34,7 +34,12 @@ class NestedArrayType extends ComplexType {
 	 * @param {*[]} record - Data to get values from
 	 * @returns {Array.<Array.<*>>} Nested array of formatted data values
 	 */
-	get = record => castArray(this._valueSchemaType.get(record)).map(val => castArray(val));
+	get = record => {
+		const value = this._valueSchemaType.getFromMvData(record);
+		return castArray(value).map(itemValue =>
+			castArray(itemValue).map(nestedValue => this._valueSchemaType.transformFromDb(nestedValue)),
+		);
+	};
 }
 
 export default NestedArrayType;

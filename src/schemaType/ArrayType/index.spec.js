@@ -1,11 +1,13 @@
 /* eslint-disable no-underscore-dangle */
 import { assert } from 'chai';
-import { stub } from 'sinon';
+import castArray from 'lodash/castArray';
+import { spy, stub } from 'sinon';
 import ArrayType, { __RewireAPI__ as RewireAPI } from './';
 
 describe('ArrayType', () => {
 	const SimpleType = class {
-		get = stub();
+		getFromMvData = stub();
+		transformFromDb = stub();
 	};
 	before(() => {
 		RewireAPI.__Rewire__('SimpleType', SimpleType);
@@ -27,18 +29,20 @@ describe('ArrayType', () => {
 	});
 
 	describe('instance methods', () => {
-		const castArray = stub();
+		const castArraySpy = spy(castArray);
 		let simpleType;
 		let arrayType;
 		before(() => {
-			RewireAPI.__Rewire__('castArray', castArray);
-			simpleType = new SimpleType();
+			RewireAPI.__Rewire__('castArray', castArraySpy);
+			simpleType = new SimpleType({});
+			simpleType.transformFromDb.withArgs('foo').returns('def');
+			simpleType.transformFromDb.withArgs('bar').returns('henk');
 			arrayType = new ArrayType(simpleType);
 		});
 
 		beforeEach(() => {
-			castArray.resetHistory();
-			simpleType.get.reset();
+			castArraySpy.resetHistory();
+			simpleType.getFromMvData.reset();
 		});
 
 		after(() => {
@@ -46,15 +50,19 @@ describe('ArrayType', () => {
 		});
 
 		describe('get', () => {
-			it("should call the get method of the array's schemaType", () => {
-				arrayType.get('foo');
-				assert.isTrue(simpleType.get.calledWith('foo'));
+			it('should return a transformed array when given a primitive value ', () => {
+				simpleType.getFromMvData.returns('foo');
+				assert.deepEqual(arrayType.get(), ['def']);
 			});
 
-			it("should call castArray against the results of the array's schemaType get method", () => {
-				simpleType.get.returnsArg(0);
-				arrayType.get('foo');
-				assert.isTrue(castArray.calledWith('foo'));
+			it('should return a transformed array when given an array of length 1', () => {
+				simpleType.getFromMvData.returns(['foo']);
+				assert.deepEqual(arrayType.get(), ['def']);
+			});
+
+			it('should return a transformed array when given an array of greater than 1', () => {
+				simpleType.getFromMvData.returns(['foo', 'bar']);
+				assert.deepEqual(arrayType.get(), ['def', 'henk']);
 			});
 		});
 	});

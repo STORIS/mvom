@@ -13,39 +13,6 @@ describe('DocumentArrayType', () => {
 		RewireAPI.__ResetDependency__('Schema');
 	});
 
-	describe('static methods', () => {
-		describe('objArrayToArrayObj', () => {
-			it('should transform an object with one property value of arrays', () => {
-				assert.deepEqual(DocumentArrayType.objArrayToArrayObj({ propertyA: ['foo', 'bar'] }), [
-					{ propertyA: 'foo' },
-					{ propertyA: 'bar' },
-				]);
-			});
-
-			it('should transform an object with more than one property value of arrays', () => {
-				assert.deepEqual(
-					DocumentArrayType.objArrayToArrayObj({
-						propertyA: ['foo', 'bar'],
-						propertyB: ['baz', 'qux'],
-					}),
-					[{ propertyA: 'foo', propertyB: 'baz' }, { propertyA: 'bar', propertyB: 'qux' }],
-				);
-			});
-
-			it('should deeply transform an object with property values of arrays', () => {
-				assert.deepEqual(
-					DocumentArrayType.objArrayToArrayObj({
-						propertyA: [{ propertyB: ['foo', 'bar'] }, { propertyB: ['baz', 'qux'] }],
-					}),
-					[
-						{ propertyA: [{ propertyB: 'foo' }, { propertyB: 'bar' }] },
-						{ propertyA: [{ propertyB: 'baz' }, { propertyB: 'qux' }] },
-					],
-				);
-			});
-		});
-	});
-
 	describe('constructor', () => {
 		it('should throw when valueSchema is not an instance of Schema', () => {
 			assert.throws(() => new DocumentArrayType('foo'));
@@ -64,29 +31,55 @@ describe('DocumentArrayType', () => {
 				this._record = record;
 			}
 		};
-		let objArrayToArrayObj;
 		let documentArrayType;
 
 		before(() => {
 			RewireAPI.__Rewire__('Document', Document);
-			objArrayToArrayObj = stub(DocumentArrayType, 'objArrayToArrayObj');
 			documentArrayType = new DocumentArrayType(new Schema());
-		});
-
-		beforeEach(() => {
-			objArrayToArrayObj.resetHistory();
 		});
 
 		after(() => {
 			RewireAPI.__ResetDependency__('Document');
-			objArrayToArrayObj.restore();
 		});
 
 		describe('get', () => {
-			it('should call objArrayToArrayObj with result of new Document constructor using passed record', () => {
-				documentArrayType.get('foo');
-				assert.instanceOf(objArrayToArrayObj.args[0][0]._schema, Schema);
-				assert.strictEqual(objArrayToArrayObj.args[0][0]._record, 'foo');
+			before(() => {
+				stub(documentArrayType, '_makeSubDocument').returns(['foo', 'bar']);
+			});
+
+			after(() => {
+				documentArrayType._makeSubDocument.restore();
+			});
+
+			it('should return result of makeSubDocument generator', () => {
+				assert.deepEqual(documentArrayType.get(), ['foo', 'bar']);
+			});
+		});
+
+		describe('_makeSubDocument', () => {
+			it('should return a new document instance from the first subrecord when yielding', () => {
+				const it = documentArrayType._makeSubDocument([['foo', 'bar'], ['baz', 'qux']]);
+				const { value, done } = it.next();
+				assert.isFalse(done);
+				assert.instanceOf(value, Document);
+				assert.deepEqual(value._record, ['foo', 'baz']);
+			});
+
+			it('should return a new document instance from the second subrecord when yielding a second time', () => {
+				const it = documentArrayType._makeSubDocument([['foo', 'bar'], ['baz', 'qux']]);
+				it.next();
+				const { value, done } = it.next();
+				assert.isFalse(done);
+				assert.instanceOf(value, Document);
+				assert.deepEqual(value._record, ['bar', 'qux']);
+			});
+
+			it('should return as done when no subrecord is possible at iteration position', () => {
+				const it = documentArrayType._makeSubDocument([['foo', 'bar'], ['baz', 'qux']]);
+				it.next();
+				it.next();
+				const { done } = it.next();
+				assert.isTrue(done);
 			});
 		});
 	});

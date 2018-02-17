@@ -129,7 +129,10 @@ describe('Document', () => {
 						const record = [['foo', 'bar'], 'baz'];
 						const document = new Document(schema, record);
 						assert.deepEqual(document._applySchemaToRecord(), {
-							propertyA: [{ property1: 'foo', property2: 'baz' }, { property1: 'bar' }],
+							propertyA: [
+								{ property1: 'foo', property2: 'baz' },
+								{ property1: 'bar', property2: '' },
+							],
 						});
 					});
 

@@ -31,9 +31,9 @@ class EmbeddedType extends ComplexType {
 	 * @memberof EmbeddedType
 	 * @instance
 	 * @param {*[]} record - Data to get values from
-	 * @returns {Object} Object representing embedded Document structure
+	 * @returns {Document} Embedded document instance
 	 */
-	get = record => ({ ...new Document(this._valueSchema, record) });
+	get = record => new Document(this._valueSchema, record);
 }
 
 export default EmbeddedType;

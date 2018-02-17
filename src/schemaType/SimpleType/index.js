@@ -42,33 +42,26 @@ class SimpleType extends BaseType {
 	 * @returns {*} Formatted data value
 	 */
 	get = record => {
-		const processEach = value => {
-			if (Array.isArray(value)) {
-				return value.map(arrayVal => processEach(arrayVal));
-			}
-			return this.transformFromDb(value);
-		};
-
-		return processEach(this._getFromMvData(record));
+		const value = this.getFromMvData(record);
+		return this.transformFromDb(value);
 	};
-
-	/* private instance methods */
 
 	/**
 	 * Get data from the specified keypath
-	 * @function _getFromMvData
+	 * @function getFromMvData
 	 * @memberof SimpleType
 	 * @instance
-	 * @private
 	 * @param {*[]} record - Data to get value from
 	 * @returns {*} Value of data at specified location
 	 */
-	_getFromMvData = record => {
+	getFromMvData = record => {
 		if (this._path == null) {
 			return null;
 		}
 		return this._path.reduce((acc, pathPart) => castArray(acc)[pathPart], record);
 	};
+
+	/* private instance methods */
 
 	/**
 	 * Convert a 1-index string array path definition (e.g. '1.1.1') to a 0-index array path definition (e.g. [0, 0, 0])

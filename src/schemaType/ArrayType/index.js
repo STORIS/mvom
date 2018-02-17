@@ -36,7 +36,10 @@ class ArrayType extends ComplexType {
 	 * @param {*[]} record - Data to get values from
 	 * @returns {*[]} Array of formatted data values
 	 */
-	get = record => castArray(this._valueSchemaType.get(record));
+	get = record => {
+		const value = this._valueSchemaType.getFromMvData(record);
+		return castArray(value).map(itemValue => this._valueSchemaType.transformFromDb(itemValue));
+	};
 }
 
 export default ArrayType;
