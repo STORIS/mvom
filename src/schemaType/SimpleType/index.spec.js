@@ -87,6 +87,76 @@ describe('SimpleType', () => {
 			});
 		});
 
+		describe('set', () => {
+			let extension;
+			const setIntoMvData = stub();
+			const transformToDb = stub();
+			before(() => {
+				const Extension = class extends SimpleType {};
+				extension = new Extension({});
+				extension.setIntoMvData = setIntoMvData;
+				extension.transformToDb = transformToDb;
+			});
+
+			beforeEach(() => {
+				setIntoMvData.reset();
+				transformToDb.reset();
+			});
+
+			it('should call transformToDb with passed parameter', () => {
+				extension.set([], 'foo');
+				assert.isTrue(transformToDb.calledWith('foo'));
+			});
+
+			it('should call setIntoMvData with passed parameter and result of transformToDb', () => {
+				transformToDb.returns('qux');
+				extension.set(['foo', 'bar'], 'baz');
+				assert.deepEqual(setIntoMvData.args[0][0], ['foo', 'bar']);
+				assert.strictEqual(setIntoMvData.args[0][1], 'qux');
+			});
+
+			it('should return result of setIntoMvData', () => {
+				setIntoMvData.returns('foo');
+				assert.strictEqual(extension.set([], ''), 'foo');
+			});
+		});
+
+		describe('setIntoMvData', () => {
+			let extension;
+			before(() => {
+				const Extension = class extends SimpleType {};
+				extension = new Extension({});
+			});
+
+			it('should return unchanged array if instance _path is null', () => {
+				extension._path = null;
+				assert.deepEqual(extension.setIntoMvData(['foo', 'bar']), ['foo', 'bar']);
+			});
+
+			it('should set the value at the array position specifed by the path', () => {
+				extension._path = [2];
+				assert.deepEqual(extension.setIntoMvData(['foo', 'bar'], 'baz'), ['foo', 'bar', 'baz']);
+			});
+
+			it('should set the value at the nested array position specifed by the path', () => {
+				extension._path = [2, 1];
+				assert.deepEqual(extension.setIntoMvData(['foo', 'bar'], 'baz'), [
+					'foo',
+					'bar',
+					[undefined, 'baz'],
+				]);
+			});
+
+			it('should set the value at the deeply nested array position specifed by the path', () => {
+				extension._path = [2, 1, 1];
+				assert.deepEqual(extension.setIntoMvData(['foo', 'bar'], 'baz'), [
+					'foo',
+					'bar',
+					[undefined, [undefined, 'baz']],
+				]);
+			});
+		});
+
 		describe('_normalizeMvPath', () => {
 			let extension;
 			before(() => {

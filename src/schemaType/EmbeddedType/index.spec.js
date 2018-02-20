@@ -1,5 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 import { assert } from 'chai';
+import { stub } from 'sinon';
 import EmbeddedType, { __RewireAPI__ as RewireAPI } from './';
 
 describe('EmbeddedType', () => {
@@ -45,6 +46,22 @@ describe('EmbeddedType', () => {
 				const getValue = embeddedType.get('foo');
 				assert.instanceOf(getValue._schema, Schema);
 				assert.strictEqual(getValue._record, 'foo');
+			});
+		});
+
+		describe('set', () => {
+			it('should return an array of contents based on what is returned from transformDocumentToRecord', () => {
+				const transformDocumentToRecord = stub().returns(['foo', 'bar']);
+				assert.deepEqual(embeddedType.set([], { transformDocumentToRecord }), ['foo', 'bar']);
+			});
+
+			it('should not mutate the original record contents if the subdocument does not return a value', () => {
+				const transformDocumentToRecord = stub().returns([undefined, 'bar', 'baz']);
+				assert.deepEqual(embeddedType.set(['foo'], { transformDocumentToRecord }), [
+					'foo',
+					'bar',
+					'baz',
+				]);
 			});
 		});
 	});

@@ -1,4 +1,6 @@
 import castArray from 'lodash/castArray';
+import cloneDeep from 'lodash/cloneDeep';
+import setIn from 'lodash/set';
 import toPath from 'lodash/toPath';
 import BaseType from 'schemaType/BaseType';
 
@@ -58,7 +60,39 @@ class SimpleType extends BaseType {
 		if (this._path == null) {
 			return null;
 		}
+		// lodash.get will not work here because "array" data might be returned from multi-value that still
+		// appears like a non-array; if that happens, lodash.get would return the character at that string position instead;
+		// this reducer ensures that the appropriate value is retrieved.
 		return this._path.reduce((acc, pathPart) => castArray(acc)[pathPart], record);
+	};
+
+	/**
+	 * Transform into multivalue format and set specified value into mv record
+	 * @function set
+	 * @memberof SimpleType
+	 * @instance
+	 * @param {*[]} originalRecord - Record structure to use as basis for applied changes
+	 * @param {*} setValue - Value to transform and set into record
+	 * @returns {*[]} Array data of output record format
+	 */
+	set = (originalRecord, setValue) =>
+		this.setIntoMvData(originalRecord, this.transformToDb(setValue));
+
+	/**
+	 * Set specified value into mv record
+	 * @function set
+	 * @memberof SimpleType
+	 * @instance
+	 * @param {*[]} originalRecord - Record structure to use as basis for applied changes
+	 * @param {*} setValue - Value to set into record
+	 * @returns {*[]} Array data of output record format
+	 */
+	setIntoMvData = (originalRecord, setValue) => {
+		if (this._path == null) {
+			return originalRecord;
+		}
+
+		return setIn(cloneDeep(originalRecord), this._path, setValue);
 	};
 
 	/* private instance methods */

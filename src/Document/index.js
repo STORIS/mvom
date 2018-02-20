@@ -1,5 +1,7 @@
 import assignIn from 'lodash/assignIn';
-import set from 'lodash/set';
+import cloneDeep from 'lodash/cloneDeep';
+import getIn from 'lodash/get';
+import setIn from 'lodash/set';
 import Schema from 'Schema';
 
 /**
@@ -7,10 +9,12 @@ import Schema from 'Schema';
  * @class Document
  * @param {Schema} schema - Schema instance to derive document from
  * @param {*[]} record - Array data to construct document instance properties from
+ * @param {Object} [options = {}]
+ * @param {Boolean} [options.isSubdocument = false] Indicates whether document should behave as a subdocument
  * @throws {Error}
  */
 class Document {
-	constructor(schema, record) {
+	constructor(schema, record, { isSubdocument = false } = {}) {
 		if (!(schema instanceof Schema) || !Array.isArray(record)) {
 			throw new Error();
 		}
@@ -36,31 +40,61 @@ class Document {
 				value: record,
 				writable: true,
 			},
-			_applySchemaToRecord: {
+			/**
+			 * Indicates whether this document is a subdocument of a composing parent
+			 * @member {Boolean} _isSubdocument
+			 * @memberof Document
+			 * @instance
+			 * @private
+			 */
+			_isSubdocument: {
+				value: isSubdocument,
+			},
+			transformDocumentToRecord: {
+				configurable: false,
+				enumerable: false,
+				writable: false,
+			},
+			_transformRecordToDocument: {
 				configurable: false,
 				enumerable: false,
 				writable: false,
 			},
 		});
 
-		assignIn(this, this._applySchemaToRecord());
+		assignIn(this, this._transformRecordToDocument());
 	}
+
+	/* public instance methods */
+
+	/**
+	 * Transform document structure to multivalue array structure
+	 * @function transformDocumentToRecord
+	 * @memberof Document
+	 * @instance
+	 * @returns {*[]} Array data of output record format
+	 */
+	transformDocumentToRecord = () =>
+		Object.keys(this._schema.paths).reduce((record, keyPath) => {
+			const value = getIn(this, keyPath, null);
+			return this._schema.paths[keyPath].set(record, value);
+		}, this._isSubdocument ? [] : cloneDeep(this._record));
 
 	/* private instance methods */
 
 	/**
 	 * Apply schema structure against data
-	 * @function _applySchemaToRecord
+	 * @function _transformRecordToDocument
 	 * @memberof Document
 	 * @instance
 	 * @private
 	 * @returns {Object} Object created by applying schema to record
 	 */
-	_applySchemaToRecord = () =>
+	_transformRecordToDocument = () =>
 		Object.keys(this._schema.paths).reduce((document, keyPath) => {
 			// an instance of a schemaType exists at this._schema.paths[keyPath] which has a get() method
 			// to pull data from the record
-			set(document, keyPath, this._schema.paths[keyPath].get(this._record));
+			setIn(document, keyPath, this._schema.paths[keyPath].get(this._record));
 			return document;
 		}, {});
 }

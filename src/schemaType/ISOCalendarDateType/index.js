@@ -15,7 +15,7 @@ class ISOCalendarDateType extends SimpleType {
 	/* public instance methods */
 
 	/**
-	 * Transform mv data data to ISO 8601 approved date format (yyyy-mm-dd)
+	 * Transform mv date data to ISO 8601 approved date format (yyyy-mm-dd)
 	 * @function transformFromDb
 	 * @memberof ISOCalendarDateType
 	 * @instance
@@ -37,6 +37,24 @@ class ISOCalendarDateType extends SimpleType {
 		return moment(ISOCalendarDateType.epoch)
 			.add(castValue, 'days')
 			.format('YYYY-MM-DD');
+	};
+
+	/**
+	 * Transform ISO 8601 approved date format (yyyy-mm-dd) to mv date data
+	 * @function transformToDb
+	 * @memberof ISOCalendarDateType
+	 * @instance
+	 * @public
+	 * @override
+	 * @param {string|null} value - Value to transform
+	 * @returns {string|null} Transformed string integer representing number of days since mv epoch
+	 */
+	transformToDb = value => {
+		if (value == null) {
+			return null;
+		}
+
+		return String(moment(value).diff(moment(ISOCalendarDateType.epoch), 'days'));
 	};
 }
 

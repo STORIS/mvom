@@ -40,6 +40,21 @@ class ArrayType extends ComplexType {
 		const value = this._valueSchemaType.getFromMvData(record);
 		return castArray(value).map(itemValue => this._valueSchemaType.transformFromDb(itemValue));
 	};
+
+	/**
+	 * Set specified array value into mv record
+	 * @function set
+	 * @memberof ArrayType
+	 * @instance
+	 * @param {*[]} originalRecord - Record structure to use as basis for applied changes
+	 * @param {*[]} setValue - Array to set into record
+	 * @returns {*[]} Array data of output record format
+	 */
+	set = (originalRecord, setValue) =>
+		this._valueSchemaType.setIntoMvData(
+			originalRecord,
+			setValue.map(value => this._valueSchemaType.transformToDb(value)),
+		);
 }
 
 export default ArrayType;

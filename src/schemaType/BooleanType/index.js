@@ -34,6 +34,18 @@ class BooleanType extends SimpleType {
 		}
 		return true;
 	};
+
+	/**
+	 * Transform js style data to mv style data
+	 * @function transformToDb
+	 * @memberof BooleanType
+	 * @instance
+	 * @public
+	 * @override
+	 * @param {Boolean} value - Value to transform
+	 * @returns {'1'|'0'} Transformed value
+	 */
+	transformToDb = value => (value ? '1' : '0');
 }
 
 export default BooleanType;

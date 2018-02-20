@@ -55,5 +55,47 @@ describe('ISOCalendarDateTimeType', () => {
 				assert.strictEqual(isoCalendarDateTimeType.transformFromDb('foo.bar'), 'fooTbar');
 			});
 		});
+
+		describe('transformToDb', () => {
+			let isoCalendarDateTimeType;
+			const dateTransformToDb = stub().returns('foo');
+			const timeTransformToDb = stub().returns('bar');
+			const ISOCalendarDateType = class {
+				transformToDb = dateTransformToDb;
+			};
+			const ISOTimeType = class {
+				transformToDb = timeTransformToDb;
+			};
+
+			before(() => {
+				isoCalendarDateTimeType = new ISOCalendarDateTimeType({ path: '1' });
+				RewireAPI.__Rewire__('ISOCalendarDateType', ISOCalendarDateType);
+				RewireAPI.__Rewire__('ISOTimeType', ISOTimeType);
+			});
+
+			after(() => {
+				RewireAPI.__ResetDependency__('ISOCalendarDateType');
+				RewireAPI.__ResetDependency__('ISOTimeType');
+			});
+
+			beforeEach(() => {
+				dateTransformToDb.resetHistory();
+				timeTransformToDb.resetHistory();
+			});
+
+			it('should call the date and time classes with the split values from the datetime', () => {
+				isoCalendarDateTimeType.transformToDb('1999-12-31T12:00:00.000');
+				assert.isTrue(dateTransformToDb.calledWith('1999-12-31'));
+				assert.isTrue(timeTransformToDb.calledWith('12:00:00.000'));
+			});
+
+			it('should return null if parameter is null', () => {
+				assert.isNull(isoCalendarDateTimeType.transformToDb(null));
+			});
+
+			it('should return a interpolated string of the results from the Date and Time classes', () => {
+				assert.strictEqual(isoCalendarDateTimeType.transformToDb('fooTbar'), 'foo.bar');
+			});
+		});
 	});
 });

@@ -20,5 +20,17 @@ describe('BaseType', () => {
 				assert.strictEqual(extension.transformFromDb('foo'), 'foo');
 			});
 		});
+
+		describe('transformToDb', () => {
+			let extension;
+			before(() => {
+				const Extension = class extends BaseType {};
+				extension = new Extension();
+			});
+
+			it('should return the passed value parameter', () => {
+				assert.strictEqual(extension.transformToDb('foo'), 'foo');
+			});
+		});
 	});
 });

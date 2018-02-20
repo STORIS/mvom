@@ -40,6 +40,23 @@ class NestedArrayType extends ComplexType {
 			castArray(itemValue).map(nestedValue => this._valueSchemaType.transformFromDb(nestedValue)),
 		);
 	};
+
+	/**
+	 * Set specified nested array value into mv record
+	 * @function set
+	 * @memberof NestedArrayType
+	 * @instance
+	 * @param {*[]} originalRecord - Record structure to use as basis for applied changes
+	 * @param {Array.<Array.<*>>} setValue - Nested array to set into record
+	 * @returns {*[]} Array data of output record format
+	 */
+	set = (originalRecord, setValue) =>
+		this._valueSchemaType.setIntoMvData(
+			originalRecord,
+			setValue.map(value =>
+				value.map(nestedValue => this._valueSchemaType.transformToDb(nestedValue)),
+			),
+		);
 }
 
 export default NestedArrayType;

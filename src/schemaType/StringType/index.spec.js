@@ -31,5 +31,24 @@ describe('StringType', () => {
 				assert.strictEqual(stringType.transformFromDb(1337), '1337');
 			});
 		});
+
+		describe('transformToDb', () => {
+			let stringType;
+			before(() => {
+				stringType = new StringType({ path: '1' });
+			});
+
+			it('should return a string without alteration', () => {
+				assert.strictEqual(stringType.transformToDb('foo'), 'foo');
+			});
+
+			it('should return null if null passed', () => {
+				assert.isNull(stringType.transformToDb(null));
+			});
+
+			it('should typecast if a non-string is passed', () => {
+				assert.strictEqual(stringType.transformToDb(1234), '1234');
+			});
+		});
 	});
 });

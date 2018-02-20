@@ -33,10 +33,72 @@ describe('Document', () => {
 	});
 
 	describe('instance methods', () => {
-		describe('applySchemaToRecord', () => {
+		describe('transformDocumentToRecord', () => {
+			const get = stub();
+			const set = stub();
+			const SchemaRewire = class {
+				paths = {
+					foo: {
+						get,
+						set,
+					},
+					bar: {
+						get,
+						set,
+					},
+				};
+			};
+			let document;
+
+			before(() => {
+				RewireAPI.__Rewire__('assignIn', stub());
+				RewireAPI.__Rewire__('Schema', SchemaRewire);
+				document = new Document(new SchemaRewire(), ['foo']);
+			});
+
+			beforeEach(() => {
+				delete document.foo;
+				delete document.bar;
+				set.reset();
+			});
+
+			after(() => {
+				RewireAPI.__ResetDependency__('assignIn');
+				RewireAPI.__ResetDependency__('Schema');
+			});
+
+			it('should call the schemaType setter for each property in the document referenced in the schema', () => {
+				document.foo = 'foo';
+				document.bar = 'bar';
+				document.transformDocumentToRecord();
+				assert.strictEqual(set.args[0][1], 'foo');
+				assert.strictEqual(set.args[1][1], 'bar');
+			});
+
+			it('should return an array of the results from calling the schemaType setters', () => {
+				set.onCall(0).returns(['foo']);
+				set.onCall(1).returns(['foo', 'bar']);
+				assert.deepEqual(document.transformDocumentToRecord(), ['foo', 'bar']);
+			});
+
+			it('should call the first setter with the original record when not a subdocument', () => {
+				document._record = ['foo', 'bar'];
+				document.transformDocumentToRecord();
+				assert.deepEqual(set.args[0][0], ['foo', 'bar']);
+			});
+
+			it('should call the first setter with an empty array when a subdocument', () => {
+				const subdocument = new Document(new SchemaRewire(), ['foo'], { isSubdocument: true });
+				subdocument._record = ['foo', 'bar'];
+				subdocument.transformDocumentToRecord();
+				assert.deepEqual(set.args[0][0], []);
+			});
+		});
+
+		describe('_transformRecordToDocument', () => {
 			describe('stubbed tests', () => {
 				const get = stub();
-				const set = stub();
+				const setIn = stub();
 				const SchemaRewire = class {
 					paths = {
 						foo: {
@@ -51,7 +113,7 @@ describe('Document', () => {
 
 				before(() => {
 					RewireAPI.__Rewire__('assignIn', stub());
-					RewireAPI.__Rewire__('set', set);
+					RewireAPI.__Rewire__('setIn', setIn);
 					RewireAPI.__Rewire__('Schema', SchemaRewire);
 					document = new Document(new SchemaRewire(), ['foo']);
 				});
@@ -59,30 +121,30 @@ describe('Document', () => {
 				beforeEach(() => {
 					document._record = [];
 					get.reset();
-					set.resetHistory();
+					setIn.resetHistory();
 				});
 
 				after(() => {
 					RewireAPI.__ResetDependency__('assignIn');
-					RewireAPI.__ResetDependency__('set');
+					RewireAPI.__ResetDependency__('setIn');
 					RewireAPI.__ResetDependency__('Schema');
 				});
 
 				it("should get from the schemaType instance using the document's record property", () => {
 					document._record = ['foo', 'bar', 'baz'];
-					document._applySchemaToRecord();
+					document._transformRecordToDocument();
 					assert.isTrue(get.calledWith(document._record));
 					assert.isTrue(get.calledTwice);
 				});
 
 				it("should set at the schema's keypath with the value from get", () => {
 					get.returns('baz');
-					document._applySchemaToRecord();
-					assert.isTrue(set.calledTwice);
-					assert.strictEqual(set.args[0][1], 'foo');
-					assert.strictEqual(set.args[0][2], 'baz');
-					assert.strictEqual(set.args[1][1], 'bar');
-					assert.strictEqual(set.args[1][2], 'baz');
+					document._transformRecordToDocument();
+					assert.isTrue(setIn.calledTwice);
+					assert.strictEqual(setIn.args[0][1], 'foo');
+					assert.strictEqual(setIn.args[0][2], 'baz');
+					assert.strictEqual(setIn.args[1][1], 'bar');
+					assert.strictEqual(setIn.args[1][2], 'baz');
 				});
 			});
 
@@ -109,7 +171,7 @@ describe('Document', () => {
 					it('should properly format well-formatted arrays of Schemas', () => {
 						const record = [['foo', 'bar'], ['baz', 'qux']];
 						const document = new Document(schema, record);
-						assert.deepEqual(document._applySchemaToRecord(), {
+						assert.deepEqual(document._transformRecordToDocument(), {
 							propertyA: [
 								{ property1: 'foo', property2: 'baz' },
 								{ property1: 'bar', property2: 'qux' },
@@ -120,7 +182,7 @@ describe('Document', () => {
 					it('should properly format arrays of Schemas not structured as arrays in data', () => {
 						const record = ['foo', 'bar'];
 						const document = new Document(schema, record);
-						assert.deepEqual(document._applySchemaToRecord(), {
+						assert.deepEqual(document._transformRecordToDocument(), {
 							propertyA: [{ property1: 'foo', property2: 'bar' }],
 						});
 					});
@@ -128,7 +190,7 @@ describe('Document', () => {
 					it('should properly format arrays of Schemas with ragged associations', () => {
 						const record = [['foo', 'bar'], 'baz'];
 						const document = new Document(schema, record);
-						assert.deepEqual(document._applySchemaToRecord(), {
+						assert.deepEqual(document._transformRecordToDocument(), {
 							propertyA: [
 								{ property1: 'foo', property2: 'baz' },
 								{ property1: 'bar', property2: '' },
@@ -139,7 +201,7 @@ describe('Document', () => {
 					it('should properly format arrays of Schemas with sparse associations', () => {
 						const record = [['foo', null, 'bar'], ['baz', null, 'qux']];
 						const document = new Document(schema, record);
-						assert.deepEqual(document._applySchemaToRecord(), {
+						assert.deepEqual(document._transformRecordToDocument(), {
 							propertyA: [
 								{ property1: 'foo', property2: 'baz' },
 								{ property1: '', property2: '' },
@@ -165,7 +227,7 @@ describe('Document', () => {
 					it('should properly format nested sub-schemas', () => {
 						const record = [['foo', 'bar'], [['baz', 'qux'], ['quux', 'corge']]];
 						const document = new Document(schema, record);
-						assert.deepEqual(document._applySchemaToRecord(), {
+						assert.deepEqual(document._transformRecordToDocument(), {
 							propertyA: [
 								{ property1: 'foo', propertyB: [{ property2: 'baz' }, { property2: 'qux' }] },
 								{ property1: 'bar', propertyB: [{ property2: 'quux' }, { property2: 'corge' }] },
@@ -183,7 +245,7 @@ describe('Document', () => {
 					it('should properly format well-formatted nested arrays', () => {
 						const record = [[['foo', 'bar'], ['baz', 'qux']]];
 						const document = new Document(schema, record);
-						assert.deepEqual(document._applySchemaToRecord(), {
+						assert.deepEqual(document._transformRecordToDocument(), {
 							propertyA: [['foo', 'bar'], ['baz', 'qux']],
 						});
 					});
@@ -191,7 +253,7 @@ describe('Document', () => {
 					it('should properly format nested arrays of length 1', () => {
 						const record = [['foo', 'bar']];
 						const document = new Document(schema, record);
-						assert.deepEqual(document._applySchemaToRecord(), {
+						assert.deepEqual(document._transformRecordToDocument(), {
 							propertyA: [['foo'], ['bar']],
 						});
 					});
@@ -199,7 +261,7 @@ describe('Document', () => {
 					it('should properly format nested arrays that are not array-like in the data', () => {
 						const record = ['foo'];
 						const document = new Document(schema, record);
-						assert.deepEqual(document._applySchemaToRecord(), {
+						assert.deepEqual(document._transformRecordToDocument(), {
 							propertyA: [['foo']],
 						});
 					});
@@ -207,7 +269,7 @@ describe('Document', () => {
 					it('should properly format nested arrays that are null values', () => {
 						const record = [null];
 						const document = new Document(schema, record);
-						assert.deepEqual(document._applySchemaToRecord(), {
+						assert.deepEqual(document._transformRecordToDocument(), {
 							propertyA: [['']],
 						});
 					});
@@ -222,7 +284,7 @@ describe('Document', () => {
 					it('should properly format well-formatted arrays', () => {
 						const record = [['foo', 'bar']];
 						const document = new Document(schema, record);
-						assert.deepEqual(document._applySchemaToRecord(), {
+						assert.deepEqual(document._transformRecordToDocument(), {
 							propertyA: ['foo', 'bar'],
 						});
 					});
@@ -230,7 +292,7 @@ describe('Document', () => {
 					it('should properly format arrays that are not array-like in the data', () => {
 						const record = ['foo'];
 						const document = new Document(schema, record);
-						assert.deepEqual(document._applySchemaToRecord(), {
+						assert.deepEqual(document._transformRecordToDocument(), {
 							propertyA: ['foo'],
 						});
 					});
@@ -238,7 +300,7 @@ describe('Document', () => {
 					it('should properly format arrays that are null values', () => {
 						const record = [null];
 						const document = new Document(schema, record);
-						assert.deepEqual(document._applySchemaToRecord(), {
+						assert.deepEqual(document._transformRecordToDocument(), {
 							propertyA: [''],
 						});
 					});
@@ -255,7 +317,7 @@ describe('Document', () => {
 					it('should properly format a property whose value is another schema', () => {
 						const record = ['foo'];
 						const document = new Document(schema, record);
-						assert.deepEqual(document._applySchemaToRecord(), {
+						assert.deepEqual(document._transformRecordToDocument(), {
 							propertyA: { property1: 'foo' },
 						});
 					});
@@ -270,7 +332,7 @@ describe('Document', () => {
 					it('should properly format a property whose value is a data definition', () => {
 						const record = ['foo'];
 						const document = new Document(schema, record);
-						assert.deepEqual(document._applySchemaToRecord(), {
+						assert.deepEqual(document._transformRecordToDocument(), {
 							propertyA: 'foo',
 						});
 					});

@@ -1,4 +1,3 @@
-import isNumber from 'lodash/isNumber';
 import SimpleType from 'schemaType/SimpleType';
 
 /**
@@ -49,11 +48,35 @@ class NumberType extends SimpleType {
 			return null;
 		}
 		const castValue = +value;
-		if (!isNumber(castValue)) {
+		if (!Number.isFinite(castValue)) {
 			throw new Error();
 		}
 
 		return +(Math.round(castValue, 0) / 10 ** this._dbDecimals).toFixed(this._dbDecimals);
+	};
+
+	/**
+	 * Transform externally formatted numeric data (nnn.nn) to mv style internally formatted numeric data
+	 * @function transformToDb
+	 * @memberof NumberType
+	 * @instance
+	 * @public
+	 * @override
+	 * @param {number|null} value - Value to transform
+	 * @returns {string|null} Transformed string integer representing internal multivalue number format
+	 * @throws {Error}
+	 */
+	transformToDb = value => {
+		if (value == null) {
+			return null;
+		}
+
+		const castValue = +value;
+		if (!Number.isFinite(castValue)) {
+			throw new Error();
+		}
+
+		return (castValue * 10 ** this._dbDecimals).toFixed(0);
 	};
 }
 

@@ -26,9 +26,10 @@ describe('DocumentArrayType', () => {
 
 	describe('instance methods', () => {
 		const Document = class {
-			constructor(schema, record) {
+			constructor(schema, record, options) {
 				this._schema = schema;
 				this._record = record;
+				this._isSubdocument = options.isSubdocument;
 			}
 		};
 		let documentArrayType;
@@ -56,6 +57,36 @@ describe('DocumentArrayType', () => {
 			});
 		});
 
+		describe('set', () => {
+			it('should return an array of arrays based on what is returned from transformDocumentToRecord', () => {
+				const transformDocumentToRecord = stub().returns(['foo', 'bar']);
+				assert.deepEqual(documentArrayType.set([], [{ transformDocumentToRecord }]), [
+					['foo'],
+					['bar'],
+				]);
+			});
+
+			it('should return an array of arrays with multiple items if multiple subdocuments are passed', () => {
+				const transformDocumentToRecord = stub();
+				transformDocumentToRecord.onCall(0).returns(['foo', 'bar']);
+				transformDocumentToRecord.onCall(1).returns(['baz', 'qux']);
+				assert.deepEqual(
+					documentArrayType.set([], [{ transformDocumentToRecord }, { transformDocumentToRecord }]),
+					[['foo', 'baz'], ['bar', 'qux']],
+				);
+			});
+
+			it('should not mutate the original record contents if the subdocuments do not return values', () => {
+				const transformDocumentToRecord = stub();
+				transformDocumentToRecord.onCall(0).returns([undefined, 'foo', 'bar']);
+				transformDocumentToRecord.onCall(1).returns([undefined, 'baz', 'qux']);
+				assert.deepEqual(
+					documentArrayType.set([], [{ transformDocumentToRecord }, { transformDocumentToRecord }]),
+					[undefined, ['foo', 'baz'], ['bar', 'qux']],
+				);
+			});
+		});
+
 		describe('_makeSubDocument', () => {
 			it('should return a new document instance from the first subrecord when yielding', () => {
 				const it = documentArrayType._makeSubDocument([['foo', 'bar'], ['baz', 'qux']]);
@@ -63,15 +94,17 @@ describe('DocumentArrayType', () => {
 				assert.isFalse(done);
 				assert.instanceOf(value, Document);
 				assert.deepEqual(value._record, ['foo', 'baz']);
+				assert.strictEqual(value._isSubdocument, true);
 			});
 
-			it('should return a new document instance from the second subrecord when yielding a second time', () => {
+			it('should return a new subdocument instance from the second subrecord when yielding a second time', () => {
 				const it = documentArrayType._makeSubDocument([['foo', 'bar'], ['baz', 'qux']]);
 				it.next();
 				const { value, done } = it.next();
 				assert.isFalse(done);
 				assert.instanceOf(value, Document);
 				assert.deepEqual(value._record, ['bar', 'qux']);
+				assert.strictEqual(value._isSubdocument, true);
 			});
 
 			it('should return as done when no subrecord is possible at iteration position', () => {

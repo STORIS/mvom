@@ -78,5 +78,39 @@ describe('ISOTimeType', () => {
 				assert.isTrue(add.calledWith(1000, 'seconds'));
 			});
 		});
+
+		describe('transformToDb', () => {
+			let isoTimeType;
+			const moment = stub().returns({
+				startOf: stub().returnsThis(),
+				diff: stub().returnsArg(1),
+			});
+			before(() => {
+				isoTimeType = new ISOTimeType({ path: '1' });
+				RewireAPI.__Rewire__('moment', moment);
+			});
+
+			after(() => {
+				RewireAPI.__ResetDependency__('moment');
+			});
+
+			beforeEach(() => {
+				isoTimeType._isDbInMs = false;
+			});
+
+			it('should return null if passed value is null', () => {
+				assert.isNull(isoTimeType.transformToDb(null));
+			});
+
+			it('should transform to milliseconds if db format is in milliseconds', () => {
+				isoTimeType._isDbInMs = true;
+				assert.strictEqual(isoTimeType.transformToDb('HH:mm:ss.SSS'), 'milliseconds');
+			});
+
+			it('should transform to seconds if db format is in seconds', () => {
+				isoTimeType._isDbInMs = false;
+				assert.strictEqual(isoTimeType.transformToDb('HH:mm:ss.SSS'), 'seconds');
+			});
+		});
 	});
 });

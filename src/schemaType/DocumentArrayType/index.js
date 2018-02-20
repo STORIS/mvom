@@ -1,4 +1,6 @@
 import castArray from 'lodash/castArray';
+import cloneDeep from 'lodash/cloneDeep';
+import setIn from 'lodash/set';
 import Document from 'Document';
 import Schema from 'Schema';
 import ComplexType from 'schemaType/ComplexType';
@@ -40,6 +42,28 @@ class DocumentArrayType extends ComplexType {
 	get = record => [...this._makeSubDocument(record)];
 
 	/**
+	 * Set specified document array value into mv record
+	 * @function set
+	 * @memberof DocumentArrayType
+	 * @instance
+	 * @param {*[]} originalRecord - Record structure to use as basis for applied changes
+	 * @param {Document[]} setValue - Array of documents to set into record
+	 * @returns {*[]} Array data of output record format
+	 */
+	set = (originalRecord, setValue) => {
+		const record = cloneDeep(originalRecord);
+		setValue.forEach((subdocument, iteration) => {
+			const subrecord = subdocument.transformDocumentToRecord();
+			subrecord.forEach((value, arrayPos) => {
+				if (typeof value !== 'undefined') {
+					setIn(record, [arrayPos, iteration], value);
+				}
+			});
+		});
+		return record;
+	};
+
+	/**
 	 * Generate subdocument instances
 	 * @generator
 	 * @function _makeSubDocument
@@ -66,7 +90,7 @@ class DocumentArrayType extends ComplexType {
 			if (subRecord.length === 0) {
 				return;
 			}
-			yield new Document(this._valueSchema, subRecord);
+			yield new Document(this._valueSchema, subRecord, { isSubdocument: true });
 			iteration += 1;
 		}
 	}

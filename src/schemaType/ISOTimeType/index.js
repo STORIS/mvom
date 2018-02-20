@@ -58,6 +58,29 @@ class ISOTimeType extends SimpleType {
 
 		return isoTime.format('HH:mm:ss.SSS');
 	};
+
+	/**
+	 * Transform ISO 8601 approved time format (HH:mm:ss.SSS) to mv style time data
+	 * @function transformToDb
+	 * @memberof ISOTimeType
+	 * @instance
+	 * @public
+	 * @override
+	 * @param {string|null} value - Value to transform
+	 * @returns {string|null} Transformed string integer representing the number of seconds or milliseconds since midnight
+	 */
+	transformToDb = value => {
+		if (value == null) {
+			return null;
+		}
+
+		const startOfDay = moment().startOf('day');
+
+		if (this._isDbInMs) {
+			return String(moment(value, 'HH:mm:ss.SSS').diff(startOfDay, 'milliseconds'));
+		}
+		return String(moment(value, 'HH:mm:ss.SSS').diff(startOfDay, 'seconds'));
+	};
 }
 
 export default ISOTimeType;

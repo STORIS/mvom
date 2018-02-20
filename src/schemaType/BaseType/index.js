@@ -24,6 +24,17 @@ class BaseType {
 	 * @returns {*} Transformed value
 	 */
 	transformFromDb = value => value;
+
+	/**
+	 * Transform js style data to mv style data
+	 * @function transformToDb
+	 * @memberof BaseType
+	 * @instance
+	 * @public
+	 * @param {*} value - Value to transform
+	 * @returns {*} Transformed value
+	 */
+	transformToDb = value => value;
 }
 
 export default BaseType;
