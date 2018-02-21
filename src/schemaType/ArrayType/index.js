@@ -38,7 +38,9 @@ class ArrayType extends ComplexType {
 	 */
 	get = record => {
 		const value = this._valueSchemaType.getFromMvData(record);
-		return castArray(value).map(itemValue => this._valueSchemaType.transformFromDb(itemValue));
+		return typeof value === 'undefined'
+			? []
+			: castArray(value).map(itemValue => this._valueSchemaType.transformFromDb(itemValue));
 	};
 
 	/**

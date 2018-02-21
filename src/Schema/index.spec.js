@@ -12,6 +12,24 @@ describe('Schema', () => {
 	});
 
 	describe('instance methods', () => {
+		describe('getMvPaths', () => {
+			const subdocumentSchema = {
+				getMvPaths: stub(),
+			};
+			let schema;
+			before(() => {
+				schema = new Schema({ foo: { path: '1', type: String } });
+			});
+
+			it("should merge subdocument schemas paths with this schema's path", () => {
+				schema._mvPaths = [['foo'], ['bar']];
+				subdocumentSchema.getMvPaths.onCall(0).returns([['baz'], ['qux']]);
+				subdocumentSchema.getMvPaths.onCall(1).returns([['corge']]);
+				schema._subdocumentSchemas = [subdocumentSchema, subdocumentSchema];
+				assert.deepEqual(schema.getMvPaths(), [['foo'], ['bar'], ['baz'], ['qux'], ['corge']]);
+			});
+		});
+
 		describe('_buildPaths', () => {
 			let schema;
 			let _isDataDefinition;

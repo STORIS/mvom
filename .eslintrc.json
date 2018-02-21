@@ -30,14 +30,6 @@
         "optionalDependencies": false
       }
     ],
-    "indent": [
-      "error",
-      "tab",
-      {
-        "SwitchCase": 1
-      }
-    ],
-    "no-tabs": "off",
     "no-underscore-dangle": [
       "error",
       {

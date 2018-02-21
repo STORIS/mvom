@@ -48,9 +48,39 @@ class Schema {
 		 * @instance
 		 */
 		this.paths = {};
+		/**
+		 * Array of all multivalue data paths represented in the Schema
+		 * @member {Number[]} _mvPaths
+		 * @memberof Schema
+		 * @instance
+		 */
+		this._mvPaths = [];
+		/**
+		 * Array of all subdocument schemas represented in this Schema
+		 * @member {Schema[]} _subdocumentSchemas
+		 * @memberof Schema
+		 * @instance
+		 * @private
+		 */
+		this._subdocumentSchemas = [];
 
 		this._buildPaths(this._definition);
 	}
+
+	/* public instance methods */
+
+	/**
+	 * Get all multivalue data paths in this schema and its subdocument schemas
+	 * @function getMvPaths
+	 * @memberof Schema
+	 * @instance
+	 * @returns {Number[]} Array of all multivalue data paths represented in the Schema and any subdocument schemas
+	 */
+	getMvPaths = () =>
+		this._subdocumentSchemas.reduce(
+			(mvPaths, schema) => mvPaths.concat(schema.getMvPaths()),
+			this._mvPaths.slice(),
+		);
 
 	/* private instance methods */
 
@@ -90,6 +120,7 @@ class Schema {
 			if (value instanceof Schema) {
 				// value is an already compiled schema - cast as embedded document
 				this.paths[newKey] = new schemaType.Embedded(value);
+				this._subdocumentSchemas.push(value);
 				return;
 			}
 
@@ -129,6 +160,7 @@ class Schema {
 		}
 
 		if (arrayValue instanceof Schema) {
+			this._subdocumentSchemas.push(arrayValue);
 			return new schemaType.DocumentArray(arrayValue);
 		}
 
@@ -136,7 +168,9 @@ class Schema {
 			return new schemaType.Array(this._castDefinition(arrayValue));
 		}
 
-		return new schemaType.DocumentArray(new Schema(arrayValue, { type: this._typeProperty }));
+		const subdocumentSchema = new Schema(arrayValue, { type: this._typeProperty });
+		this._subdocumentSchemas.push(subdocumentSchema);
+		return new schemaType.DocumentArray(subdocumentSchema);
 	};
 
 	/**
@@ -154,22 +188,35 @@ class Schema {
 			throw new Error();
 		}
 
+		let schemaTypeValue;
 		switch (castee[this._typeProperty]) {
 			case Boolean:
-				return new schemaType.Boolean(castee);
+				schemaTypeValue = new schemaType.Boolean(castee);
+				break;
 			case schemaType.ISOCalendarDateTime:
-				return new schemaType.ISOCalendarDateTime(castee);
+				schemaTypeValue = new schemaType.ISOCalendarDateTime(castee);
+				break;
 			case schemaType.ISOCalendarDate:
-				return new schemaType.ISOCalendarDate(castee);
+				schemaTypeValue = new schemaType.ISOCalendarDate(castee);
+				break;
 			case schemaType.ISOTime:
-				return new schemaType.ISOTime(castee);
+				schemaTypeValue = new schemaType.ISOTime(castee);
+				break;
 			case Number:
-				return new schemaType.Number(castee);
+				schemaTypeValue = new schemaType.Number(castee);
+				break;
 			case String:
-				return new schemaType.String(castee);
+				schemaTypeValue = new schemaType.String(castee);
+				break;
 			default:
 				throw new Error();
 		}
+
+		if (schemaTypeValue.path != null) {
+			this._mvPaths.push(schemaTypeValue.path);
+		}
+
+		return schemaTypeValue;
 	};
 
 	/**

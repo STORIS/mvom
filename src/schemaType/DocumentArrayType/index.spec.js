@@ -4,7 +4,9 @@ import { stub } from 'sinon';
 import DocumentArrayType, { __RewireAPI__ as RewireAPI } from './';
 
 describe('DocumentArrayType', () => {
-	const Schema = class {};
+	const Schema = class {
+		getMvPaths = stub().returns([0, 1]);
+	};
 	before(() => {
 		RewireAPI.__Rewire__('Schema', Schema);
 	});

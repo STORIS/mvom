@@ -1,8 +1,8 @@
-import castArray from 'lodash/castArray';
 import cloneDeep from 'lodash/cloneDeep';
 import setIn from 'lodash/set';
 import toPath from 'lodash/toPath';
 import BaseType from 'schemaType/BaseType';
+import getFromMvArray from 'shared/getFromMvArray';
 
 /**
  * A Simple Schema Type
@@ -17,10 +17,9 @@ class SimpleType extends BaseType {
 	constructor(definition) {
 		/**
 		 * 0-indexed Array path
-		 * @member {Array} _path
+		 * @member {Number[]} path
 		 * @memberof SimpleType
 		 * @instance
-		 * @private
 		 */
 
 		if (new.target === SimpleType) {
@@ -56,15 +55,7 @@ class SimpleType extends BaseType {
 	 * @param {*[]} record - Data to get value from
 	 * @returns {*} Value of data at specified location
 	 */
-	getFromMvData = record => {
-		if (this._path == null) {
-			return null;
-		}
-		// lodash.get will not work here because "array" data might be returned from multi-value that still
-		// appears like a non-array; if that happens, lodash.get would return the character at that string position instead;
-		// this reducer ensures that the appropriate value is retrieved.
-		return this._path.reduce((acc, pathPart) => castArray(acc)[pathPart], record);
-	};
+	getFromMvData = record => getFromMvArray(record, this.path);
 
 	/**
 	 * Transform into multivalue format and set specified value into mv record
@@ -88,11 +79,11 @@ class SimpleType extends BaseType {
 	 * @returns {*[]} Array data of output record format
 	 */
 	setIntoMvData = (originalRecord, setValue) => {
-		if (this._path == null) {
+		if (this.path == null) {
 			return originalRecord;
 		}
 
-		return setIn(cloneDeep(originalRecord), this._path, setValue);
+		return setIn(cloneDeep(originalRecord), this.path, setValue);
 	};
 
 	/* private instance methods */
@@ -108,11 +99,11 @@ class SimpleType extends BaseType {
 	 */
 	_normalizeMvPath = path => {
 		if (path == null) {
-			this._path = null;
+			this.path = null;
 			return;
 		}
 
-		this._path = toPath(path).map(val => {
+		this.path = toPath(path).map(val => {
 			const numVal = +val;
 			if (!Number.isInteger(numVal) || numVal < 1) {
 				throw new Error();

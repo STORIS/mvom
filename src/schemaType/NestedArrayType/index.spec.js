@@ -54,6 +54,11 @@ describe('NestedArrayType', () => {
 				RewireAPI.__ResetDependency__('castArray');
 			});
 
+			it('should return an empty array when given undefined', () => {
+				simpleType.getFromMvData.returns(undefined);
+				assert.deepEqual(nestedArrayType.get(), []);
+			});
+
 			it('should return a transformed nested array when given a primitive value ', () => {
 				simpleType.getFromMvData.returns('foo');
 				assert.deepEqual(nestedArrayType.get(), [['def']]);

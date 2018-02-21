@@ -52,6 +52,11 @@ describe('ArrayType', () => {
 				RewireAPI.__ResetDependency__('castArray');
 			});
 
+			it('should return an empty array when given undefined', () => {
+				simpleType.getFromMvData.returns(undefined);
+				assert.deepEqual(arrayType.get(), []);
+			});
+
 			it('should return a transformed array when given a primitive value ', () => {
 				simpleType.getFromMvData.returns('foo');
 				assert.deepEqual(arrayType.get(), ['def']);

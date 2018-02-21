@@ -276,7 +276,15 @@ describe('Document', () => {
 						const record = [null];
 						const document = new Document(schema, record);
 						assert.deepEqual(document._transformRecordToDocument(), {
-							propertyA: [['']],
+							propertyA: [],
+						});
+					});
+
+					it('should properly format nested arrays that that have null values at indices other than 0', () => {
+						const record = [[null, null]];
+						const document = new Document(schema, record);
+						assert.deepEqual(document._transformRecordToDocument(), {
+							propertyA: [[''], ['']],
 						});
 					});
 				});
@@ -307,7 +315,15 @@ describe('Document', () => {
 						const record = [null];
 						const document = new Document(schema, record);
 						assert.deepEqual(document._transformRecordToDocument(), {
-							propertyA: [''],
+							propertyA: [],
+						});
+					});
+
+					it('should properly format arrays that have null values at indices other than 0', () => {
+						const record = [['foo', null]];
+						const document = new Document(schema, record);
+						assert.deepEqual(document._transformRecordToDocument(), {
+							propertyA: ['foo', ''],
 						});
 					});
 				});

@@ -1,9 +1,22 @@
 /* eslint-disable no-underscore-dangle */
 import { assert } from 'chai';
 import { stub } from 'sinon';
-import SimpleType from './';
+import SimpleType, { __RewireAPI__ as RewireAPI } from './';
 
 describe('SimpleType', () => {
+	const getFromMvArray = stub();
+	before(() => {
+		RewireAPI.__Rewire__('getFromMvArray', getFromMvArray);
+	});
+
+	after(() => {
+		RewireAPI.__ResetDependency__('getFromMvArray');
+	});
+
+	beforeEach(() => {
+		getFromMvArray.reset();
+	});
+
 	describe('constructor', () => {
 		it('should not be able to instantiate directly', () => {
 			assert.throws(() => new SimpleType());
@@ -42,48 +55,19 @@ describe('SimpleType', () => {
 			});
 
 			beforeEach(() => {
-				extension._path = null;
+				extension.path = null;
 			});
 
-			it('should return null if path is null', () => {
-				extension._path = null;
-				assert.isNull(extension.getFromMvData());
+			it("should call getFromMvArray with the passed record and the instance's path", () => {
+				extension.path = [1];
+				extension.getFromMvData(['foo']);
+				assert.deepEqual(getFromMvArray.args[0][0], ['foo']);
+				assert.deepEqual(getFromMvArray.args[0][1], [1]);
 			});
 
-			it('should get value from shallow path', () => {
-				extension._path = [0];
-				const record = ['foo'];
-				assert.strictEqual(extension.getFromMvData(record), 'foo');
-			});
-
-			it('should get value from one-level deep path', () => {
-				extension._path = [0, 1];
-				const record = [['foo', 'bar']];
-				assert.strictEqual(extension.getFromMvData(record), 'bar');
-			});
-
-			it('should get value from one-level deep path not formatted as array', () => {
-				extension._path = [0, 0];
-				const record = ['foo'];
-				assert.strictEqual(extension.getFromMvData(record), 'foo');
-			});
-
-			it('should get value from two-level deep path', () => {
-				extension._path = [0, 1, 1];
-				const record = [[['foo', 'bar'], ['baz', 'qux']]];
-				assert.strictEqual(extension.getFromMvData(record), 'qux');
-			});
-
-			it('should get value from two-level deep path not formatted as deep array', () => {
-				extension._path = [0, 1, 0];
-				const record = [['foo', 'bar']];
-				assert.strictEqual(extension.getFromMvData(record), 'bar');
-			});
-
-			it('should get value from two-level deep path not formatted as array', () => {
-				extension._path = [0, 0, 0];
-				const record = ['foo'];
-				assert.strictEqual(extension.getFromMvData(record), 'foo');
+			it('should return the value returned from getFromMvArray', () => {
+				getFromMvArray.returns('foo');
+				assert.strictEqual(extension.getFromMvData(), 'foo');
 			});
 		});
 
@@ -128,18 +112,18 @@ describe('SimpleType', () => {
 				extension = new Extension({});
 			});
 
-			it('should return unchanged array if instance _path is null', () => {
-				extension._path = null;
+			it('should return unchanged array if instance path is null', () => {
+				extension.path = null;
 				assert.deepEqual(extension.setIntoMvData(['foo', 'bar']), ['foo', 'bar']);
 			});
 
 			it('should set the value at the array position specifed by the path', () => {
-				extension._path = [2];
+				extension.path = [2];
 				assert.deepEqual(extension.setIntoMvData(['foo', 'bar'], 'baz'), ['foo', 'bar', 'baz']);
 			});
 
 			it('should set the value at the nested array position specifed by the path', () => {
-				extension._path = [2, 1];
+				extension.path = [2, 1];
 				assert.deepEqual(extension.setIntoMvData(['foo', 'bar'], 'baz'), [
 					'foo',
 					'bar',
@@ -148,7 +132,7 @@ describe('SimpleType', () => {
 			});
 
 			it('should set the value at the deeply nested array position specifed by the path', () => {
-				extension._path = [2, 1, 1];
+				extension.path = [2, 1, 1];
 				assert.deepEqual(extension.setIntoMvData(['foo', 'bar'], 'baz'), [
 					'foo',
 					'bar',
@@ -165,12 +149,12 @@ describe('SimpleType', () => {
 			});
 
 			beforeEach(() => {
-				extension._path = 'testMe';
+				extension.path = 'testMe';
 			});
 
 			it('should set path to null if path is not provided', () => {
 				extension._normalizeMvPath();
-				assert.deepEqual(extension._path, null);
+				assert.deepEqual(extension.path, null);
 			});
 
 			it('should throw an error if an integer-like string is not provided', () => {
@@ -183,12 +167,12 @@ describe('SimpleType', () => {
 
 			it('should return an array of integers with a value one less than the parameter', () => {
 				extension._normalizeMvPath('1');
-				assert.deepEqual(extension._path, [0]);
+				assert.deepEqual(extension.path, [0]);
 			});
 
 			it('should return an array of integers with a value one less than the parameter when a nested path is provided', () => {
 				extension._normalizeMvPath('1.2');
-				assert.deepEqual(extension._path, [0, 1]);
+				assert.deepEqual(extension.path, [0, 1]);
 			});
 		});
 	});

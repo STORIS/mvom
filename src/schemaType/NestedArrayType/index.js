@@ -36,9 +36,13 @@ class NestedArrayType extends ComplexType {
 	 */
 	get = record => {
 		const value = this._valueSchemaType.getFromMvData(record);
-		return castArray(value).map(itemValue =>
-			castArray(itemValue).map(nestedValue => this._valueSchemaType.transformFromDb(nestedValue)),
-		);
+		return typeof value === 'undefined'
+			? []
+			: castArray(value).map(itemValue =>
+					castArray(itemValue).map(nestedValue =>
+						this._valueSchemaType.transformFromDb(nestedValue),
+					),
+				);
 	};
 
 	/**

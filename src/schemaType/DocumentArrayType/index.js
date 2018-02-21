@@ -1,9 +1,9 @@
-import castArray from 'lodash/castArray';
 import cloneDeep from 'lodash/cloneDeep';
 import setIn from 'lodash/set';
 import Document from 'Document';
 import Schema from 'Schema';
 import ComplexType from 'schemaType/ComplexType';
+import getFromMvArray from 'shared/getFromMvArray';
 
 /**
  * A Document Array Schema Type
@@ -75,12 +75,11 @@ class DocumentArrayType extends ComplexType {
 	 */
 	*_makeSubDocument(record) {
 		const makeSubRecord = iteration =>
-			record.reduce((acc, value, index) => {
-				const innerValue = castArray(value)[iteration];
-				if (typeof innerValue !== 'undefined') {
-					acc[index] = innerValue;
+			this._valueSchema.getMvPaths().reduce((acc, path) => {
+				const value = getFromMvArray(record, [path, iteration]);
+				if (typeof value !== 'undefined') {
+					setIn(acc, path, value);
 				}
-
 				return acc;
 			}, []);
 
