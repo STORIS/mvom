@@ -29,11 +29,13 @@ end
 * read the record from the file
 read record from f.file, recordId on error
   call error_handler(ERROR_READ, output)
-  go returnFromSub
+  go closeAndReturnFromSub
 end else
   call error_handler(ERROR_NOT_FOUND, output)
-  go returnFromSub
+  go closeAndReturnFromSub
 end
+
+close f.file on error null
 
 * format the record into an object structure
 call format_document(record, recordId, document, errorCode)
@@ -47,6 +49,12 @@ if udoSetProperty(output, 'result', document) then
   call error_handler(ERROR_UDO, output)
   go returnFromSub
 end
+
+go returnFromSub;* skip close and release behaviors
+
+closeAndReturnFromSub:
+close f.file on error null
+* fall through to return
 
 returnFromSub:
 return; * returning to caller

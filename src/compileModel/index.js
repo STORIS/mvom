@@ -114,10 +114,38 @@ const compileModel = (connection, schema, file) => {
 				__v: {
 					value: __v,
 				},
+				save: {
+					configurable: false,
+					enumerable: false,
+					writable: false,
+				},
 			});
 
 			this._connection.logger.debug(`creating new instance of model for file ${this._file}`);
 		}
+
+		/**
+		 * Save a document to the database
+		 * @function save
+		 * @memberof Model
+		 * @instance
+		 * @returns {Model} New instance of the saved model
+		 * @throws {Error}
+		 */
+		save = async () => {
+			if (this._id == null) {
+				throw new Error();
+			}
+
+			const data = await this._connection.executeDbFeature('save', {
+				filename: this._file,
+				id: this._id,
+				__v: this.__v,
+				record: this.transformDocumentToRecord(),
+			});
+
+			return new Model(data.result);
+		};
 	}
 
 	return Model;

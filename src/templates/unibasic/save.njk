@@ -1,0 +1,175 @@
+$basictype 'u'
+subroutine mvom_save(options, output)
+* save a document given a filename, record id, and record contents
+{% include "./partials/udoConstants.njk" %}
+
+{% include "./partials/errorConstants.njk" %}
+
+* get the filename from the options
+if udoGetProperty(options, 'filename', filename, type) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go returnFromSub
+end
+
+* get the recordId from the options
+if udoGetProperty(options, 'id', recordId, type) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go returnFromSub
+end
+
+* get the previous record version (if any) from the options
+if udoGetProperty(options, '__v', recordHash, recordHashType) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go returnFromSub
+end
+if recordHashType eq UDO_NULL then
+  recordHash = ''
+end
+
+* get the record contents from the options
+if udoGetProperty(options, 'record', recordContents, type) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go returnFromSub
+end
+
+* open the file
+open filename to f.file on error
+  call error_handler(ERROR_FILE_OPEN, output)
+  go returnFromSub
+end else
+  call error_handler(ERROR_FILE_OPEN, output)
+  go returnFromSub
+end
+
+* read and lock record from the file
+readu record from f.file, recordId on error
+  call error_handler(ERROR_READ, output)
+  go closeAndReturnFromSub
+end locked
+  call error_handler(ERROR_LOCKED, output)
+  go closeAndReturnFromSub
+end then
+  if digest('MD5', record, 1, originalRecordHash) then
+    errorCode = ERROR_DIGEST_HASH
+    go closeReleaseAndReturnFromSub
+  end
+
+  if oconv(originalRecordHash, 'MX0C') ne recordHash then
+    call error_handler(ERROR_RECORD_VERSION, output)
+    go closeReleaseAndReturnFromSub
+  end
+end else
+  if recordHash ne '' then
+    * this record existed previously, reject the save
+    call error_handler(ERROR_RECORD_VERSION, output)
+    go closeReleaseAndReturnFromSub
+  end
+
+  record = ''
+end
+
+if udoArrayGetSize(recordContents, lastAttribute) then
+  call error_handler(ERROR_UDO, output)
+  go closeReleaseAndReturnFromSub
+end
+
+for attributeCounter = 1 to lastAttribute
+  if udoArrayGetItem(recordContents, attributeCounter, attributeContents, attributeType) then
+    call error_handler(ERROR_UDO, output)
+    go closeReleaseAndReturnFromSub
+  end
+
+  begin case
+    case attributeType eq UDO_ARRAY
+      if udoArrayGetSize(attributeContents, lastValue) then
+        call error_handler(ERROR_UDO, output)
+        go closeReleaseAndReturnFromSub
+      end
+
+      for valueCounter = 1 to lastValue
+        if udoArrayGetItem(attributeContents, valueCounter, valueContents, valueType) then
+          call error_handler(ERROR_UDO, output)
+          go closeReleaseAndReturnFromSub
+        end
+
+        begin case
+          case valueType eq UDO_ARRAY
+            if udoArrayGetSize(valueContents, lastSubvalue) then
+              call error_handler(ERROR_UDO, output)
+              go closeReleaseAndReturnFromSub
+            end
+
+            for subvalueCounter = 1 to lastSubvalue
+              if udoArrayGetItem(valueContents, subvalueCounter, subvalueContents, subvalueType) then
+                call error_handler(ERROR_UDO, output)
+                go closeReleaseAndReturnFromSub
+              end
+
+              begin case
+                case subvalueType eq UDO_NULL
+                  record<attributeCounter, valueCounter, subvalueCounter> = ''
+                case subvalueType eq UDO_NUMBER or subvalueType eq UDO_STRING
+                  record<attributeCounter, valueCounter, subvalueCounter> = subvalueContents
+                case 1
+                  call error_handler(ERROR_MALFORMED_INPUT, output)
+                  go closeReleaseAndReturnFromSub
+              end case
+            next subvalueCounter
+
+          case valueType eq UDO_NULL
+            record<attributeCounter, valueCounter> = ''
+          case valueType eq UDO_NUMBER or valueType eq UDO_STRING
+            record<attributeCounter, valueCounter> = valueContents
+          case 1
+            call error_handler(ERROR_MALFORMED_INPUT, output)
+            go closeReleaseAndReturnFromSub
+        end case
+      next valueCounter
+
+    case attributeType eq UDO_NULL
+      record<attributeCounter> = ''
+    case attributeType eq UDO_NUMBER or attributeType eq UDO_STRING
+      record<attributeCounter> = attributeContents
+    case 1
+      call error_handler(ERROR_MALFORMED_INPUT, output)
+      go closeReleaseAndReturnFromSub
+  end case
+next attributeCounter
+
+* write out record
+write record on f.file, recordId on error
+  call error_handler(ERROR_WRITE, output)
+  go closeAndReturnFromSub
+end
+
+close f.file on error null
+
+* format the modified record into an object structure
+call format_document(record, recordId, document, errorCode)
+if errorCode then
+  call error_handler(errorCode, output)
+  go returnFromSub
+end
+
+* set the result property
+if udoSetProperty(output, 'result', document) then
+  call error_handler(ERROR_UDO, output)
+  go returnFromSub
+end
+
+go returnFromSub;* skip close and release behaviors
+
+closeReleaseAndReturnFromSub:
+release f.file, recordId on error null
+* fall through to close and return
+
+closeAndReturnFromSub:
+close f.file on error null
+* fall through to return
+
+returnFromSub:
+return; * returning to caller
+
+{% include "./partials/formatDocument.njk" %}
+
+{% include "./partials/errorHandler.njk" %}

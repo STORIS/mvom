@@ -27,15 +27,15 @@ end else
 end
 
 write source on f.sourceDir, programName on error
-  close f.sourceDir
+  close f.sourceDir on error null
   call error_handler(ERROR_WRITE, output)
   go returnFromSub
 end
 
-close f.sourceDir
+close f.sourceDir on error null
 
 * compiling with override and case-insensitive flags
-execute 'basic ':sourceDir:' ':programName:' -o -i' returning errmsg
+execute 'basic ':sourceDir:' ':programName:' -d -o -i' returning errmsg
 if @system.return.code then
   call error_handler(ERROR_DEPLOYMENT, output)
   go returnFromSub

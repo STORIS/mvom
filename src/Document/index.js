@@ -8,13 +8,13 @@ import Schema from 'Schema';
  * A document object
  * @class Document
  * @param {Schema} schema - Schema instance to derive document from
- * @param {*[]} record - Array data to construct document instance properties from
+ * @param {*[]} [record = []] - Array data to construct document instance properties from
  * @param {Object} [options = {}]
  * @param {Boolean} [options.isSubdocument = false] Indicates whether document should behave as a subdocument
  * @throws {Error}
  */
 class Document {
-	constructor(schema, record, { isSubdocument = false } = {}) {
+	constructor(schema, record = [], { isSubdocument = false } = {}) {
 		if (!(schema instanceof Schema) || !Array.isArray(record)) {
 			throw new Error();
 		}

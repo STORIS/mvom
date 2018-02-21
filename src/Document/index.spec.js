@@ -30,6 +30,12 @@ describe('Document', () => {
 			assert.instanceOf(document._schema, SchemaRewire);
 			assert.deepEqual(document._record, ['foo']);
 		});
+
+		it('should use an empty array as the default value when one is not passed', () => {
+			const document = new Document(new SchemaRewire());
+			assert.instanceOf(document._schema, SchemaRewire);
+			assert.deepEqual(document._record, []);
+		});
 	});
 
 	describe('instance methods', () => {

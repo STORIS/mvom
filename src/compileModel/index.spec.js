@@ -1,5 +1,6 @@
 /* eslint-disable no-underscore-dangle */
-import { assert } from 'chai';
+import chai, { assert } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 import { stub } from 'sinon';
 import mockLogger from 'testHelpers/mockLogger';
 import compileModel, { __RewireAPI__ as RewireAPI } from './';
@@ -10,6 +11,7 @@ describe('compileModel', () => {
 	const Document = class {};
 	const executeDbFeature = stub();
 	before(() => {
+		chai.use(chaiAsPromised);
 		const Connection = class {};
 		RewireAPI.__Rewire__('Connection', Connection);
 		connection = new Connection();
@@ -78,7 +80,32 @@ describe('compileModel', () => {
 			});
 		});
 
-		describe('instance tests', () => {
+		describe('instance methods', () => {
+			let Test;
+			before(() => {
+				Test = compileModel(connection, schema, 'foo');
+			});
+
+			describe('save', () => {
+				it('should throw an error if an _id has not been added to the instance', () => {
+					const test = new Test();
+					assert.isRejected(test.save());
+				});
+
+				it('should instantiate a new model instance with the results of the dbFeature execution', async () => {
+					executeDbFeature.resolves({ result: { record: [], _id: 'bar', __v: 'baz' } });
+					const test = new Test({ record: [], _id: 'foo' });
+					test.transformDocumentToRecord = stub();
+					assert.deepInclude(await test.save(), {
+						_id: 'bar',
+						__id: 'bar',
+						__v: 'baz',
+					});
+				});
+			});
+		});
+
+		describe('instance setters', () => {
 			it('should set the hidden __id property', () => {
 				const Test = compileModel(connection, schema, 'foo');
 				const test = new Test();
