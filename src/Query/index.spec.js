@@ -1,6 +1,7 @@
 /* eslint-disable no-underscore-dangle */
 import { assert } from 'chai';
 import { stub } from 'sinon';
+import mockLogger from 'testHelpers/mockLogger';
 import Query from './';
 
 describe('Query', () => {
@@ -75,18 +76,80 @@ describe('Query', () => {
 	});
 
 	describe('instance methods', () => {
-		const Model = class {};
+		const executeDbFeature = stub();
+		const Model = class {
+			static connection = { executeDbFeature, logger: mockLogger };
+			static file = 'foo';
+		};
 		let query;
 		before(() => {
 			query = new Query(Model);
 		});
 
 		beforeEach(() => {
-			query._Model = 'initial';
-			query._limit = 'initial';
-			query._selectionCriteria = 'initial';
-			query._skip = 'initial';
-			query._sortCriteria = 'initial';
+			executeDbFeature.reset();
+			query._Model.schema = 'initial';
+			query._limit = null;
+			query._selectionCriteria = null;
+			query._skip = null;
+			query._sortCriteria = null;
+		});
+
+		describe('exec', () => {
+			it('should set queryCommand without criteria if none specified', async () => {
+				executeDbFeature.resolves({ result: [] });
+				await query.exec();
+				assert.strictEqual(executeDbFeature.args[0][1].queryCommand, 'select foo');
+			});
+
+			it('should set queryCommand with selection criteria if specified', async () => {
+				executeDbFeature.resolves({ result: [] });
+				query._selectionCriteria = 'bar';
+				await query.exec();
+				assert.strictEqual(executeDbFeature.args[0][1].queryCommand, 'select foo with bar');
+			});
+
+			it('should set queryCommand with sort criteria if specified', async () => {
+				executeDbFeature.resolves({ result: [] });
+				query._sortCriteria = 'baz';
+				await query.exec();
+				assert.strictEqual(executeDbFeature.args[0][1].queryCommand, 'select foo baz');
+			});
+
+			it('should set queryCommand with selection and sort criteria if specified', async () => {
+				executeDbFeature.resolves({ result: [] });
+				query._selectionCriteria = 'bar';
+				query._sortCriteria = 'baz';
+				await query.exec();
+				assert.strictEqual(executeDbFeature.args[0][1].queryCommand, 'select foo with bar baz');
+			});
+
+			it("should set filename option based on Model's file", async () => {
+				executeDbFeature.resolves({ result: [] });
+				await query.exec();
+				assert.strictEqual(executeDbFeature.args[0][1].filename, 'foo');
+			});
+
+			it('should set the skip option if specified', async () => {
+				executeDbFeature.resolves({ result: [] });
+				query._skip = 'foo';
+				await query.exec();
+				assert.strictEqual(executeDbFeature.args[0][1].skip, 'foo');
+			});
+
+			it('should set the limit option if specified', async () => {
+				executeDbFeature.resolves({ result: [] });
+				query._limit = 'foo';
+				await query.exec();
+				assert.strictEqual(executeDbFeature.args[0][1].limit, 'foo');
+			});
+
+			it('should return an array of Model instances', async () => {
+				executeDbFeature.resolves({ result: [{}] });
+				const results = await query.exec();
+				assert.isArray(results);
+				assert.instanceOf(results[0], Model);
+			});
 		});
 
 		describe('limit', () => {
@@ -281,7 +344,7 @@ describe('Query', () => {
 				);
 			});
 
-			it('should return and outer "and" condition string and an inner "or" condition string', () => {
+			it('should return an outer "and" condition string and an inner "or" condition string', () => {
 				assert.strictEqual(
 					query._formatSelectionCriteria({
 						def: 'foo',
@@ -346,12 +409,12 @@ describe('Query', () => {
 
 		describe('_getDictionaryId', () => {
 			it('should throw if no dictionary exists at the given path', () => {
-				query._Model = { schema: { dictPaths: {} } };
+				query._Model.schema = { dictPaths: {} };
 				assert.throws(query._getDictionaryId.bind(query, 'foo'));
 			});
 
 			it('should return the dictionary value at the given path', () => {
-				query._Model = { schema: { dictPaths: { foo: 'bar' } } };
+				query._Model.schema = { dictPaths: { foo: 'bar' } };
 				assert.strictEqual(query._getDictionaryId('foo'), 'bar');
 			});
 		});

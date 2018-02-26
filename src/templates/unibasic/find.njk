@@ -1,0 +1,96 @@
+$basictype 'u'
+subroutine mvom_find(options, output)
+* find and return a list of documents using query parameters
+{% include "./partials/udoConstants.njk" %}
+
+{% include "./partials/errorConstants.njk" %}
+
+* get the filename from the options
+if udoGetProperty(options, 'filename', filename, type) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go returnFromSub
+end
+
+* get the query command from the options
+if udoGetProperty(options, 'queryCommand', queryCommand, type) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go returnFromSub
+end
+
+* get the limit value (if any) from the options
+if udoGetProperty(options, 'limit', limit, type) then
+  limit = ''
+end
+
+* get the skip value (if any) from the options
+if udoGetProperty(options, 'skip', skip, type) then
+  skip = 0
+end
+
+* execute the query
+udtexecute queryCommand returning errorCodes
+if @system.return.code lt 0 then
+  call error_handler(ERROR_QUERY, output)
+  go returnFromSub
+end
+
+* create the udo structure to hold the returned documents
+if udoCreate(UDO_ARRAY, documentList) then
+  call error_handler(ERROR_UDO, output)
+  go returnFromSub
+end
+
+* open the file
+open filename to f.file on error
+  call error_handler(ERROR_FILE_OPEN, output)
+  go returnFromSub
+end else
+  call error_handler(ERROR_FILE_OPEN, output)
+  go returnFromSub
+end
+
+processCount = 0
+loop while limit eq '' or processCount lt skip + limit
+  processCount+= 1
+  readnext recordId else exit
+  if processCount gt skip then
+    read record from f.file, recordId on error
+      call error_handler(ERROR_READ, output)
+      go closeAndReturnFromSub
+    end then
+      * format the record into an object structure
+      call format_document(record, recordId, document, errorCode)
+      if errorCode then
+        call error_handler(errorCode, output)
+        go closeAndReturnFromSub
+      end
+
+      * add the document to the output list
+      if udoArrayAppendItem(documentList, document) then
+        call error_handler(ERROR_UDO, output)
+        go closeAndReturnFromSub
+      end
+    end
+  end
+repeat
+
+close f.file on error null
+
+* set the result property
+if udoSetProperty(output, 'result', documentList) then
+  call error_handler(ERROR_UDO, output)
+  go returnFromSub
+end
+
+go returnFromSub;* skip close behavior
+
+closeAndReturnFromSub:
+close f.file on error null
+* fall through to return
+
+returnFromSub:
+return; * returning to caller
+
+{% include "./partials/formatDocument.njk" %}
+
+{% include "./partials/errorHandler.njk" %}

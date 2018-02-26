@@ -10,6 +10,8 @@ describe('compileModel', () => {
 	let schema;
 	const Document = class {};
 	const executeDbFeature = stub();
+	const queryConstructor = stub();
+	const exec = stub();
 	before(() => {
 		chai.use(chaiAsPromised);
 		const Connection = class {};
@@ -20,6 +22,14 @@ describe('compileModel', () => {
 
 		RewireAPI.__Rewire__('Document', Document);
 
+		const Query = class {
+			constructor(Model, selectionCriteria, options) {
+				queryConstructor(Model, selectionCriteria, options);
+			}
+			exec = exec;
+		};
+		RewireAPI.__Rewire__('Query', Query);
+
 		const Schema = class {};
 		RewireAPI.__Rewire__('Schema', Schema);
 		schema = new Schema();
@@ -27,11 +37,14 @@ describe('compileModel', () => {
 
 	beforeEach(() => {
 		executeDbFeature.reset();
+		queryConstructor.resetHistory();
+		exec.resetHistory();
 	});
 
 	after(() => {
 		RewireAPI.__ResetDependency__('Connection');
 		RewireAPI.__ResetDependency__('Document');
+		RewireAPI.__ResetDependency__('Query');
 		RewireAPI.__ResetDependency__('Schema');
 	});
 
@@ -49,6 +62,20 @@ describe('compileModel', () => {
 
 	describe('Model class', () => {
 		describe('static methods', () => {
+			describe('find', () => {
+				it('should call the query constructor with the passed parameters', async () => {
+					const Test = compileModel(connection, schema, 'foo');
+					await Test.find('foo', 'bar');
+					assert.isTrue(queryConstructor.calledWith(Test, 'foo', 'bar'));
+				});
+
+				it('should return the results of the execution of the query', async () => {
+					exec.resolves('foo');
+					const Test = compileModel(connection, schema, 'foo');
+					assert.strictEqual(await Test.find(), 'foo');
+				});
+			});
+
 			describe('findById', () => {
 				it('should instantiate a new model instance with the results of the dbFeature execution', async () => {
 					executeDbFeature.resolves({ result: { record: 'foo', _id: 'bar', __v: 'baz' } });

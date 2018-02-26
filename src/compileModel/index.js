@@ -1,5 +1,6 @@
 import Connection from 'Connection';
 import Document from 'Document';
+import Query from 'Query';
 import Schema from 'Schema';
 
 /**
@@ -61,10 +62,29 @@ const compileModel = (connection, schema, file) => {
 		/* static methods */
 
 		/**
-		 * Find a document by it's id
+		 * Find documents via query
+		 * @function find
+		 * @memberof Model
+		 * @static
+		 * @param {Object} [selectionCriteria = {}] - Selection criteria object
+		 * @param {Object} [options = {}]
+		 * @param {number} [options.skip = 0] - Skip this number of items in the result set
+		 * @param {number} [options.limit = null] - Limit the result set to this number of items
+		 * @param {Object} [options.sort = {}] - Object keys defining sort criteria; value of 1 indicates ascending and -1 indicates descending
+		 * @returns {Promise.<Model[]>} Array of model instances
+		 * @throws {Error}
+		 */
+		static find = (selectionCriteria = {}, options = {}) => {
+			const query = new Query(Model, selectionCriteria, options);
+			return query.exec();
+		};
+
+		/**
+		 * Find a document by its id
 		 * @function findById
 		 * @memberof Model
 		 * @static
+		 * @async
 		 * @param {string} id - Document identifier
 		 * @returns {Model} Model instance
 		 */

@@ -50,7 +50,7 @@ if udoSetProperty(output, 'result', document) then
   go returnFromSub
 end
 
-go returnFromSub;* skip close and release behaviors
+go returnFromSub;* skip close behavior
 
 closeAndReturnFromSub:
 close f.file on error null

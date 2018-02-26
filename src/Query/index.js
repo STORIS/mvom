@@ -129,9 +129,17 @@ class Query {
 
 	/* public instance methods */
 
-	/* Leaving this here since it'll be a good foundation for the eventual execution of a query, but it shouldn't be considered done or available for use
+	/**
+	 * Execute query
+	 * @function exec
+	 * @memberof Query
+	 * @instance
+	 * @async
+	 * @returns {Model[]} Array of model instances
+	 * @throws {Error}
+	 */
 	exec = async () => {
-		let queryCommand = `select ${this._file}`;
+		let queryCommand = `select ${this._Model.file}`;
 		if (this._selectionCriteria != null) {
 			queryCommand = `${queryCommand} with ${this._selectionCriteria}`;
 		}
@@ -140,19 +148,23 @@ class Query {
 		}
 
 		const options = {
-			filename: this._file,
+			filename: this._Model.file,
 			queryCommand,
-			skip: this._skip,
 		};
+
+		if (this._skip != null) {
+			options.skip = this._skip;
+		}
 
 		if (this._limit != null) {
 			options.limit = this._limit;
 		}
 
+		this._Model.connection.logger.debug(`executing query "${queryCommand}"`);
 		const data = await this._Model.connection.executeDbFeature('find', options);
 
 		return data.result.map(record => new this._Model(record));
-	}; */
+	};
 
 	/**
 	 * Set the limit value for query
@@ -300,6 +312,7 @@ class Query {
 	 * @private
 	 * @param {Object} [criteria = {}] - Sort criteria object
 	 * @returns {string|null} String to use as sort criteria in query
+	 * @throws {Error}
 	 */
 	_formatSortCriteria = (criteria = {}) => {
 		const criteriaProperties = Object.keys(criteria);
