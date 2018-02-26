@@ -34,7 +34,32 @@ const compileModel = (connection, schema, file) => {
 	 * @param {uuid} [doc.__v = null] - Record version hash
 	 */
 	class Model extends Document {
+		/* static properties */
+
+		/**
+		 * Connection instance which constructed this model defininition
+		 * @member {Connection} connection
+		 * @memberof Model
+		 * @static
+		 */
+		static connection = connection;
+		/**
+		 * Database file this model acts against
+		 * @member {string} file
+		 * @memberof Model
+		 * @static
+		 */
+		static file = file;
+		/**
+		 * Schema that defines this model
+		 * @member {Schema} schema
+		 * @memberof Model
+		 * @static
+		 */
+		static schema = schema;
+
 		/* static methods */
+
 		/**
 		 * Find a document by it's id
 		 * @function findById
@@ -44,8 +69,8 @@ const compileModel = (connection, schema, file) => {
 		 * @returns {Model} Model instance
 		 */
 		static findById = async id => {
-			const data = await connection.executeDbFeature('findById', {
-				filename: file,
+			const data = await Model.connection.executeDbFeature('findById', {
+				filename: Model.file,
 				id,
 			});
 
@@ -53,29 +78,9 @@ const compileModel = (connection, schema, file) => {
 		};
 
 		constructor({ record, _id = null, __v = null } = {}) {
-			super(schema, record);
+			super(Model.schema, record);
 
 			Object.defineProperties(this, {
-				/**
-				 * Connection instance which constructed this model defininition
-				 * @member {Connection} _connection
-				 * @memberof Model
-				 * @instance
-				 * @private
-				 */
-				_connection: {
-					value: connection,
-				},
-				/**
-				 * Database file this model acts against
-				 * @member {string} _file
-				 * @memberof Model
-				 * @instance
-				 * @private
-				 */
-				_file: {
-					value: file,
-				},
 				/**
 				 * Public id of model instance
 				 * @member {string} _id
@@ -121,7 +126,7 @@ const compileModel = (connection, schema, file) => {
 				},
 			});
 
-			this._connection.logger.debug(`creating new instance of model for file ${this._file}`);
+			Model.connection.logger.debug(`creating new instance of model for file ${Model.file}`);
 		}
 
 		/**
@@ -137,8 +142,8 @@ const compileModel = (connection, schema, file) => {
 				throw new Error();
 			}
 
-			const data = await this._connection.executeDbFeature('save', {
-				filename: this._file,
+			const data = await Model.connection.executeDbFeature('save', {
+				filename: Model.file,
 				id: this._id,
 				__v: this.__v,
 				record: this.transformDocumentToRecord(),

@@ -18,8 +18,14 @@ describe('SimpleType', () => {
 	});
 
 	describe('constructor', () => {
+		class Extension extends SimpleType {}
 		it('should not be able to instantiate directly', () => {
 			assert.throws(() => new SimpleType());
+		});
+
+		it('should set dictionary to the dictionary property of the definition parameter', () => {
+			const extension = new Extension({ dictionary: 'foo' });
+			assert.strictEqual(extension.dictionary, 'foo');
 		});
 	});
 

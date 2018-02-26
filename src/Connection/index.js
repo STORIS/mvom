@@ -4,10 +4,7 @@ import path from 'path';
 import semver from 'semver';
 import compileModel from 'compileModel';
 import getFeatureVersion from 'shared/getFeatureVersion';
-// temporarily not using import due to issue with babel-plugin-module-resolver https://github.com/tleunen/babel-plugin-module-resolver/pull/253
-// import { dependencies as serverDependencies } from '.mvomrc.json';
-
-const { dependencies: serverDependencies } = require('../.mvomrc.json');
+import { dependencies as serverDependencies } from '.mvomrc.json';
 
 /** A connection object
  * @param {Object} options

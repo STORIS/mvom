@@ -9,6 +9,14 @@ describe('Schema', () => {
 			const schema = new Schema({ foo: { path: '1', type: String } });
 			assert.deepEqual(schema._definition, { foo: { path: '1', type: String } });
 		});
+
+		it('should throw if definition is not an object', () => {
+			assert.throws(() => new Schema());
+		});
+
+		it('should throw if dictionaries is not an object', () => {
+			assert.throws(() => new Schema({}, { dictionaries: 'foo' }));
+		});
 	});
 
 	describe('instance methods', () => {
@@ -157,7 +165,10 @@ describe('Schema', () => {
 				ISOCalendarDate: class {},
 				ISOTime: class {},
 				Number: class {},
-				String: class {},
+				String: class {
+					path = 'foo';
+					dictionary = 'bar';
+				},
 			};
 			before(() => {
 				schema = new Schema({});
@@ -171,6 +182,8 @@ describe('Schema', () => {
 
 			beforeEach(() => {
 				_isDataDefinition.reset();
+				schema._mvPaths = [];
+				schema.dictPaths = {};
 			});
 
 			it('should throw an error if a valid castee is not passed', () => {
@@ -218,6 +231,40 @@ describe('Schema', () => {
 				_isDataDefinition.returns(true);
 				assert.throws(schema._castDefinition.bind(schema, { type: 'foo' }));
 			});
+
+			it('should update the mvPaths array with the schemaType path', () => {
+				_isDataDefinition.returns(true);
+				schema._castDefinition({ type: String, path: '1' });
+				assert.deepEqual(schema._mvPaths, ['foo']);
+			});
+
+			it('should update the dictPaths object with the schemaType dictionary', () => {
+				_isDataDefinition.returns(true);
+				schema._castDefinition({ type: String, path: '1', dictionary: 'bar' }, 'foo');
+				assert.deepEqual(schema.dictPaths, { foo: 'bar' });
+			});
+		});
+
+		describe('_handleSubDocumentSchemas', () => {
+			let schema;
+			before(() => {
+				schema = new Schema({});
+				schema._mergeSchemaDictionaries = stub();
+			});
+
+			beforeEach(() => {
+				schema._subdocumentSchemas = [];
+			});
+
+			it('should add passed schema to _subdocumentSchemas', () => {
+				schema._handleSubDocumentSchemas('foo');
+				assert.deepEqual(schema._subdocumentSchemas, ['foo']);
+			});
+
+			it('should call _mergeSchemaDictionaries with the passed parameters', () => {
+				schema._handleSubDocumentSchemas('foo', 'bar');
+				assert.isTrue(schema._mergeSchemaDictionaries.calledWith('foo', 'bar'));
+			});
 		});
 
 		describe('_isDataDefinition', () => {
@@ -232,6 +279,28 @@ describe('Schema', () => {
 
 			it('should return true', () => {
 				assert.isTrue(schema._isDataDefinition({ type: 'foo' }));
+			});
+		});
+
+		describe('_mergeSchemaDictionaries', () => {
+			let schema;
+			before(() => {
+				schema = new Schema({});
+			});
+
+			beforeEach(() => {
+				schema.dictPaths = {};
+			});
+
+			it('should merge passed schema dictPaths into instance schema dictPaths', () => {
+				schema.dictPaths = { foo: 'bar', baz: 'qux' };
+				schema._mergeSchemaDictionaries({ dictPaths: { quux: 'corge', uier: 'grault' } }, 'garply');
+				assert.deepEqual(schema.dictPaths, {
+					foo: 'bar',
+					baz: 'qux',
+					'garply.quux': 'corge',
+					'garply.uier': 'grault',
+				});
 			});
 		});
 	});

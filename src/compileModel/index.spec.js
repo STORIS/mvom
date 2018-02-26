@@ -71,8 +71,6 @@ describe('compileModel', () => {
 			it('should set the expected instance properties', () => {
 				const Test = compileModel(connection, schema, 'foo');
 				assert.deepInclude(new Test({ _id: 'bar', __v: 'baz' }), {
-					_connection: connection,
-					_file: 'foo',
 					_id: 'bar',
 					__id: 'bar',
 					__v: 'baz',

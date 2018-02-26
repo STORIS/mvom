@@ -1,12 +1,15 @@
 import isObject from 'lodash/isObject';
+import isPlainObject from 'lodash/isPlainObject';
 import schemaType from 'schemaType';
 
 /**
  * A schema object
  * @param {Object} definition - A schema definition object
- * @param {Object} options
+ * @param {Object} [options = {}]
  * @param {string} [options.typeProperty = "type"] The name of the property to use for data typing
+ * @param {Object} [options.dictionaries = {}] Additional dictionaries for use in query (key/value paired)
  * @example const example = new Schema({ propertyA: [{ property1: { path: '1'} }] })
+ * @throws {Error}
  */
 class Schema {
 	/**
@@ -24,7 +27,24 @@ class Schema {
 		ISOTime: schemaType.ISOTime,
 	};
 
-	constructor(definition, { typeProperty = 'type' } = {}) {
+	constructor(definition, { typeProperty = 'type', dictionaries = {} } = {}) {
+		if (!isPlainObject(definition) || !isPlainObject(dictionaries)) {
+			throw new Error();
+		}
+		/**
+		 * Key/value pairs of schema object path structure and associated multivalue dictionary ids
+		 * @member {Object} dictPaths
+		 * @memberof Schema
+		 * @instance
+		 */
+		this.dictPaths = dictionaries;
+		/**
+		 * The compiled schema object path stucture
+		 * @member {Object} paths
+		 * @memberof Schema
+		 * @instance
+		 */
+		this.paths = {};
 		/**
 		 * The schema definition passed to the constructor
 		 * @member {Object} _definition
@@ -33,21 +53,6 @@ class Schema {
 		 * @private
 		 */
 		this._definition = definition;
-		/**
-		 * The name of the property to use for data typing
-		 * @member {string} _typeProperty
-		 * @memberof Schema
-		 * @instance
-		 * @private
-		 */
-		this._typeProperty = typeProperty;
-		/**
-		 * The compiled schema object path stucture
-		 * @member {Object} paths
-		 * @memberof Schema
-		 * @instance
-		 */
-		this.paths = {};
 		/**
 		 * Array of all multivalue data paths represented in the Schema
 		 * @member {Number[]} _mvPaths
@@ -63,6 +68,14 @@ class Schema {
 		 * @private
 		 */
 		this._subdocumentSchemas = [];
+		/**
+		 * The name of the property to use for data typing
+		 * @member {string} _typeProperty
+		 * @memberof Schema
+		 * @instance
+		 * @private
+		 */
+		this._typeProperty = typeProperty;
 
 		this._buildPaths(this._definition);
 	}
@@ -107,20 +120,20 @@ class Schema {
 
 			if (Array.isArray(value)) {
 				// cast this value as an array
-				this.paths[newKey] = this._castArray(value);
+				this.paths[newKey] = this._castArray(value, newKey);
 				return;
 			}
 
 			if (this._isDataDefinition(value)) {
 				// cast this value as a schemaType
-				this.paths[newKey] = this._castDefinition(value);
+				this.paths[newKey] = this._castDefinition(value, newKey);
 				return;
 			}
 
 			if (value instanceof Schema) {
 				// value is an already compiled schema - cast as embedded document
+				this._handleSubDocumentSchemas(value, newKey);
 				this.paths[newKey] = new schemaType.Embedded(value);
-				this._subdocumentSchemas.push(value);
 				return;
 			}
 
@@ -136,10 +149,11 @@ class Schema {
 	 * @instance
 	 * @private
 	 * @param {Array} castee - Array to cast to a schemaType
+	 * @param {string[]} keyPath - Key path of property that array is being cast against
 	 * @returns Instance of schemaType class as defined by definition
 	 * @throws {Error}
 	 */
-	_castArray = castee => {
+	_castArray = (castee, keyPath) => {
 		if (!Array.isArray(castee)) {
 			throw new Error();
 		}
@@ -156,20 +170,20 @@ class Schema {
 				// a nested array can only be of data definitions
 				throw new Error();
 			}
-			return new schemaType.NestedArray(this._castDefinition(nestedArrayValue));
+			return new schemaType.NestedArray(this._castDefinition(nestedArrayValue, keyPath));
 		}
 
 		if (arrayValue instanceof Schema) {
-			this._subdocumentSchemas.push(arrayValue);
+			this._handleSubDocumentSchemas(arrayValue, keyPath);
 			return new schemaType.DocumentArray(arrayValue);
 		}
 
 		if (this._isDataDefinition(arrayValue)) {
-			return new schemaType.Array(this._castDefinition(arrayValue));
+			return new schemaType.Array(this._castDefinition(arrayValue, keyPath));
 		}
 
 		const subdocumentSchema = new Schema(arrayValue, { type: this._typeProperty });
-		this._subdocumentSchemas.push(subdocumentSchema);
+		this._handleSubDocumentSchemas(subdocumentSchema, keyPath);
 		return new schemaType.DocumentArray(subdocumentSchema);
 	};
 
@@ -180,10 +194,13 @@ class Schema {
 	 * @instance
 	 * @private
 	 * @param {Object} castee - Object to cast to a schemaType
+	 * @param {string[]} keyPath - Key path of property that definition is being cast against
+	 * @modifies {this._mvPaths}
+	 * @modifies {this.dictPaths}
 	 * @returns Instance of schemaType class as defined by definition
 	 * @throws {Error}
 	 */
-	_castDefinition = castee => {
+	_castDefinition = (castee, keyPath) => {
 		if (!this._isDataDefinition(castee)) {
 			throw new Error();
 		}
@@ -212,11 +229,32 @@ class Schema {
 				throw new Error();
 		}
 
+		// add to mvPath array
 		if (schemaTypeValue.path != null) {
 			this._mvPaths.push(schemaTypeValue.path);
 		}
 
+		// update dictPaths
+		if (schemaTypeValue.dictionary != null) {
+			this.dictPaths[keyPath] = schemaTypeValue.dictionary;
+		}
+
 		return schemaTypeValue;
+	};
+
+	/**
+	 * Perform ancillary updates needed when a subdocument is in the Schema definition
+	 * @function _handleSubDocumentSchemas
+	 * @memberof Schema
+	 * @instance
+	 * @private
+	 * @param {Schema} schema - Subdocument schema
+	 * @param {string} keyPath - keyPath string that locates the subdocument in the parent Schema
+	 * @modifies {this._subdocumentSchemas}
+	 */
+	_handleSubDocumentSchemas = (schema, keyPath) => {
+		this._subdocumentSchemas.push(schema);
+		this._mergeSchemaDictionaries(schema, keyPath);
 	};
 
 	/**
@@ -229,6 +267,26 @@ class Schema {
 	 * @returns {Boolean} True if object is a data definition; false otherwise
 	 */
 	_isDataDefinition = obj => Object.prototype.hasOwnProperty.call(obj, this._typeProperty);
+
+	/**
+	 * Merge subdocument schema dictionaries with the parent schema's dictionaries
+	 * @function _mergeSchemaDictionaries
+	 * @memberof Schema
+	 * @instance
+	 * @private
+	 * @param {Schema} schema - Subdocument schema
+	 * @param {string} keyPath - keyPath string that locates the subdocument in the parent Schema
+	 * @modifies {this.dictPaths}
+	 */
+	_mergeSchemaDictionaries = (schema, keyPath) => {
+		this.dictPaths = Object.keys(schema.dictPaths).reduce((acc, subDictPath) => {
+			const dictKey = `${keyPath}.${subDictPath}`;
+			return {
+				...acc,
+				[dictKey]: schema.dictPaths[subDictPath],
+			};
+		}, this.dictPaths);
+	};
 }
 
 export default Schema;

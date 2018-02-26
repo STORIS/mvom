@@ -28,8 +28,16 @@ class SimpleType extends BaseType {
 		}
 
 		super();
-		const { path = null } = definition;
+		const { dictionary = null, path = null } = definition;
 		this._normalizeMvPath(path);
+
+		/**
+		 * Multivalue dictionary id
+		 * @member {string} dictionary
+		 * @memberof SimpleType
+		 * @instance
+		 */
+		this.dictionary = dictionary;
 	}
 
 	/* public instance methods */
