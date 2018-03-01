@@ -1,14 +1,16 @@
+import DisallowDirectError from 'Errors/DisallowDirect';
+
 /**
  * A Base Schema Type
  * @hideconstructor
  * @interface
- * @throws {Error}
+ * @throws {DisallowDirectError} Class cannot be instantiated directly
  */
 class BaseType {
 	constructor() {
 		if (new.target === BaseType) {
 			// disallow direct instantiation
-			throw new Error();
+			throw new DisallowDirectError({ className: 'BaseType' });
 		}
 	}
 

@@ -6,8 +6,21 @@ import mockLogger from 'testHelpers/mockLogger';
 import Connection, { __RewireAPI__ as RewireAPI } from './';
 
 describe('Connection', () => {
+	class ConnectionManagerError extends Error {}
+	class InvalidParameterError extends Error {}
+	class DbServerError extends Error {}
+
 	before(() => {
 		chai.use(chaiAsPromised);
+		RewireAPI.__Rewire__('ConnectionManagerError', ConnectionManagerError);
+		RewireAPI.__Rewire__('DbServerError', DbServerError);
+		RewireAPI.__Rewire__('InvalidParameterError', InvalidParameterError);
+	});
+
+	after(() => {
+		RewireAPI.__ResetDependency__('ConnectionManagerError');
+		RewireAPI.__ResetDependency__('DbServerError');
+		RewireAPI.__ResetDependency__('InvalidParameterError');
 	});
 
 	describe('static methods', () => {
@@ -261,30 +274,35 @@ describe('Connection', () => {
 				post.reset();
 			});
 
-			it('should reject if data parameter is null or undefined', () =>
-				assert.isRejected(connection._executeDb()));
+			it('should reject with InvalidParameterError if data parameter is null or undefined', () =>
+				assert.isRejected(connection._executeDb(), InvalidParameterError));
 
-			it('should reject if action property of data parameter is null or undefined', () =>
-				assert.isRejected(connection._executeDb({})));
+			it('should reject with InvalidParameterError if action property of data parameter is null or undefined', () =>
+				assert.isRejected(connection._executeDb({}), InvalidParameterError));
 
-			it('should reject if response is falsy', () => {
+			it('should reject with ConnectionManagerError if post rejects', () => {
+				post.rejects();
+				return assert.isRejected(connection._executeDb({ action: 'foo' }), ConnectionManagerError);
+			});
+
+			it('should reject with DbServerError if response is falsy', () => {
 				post.resolves(null);
-				return assert.isRejected(connection._executeDb({ action: 'foo' }));
+				return assert.isRejected(connection._executeDb({ action: 'foo' }), DbServerError);
 			});
 
-			it('should reject if response has falsy data', () => {
+			it('should reject with DbServerError if response has falsy data', () => {
 				post.resolves({});
-				return assert.isRejected(connection._executeDb({ action: 'foo' }));
+				return assert.isRejected(connection._executeDb({ action: 'foo' }), DbServerError);
 			});
 
-			it('should reject if response has falsy data.output', () => {
+			it('should reject with DbServerError if response has falsy data.output', () => {
 				post.resolves({ data: {} });
-				return assert.isRejected(connection._executeDb({ action: 'foo' }));
+				return assert.isRejected(connection._executeDb({ action: 'foo' }), DbServerError);
 			});
 
-			it('should reject if response has a truthy errorCode', () => {
+			it('should reject with DbServerError if response has a truthy errorCode', () => {
 				post.resolves({ data: { output: { errorCode: 1 } } });
-				return assert.isRejected(connection._executeDb({ action: 'foo' }));
+				return assert.isRejected(connection._executeDb({ action: 'foo' }), DbServerError);
 			});
 
 			it('should return the data.output property', () => {

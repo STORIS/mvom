@@ -1,5 +1,6 @@
 import moment from 'moment';
 import SimpleType from 'schemaType/SimpleType';
+import TransformDataError from 'Errors/TransformData';
 
 /**
  * An ISOTime Schema Type
@@ -33,7 +34,7 @@ class ISOTimeType extends SimpleType {
 	 * @override
 	 * @param {string|number|null} value - Value to transform
 	 * @returns {string|null} Transformed ISO 8601 String Time value (HH:mm:ss.SSS)
-	 * @throws {Error}
+	 * @throws {TransformDataError} Database value could not be transformed to external format
 	 */
 	transformFromDb = value => {
 		if (value == null) {
@@ -41,11 +42,17 @@ class ISOTimeType extends SimpleType {
 		}
 		const castValue = +value;
 		if (!Number.isInteger(castValue) || castValue < 0) {
-			throw new Error();
+			throw new TransformDataError({
+				transformClass: this.constructor.name,
+				transformValue: castValue,
+			});
 		}
 
-		if ((this._isDbInMs && castValue > 86400000) || (!this._isDbInMs && castValue > 86400)) {
-			throw new Error();
+		if (castValue > 86400000 || (!this._isDbInMs && castValue > 86400)) {
+			throw new TransformDataError({
+				transformClass: this.constructor.name,
+				transformValue: castValue,
+			});
 		}
 
 		const isoTime = moment().startOf('day');

@@ -8,7 +8,12 @@ import compileModel, { __RewireAPI__ as RewireAPI } from './';
 describe('compileModel', () => {
 	let connection;
 	let schema;
-	const Document = class {};
+	const Document = class {
+		transformationErrors = [
+			{ transformClass: 'class1', transformValue: 'value1' },
+			{ transformClass: 'class2', transformValue: 'value2' },
+		];
+	};
 	const executeDbFeature = stub();
 	const queryConstructor = stub();
 	const exec = stub();
@@ -39,6 +44,7 @@ describe('compileModel', () => {
 		executeDbFeature.reset();
 		queryConstructor.resetHistory();
 		exec.resetHistory();
+		connection.logger.warn.resetHistory();
 	});
 
 	after(() => {
@@ -102,6 +108,13 @@ describe('compileModel', () => {
 					__id: 'bar',
 					__v: 'baz',
 				});
+			});
+
+			it('should call the warn logger once for each transformation error added by the Document constructor', () => {
+				const Test = compileModel(connection, schema, 'foo');
+				// eslint-disable-next-line no-unused-vars
+				const test = new Test();
+				assert.isTrue(connection.logger.warn.calledTwice);
 			});
 		});
 

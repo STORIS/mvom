@@ -3,6 +3,10 @@ import fs from 'fs-extra';
 import path from 'path';
 import semver from 'semver';
 import compileModel from 'compileModel';
+import ConnectionManagerError from 'Errors/ConnectionManager';
+import DbServerError from 'Errors/DbServer';
+import InvalidParameterError from 'Errors/InvalidParameter';
+import InvalidServerFeaturesError from 'Errors/InvalidServerFeatures';
 import getFeatureVersion from 'shared/getFeatureVersion';
 import { dependencies as serverDependencies } from '.mvomrc.json';
 
@@ -95,7 +99,7 @@ class Connection {
 	 * @memberof Connection
 	 * @instance
 	 * @async
-	 * @throws {Error}
+	 * @throws {InvalidServerFeaturesError} Invalid feature set found on db server
 	 */
 	open = async () => {
 		this.logger.debug(`opening connection`);
@@ -105,7 +109,9 @@ class Connection {
 			// prevent connection attempt if features are invalid
 			this.logger.verbose(`invalid features found: ${this._serverFeatureSet.invalidFeatures}`);
 			this.logger.debug('connection will not be opened');
-			throw new Error();
+			throw new InvalidServerFeaturesError({
+				invalidFeatures: this._serverFeatureSet.invalidFeatures,
+			});
 		}
 
 		this.logger.debug(`connection opened`);
@@ -120,13 +126,14 @@ class Connection {
 	 * @param {string} sourceDir - Database server directory to deploy features to
 	 * @param {Object} options
 	 * @param {boolean} [options.createDir=false] - Create deployment directory if it is missing
-	 * @throws {Error}
+	 * @throws {InvalidParameterError} An invalid parameter was passed to the function
+	 * @throws {ConnectionManagerError} (indirect) An error occurred in connection manager communications
+	 * @throws {DbServerError} (indirect) An error occurred on the database server
 	 */
 	deployFeatures = async (sourceDir, { createDir = false } = {}) => {
 		this.logger.debug(`deploying features to directory ${sourceDir}`);
 		if (sourceDir == null) {
-			this.logger.verbose(`invalid sourceDir parameter provided`);
-			throw new Error();
+			throw new InvalidParameterError({ parameterName: 'sourceDir' });
 		}
 		await this._getFeatureState();
 
@@ -186,6 +193,8 @@ class Connection {
 	 * @param {string} feature - Name of feature to execute
 	 * @param {*} options - Options parameter to pass to database feature
 	 * @returns {*} Output from database feature
+	 * @throws {ConnectionManagerError} (indirect) An error occurred in connection manager communications
+	 * @throws {DbServerError} (indirect) An error occurred on the database server
 	 */
 	executeDbFeature = async (feature, options) => {
 		this.logger.debug(`executing database feature "${feature}"`);
@@ -212,7 +221,7 @@ class Connection {
 	 * @param {Schema} schema - Schema instance to derive model from
 	 * @param {string} file - Name of database file associated with model
 	 * @returns {Model} Model class
-	 * @throws {Error}
+	 * @throws {InvalidParameterError} (indirect) An invalid parameter was passed to the function
 	 */
 	model = (schema, file) => compileModel(this, schema, file);
 
@@ -228,28 +237,33 @@ class Connection {
 	 * @param {string} data.action - Remote action to invoke
 	 * @param {*} data.xxx - Additional properties as required by remote function
 	 * @returns {*} Output from database function execution
-	 * @throws {Error}
+	 * @throws {InvalidParameterError} An invalid parameter was passed to the function
+	 * @throws {ConnectionManagerError} An error occurred in connection manager communications
+	 * @throws {DbServerError} An error occurred on the database server
 	 */
 	_executeDb = async data => {
 		if (data == null || data.action == null) {
 			// invalid database request
 			this.logger.verbose(`invalid database request format`);
-			throw new Error();
+			throw new InvalidParameterError({ parameterName: 'data' });
 		}
 		this.logger.debug(`executing database function with action "${data.action}"`);
-		const response = await axios.post(this._endpoint, { input: data });
+
+		let response;
+		try {
+			response = await axios.post(this._endpoint, { input: data });
+		} catch (err) {
+			throw new ConnectionManagerError({ request: err.request, response: err.response });
+		}
+
 		if (!response || !response.data || !response.data.output) {
 			// handle invalid response
-			this.logger.verbose(`received an invalid response from database server`);
-			throw new Error();
+			throw new DbServerError();
 		}
 
 		if (+response.data.output.errorCode) {
 			// handle specific error returned from subroutine
-			this.logger.verbose(
-				`received error code "${response.data.output.errorCode}" from database server`,
-			);
-			throw new Error();
+			throw new DbServerError({ errorCode: response.data.output.errorCode });
 		}
 
 		// return the relevant portion from the db server response

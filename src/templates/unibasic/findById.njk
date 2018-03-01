@@ -1,8 +1,6 @@
 $basictype 'u'
 subroutine mvom_findById(options, output)
 * find and return a document given a filename and record id
-{% include "./partials/udoConstants.njk" %}
-
 {% include "./partials/errorConstants.njk" %}
 
 * get the filename from the options
@@ -28,10 +26,10 @@ end
 
 * read the record from the file
 read record from f.file, recordId on error
-  call error_handler(ERROR_READ, output)
+  call error_handler(ERROR_RECORD_READ, output)
   go closeAndReturnFromSub
 end else
-  call error_handler(ERROR_NOT_FOUND, output)
+  call error_handler(ERROR_RECORD_NOT_FOUND, output)
   go closeAndReturnFromSub
 end
 

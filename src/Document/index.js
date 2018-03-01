@@ -3,6 +3,8 @@ import cloneDeep from 'lodash/cloneDeep';
 import getIn from 'lodash/get';
 import setIn from 'lodash/set';
 import Schema from 'Schema';
+import InvalidParameterError from 'Errors/InvalidParameter';
+import TransformDataError from 'Errors/TransformData';
 
 /**
  * A document object
@@ -11,13 +13,17 @@ import Schema from 'Schema';
  * @param {*[]} [record = []] - Array data to construct document instance properties from
  * @param {Object} [options = {}]
  * @param {Boolean} [options.isSubdocument = false] Indicates whether document should behave as a subdocument
- * @throws {Error}
+ * @throws {InvalidParameterError} An invalid parameter was passed to the function
  */
 class Document {
 	constructor(schema, record = [], { isSubdocument = false } = {}) {
-		if (!(schema instanceof Schema) || !Array.isArray(record)) {
-			throw new Error();
+		if (!(schema instanceof Schema)) {
+			throw new InvalidParameterError({ parameterName: 'schema' });
 		}
+		if (!Array.isArray(record)) {
+			throw new InvalidParameterError({ parameterName: 'record' });
+		}
+
 		Object.defineProperties(this, {
 			/**
 			 * Schema instance which defined this document
@@ -50,6 +56,15 @@ class Document {
 			_isSubdocument: {
 				value: isSubdocument,
 			},
+			/**
+			 * Array of any errors which occurred during transformation from the database
+			 * @member {TransformDataError[]} transformationErrors
+			 * @memberof Document
+			 * @instance
+			 */
+			transformationErrors: {
+				value: [],
+			},
 			transformDocumentToRecord: {
 				configurable: false,
 				enumerable: false,
@@ -73,6 +88,7 @@ class Document {
 	 * @memberof Document
 	 * @instance
 	 * @returns {*[]} Array data of output record format
+	 * @throws {TypeError} (indirect) Could not cast value to number
 	 */
 	transformDocumentToRecord = () =>
 		Object.keys(this._schema.paths).reduce((record, keyPath) => {
@@ -92,9 +108,22 @@ class Document {
 	 */
 	_transformRecordToDocument = () =>
 		Object.keys(this._schema.paths).reduce((document, keyPath) => {
-			// an instance of a schemaType exists at this._schema.paths[keyPath] which has a get() method
-			// to pull data from the record
-			setIn(document, keyPath, this._schema.paths[keyPath].get(this._record));
+			let setValue;
+			try {
+				// an instance of a schemaType exists at this._schema.paths[keyPath] which has a get() method
+				// to pull data from the record
+				setValue = this._schema.paths[keyPath].get(this._record);
+			} catch (err) {
+				if (err instanceof TransformDataError) {
+					// if this was an error in data transformation, set the value to null and add to transformationErrors list
+					setValue = null;
+					this.transformationErrors.push(err);
+				} else {
+					// otherwise rethrow any other type of error
+					throw err;
+				}
+			}
+			setIn(document, keyPath, setValue);
 			return document;
 		}, {});
 }

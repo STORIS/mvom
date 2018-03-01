@@ -4,17 +4,18 @@ import Document from 'Document';
 import Schema from 'Schema';
 import ComplexType from 'schemaType/ComplexType';
 import getFromMvArray from 'shared/getFromMvArray';
+import InvalidParameterError from 'Errors/InvalidParameter';
 
 /**
  * A Document Array Schema Type
  * @extends ComplexType
  * @param {Schema} valueSchema - An instance of Schema representing the the document structure of the array's contents
- * @throws {Error}
+ * @throws {InvalidParameterError} An invalid parameter was passed to the function
  */
 class DocumentArrayType extends ComplexType {
 	constructor(valueSchema) {
 		if (!(valueSchema instanceof Schema)) {
-			throw new Error();
+			throw new InvalidParameterError({ parameterName: 'valueSchema' });
 		}
 
 		super();

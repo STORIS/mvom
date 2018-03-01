@@ -1,6 +1,7 @@
 import isObject from 'lodash/isObject';
 import isPlainObject from 'lodash/isPlainObject';
 import schemaType from 'schemaType';
+import InvalidParameterError from 'Errors/InvalidParameter';
 
 /**
  * A schema object
@@ -9,7 +10,7 @@ import schemaType from 'schemaType';
  * @param {string} [options.typeProperty = "type"] The name of the property to use for data typing
  * @param {Object} [options.dictionaries = {}] Additional dictionaries for use in query (key/value paired)
  * @example const example = new Schema({ propertyA: [{ property1: { path: '1'} }] })
- * @throws {Error}
+ * @throws {InvalidParameterError} An invalid parameter was passed to the function
  */
 class Schema {
 	/**
@@ -28,8 +29,11 @@ class Schema {
 	};
 
 	constructor(definition, { typeProperty = 'type', dictionaries = {} } = {}) {
-		if (!isPlainObject(definition) || !isPlainObject(dictionaries)) {
-			throw new Error();
+		if (!isPlainObject(definition)) {
+			throw new InvalidParameterError({ parameterName: 'definition' });
+		}
+		if (!isPlainObject(dictionaries)) {
+			throw new InvalidParameterError({ parameterName: 'dictionaries' });
 		}
 		/**
 		 * Key/value pairs of schema object path structure and associated multivalue dictionary ids
@@ -105,14 +109,14 @@ class Schema {
 	 * @private
 	 * @param {Object} definition - Schema definition to be flattened
 	 * @param {string} [prev] - Previous keypath generated from earlier recursive iterations of _buildPaths
-	 * @throws {Error}
+	 * @throws {InvalidParameterError} An invalid parameter was passed to the function
 	 */
 	_buildPaths = (definition, prev) => {
 		Object.keys(definition).forEach(key => {
 			const value = definition[key];
 			if (!isObject(value)) {
 				// all property values must either be an object or an array (which is a language type of object)
-				throw new Error();
+				throw new InvalidParameterError({ parameterName: 'definition' });
 			}
 
 			// construct flattened keypath
@@ -151,24 +155,33 @@ class Schema {
 	 * @param {Array} castee - Array to cast to a schemaType
 	 * @param {string[]} keyPath - Key path of property that array is being cast against
 	 * @returns Instance of schemaType class as defined by definition
-	 * @throws {Error}
+	 * @throws {InvalidParameterError} An invalid parameter was passed to the function
 	 */
 	_castArray = (castee, keyPath) => {
 		if (!Array.isArray(castee)) {
-			throw new Error();
+			throw new InvalidParameterError({
+				message: 'castee parameter must be an array',
+				parameterName: 'castee',
+			});
 		}
 
 		const arrayValue = castee[0];
 		if (castee.length !== 1 || !isObject(arrayValue)) {
 			// a schema array definition must contain exactly one value of language-type object (which includes arrays)
-			throw new Error();
+			throw new InvalidParameterError({
+				message: 'castee parameter must be an array containing a single object',
+				parameterName: 'castee',
+			});
 		}
 
 		if (Array.isArray(arrayValue)) {
 			const nestedArrayValue = arrayValue[0];
 			if (!this._isDataDefinition(nestedArrayValue)) {
 				// a nested array can only be of data definitions
-				throw new Error();
+				throw new InvalidParameterError({
+					message: 'Nested arrays may only contain data definitions',
+					parameterName: 'castee',
+				});
 			}
 			return new schemaType.NestedArray(this._castDefinition(nestedArrayValue, keyPath));
 		}
@@ -198,11 +211,14 @@ class Schema {
 	 * @modifies {this._mvPaths}
 	 * @modifies {this.dictPaths}
 	 * @returns Instance of schemaType class as defined by definition
-	 * @throws {Error}
+	 * @throws {InvalidParameterError} An invalid parameter was passed to the function
 	 */
 	_castDefinition = (castee, keyPath) => {
 		if (!this._isDataDefinition(castee)) {
-			throw new Error();
+			throw new InvalidParameterError({
+				message: 'castee parameter must be a data definition',
+				parameterName: 'castee',
+			});
 		}
 
 		let schemaTypeValue;
@@ -226,7 +242,10 @@ class Schema {
 				schemaTypeValue = new schemaType.String(castee);
 				break;
 			default:
-				throw new Error();
+				throw new InvalidParameterError({
+					message: 'Data definition does not contain a supported type value',
+					parameterName: 'castee',
+				});
 		}
 
 		// add to mvPath array

@@ -1,6 +1,8 @@
 import Connection from 'Connection';
+import Errors from 'Errors';
 import Schema from 'Schema';
 import winston from 'winston';
+import InvalidParameterError from 'Errors/InvalidParameter';
 
 /**
  * Main mvom module
@@ -16,11 +18,14 @@ const mvom = {
 	 * @param {Object} options
 	 * @param {string} [options.logLevel = 'error'] - Winston logging level (error, warn, info, verbose, debug, silly)
 	 * @returns {Connection} Connection instance
-	 * @throws {Error}
+	 * @throws {InvalidParameterError} An invalid parameter was passed to the function
 	 */
 	createConnection: (connectionManagerUri, account, { logLevel = 'error' } = {}) => {
-		if (connectionManagerUri == null || account == null) {
-			throw new Error();
+		if (connectionManagerUri == null) {
+			throw new InvalidParameterError({ parameterName: 'connectionManagerUri' });
+		}
+		if (account == null) {
+			throw new InvalidParameterError({ parameterName: 'account' });
 		}
 
 		// initialize winston logging
@@ -41,4 +46,4 @@ const mvom = {
 };
 
 export default mvom;
-export { Schema };
+export { Errors, Schema };

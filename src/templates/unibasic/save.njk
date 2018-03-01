@@ -43,10 +43,10 @@ end
 
 * read and lock record from the file
 readu record from f.file, recordId on error
-  call error_handler(ERROR_READ, output)
+  call error_handler(ERROR_RECORD_READ, output)
   go closeAndReturnFromSub
 end locked
-  call error_handler(ERROR_LOCKED, output)
+  call error_handler(ERROR_RECORD_LOCKED, output)
   go closeAndReturnFromSub
 end then
   if digest('MD5', record, 1, originalRecordHash) then
@@ -138,7 +138,7 @@ next attributeCounter
 
 * write out record
 write record on f.file, recordId on error
-  call error_handler(ERROR_WRITE, output)
+  call error_handler(ERROR_RECORD_WRITE, output)
   go closeAndReturnFromSub
 end
 

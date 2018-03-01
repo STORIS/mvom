@@ -5,6 +5,15 @@ import Schema from 'Schema';
 import Document, { __RewireAPI__ as RewireAPI } from './';
 
 describe('Document', () => {
+	class TransformDataError extends Error {}
+	before(() => {
+		RewireAPI.__Rewire__('TransformDataError', TransformDataError);
+	});
+
+	after(() => {
+		RewireAPI.__ResetDependency__('TransformDataError');
+	});
+
 	describe('constructor', () => {
 		const SchemaRewire = class {
 			paths = {};
@@ -125,7 +134,8 @@ describe('Document', () => {
 				});
 
 				beforeEach(() => {
-					document._record = [];
+					document._record.length = 0; // reset to empty array
+					document.transformationErrors.length = 0; // reset to empty array
 					get.reset();
 					setIn.resetHistory();
 				});
@@ -151,6 +161,29 @@ describe('Document', () => {
 					assert.strictEqual(setIn.args[0][2], 'baz');
 					assert.strictEqual(setIn.args[1][1], 'bar');
 					assert.strictEqual(setIn.args[1][2], 'baz');
+				});
+
+				it("should set null at the schema's keypath if get throws with TransformDataError", () => {
+					get.throws(new TransformDataError());
+					document._transformRecordToDocument();
+					assert.isTrue(setIn.calledTwice);
+					assert.strictEqual(setIn.args[0][1], 'foo');
+					assert.isNull(setIn.args[0][2]);
+					assert.strictEqual(setIn.args[1][1], 'bar');
+					assert.isNull(setIn.args[1][2]);
+				});
+
+				it('should push two instances of TransformDataError on to transformationErrors instance property if get throws with TransformDataError', () => {
+					get.throws(new TransformDataError());
+					document._transformRecordToDocument();
+					assert.strictEqual(document.transformationErrors.length, 2);
+					assert.instanceOf(document.transformationErrors[0], TransformDataError);
+					assert.instanceOf(document.transformationErrors[1], TransformDataError);
+				});
+
+				it('should rethrow if any error other than TransformDataError is thrown', () => {
+					get.throws(new Error());
+					assert.throws(document._transformRecordToDocument);
 				});
 			});
 

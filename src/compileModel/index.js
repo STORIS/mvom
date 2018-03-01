@@ -2,6 +2,7 @@ import Connection from 'Connection';
 import Document from 'Document';
 import Query from 'Query';
 import Schema from 'Schema';
+import InvalidParameterError from 'Errors/InvalidParameter';
 
 /**
  * Define a new model
@@ -12,18 +13,22 @@ import Schema from 'Schema';
  * @param {Schema} schema - Schema instance to derive model from
  * @param {string} file - Name of database file associated with model
  * @returns {Model} Model class
- * @throws {Error}
+ * @throws {InvalidParameterError} An invalid parameter was passed to the function
  */
 const compileModel = (connection, schema, file) => {
 	if (!(connection instanceof Connection)) {
-		throw new Error();
+		throw new InvalidParameterError({ parameterName: 'connection' });
+	}
+
+	if (!(schema instanceof Schema)) {
+		throw new InvalidParameterError({ parameterName: 'schema' });
+	}
+
+	if (file == null) {
+		throw new InvalidParameterError({ parameterName: 'file' });
 	}
 
 	connection.logger.debug(`creating new model for file ${file}`);
-	if (!(schema instanceof Schema) || file == null) {
-		connection.logger.debug('invalid parameters passed to model compiler');
-		throw new Error();
-	}
 
 	/**
 	 * Construct a document instance of a compiled model
@@ -72,7 +77,8 @@ const compileModel = (connection, schema, file) => {
 		 * @param {number} [options.limit = null] - Limit the result set to this number of items
 		 * @param {Object} [options.sort = {}] - Object keys defining sort criteria; value of 1 indicates ascending and -1 indicates descending
 		 * @returns {Promise.<Model[]>} Array of model instances
-		 * @throws {Error}
+		 * @throws {ConnectionManagerError} (indirect) An error occurred in connection manager communications
+		 * @throws {DbServerError} (indirect) An error occurred on the database server
 		 */
 		static find = (selectionCriteria = {}, options = {}) => {
 			const query = new Query(Model, selectionCriteria, options);
@@ -87,6 +93,8 @@ const compileModel = (connection, schema, file) => {
 		 * @async
 		 * @param {string} id - Document identifier
 		 * @returns {Model} Model instance
+		 * @throws {ConnectionManagerError} (indirect) An error occurred in connection manager communications
+		 * @throws {DbServerError} (indirect) An error occurred on the database server
 		 */
 		static findById = async id => {
 			const data = await Model.connection.executeDbFeature('findById', {
@@ -113,7 +121,7 @@ const compileModel = (connection, schema, file) => {
 					get: () => this.__id,
 					set: value => {
 						if (this.__id != null) {
-							throw new Error();
+							throw new Error('_id value cannot be changed once set');
 						}
 						this.__id = value;
 					},
@@ -147,6 +155,15 @@ const compileModel = (connection, schema, file) => {
 			});
 
 			Model.connection.logger.debug(`creating new instance of model for file ${Model.file}`);
+
+			this.transformationErrors.forEach(error => {
+				// errors occurred while transforming data from multivalue format - log them
+				Model.connection.logger.warn(
+					`error transforming data -- file: ${Model.file}; _id: ${this._id}; class: ${
+						error.transformClass
+					}; value: ${error.transformValue}`,
+				);
+			});
 		}
 
 		/**
@@ -155,11 +172,13 @@ const compileModel = (connection, schema, file) => {
 		 * @memberof Model
 		 * @instance
 		 * @returns {Model} New instance of the saved model
-		 * @throws {Error}
+		 * @throws {TypeError} _id value was not set prior to calling the function
+		 * @throws {ConnectionManagerError} (indirect) An error occurred in connection manager communications
+		 * @throws {DbServerError} (indirect) An error occurred on the database server
 		 */
 		save = async () => {
 			if (this._id == null) {
-				throw new Error();
+				throw new TypeError('_id value must be set prior to saving');
 			}
 
 			const data = await Model.connection.executeDbFeature('save', {

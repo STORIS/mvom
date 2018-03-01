@@ -2,6 +2,7 @@
 import fs from 'fs-extra';
 import nunjucks from 'nunjucks';
 import path from 'path';
+import dbErrors from 'shared/dbErrors';
 
 const inputDir = path.join(process.cwd(), 'src', 'templates', 'unibasic');
 const outputDir = path.join(process.cwd(), 'dist', 'unibasic');
@@ -28,7 +29,7 @@ try {
 		const outputFile = `${path.parse(inputFile).name}.mvb`;
 		const buildPath = path.join(outputDir, outputFile);
 		try {
-			fs.writeFileSync(buildPath, env.render(inputFile));
+			fs.writeFileSync(buildPath, env.render(inputFile, { dbErrors }));
 			console.log(`transformed ${inputFile} to ${buildPath}`);
 		} catch (err) {
 			console.log(`failed to transform ${inputFile} to ${buildPath}`);

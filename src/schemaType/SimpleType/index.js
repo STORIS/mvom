@@ -3,6 +3,8 @@ import setIn from 'lodash/set';
 import toPath from 'lodash/toPath';
 import BaseType from 'schemaType/BaseType';
 import getFromMvArray from 'shared/getFromMvArray';
+import DisallowDirectError from 'Errors/DisallowDirect';
+import InvalidParameterError from 'Errors/InvalidParameter';
 
 /**
  * A Simple Schema Type
@@ -11,7 +13,8 @@ import getFromMvArray from 'shared/getFromMvArray';
  * @interface
  * @param {Object} definition - Data definition
  * @param {string} [definition.path = null] - 1-indexed String path
- * @throws {Error}
+ * @throws {DisallowDirectError} Class cannot be instantiated directly
+ * @throws {InvalidParameterError} Path definition must be a string of integers split by periods
  */
 class SimpleType extends BaseType {
 	constructor(definition) {
@@ -24,7 +27,7 @@ class SimpleType extends BaseType {
 
 		if (new.target === SimpleType) {
 			// disallow direct instantiation
-			throw new Error();
+			throw new DisallowDirectError({ className: 'SimpleType' });
 		}
 
 		super();
@@ -49,6 +52,7 @@ class SimpleType extends BaseType {
 	 * @instance
 	 * @param {*[]} record - Data to get value from
 	 * @returns {*} Formatted data value
+	 * @throws {TransformDataError} (indirect) Database value could not be transformed to external format
 	 */
 	get = record => {
 		const value = this.getFromMvData(record);
@@ -73,6 +77,7 @@ class SimpleType extends BaseType {
 	 * @param {*[]} originalRecord - Record structure to use as basis for applied changes
 	 * @param {*} setValue - Value to transform and set into record
 	 * @returns {*[]} Array data of output record format
+	 * @throws {TypeError} (indirect) Could not cast value to number
 	 */
 	set = (originalRecord, setValue) =>
 		this.setIntoMvData(originalRecord, this.transformToDb(setValue));
@@ -104,6 +109,7 @@ class SimpleType extends BaseType {
 	 * @private
 	 * @param {string} [path] - 1-indexed String path
 	 * @returns {number[]} 0-indexed Array path
+	 * @throws {InvalidParameterError} Path definition must be a string of integers split by periods
 	 */
 	_normalizeMvPath = path => {
 		if (path == null) {
@@ -114,7 +120,10 @@ class SimpleType extends BaseType {
 		this.path = toPath(path).map(val => {
 			const numVal = +val;
 			if (!Number.isInteger(numVal) || numVal < 1) {
-				throw new Error();
+				throw new InvalidParameterError({
+					message: 'Path definition must be a string of integers split by periods',
+					parameterName: 'path',
+				});
 			}
 			return numVal - 1;
 		});

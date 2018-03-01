@@ -1,5 +1,6 @@
 import moment from 'moment';
 import SimpleType from 'schemaType/SimpleType';
+import TransformDataError from 'Errors/TransformData';
 
 /**
  * An ISOCalendarDate Schema Type
@@ -23,7 +24,7 @@ class ISOCalendarDateType extends SimpleType {
 	 * @override
 	 * @param {string|number|null} value - Value to transform
 	 * @returns {string|null} Transformed ISO 8601 String Date value (yyyy-mm-dd)
-	 * @throws {Error}
+	 * @throws {TransformDataError} Database value could not be transformed to external format
 	 */
 	transformFromDb = value => {
 		if (value == null) {
@@ -31,7 +32,10 @@ class ISOCalendarDateType extends SimpleType {
 		}
 		const castValue = +value;
 		if (!Number.isInteger(castValue)) {
-			throw new Error();
+			throw new TransformDataError({
+				transformClass: this.constructor.name,
+				transformValue: castValue,
+			});
 		}
 
 		return moment(ISOCalendarDateType.epoch)

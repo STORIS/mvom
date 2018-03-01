@@ -106,7 +106,7 @@ begin case
 
     write source on f.sourceDir, programName on error
       close f.sourceDir on error null
-      call error_handler(ERROR_WRITE, output)
+      call error_handler(ERROR_RECORD_WRITE, output)
       go response
     end
 

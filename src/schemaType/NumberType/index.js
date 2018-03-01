@@ -1,4 +1,6 @@
 import SimpleType from 'schemaType/SimpleType';
+import InvalidParameterError from 'Errors/InvalidParameter';
+import TransformDataError from 'Errors/TransformData';
 
 /**
  * A Number Schema Type
@@ -6,18 +8,18 @@ import SimpleType from 'schemaType/SimpleType';
  * @param {Object} definition - Data definition
  * @param {string} definition.path - 1-indexed String path
  * @param {integer} [definition.dbDecimals = 0] - Number of implied decimals in database storage
- * @throws {Error}
+ * @throws {InvalidParameterError} An invalid parameter was passed to the function
  */
 class NumberType extends SimpleType {
 	constructor(definition) {
 		if (definition.path == null) {
-			throw new Error();
+			throw new InvalidParameterError({ parameterName: 'definition.path' });
 		}
 		super(definition);
 		const { dbDecimals = 0 } = definition;
 
 		if (!Number.isInteger(dbDecimals)) {
-			throw new Error();
+			throw new InvalidParameterError({ parameterName: 'definition.dbDecimals' });
 		}
 
 		/**
@@ -41,7 +43,7 @@ class NumberType extends SimpleType {
 	 * @override
 	 * @param {string|number|null} value - Value to transform
 	 * @returns {Number|null} Transformed numeric value
-	 * @throws {Error}
+	 * @throws {TransformDataError} Database value could not be transformed to external format
 	 */
 	transformFromDb = value => {
 		if (value == null) {
@@ -49,7 +51,10 @@ class NumberType extends SimpleType {
 		}
 		const castValue = +value;
 		if (!Number.isFinite(castValue)) {
-			throw new Error();
+			throw new TransformDataError({
+				transformClass: this.constructor.name,
+				transformValue: castValue,
+			});
 		}
 
 		return +(Math.round(castValue, 0) / 10 ** this._dbDecimals).toFixed(this._dbDecimals);
@@ -64,7 +69,7 @@ class NumberType extends SimpleType {
 	 * @override
 	 * @param {number|null} value - Value to transform
 	 * @returns {string|null} Transformed string integer representing internal multivalue number format
-	 * @throws {Error}
+	 * @throws {TypeError} Could not cast value to number
 	 */
 	transformToDb = value => {
 		if (value == null) {
@@ -73,7 +78,7 @@ class NumberType extends SimpleType {
 
 		const castValue = +value;
 		if (!Number.isFinite(castValue)) {
-			throw new Error();
+			throw new TypeError(`Cannot cast ${value} to number`);
 		}
 
 		return (castValue * 10 ** this._dbDecimals).toFixed(0);

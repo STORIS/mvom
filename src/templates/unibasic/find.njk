@@ -55,7 +55,7 @@ loop while limit eq '' or processCount lt skip + limit
   readnext recordId else exit
   if processCount gt skip then
     read record from f.file, recordId on error
-      call error_handler(ERROR_READ, output)
+      call error_handler(ERROR_RECORD_READ, output)
       go closeAndReturnFromSub
     end then
       * format the record into an object structure

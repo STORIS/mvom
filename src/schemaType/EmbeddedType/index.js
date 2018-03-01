@@ -3,17 +3,18 @@ import setIn from 'lodash/set';
 import Document from 'Document';
 import Schema from 'Schema';
 import ComplexType from 'schemaType/ComplexType';
+import InvalidParameterError from 'Errors/InvalidParameter';
 
 /**
  * An Embedded Schema Type
  * @extends ComplexType
  * @param {Schema} valueSchema - An instance of Schema representing the the document structure embedded contents
- * @throws {Error}
+ * @throws {InvalidParameterError} An invalid parameter was passed to the function
  */
 class EmbeddedType extends ComplexType {
 	constructor(valueSchema) {
 		if (!(valueSchema instanceof Schema)) {
-			throw new Error();
+			throw new InvalidParameterError({ parameterName: 'valueSchema' });
 		}
 		super();
 

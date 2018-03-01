@@ -1,16 +1,17 @@
 import SimpleType from 'schemaType/SimpleType';
+import InvalidParameterError from 'Errors/InvalidParameter';
 
 /**
  * A Boolean Schema Type
  * @extends SimpleType
  * @param {Object} definition - Data definition
  * @param {string} definition.path - 1-indexed String path
- * @throws {Error}
+ * @throws {InvalidParameterError} An invalid parameter was passed to the function
  */
 class BooleanType extends SimpleType {
 	constructor(definition) {
 		if (definition.path == null) {
-			throw new Error();
+			throw new InvalidParameterError({ parameterName: 'definition.path' });
 		}
 		super(definition);
 	}

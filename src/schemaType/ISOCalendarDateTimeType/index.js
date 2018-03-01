@@ -1,6 +1,7 @@
 import ISOCalendarDateType from 'schemaType/ISOCalendarDateType';
 import ISOTimeType from 'schemaType/ISOTimeType';
 import SimpleType from 'schemaType/SimpleType';
+import InvalidParameterError from 'Errors/InvalidParameter';
 
 /**
  * An ISOCalendarDateTime Schema Type
@@ -8,12 +9,12 @@ import SimpleType from 'schemaType/SimpleType';
  * @param {Object} definition - Data definition
  * @param {string} definition.path - 1-indexed String path
  * @param {string} [definition.dbFormat = 'ms'] - Allowed values: 's' & 'ms'; indicates whether time is stored in seconds or milliseconds past midnight
- * @throws {Error}
+ * @throws {InvalidParameterError} An invalid parameter was passed to the function
  */
 class ISOCalendarDateTimeType extends SimpleType {
 	constructor(definition) {
 		if (definition.path == null) {
-			throw new Error();
+			throw new InvalidParameterError({ parameterName: 'definition.path' });
 		}
 		super(definition);
 		const { dbFormat = 'ms' } = definition;
@@ -38,6 +39,7 @@ class ISOCalendarDateTimeType extends SimpleType {
 	 * @override
 	 * @param {string|number|null} value - Value to transform
 	 * @returns {string|null} Transformed ISO 8601 String Time value (HH:mm:ss.SSS)
+	 * @throws {TransformDataError} (indirect) Database value could not be transformed to external format
 	 */
 	transformFromDb = value => {
 		if (value == null) {
