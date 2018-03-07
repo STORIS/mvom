@@ -77,6 +77,24 @@ describe('compileModel', () => {
 
 	describe('Model class', () => {
 		describe('static methods', () => {
+			describe('deleteById', () => {
+				it('should instantiate a new model instance with the results of the dbFeature execution', async () => {
+					executeDbFeature.resolves({ result: { record: 'foo', _id: 'bar', __v: 'baz' } });
+					const Test = compileModel(connection, schema, 'foo');
+					assert.deepInclude(await Test.deleteById(), {
+						_id: 'bar',
+						__id: 'bar',
+						__v: 'baz',
+					});
+				});
+
+				it('should return null if dbFeature resolves with null', async () => {
+					executeDbFeature.resolves({ result: null });
+					const Test = compileModel(connection, schema, 'foo');
+					assert.isNull(await Test.deleteById());
+				});
+			});
+
 			describe('find', () => {
 				it('should call the query constructor with the passed parameters', async () => {
 					const Test = compileModel(connection, schema, 'foo');

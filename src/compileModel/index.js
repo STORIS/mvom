@@ -68,10 +68,33 @@ const compileModel = (connection, schema, file) => {
 		/* static methods */
 
 		/**
+		 * Delete a document
+		 * @function deleteById
+		 * @memberof Model
+		 * @static
+		 * @async
+		 * @param {string} id - Document identifier
+		 * @returns {Promise.<Model|null>} Model representing document prior to deletion or null if document did not exist
+		 * @throws {ConnectionManagerError} (indirect) An error occurred in connection manager communications
+		 * @throws {DbServerError} (indirect) An error occurred on the database server
+		 */
+		static deleteById = async id => {
+			const data = await Model.connection.executeDbFeature('deleteById', {
+				filename: Model.file,
+				id,
+			});
+
+			// if the record existed prior to delete then the record prior to delete will be returned;
+			// if the record did not exist prior to delete then null will be returned
+			return data.result ? new Model(data.result) : null;
+		};
+
+		/**
 		 * Find documents via query
 		 * @function find
 		 * @memberof Model
 		 * @static
+		 * @async
 		 * @param {Object} [selectionCriteria = {}] - Selection criteria object
 		 * @param {Object} [options = {}]
 		 * @param {number} [options.skip = 0] - Skip this number of items in the result set
@@ -93,7 +116,7 @@ const compileModel = (connection, schema, file) => {
 		 * @static
 		 * @async
 		 * @param {string} id - Document identifier
-		 * @returns {Model} Model instance
+		 * @returns {Promise.<Model>} Model instance
 		 * @throws {ConnectionManagerError} (indirect) An error occurred in connection manager communications
 		 * @throws {DbServerError} (indirect) An error occurred on the database server
 		 */
