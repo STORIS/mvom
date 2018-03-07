@@ -3,6 +3,7 @@
     "src/**/*.js"
   ],
   "exclude": [
+    "src/shared/typedefs/**",
     "**/*.spec.js"
   ],
   "all": true,

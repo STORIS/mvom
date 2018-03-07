@@ -1,39 +1,43 @@
 import cloneDeep from 'lodash/cloneDeep';
+import compact from 'lodash/compact';
 import setIn from 'lodash/set';
 import toPath from 'lodash/toPath';
 import BaseType from 'schemaType/BaseType';
-import getFromMvArray from 'shared/getFromMvArray';
 import DisallowDirectError from 'Errors/DisallowDirect';
 import InvalidParameterError from 'Errors/InvalidParameter';
+import NotImplementedError from 'Errors/NotImplemented';
+import getFromMvArray from 'shared/getFromMvArray';
+import handleRequiredValidation from 'shared/handleRequiredValidation';
 
 /**
  * A Simple Schema Type
  * @extends BaseType
  * @hideconstructor
- * @interface
- * @param {Object} definition - Data definition
- * @param {string} [definition.path = null] - 1-indexed String path
+ * @param {Object} [definition = {}] - Data definition
+ * @param {Number[]} [definition.path = null] - 0-indexed Array path
+ * @param {string} [definition.dictionary = null] - Multivalue dictionary id
+ * @param {Boolean|Function} [definition.required = false] Indicates that a value is required when validating
  * @throws {DisallowDirectError} Class cannot be instantiated directly
  * @throws {InvalidParameterError} Path definition must be a string of integers split by periods
  */
 class SimpleType extends BaseType {
-	constructor(definition) {
-		/**
-		 * 0-indexed Array path
-		 * @member {Number[]} path
-		 * @memberof SimpleType
-		 * @instance
-		 */
-
+	constructor(definition = {}) {
 		if (new.target === SimpleType) {
 			// disallow direct instantiation
 			throw new DisallowDirectError({ className: 'SimpleType' });
 		}
 
 		super();
-		const { dictionary = null, path = null } = definition;
-		this._normalizeMvPath(path);
 
+		const { dictionary = null, path = null, required = false } = definition;
+
+		/**
+		 * Data definition which this schema type was cosntructed from
+		 * @member {Object} definition
+		 * @memberof SimpleType
+		 * @instance
+		 */
+		this.definition = definition;
 		/**
 		 * Multivalue dictionary id
 		 * @member {string} dictionary
@@ -41,6 +45,21 @@ class SimpleType extends BaseType {
 		 * @instance
 		 */
 		this.dictionary = dictionary;
+		/**
+		 * 0-indexed Array path
+		 * @member {Number[]} path
+		 * @memberof SimpleType
+		 * @instance
+		 */
+		this._normalizeMvPath(path);
+		/**
+		 * Required validation value for the schema type
+		 * @member {Boolean|Function} _required
+		 * @memberof SimpleType
+		 * @instance
+		 * @private
+		 */
+		this._required = required;
 	}
 
 	/* public instance methods */
@@ -77,7 +96,6 @@ class SimpleType extends BaseType {
 	 * @param {*[]} originalRecord - Record structure to use as basis for applied changes
 	 * @param {*} setValue - Value to transform and set into record
 	 * @returns {*[]} Array data of output record format
-	 * @throws {TypeError} (indirect) Could not cast value to number
 	 */
 	set = (originalRecord, setValue) =>
 		this.setIntoMvData(originalRecord, this.transformToDb(setValue));
@@ -99,6 +117,60 @@ class SimpleType extends BaseType {
 		return setIn(cloneDeep(originalRecord), this.path, setValue);
 	};
 
+	/**
+	 * Transform from mv data to externally formatted data
+	 * @function transformFromDb
+	 * @memberof SimpleType
+	 * @abstract
+	 * @instance
+	 * @param {*} value - Value to transform
+	 * @returns {*} Transformed value
+	 * @throws {NotImplementedError} Thrown if called directly
+	 */
+	transformFromDb = () => {
+		throw new NotImplementedError({
+			methodName: 'transformFromDb',
+			className: this.constructor.name,
+		});
+	};
+	/**
+	 * Transform from externally formatted data to mv data
+	 * @function transformToDb
+	 * @memberof SimpleType
+	 * @abstract
+	 * @instance
+	 * @param {*} value - Value to transform
+	 * @returns {*} Transformed value
+	 * @throws {NotImplementedError} Thrown if called directly
+	 */
+	transformToDb = () => {
+		throw new NotImplementedError({
+			methodName: 'transformToDb',
+			className: this.constructor.name,
+		});
+	};
+
+	/**
+	 * Validate the simple type
+	 * @function validate
+	 * @memberof SimpleType
+	 * @instance
+	 * @async
+	 * @param {*} value - Simple type value to validate
+	 * @param {Document} document - Document object
+	 * @returns {Promise.<string[]>} List of errors found while validating
+	 */
+	validate = async (value, document) =>
+		// combining all the validation into one array of promise.all
+		// - a validator will return false or the appropriate error message
+		// - compact the array of resolved promises to remove any falsy values
+		compact(
+			await Promise.all(
+				this._validators
+					.concat(handleRequiredValidation(this._required, this._validateRequired))
+					.map(async ({ validator, message }) => !await validator(value, document) && message),
+			),
+		);
 	/* private instance methods */
 
 	/**
@@ -128,6 +200,18 @@ class SimpleType extends BaseType {
 			return numVal - 1;
 		});
 	};
+
+	/**
+	 * SimpleType required validator
+	 * @function _validateRequired
+	 * @memberof SimpleType
+	 * @instance
+	 * @private
+	 * @async
+	 * @param {*} value - Value to validate
+	 * @returns {Promise.<Boolean>} True if valid / false if invalid
+	 */
+	_validateRequired = async value => value != null;
 }
 
 export default SimpleType;

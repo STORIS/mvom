@@ -112,5 +112,43 @@ describe('ISOTimeType', () => {
 				assert.strictEqual(isoTimeType.transformToDb('HH:mm:ss.SSS'), 'seconds');
 			});
 		});
+
+		describe('_validateType', () => {
+			let isoTimeType;
+			const isValid = stub();
+			const moment = stub().returns({
+				isValid,
+			});
+			before(() => {
+				isoTimeType = new ISOTimeType({ path: '1' });
+				RewireAPI.__Rewire__('moment', moment);
+			});
+
+			after(() => {
+				RewireAPI.__ResetDependency__('moment');
+			});
+
+			beforeEach(() => {
+				isValid.reset();
+			});
+
+			it('should resolve as true if value is undefined', async () => {
+				assert.isTrue(await isoTimeType._validateType());
+			});
+
+			it('should resolve as true if value is null', async () => {
+				assert.isTrue(await isoTimeType._validateType(null));
+			});
+
+			it('should resolve as true if time value is valid', async () => {
+				isValid.returns(true);
+				assert.isTrue(await isoTimeType._validateType('foo'));
+			});
+
+			it('should resolve as false if time value is invalid', async () => {
+				isValid.returns(false);
+				assert.isFalse(await isoTimeType._validateType('foo'));
+			});
+		});
 	});
 });

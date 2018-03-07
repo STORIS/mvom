@@ -1,4 +1,5 @@
 import DisallowDirectError from 'Errors/DisallowDirect';
+import NotImplementedError from 'Errors/NotImplemented';
 
 /**
  * A Base Schema Type
@@ -12,31 +13,58 @@ class BaseType {
 			// disallow direct instantiation
 			throw new DisallowDirectError({ className: 'BaseType' });
 		}
+
+		/**
+		 * List of validation functions to run for this schema type
+		 * @member {ValidationObject[]} _validators
+		 * @memberof BaseType
+		 * @instance
+		 * @private
+		 */
+		this._validators = [];
 	}
 
-	/* public instance methods */
-
 	/**
-	 * Transform mv style data to js style data
-	 * @function transformFromDb
+	 * Get value from mv data
+	 * @function get
 	 * @memberof BaseType
+	 * @abstract
 	 * @instance
-	 * @public
-	 * @param {*} value - Value to transform
-	 * @returns {*} Transformed value
+	 * @param {*[]} record - Data to get value from
+	 * @returns {*} Formatted data value
+	 * @throws {NotImplementedError} Thrown if called directly
 	 */
-	transformFromDb = value => value;
-
+	get = () => {
+		throw new NotImplementedError({ methodName: 'get', className: this.constructor.name });
+	};
 	/**
-	 * Transform js style data to mv style data
-	 * @function transformToDb
+	 * Set value into mv data
+	 * @function set
 	 * @memberof BaseType
+	 * @abstract
 	 * @instance
-	 * @public
-	 * @param {*} value - Value to transform
-	 * @returns {*} Transformed value
+	 * @param {*[]} originalRecord - Record structure to use as basis for applied changes
+	 * @param {*} setValue - Value to set into record
+	 * @returns {*[]} Array data of output record format
+	 * @throws {NotImplementedError} Thrown if called directly
 	 */
-	transformToDb = value => value;
+	set = () => {
+		throw new NotImplementedError({ methodName: 'set', className: this.constructor.name });
+	};
+	/**
+	 * Validate value
+	 * @function validate
+	 * @memberof BaseType
+	 * @abstract
+	 * @instance
+	 * @async
+	 * @param {*} value - Value to verify
+	 * @param {Object} document - Document instance
+	 * @throws {NotImplementedError} Thrown if called directly
+	 */
+	validate = async () => {
+		throw new NotImplementedError({ methodName: 'validate', className: this.constructor.name });
+	};
 }
 
 export default BaseType;

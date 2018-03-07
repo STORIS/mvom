@@ -89,6 +89,47 @@ describe('DocumentArrayType', () => {
 			});
 		});
 
+		describe('validate', () => {
+			let document;
+			before(() => {
+				document = { validate: stub() };
+			});
+
+			beforeEach(() => {
+				document.validate.reset();
+			});
+
+			it('should resolve with empty array if no errors are found in any document', async () => {
+				document.validate.resolves({});
+				assert.deepEqual(await documentArrayType.validate([document, document]), []);
+			});
+
+			it("should resolve with an array of the first document's errors", async () => {
+				document.validate.onCall(0).resolves({ foo: 'bar', baz: 'qux' });
+				document.validate.onCall(1).resolves({});
+				assert.deepEqual(await documentArrayType.validate([document, document]), [
+					{ foo: 'bar', baz: 'qux' },
+				]);
+			});
+
+			it("should resolve with an array of the second document's errors", async () => {
+				document.validate.onCall(0).resolves({});
+				document.validate.onCall(1).resolves({ quux: 'corge', uier: 'grault' });
+				assert.deepEqual(await documentArrayType.validate([document, document]), [
+					{ quux: 'corge', uier: 'grault' },
+				]);
+			});
+
+			it("should resolve with an array of each document's errors", async () => {
+				document.validate.onCall(0).resolves({ foo: 'bar', baz: 'qux' });
+				document.validate.onCall(1).resolves({ quux: 'corge', uier: 'grault' });
+				assert.deepEqual(await documentArrayType.validate([document, document]), [
+					{ foo: 'bar', baz: 'qux' },
+					{ quux: 'corge', uier: 'grault' },
+				]);
+			});
+		});
+
 		describe('_makeSubDocument', () => {
 			it('should return a new document instance from the first subrecord when yielding', () => {
 				const it = documentArrayType._makeSubDocument([['foo', 'bar'], ['baz', 'qux']]);

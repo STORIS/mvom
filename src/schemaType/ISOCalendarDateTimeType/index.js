@@ -1,7 +1,9 @@
+import isString from 'lodash/isString';
 import ISOCalendarDateType from 'schemaType/ISOCalendarDateType';
 import ISOTimeType from 'schemaType/ISOTimeType';
 import SimpleType from 'schemaType/SimpleType';
 import InvalidParameterError from 'Errors/InvalidParameter';
+import handleTypeValidation from 'shared/handleTypeValidation';
 
 /**
  * An ISOCalendarDateTime Schema Type
@@ -26,6 +28,9 @@ class ISOCalendarDateTimeType extends SimpleType {
 		 * @private
 		 */
 		this._dbFormat = dbFormat;
+
+		// add validators for this type
+		this._validators.unshift(handleTypeValidation(this._validateType));
 	}
 
 	/* public instance methods */
@@ -68,12 +73,46 @@ class ISOCalendarDateTimeType extends SimpleType {
 			return null;
 		}
 
-		const valueParts = value.split('T');
+		const [datePart, timePart] = value.split('T');
 
-		const datePart = new ISOCalendarDateType({}).transformToDb(valueParts[0]);
-		const timePart = new ISOTimeType({ dbFormat: this._dbFormat }).transformToDb(valueParts[1]);
+		return `${new ISOCalendarDateType({}).transformToDb(datePart)}.${new ISOTimeType({
+			dbFormat: this._dbFormat,
+		}).transformToDb(timePart)}`;
+	};
 
-		return `${datePart}.${timePart}`;
+	/* private instance methods */
+
+	/**
+	 * ISOCalendarDateTime data type validator
+	 * @function _validateType
+	 * @memberof ISOCalendarDateTimeType
+	 * @instance
+	 * @private
+	 * @async
+	 * @param {*[]} value - Value to validate for data type casting
+	 * @returns {Promise.<Boolean>} True if valid / false if invalid
+	 */
+	_validateType = async value => {
+		if (value == null) {
+			return true;
+		}
+
+		if (!isString(value)) {
+			// must be a string value
+			return false;
+		}
+
+		const [datePart, timePart] = value.split('T');
+
+		if (datePart === '' || timePart === '' || timePart == null) {
+			// compound type must contain both parts
+			return false;
+		}
+
+		return (
+			(await new ISOCalendarDateType({}).validate(datePart)) &&
+			new ISOTimeType({ dbFormat: this._dbFormat }).validate(timePart)
+		);
 	};
 }
 

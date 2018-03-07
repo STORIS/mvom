@@ -28,13 +28,9 @@ class BooleanType extends SimpleType {
 	 * @param {string|number|null} value - Value to transform
 	 * @returns {Boolean} Transformed value
 	 */
-	transformFromDb = value => {
+	transformFromDb = value =>
 		// this logic is intentionally trying to mimic the Boolean rules of the UniBasic interpreter
-		if (value == null || value === '0' || value === 0) {
-			return false;
-		}
-		return true;
-	};
+		value != null && value !== '0' && value !== 0;
 
 	/**
 	 * Transform js style data to mv style data

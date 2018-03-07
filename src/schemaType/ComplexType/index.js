@@ -3,6 +3,7 @@ import DisallowDirectError from 'Errors/DisallowDirect';
 
 /**
  * A Complex Schema Type
+ * @extends BaseType
  * @hideconstructor
  * @interface
  * @throws {DisallowDirectError} Class cannot be instantiated directly

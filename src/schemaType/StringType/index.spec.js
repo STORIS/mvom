@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 import { assert } from 'chai';
 import StringType from './';
 
@@ -19,8 +20,8 @@ describe('StringType', () => {
 				stringType = new StringType({ path: '1' });
 			});
 
-			it('should return empty string if value is not provided', () => {
-				assert.strictEqual(stringType.transformFromDb(), '');
+			it('should return null if value is not provided', () => {
+				assert.isNull(stringType.transformFromDb());
 			});
 
 			it('should return passed string value', () => {
@@ -48,6 +49,29 @@ describe('StringType', () => {
 
 			it('should typecast if a non-string is passed', () => {
 				assert.strictEqual(stringType.transformToDb(1234), '1234');
+			});
+		});
+
+		describe('_validateRequired', () => {
+			let stringType;
+			before(() => {
+				stringType = new StringType({ path: '1' });
+			});
+
+			it('should resolve as false if value is undefined', async () => {
+				assert.isFalse(await stringType._validateRequired());
+			});
+
+			it('should resolve as false if value is null', async () => {
+				assert.isFalse(await stringType._validateRequired(null));
+			});
+
+			it('should resolve as false if value is empty string', async () => {
+				assert.isFalse(await stringType._validateRequired(''));
+			});
+
+			it('should resolve as true if value is anything else', async () => {
+				assert.isTrue(await stringType._validateRequired('foo'));
 			});
 		});
 	});

@@ -57,6 +57,22 @@ class EmbeddedType extends ComplexType {
 		});
 		return record;
 	};
+
+	/**
+	 * Validate the embedded document
+	 * @function validate
+	 * @memberof EmbeddedType
+	 * @instance
+	 * @async
+	 * @param {Document} document - Document to validate
+	 * @returns {Promise.<Object[]>} List of errors found while validating
+	 */
+	validate = async document => {
+		// - validation against the embedded document will return a single object with 0 to n keys - only those with keys indicate errors;
+		// - if there are errors then return an array with the error object; otherwise return an empty array
+		const documentErrors = await document.validate();
+		return Object.keys(documentErrors).length ? [documentErrors] : [];
+	};
 }
 
 export default EmbeddedType;

@@ -1,4 +1,5 @@
 import cloneDeep from 'lodash/cloneDeep';
+import compact from 'lodash/compact';
 import setIn from 'lodash/set';
 import Document from 'Document';
 import Schema from 'Schema';
@@ -63,6 +64,29 @@ class DocumentArrayType extends ComplexType {
 		});
 		return record;
 	};
+
+	/**
+	 * Validate the document array
+	 * @function validate
+	 * @memberof DocumentArrayType
+	 * @instance
+	 * @async
+	 * @param {Document[]} documentList - Array of documents to validate
+	 * @returns {Promise.<Object[]>} List of errors found while validating
+	 */
+	validate = async documentList =>
+		// combining all the validation into one array of promise.all
+		// - validation against the documents in the array will return a single object with 0 to n keys - only those with keys indicate errors;
+		//   if there are errors then the promise will resolve with the error object; otherwise it will resolve with 0
+		// - compact the array of resolved promises to remove any falsy values
+		compact(
+			await Promise.all(
+				documentList.map(async document => {
+					const documentErrors = await document.validate();
+					return Object.keys(documentErrors).length && documentErrors;
+				}),
+			),
+		);
 
 	/**
 	 * Generate subdocument instances

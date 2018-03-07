@@ -24,14 +24,9 @@ class StringType extends SimpleType {
 	 * @public
 	 * @override
 	 * @param {string|null} value - Value to transform
-	 * @returns {string} Transformed value
+	 * @returns {string|null} Transformed value
 	 */
-	transformFromDb = value => {
-		if (value == null) {
-			return String();
-		}
-		return String(value);
-	};
+	transformFromDb = value => (value == null ? null : String(value));
 
 	/**
 	 * Transform js string to mv string
@@ -43,12 +38,20 @@ class StringType extends SimpleType {
 	 * @param {string|null} value - Value to transform
 	 * @returns {string|null} Transformed value
 	 */
-	transformToDb = value => {
-		if (value == null) {
-			return null;
-		}
-		return String(value);
-	};
+	transformToDb = value => (value == null ? null : String(value));
+
+	/**
+	 * String required validator
+	 * @function _validateRequired
+	 * @memberof StringType
+	 * @override
+	 * @instance
+	 * @private
+	 * @async
+	 * @param {string} value - String to validate
+	 * @returns {Promise.<Boolean>} True if valid / false if invalid
+	 */
+	_validateRequired = async value => value != null && value !== '';
 }
 
 export default StringType;

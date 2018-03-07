@@ -8,7 +8,10 @@ import compileModel, { __RewireAPI__ as RewireAPI } from './';
 describe('compileModel', () => {
 	let connection;
 	let schema;
+
+	const validate = stub();
 	const Document = class {
+		validate = validate;
 		transformationErrors = [
 			{ transformClass: 'class1', transformValue: 'value1' },
 			{ transformClass: 'class2', transformValue: 'value2' },
@@ -17,6 +20,8 @@ describe('compileModel', () => {
 	const executeDbFeature = stub();
 	const queryConstructor = stub();
 	const exec = stub();
+
+	class DataValidationError extends Error {}
 	before(() => {
 		chai.use(chaiAsPromised);
 		const Connection = class {};
@@ -38,6 +43,8 @@ describe('compileModel', () => {
 		const Schema = class {};
 		RewireAPI.__Rewire__('Schema', Schema);
 		schema = new Schema();
+
+		RewireAPI.__Rewire__('DataValidationError', DataValidationError);
 	});
 
 	beforeEach(() => {
@@ -45,6 +52,7 @@ describe('compileModel', () => {
 		queryConstructor.resetHistory();
 		exec.resetHistory();
 		connection.logger.warn.resetHistory();
+		validate.reset();
 	});
 
 	after(() => {
@@ -52,6 +60,7 @@ describe('compileModel', () => {
 		RewireAPI.__ResetDependency__('Document');
 		RewireAPI.__ResetDependency__('Query');
 		RewireAPI.__ResetDependency__('Schema');
+		RewireAPI.__ResetDependency__('DataValidationError');
 	});
 
 	it('should throw an error if Connection not provided', () => {
@@ -127,10 +136,17 @@ describe('compileModel', () => {
 			describe('save', () => {
 				it('should throw an error if an _id has not been added to the instance', () => {
 					const test = new Test();
-					assert.isRejected(test.save());
+					return assert.isRejected(test.save());
+				});
+
+				it('should throw DataValidationError if validate resolves with errors', () => {
+					validate.resolves({ foo: 'bar' });
+					const test = new Test({ record: [], _id: 'foo' });
+					return assert.isRejected(test.save(), DataValidationError);
 				});
 
 				it('should instantiate a new model instance with the results of the dbFeature execution', async () => {
+					validate.resolves({});
 					executeDbFeature.resolves({ result: { record: [], _id: 'bar', __v: 'baz' } });
 					const test = new Test({ record: [], _id: 'foo' });
 					test.transformDocumentToRecord = stub();

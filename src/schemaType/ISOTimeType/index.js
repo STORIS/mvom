@@ -1,6 +1,7 @@
 import moment from 'moment';
 import SimpleType from 'schemaType/SimpleType';
 import TransformDataError from 'Errors/TransformData';
+import handleTypeValidation from 'shared/handleTypeValidation';
 
 /**
  * An ISOTime Schema Type
@@ -10,6 +11,14 @@ import TransformDataError from 'Errors/TransformData';
  * @param {string} [definition.dbFormat = 's'] - Allowed values: 's' & 'ms'; indicates whether time is stored in seconds or milliseconds past midnight
  */
 class ISOTimeType extends SimpleType {
+	/**
+	 * External format for ISO Time data
+	 * @member {string} ISOTimeFormat
+	 * @memberof ISOTimeType
+	 * @static
+	 */
+	static ISOTimeFormat = 'HH:mm:ss.SSS';
+
 	constructor(definition) {
 		super(definition);
 		const { dbFormat = 's' } = definition;
@@ -21,6 +30,9 @@ class ISOTimeType extends SimpleType {
 		 * @private
 		 */
 		this._isDbInMs = dbFormat === 'ms';
+
+		// add validators for this type
+		this._validators.unshift(handleTypeValidation(this._validateType));
 	}
 
 	/* public instance methods */
@@ -63,7 +75,7 @@ class ISOTimeType extends SimpleType {
 			isoTime.add(castValue, 'seconds');
 		}
 
-		return isoTime.format('HH:mm:ss.SSS');
+		return isoTime.format(ISOTimeType.ISOTimeFormat);
 	};
 
 	/**
@@ -84,10 +96,25 @@ class ISOTimeType extends SimpleType {
 		const startOfDay = moment().startOf('day');
 
 		if (this._isDbInMs) {
-			return String(moment(value, 'HH:mm:ss.SSS').diff(startOfDay, 'milliseconds'));
+			return String(moment(value, ISOTimeType.ISOTimeFormat).diff(startOfDay, 'milliseconds'));
 		}
-		return String(moment(value, 'HH:mm:ss.SSS').diff(startOfDay, 'seconds'));
+		return String(moment(value, ISOTimeType.ISOTimeFormat).diff(startOfDay, 'seconds'));
 	};
+
+	/* private instance methods */
+
+	/**
+	 * ISOTimeType data type validator
+	 * @function _validateType
+	 * @memberof ISOTimeType
+	 * @instance
+	 * @private
+	 * @async
+	 * @param {*[]} value - Value to validate for data type casting
+	 * @returns {Promise.<Boolean>} True if valid / false if invalid
+	 */
+	_validateType = async value =>
+		value == null || moment(value, ISOTimeType.ISOTimeFormat).isValid();
 }
 
 export default ISOTimeType;

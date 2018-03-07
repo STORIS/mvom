@@ -70,6 +70,11 @@ class Document {
 				enumerable: false,
 				writable: false,
 			},
+			validate: {
+				configurable: false,
+				enumerable: false,
+				writable: false,
+			},
 			_transformRecordToDocument: {
 				configurable: false,
 				enumerable: false,
@@ -88,13 +93,35 @@ class Document {
 	 * @memberof Document
 	 * @instance
 	 * @returns {*[]} Array data of output record format
-	 * @throws {TypeError} (indirect) Could not cast value to number
 	 */
 	transformDocumentToRecord = () =>
 		Object.keys(this._schema.paths).reduce((record, keyPath) => {
 			const value = getIn(this, keyPath, null);
 			return this._schema.paths[keyPath].set(record, value);
 		}, this._isSubdocument ? [] : cloneDeep(this._record));
+
+	/**
+	 * Validate document for errors
+	 * @function validate
+	 * @memberof Document
+	 * @instance
+	 * @async
+	 * @returns {Promise.<Object>} Object describing any validation errors
+	 */
+	validate = async () => {
+		const documentErrors = {};
+
+		await Promise.all(
+			Object.keys(this._schema.paths).map(async keyPath => {
+				const value = getIn(this, keyPath, null);
+				const errors = await this._schema.paths[keyPath].validate(value, this);
+				if (errors.length > 0) {
+					documentErrors[keyPath] = errors;
+				}
+			}),
+		);
+		return documentErrors;
+	};
 
 	/* private instance methods */
 

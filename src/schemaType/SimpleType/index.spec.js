@@ -4,13 +4,23 @@ import { stub } from 'sinon';
 import SimpleType, { __RewireAPI__ as RewireAPI } from './';
 
 describe('SimpleType', () => {
+	class NotImplementedError extends Error {}
 	const getFromMvArray = stub();
+	const requiredValidator = stub();
+	const handleRequiredValidation = stub().returns({
+		validator: requiredValidator,
+		message: 'requiredValidator',
+	});
 	before(() => {
+		RewireAPI.__Rewire__('NotImplementedError', NotImplementedError);
 		RewireAPI.__Rewire__('getFromMvArray', getFromMvArray);
+		RewireAPI.__Rewire__('handleRequiredValidation', handleRequiredValidation);
 	});
 
 	after(() => {
+		RewireAPI.__ResetDependency__('NotImplementedError');
 		RewireAPI.__ResetDependency__('getFromMvArray');
+		RewireAPI.__ResetDependency__('handleRequiredValidation');
 	});
 
 	beforeEach(() => {
@@ -147,6 +157,76 @@ describe('SimpleType', () => {
 			});
 		});
 
+		describe('transformFromDb', () => {
+			let extension;
+			before(() => {
+				const Extension = class extends SimpleType {};
+				extension = new Extension({});
+			});
+
+			it('should throw NotImplementedError if called', () => {
+				assert.throws(extension.transformFromDb, NotImplementedError);
+			});
+		});
+
+		describe('transformToDb', () => {
+			let extension;
+			before(() => {
+				const Extension = class extends SimpleType {};
+				extension = new Extension({});
+			});
+
+			it('should throw NotImplementedError if called', () => {
+				assert.throws(extension.transformToDb, NotImplementedError);
+			});
+		});
+
+		describe('validate', () => {
+			let extension;
+			const fooValidator = stub();
+			const barValidator = stub();
+			before(() => {
+				const Extension = class extends SimpleType {};
+				extension = new Extension({});
+				extension._validators.push({ validator: fooValidator, message: 'foo' });
+				extension._validators.push({ validator: barValidator, message: 'bar' });
+			});
+
+			beforeEach(() => {
+				fooValidator.reset();
+				barValidator.reset();
+				requiredValidator.reset();
+			});
+
+			it('should return an array of any errors from the required validator', async () => {
+				fooValidator.resolves(true);
+				barValidator.resolves(true);
+				requiredValidator.resolves(false);
+				assert.deepEqual(await extension.validate(), ['requiredValidator']);
+			});
+
+			it('should return an array of errors from multiple validators', async () => {
+				fooValidator.resolves(false);
+				barValidator.resolves(true);
+				requiredValidator.resolves(false);
+				assert.deepEqual(await extension.validate(), ['foo', 'requiredValidator']);
+			});
+
+			it('should return an array of errors from all validators', async () => {
+				fooValidator.resolves(false);
+				barValidator.resolves(false);
+				requiredValidator.resolves(false);
+				assert.deepEqual(await extension.validate(), ['foo', 'bar', 'requiredValidator']);
+			});
+
+			it('should return an empty array if no errors are found', async () => {
+				fooValidator.resolves(true);
+				barValidator.resolves(true);
+				requiredValidator.resolves(true);
+				assert.deepEqual(await extension.validate(), []);
+			});
+		});
+
 		describe('_normalizeMvPath', () => {
 			let extension;
 			before(() => {
@@ -179,6 +259,26 @@ describe('SimpleType', () => {
 			it('should return an array of integers with a value one less than the parameter when a nested path is provided', () => {
 				extension._normalizeMvPath('1.2');
 				assert.deepEqual(extension.path, [0, 1]);
+			});
+		});
+
+		describe('_validateRequired', () => {
+			let extension;
+			before(() => {
+				const Extension = class extends SimpleType {};
+				extension = new Extension({});
+			});
+
+			it('should resolve as false if value is undefined', async () => {
+				assert.isFalse(await extension._validateRequired());
+			});
+
+			it('should resolve as false if value is null', async () => {
+				assert.isFalse(await extension._validateRequired(null));
+			});
+
+			it('should resolve as true if value is anything else', async () => {
+				assert.isTrue(await extension._validateRequired('foo'));
 			});
 		});
 	});

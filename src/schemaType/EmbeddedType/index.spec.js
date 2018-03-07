@@ -64,5 +64,26 @@ describe('EmbeddedType', () => {
 				]);
 			});
 		});
+
+		describe('validate', () => {
+			let document;
+			before(() => {
+				document = { validate: stub() };
+			});
+
+			beforeEach(() => {
+				document.validate.reset();
+			});
+
+			it('should return an array of any errors returned from the document validate function', async () => {
+				document.validate.resolves({ foo: 'bar' });
+				assert.deepEqual(await embeddedType.validate(document), [{ foo: 'bar' }]);
+			});
+
+			it('should return an empty array if the document validate function does not return any errors', async () => {
+				document.validate.resolves({});
+				assert.deepEqual(await embeddedType.validate(document), []);
+			});
+		});
 	});
 });

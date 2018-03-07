@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 import { assert } from 'chai';
 import { stub } from 'sinon';
 import ISOCalendarDate, { __RewireAPI__ as RewireAPI } from './';
@@ -76,6 +77,44 @@ describe('ISOCalendarDate', () => {
 			it('should return the string value returned from moment.diff', () => {
 				diff.returns(1234);
 				assert.strictEqual(isoCalendarDateType.transformToDb('foo'), '1234');
+			});
+		});
+
+		describe('_validateType', () => {
+			let isoCalendarDateType;
+			const isValid = stub();
+			const moment = stub().returns({
+				isValid,
+			});
+			before(() => {
+				isoCalendarDateType = new ISOCalendarDate({ path: '1' });
+				RewireAPI.__Rewire__('moment', moment);
+			});
+
+			after(() => {
+				RewireAPI.__ResetDependency__('moment');
+			});
+
+			beforeEach(() => {
+				isValid.reset();
+			});
+
+			it('should resolve as true if value is undefined', async () => {
+				assert.isTrue(await isoCalendarDateType._validateType());
+			});
+
+			it('should resolve as true if value is null', async () => {
+				assert.isTrue(await isoCalendarDateType._validateType(null));
+			});
+
+			it('should resolve as true if time value is valid', async () => {
+				isValid.returns(true);
+				assert.isTrue(await isoCalendarDateType._validateType('foo'));
+			});
+
+			it('should resolve as false if time value is invalid', async () => {
+				isValid.returns(false);
+				assert.isFalse(await isoCalendarDateType._validateType('foo'));
 			});
 		});
 	});

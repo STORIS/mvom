@@ -2,6 +2,7 @@ import Connection from 'Connection';
 import Document from 'Document';
 import Query from 'Query';
 import Schema from 'Schema';
+import DataValidationError from 'Errors/DataValidation';
 import InvalidParameterError from 'Errors/InvalidParameter';
 
 /**
@@ -171,7 +172,9 @@ const compileModel = (connection, schema, file) => {
 		 * @function save
 		 * @memberof Model
 		 * @instance
-		 * @returns {Model} New instance of the saved model
+		 * @async
+		 * @returns {Promise.<Model>} New instance of the saved model
+		 * @throws {DataValidationError} Error(s) found during data validation
 		 * @throws {TypeError} _id value was not set prior to calling the function
 		 * @throws {ConnectionManagerError} (indirect) An error occurred in connection manager communications
 		 * @throws {DbServerError} (indirect) An error occurred on the database server
@@ -179,6 +182,12 @@ const compileModel = (connection, schema, file) => {
 		save = async () => {
 			if (this._id == null) {
 				throw new TypeError('_id value must be set prior to saving');
+			}
+
+			// validate data prior to saving
+			const validationErrors = await this.validate();
+			if (Object.keys(validationErrors).length) {
+				throw new DataValidationError({ validationErrors });
 			}
 
 			const data = await Model.connection.executeDbFeature('save', {

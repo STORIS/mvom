@@ -110,6 +110,57 @@ describe('Document', () => {
 			});
 		});
 
+		describe('validate', () => {
+			const get = stub();
+			const validate = stub();
+			const SchemaRewire = class {
+				paths = {
+					foo: {
+						get,
+						validate,
+					},
+					bar: {
+						get,
+						validate,
+					},
+				};
+			};
+			let document;
+
+			before(() => {
+				RewireAPI.__Rewire__('Schema', SchemaRewire);
+				document = new Document(new SchemaRewire(), ['foo']);
+			});
+
+			beforeEach(() => {
+				delete document.foo;
+				delete document.bar;
+				validate.reset();
+			});
+
+			after(() => {
+				RewireAPI.__ResetDependency__('Schema');
+			});
+
+			it('should call the schemaType validate method for each property in the document referenced in the schema', async () => {
+				validate.returns([]);
+				document.foo = 'foo';
+				document.bar = 'bar';
+				await document.validate();
+				assert.strictEqual(validate.args[0][0], 'foo');
+				assert.strictEqual(validate.args[1][0], 'bar');
+			});
+
+			it('should return all errors returned by the schemaType validator', async () => {
+				validate.onCall(0).returns(['def', 'henk']);
+				validate.onCall(1).returns(['mos', 'thud']);
+				document.foo = 'foo';
+				document.bar = 'bar';
+				const documentErrors = await document.validate();
+				assert.deepEqual(documentErrors, { foo: ['def', 'henk'], bar: ['mos', 'thud'] });
+			});
+		});
+
 		describe('_transformRecordToDocument', () => {
 			describe('stubbed tests', () => {
 				const get = stub();
@@ -232,7 +283,7 @@ describe('Document', () => {
 						assert.deepEqual(document._transformRecordToDocument(), {
 							propertyA: [
 								{ property1: 'foo', property2: 'baz' },
-								{ property1: 'bar', property2: '' },
+								{ property1: 'bar', property2: null },
 							],
 						});
 					});
@@ -243,7 +294,7 @@ describe('Document', () => {
 						assert.deepEqual(document._transformRecordToDocument(), {
 							propertyA: [
 								{ property1: 'foo', property2: 'baz' },
-								{ property1: '', property2: '' },
+								{ property1: null, property2: null },
 								{ property1: 'bar', property2: 'qux' },
 							],
 						});
@@ -317,7 +368,7 @@ describe('Document', () => {
 						const record = [[null, null]];
 						const document = new Document(schema, record);
 						assert.deepEqual(document._transformRecordToDocument(), {
-							propertyA: [[''], ['']],
+							propertyA: [[null], [null]],
 						});
 					});
 				});
@@ -356,7 +407,7 @@ describe('Document', () => {
 						const record = [['foo', null]];
 						const document = new Document(schema, record);
 						assert.deepEqual(document._transformRecordToDocument(), {
-							propertyA: ['foo', ''],
+							propertyA: ['foo', null],
 						});
 					});
 				});

@@ -1,7 +1,18 @@
-import { assert } from 'chai';
-import BaseType from './';
+import chai, { assert } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+import BaseType, { __RewireAPI__ as RewireAPI } from './';
 
 describe('BaseType', () => {
+	class NotImplementedError extends Error {}
+	before(() => {
+		chai.use(chaiAsPromised);
+		RewireAPI.__Rewire__('NotImplementedError', NotImplementedError);
+	});
+
+	after(() => {
+		RewireAPI.__ResetDependency__('NotImplementedError');
+	});
+
 	describe('constructor', () => {
 		it('should not be able to instantiate directly', () => {
 			assert.throws(() => new BaseType());
@@ -9,28 +20,27 @@ describe('BaseType', () => {
 	});
 
 	describe('instance methods', () => {
-		describe('transformFromDb', () => {
-			let extension;
-			before(() => {
-				const Extension = class extends BaseType {};
-				extension = new Extension();
-			});
+		let extension;
+		before(() => {
+			class Extension extends BaseType {}
+			extension = new Extension();
+		});
 
-			it('should return the passed value parameter', () => {
-				assert.strictEqual(extension.transformFromDb('foo'), 'foo');
+		describe('get', () => {
+			it('should throw NotImplementedError if called', () => {
+				assert.throws(extension.get, NotImplementedError);
 			});
 		});
 
-		describe('transformToDb', () => {
-			let extension;
-			before(() => {
-				const Extension = class extends BaseType {};
-				extension = new Extension();
+		describe('set', () => {
+			it('should throw NotImplementedError if called', () => {
+				assert.throws(extension.set, NotImplementedError);
 			});
+		});
 
-			it('should return the passed value parameter', () => {
-				assert.strictEqual(extension.transformToDb('foo'), 'foo');
-			});
+		describe('validate', () => {
+			it('should reject with NotImplementedError if called', () =>
+				assert.isRejected(extension.validate(), NotImplementedError));
 		});
 	});
 });

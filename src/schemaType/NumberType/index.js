@@ -1,6 +1,7 @@
 import SimpleType from 'schemaType/SimpleType';
 import InvalidParameterError from 'Errors/InvalidParameter';
 import TransformDataError from 'Errors/TransformData';
+import handleTypeValidation from 'shared/handleTypeValidation';
 
 /**
  * A Number Schema Type
@@ -30,6 +31,9 @@ class NumberType extends SimpleType {
 		 * @private
 		 */
 		this._dbDecimals = dbDecimals;
+
+		// add validators for this type
+		this._validators.unshift(handleTypeValidation(this._validateType));
 	}
 
 	/* public instance methods */
@@ -69,20 +73,22 @@ class NumberType extends SimpleType {
 	 * @override
 	 * @param {number|null} value - Value to transform
 	 * @returns {string|null} Transformed string integer representing internal multivalue number format
-	 * @throws {TypeError} Could not cast value to number
 	 */
-	transformToDb = value => {
-		if (value == null) {
-			return null;
-		}
+	transformToDb = value => (value == null ? null : (+value * 10 ** this._dbDecimals).toFixed(0));
 
-		const castValue = +value;
-		if (!Number.isFinite(castValue)) {
-			throw new TypeError(`Cannot cast ${value} to number`);
-		}
+	/* private instance methods */
 
-		return (castValue * 10 ** this._dbDecimals).toFixed(0);
-	};
+	/**
+	 * NumberType data type validator
+	 * @function _validateType
+	 * @memberof NumberType
+	 * @instance
+	 * @private
+	 * @async
+	 * @param {*[]} value - Value to validate for data type casting
+	 * @returns {Promise.<Boolean>} True if valid / false if invalid
+	 */
+	_validateType = async value => value == null || Number.isFinite(+value);
 }
 
 export default NumberType;

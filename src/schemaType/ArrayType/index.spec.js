@@ -10,13 +10,23 @@ describe('ArrayType', () => {
 		setIntoMvData = stub();
 		transformFromDb = stub();
 		transformToDb = stub();
+		validate = stub();
+		definition = {};
 	};
+
+	const requiredValidator = stub();
+	const handleRequiredValidation = stub().returns({
+		validator: requiredValidator,
+		message: 'requiredValidator',
+	});
 	before(() => {
 		RewireAPI.__Rewire__('SimpleType', SimpleType);
+		RewireAPI.__Rewire__('handleRequiredValidation', handleRequiredValidation);
 	});
 
 	after(() => {
 		RewireAPI.__ResetDependency__('SimpleType');
+		RewireAPI.__ResetDependency__('handleRequiredValidation');
 	});
 
 	describe('constructor', () => {
@@ -102,6 +112,124 @@ describe('ArrayType', () => {
 			it('should return value returned from setIntoMvData', () => {
 				simpleType.setIntoMvData.returns('foo');
 				assert.strictEqual(arrayType.set([], []), 'foo');
+			});
+		});
+
+		describe('validate', () => {
+			let simpleType;
+			let arrayType;
+			const fooValidator = stub();
+			const barValidator = stub();
+			before(() => {
+				simpleType = new SimpleType({});
+				arrayType = new ArrayType(simpleType);
+				arrayType._validators.push({ validator: fooValidator, message: 'foo' });
+				arrayType._validators.push({ validator: barValidator, message: 'bar' });
+			});
+
+			beforeEach(() => {
+				simpleType.validate.reset();
+				fooValidator.reset();
+				barValidator.reset();
+				requiredValidator.reset();
+			});
+
+			it('should return an array of any errors from the required validator', async () => {
+				fooValidator.resolves(true);
+				barValidator.resolves(true);
+				requiredValidator.resolves(false);
+				simpleType.validate.resolves([]);
+				assert.deepEqual(await arrayType.validate([]), ['requiredValidator']);
+			});
+
+			it('should return an array of errors from multiple validators', async () => {
+				fooValidator.resolves(false);
+				barValidator.resolves(true);
+				requiredValidator.resolves(false);
+				simpleType.validate.resolves([]);
+				assert.deepEqual(await arrayType.validate([]), ['foo', 'requiredValidator']);
+			});
+
+			it('should return an array of errors from simpleType validator', async () => {
+				fooValidator.resolves(true);
+				barValidator.resolves(true);
+				requiredValidator.resolves(true);
+				simpleType.validate.resolves(['baz', 'qux']);
+				assert.deepEqual(await arrayType.validate(['value1']), ['baz', 'qux']);
+			});
+
+			it('should return an array of errors from multiple calls into the simpleType validator', async () => {
+				fooValidator.resolves(true);
+				barValidator.resolves(true);
+				requiredValidator.resolves(true);
+				simpleType.validate.onCall(0).resolves(['baz', 'qux']);
+				simpleType.validate.onCall(1).resolves(['quux', 'corge']);
+				assert.deepEqual(await arrayType.validate(['value1', 'value2']), [
+					'baz',
+					'qux',
+					'quux',
+					'corge',
+				]);
+			});
+
+			it('should return an array of errors from all validators', async () => {
+				fooValidator.resolves(false);
+				barValidator.resolves(false);
+				requiredValidator.resolves(false);
+				simpleType.validate.onCall(0).resolves(['baz', 'qux']);
+				simpleType.validate.onCall(1).resolves(['quux', 'corge']);
+				assert.deepEqual(await arrayType.validate(['value1', 'value2']), [
+					'foo',
+					'bar',
+					'requiredValidator',
+					'baz',
+					'qux',
+					'quux',
+					'corge',
+				]);
+
+				it('should return an array of errors from all validators when a simpleType validator returns no errors', async () => {
+					fooValidator.resolves(false);
+					barValidator.resolves(false);
+					requiredValidator.resolves(false);
+					simpleType.validate.onCall(0).resolves(['baz', 'qux']);
+					simpleType.validate.onCall(1).resolves([]);
+					simpleType.validate.onCall(2).resolves(['quux', 'corge']);
+					assert.deepEqual(await arrayType.validate(['value1', 'value2', 'value3']), [
+						'foo',
+						'bar',
+						'requiredValidator',
+						'baz',
+						'qux',
+						'quux',
+						'corge',
+					]);
+				});
+			});
+
+			it('should return an empty array if no errors are found', async () => {
+				fooValidator.resolves(true);
+				barValidator.resolves(true);
+				requiredValidator.resolves(true);
+				simpleType.validate.resolves([]);
+				assert.deepEqual(await arrayType.validate([]), []);
+			});
+		});
+
+		describe('_validateRequired', () => {
+			let simpleType;
+			let arrayType;
+			before(() => {
+				simpleType = new SimpleType({});
+				arrayType = new ArrayType(simpleType);
+			});
+
+			it('should resolve as false if array is empty', async () => {
+				assert.isFalse(await arrayType._validateRequired([]));
+			});
+
+			it('should resolve as true if array is not empty', async () => {
+				assert.isTrue(await arrayType._validateRequired(['foo']));
 			});
 		});
 	});

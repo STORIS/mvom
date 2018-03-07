@@ -75,10 +75,6 @@ describe('NumberType', () => {
 				assert.isNull(numberType.transformToDb(null));
 			});
 
-			it('should throw if passed value cannot be cast into a number', () => {
-				assert.throws(numberType.transformToDb.bind(numberType, 'foo'));
-			});
-
 			it('should shift the decimal to the right 2 places if dbDecimals is 2', () => {
 				numberType._dbDecimals = 2;
 				assert.strictEqual(numberType.transformToDb(123.45), '12345');
@@ -87,6 +83,37 @@ describe('NumberType', () => {
 			it('should round and truncate any decimals present in the original data', () => {
 				numberType._dbDecimals = 2;
 				assert.strictEqual(numberType.transformToDb(123.456), '12346');
+			});
+		});
+
+		describe('_validateType', () => {
+			let numberType;
+			before(() => {
+				numberType = new NumberType({ path: '1' });
+			});
+
+			it('should resolve as true if value is undefined', async () => {
+				assert.isTrue(await numberType._validateType());
+			});
+
+			it('should resolve as true if value is null', async () => {
+				assert.isTrue(await numberType._validateType(null));
+			});
+
+			it('should resolve as true if value is a finite number', async () => {
+				assert.isTrue(await numberType._validateType(1337));
+			});
+
+			it('should resolve as true if value can be cast to a finite number', async () => {
+				assert.isTrue(await numberType._validateType('1337'));
+			});
+
+			it('should resolve as false if value cannot be cast to a finite number', async () => {
+				assert.isFalse(await numberType._validateType('foo'));
+			});
+
+			it('should resolve as false if value is numeric but not a finite number', async () => {
+				assert.isFalse(await numberType._validateType(NaN));
 			});
 		});
 	});
