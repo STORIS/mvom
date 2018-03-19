@@ -1,0 +1,162 @@
+$basictype 'U'
+subroutine mvom_entry(inputSerialized, outputSerialized)
+{% include "./partials/udoConstants.njk" %}
+
+{% include "./partials/errorConstants.njk" %}
+
+* eliminate all terminal output
+hush on
+
+* ensure a clean slate
+clearselect all
+clearsql
+
+* create output object
+if udoCreate(UDO_OBJECT, output) then
+  * in the event of an error in the creation of the output object, there is little we can do except fatally abort
+  return; * returning to caller
+end
+
+* create input object
+if udoRead(inputSerialized, UDOFORMAT_JSON, input) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go response
+end
+
+* ensure compact serialized json
+if udoSetOption(UDOOPTION_OUTPUTMODE, UDO_OUTPUT_COMPACT) then
+  call error_handler(ERROR_UDO, output)
+  go response
+end
+
+* start main program processing
+
+if udoGetProperty(input, 'action', action, type) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go response
+end
+
+begin case
+  case action eq 'featureList'
+    * return the name of all globally cataloged programs that appear to be mvom features
+    if udoCreate(UDO_ARRAY, featureList) then
+      call error_handler(ERROR_UDO, output)
+      go response
+    end
+
+    if udoSetProperty(output, 'features', featureList) then
+      call error_handler(ERROR_UDO, output)
+      go response
+    end
+
+    udtexecute 'select CTLGTB with @ID like "mvom..."' returning errmsg
+    if @system.return.code lt 0 then
+      call error_handler(ERROR_QUERY, output)
+      go response
+    end
+    loop readnext catalogKey else exit
+      if udoArrayAppendItem(featureList, catalogKey) then
+        call error_handler(ERROR_UDO, output)
+        go response
+      end
+    repeat
+  case action eq 'createDir'
+    * create a directory (if necessary)
+    if udoGetProperty(input, 'dirName', dirName, type) then
+      call error_handler(ERROR_MALFORMED_INPUT, output)
+      go response
+    end
+
+    open dirName to f.dirName on error
+      call error_handler(ERROR_FILE_OPEN, output)
+      go response
+    end then
+      close f.dirName on error null
+    end else
+      udtexecute 'create.file dir ':dirName returning errmsg
+      if @system.return.code lt 0 then
+        call error_handler(ERROR_FILE_CREATE, output)
+        go response
+      end
+    end
+  case action eq 'deploy'
+    * deploy source code
+    if udoGetProperty(input, 'sourceDir', sourceDir, type) then
+      call error_handler(ERROR_MALFORMED_INPUT, output)
+      go response
+    end
+
+    if udoGetProperty(input, 'source', source, type) then
+      call error_handler(ERROR_MALFORMED_INPUT, output)
+      go response
+    end
+
+    if udoGetProperty(input, 'programName', programName, type) then
+      call error_handler(ERROR_MALFORMED_INPUT, output)
+      go response
+    end
+
+    open sourceDir to f.sourceDir on error
+      call error_handler(ERROR_FILE_OPEN, output)
+      go response
+    end else
+      call error_handler(ERROR_FILE_OPEN, output)
+      go response
+    end
+
+    write source on f.sourceDir, programName on error
+      close f.sourceDir on error null
+      call error_handler(ERROR_RECORD_WRITE, output)
+      go response
+    end
+
+    close f.sourceDir on error null
+
+    * compiling with override and case-insensitive flags
+    udtexecute 'basic ':sourceDir:' ':programName:' -d -o -i' returning errmsg
+    if @system.return.code then
+      call error_handler(ERROR_DEPLOYMENT, output)
+      go response
+    end
+
+    * cataloging with default catalog (global) with force override
+    udtexecute 'catalog ':sourceDir:' ':programName:' force' returning errmsg
+    if @system.return.code then
+      call error_handler(ERROR_DEPLOYMENT, output)
+      go response
+    end
+
+    if udoSetProperty(output, 'deployed', programName) then
+      call error_handler(ERROR_UDO, output)
+      go response
+    end
+  case action eq 'subroutine'
+    * call specified subroutine
+    if udoGetProperty(input, 'subroutineId', subroutineId, type) then
+      call error_handler(ERROR_MALFORMED_INPUT, output)
+      go response
+    end
+
+    if udoGetProperty(input, 'options', options, type) then
+      call error_handler(ERROR_MALFORMED_INPUT, output)
+      go response
+    end
+
+    call @subroutineId(options, output)
+  case 1
+    call error_handler(ERROR_UNSUPPORTED_ACTION, output)
+    go response
+end case
+
+response:
+  * if an error occurs in serializing the output object it will likely result in a fatal error
+  * there is little else we can do here except let that fatal error occur
+  x = udoWrite(output, UDOFORMAT_JSON, outputSerialized)
+
+  * if an error occurs in freeing the memory space for the objects, we will ignore it as there is little else that can be done
+  x = udoFree(output)
+  x = udoFree(input)
+
+  return; * returning to caller
+
+{% include "./partials/errorHandler.njk" %}

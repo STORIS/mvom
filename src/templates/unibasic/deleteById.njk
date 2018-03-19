@@ -1,0 +1,83 @@
+$basictype 'u'
+subroutine mvom_deleteById(options, output)
+* delete a document given a filename and record id
+{% include "./partials/udoConstants.njk" %}
+
+{% include "./partials/errorConstants.njk" %}
+
+* get the filename from the options
+if udoGetProperty(options, 'filename', filename, type) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go returnFromSub
+end
+
+* get the recordId from the options
+if udoGetProperty(options, 'id', recordId, type) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go returnFromSub
+end
+
+* open the file
+open filename to f.file on error
+  call error_handler(ERROR_FILE_OPEN, output)
+  go returnFromSub
+end else
+  call error_handler(ERROR_FILE_OPEN, output)
+  go returnFromSub
+end
+
+* read the record from the file
+readu record from f.file, recordId on error
+  call error_handler(ERROR_RECORD_READ, output)
+  go closeAndReturnFromSub
+end locked
+  call error_handler(ERROR_RECORD_LOCKED, output)
+  go closeAndReturnFromSub
+end then
+  * delete record
+  delete f.file, recordId on error
+    call error_handler(ERROR_RECORD_DELETE, output)
+    go closeReleaseAndReturnFromSub
+  end
+
+  * format the record into an object structure
+  call format_document(record, recordId, document, errorCode)
+  if errorCode then
+    call error_handler(errorCode, output)
+    go closeAndReturnFromSub
+  end
+end else
+  * release unnecessary lock
+  release f.file, recordId on error null
+
+  * create a null udo handle to assign as document
+  if udoCreate(UDO_NULL, document) then
+    errorCode = ERROR_UDO
+    go closeAndReturnFromSub
+  end
+end
+
+close f.file on error null
+
+* set the result property
+if udoSetProperty(output, 'result', document) then
+  call error_handler(ERROR_UDO, output)
+  go returnFromSub
+end
+
+go returnFromSub;* skip close and release behaviors
+
+closeReleaseAndReturnFromSub:
+release f.file, recordId on error null
+* fall through to close and return
+
+closeAndReturnFromSub:
+close f.file on error null
+* fall through to return
+
+returnFromSub:
+return; * returning to caller
+
+{% include "./partials/formatDocument.njk" %}
+
+{% include "./partials/errorHandler.njk" %}

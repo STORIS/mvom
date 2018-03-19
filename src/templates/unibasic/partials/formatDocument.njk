@@ -1,0 +1,131 @@
+subroutine format_document(record, recordId, document, errorCode)
+* format a record into an output document structure
+{% include "./udoConstants.njk" %}
+
+{% include "./errorConstants.njk" %}
+
+errorCode = ''
+
+* create output document object
+if udoCreate(UDO_OBJECT, document) then
+  errorCode = ERROR_UDO
+  go returnFromSub
+end
+
+* set document _id property
+if udoSetProperty(document, '_id', recordId) then
+  errorCode = ERROR_UDO
+  go returnFromSub
+end
+
+* create a hash of the record for versioning purposes
+if digest('MD5', record, 1, recordHash) then
+  errorCode = ERROR_DIGEST_HASH
+  go returnFromSub
+end
+
+* set document version property
+if udoSetProperty(document, '__v', oconv(recordHash, 'MX0C')) then
+  errorCode = ERROR_UDO
+  go returnFromSub
+end
+
+* create udo array as container for the record
+if udoCreate(UDO_ARRAY, recordContents) then
+  errorCode = ERROR_UDO
+  go returnFromSub
+end
+
+* iterate the record attributes
+lastAttribute = dcount(record, @am)
+for attributeCounter = 1 to lastAttribute
+  lastValue = dcount(record<attributeCounter>, @vm)
+
+  begin case
+    case lastValue le 0
+      if udoCreate(UDO_NULL, null) then
+        errorCode = ERROR_UDO
+        go returnFromSub
+      end
+
+      if udoArrayInsertItem(recordContents, attributeCounter, null) then
+        errorCode = ERROR_UDO
+        go returnFromSub
+      end
+    case lastValue eq 1
+      if udoArrayInsertItem(recordContents, attributeCounter, record<attributeCounter>) then
+        errorCode = ERROR_UDO
+        go returnFromSub
+      end
+    case 1
+      if udoCreate(UDO_ARRAY, attributeContents) then
+        errorCode = ERROR_UDO
+        go returnFromSub
+      end
+
+      for valueCounter = 1 to lastValue
+        lastSubvalue = dcount(record<attributeCounter, valueCounter>, @svm)
+
+        begin case
+          case lastSubvalue le 0
+            if udoCreate(UDO_NULL, null) then
+             errorCode = ERROR_UDO
+              go returnFromSub
+            end
+
+            if udoArrayInsertItem(attributeContents, valueCounter, null) then
+              errorCode = ERROR_UDO
+              go returnFromSub
+            end
+          case lastSubvalue eq 1
+            if udoArrayInsertItem(attributeContents, valueCounter, record<attributeCounter, valueCounter>) then
+              errorCode = ERROR_UDO
+              go returnFromSub
+            end
+          case 1
+            if udoCreate(UDO_ARRAY, valueContents) then
+              errorCode = ERROR_UDO
+              go returnFromSub
+            end
+
+            for subvalueCounter = 1 to lastSubvalue
+              if record<attributeCounter, valueCounter, subvalueCounter> eq '' then
+                if udoCreate(UDO_NULL, null) then
+                  errorCode = ERROR_UDO
+                  go returnFromSub
+                end
+
+                if udoArrayInsertItem(valueContents, subvalueCounter, null) then
+                  errorCode = ERROR_UDO
+                  go returnFromSub
+                end
+              end else
+                if udoArrayInsertItem(valueContents, subvalueCounter, record<attributeCounter, valueCounter, subvalueCounter>) then
+                 errorCode = ERROR_UDO
+                  go returnFromSub
+                end
+              end
+            next subvalueCounter
+
+            if udoArrayInsertItem(attributeContents, valueCounter, valueContents) then
+              errorCode = ERROR_UDO
+              go returnFromSub
+            end
+        end case
+      next valueCounter
+
+      if udoArrayInsertItem(recordContents, attributeCounter, attributeContents) then
+        errorCode = ERROR_UDO
+        go returnFromSub
+      end
+  end case
+next attributeCounter
+
+* set document record property
+if udoSetProperty(document, 'record', recordContents) then
+  errorCode = ERROR_UDO
+  go returnFromSub
+end
+
+returnFromSub:
+return; * returning to caller
