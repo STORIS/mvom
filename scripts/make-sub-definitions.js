@@ -4,12 +4,9 @@ import nunjucks from 'nunjucks';
 import path from 'path';
 import getFeatureVersion from 'shared/getFeatureVersion';
 
-const inputDirs = [
-	path.join(process.cwd(), 'src', 'templates', 'config'),
-	path.join(process.cwd(), 'src', 'templates', 'unibasic'),
-];
+const inputDir = path.join(process.cwd(), 'src', 'templates', 'config');
 
-const env = new nunjucks.Environment(new nunjucks.FileSystemLoader(inputDirs), {
+const env = new nunjucks.Environment(new nunjucks.FileSystemLoader(inputDir), {
 	noCache: true,
 	trimBlocks: true,
 });
