@@ -1,5 +1,13 @@
 # CHANGELOG.md
 
+## 0.0.2
+###### _2018-04-09_
+- Miscellaneous improvements @shawnmcknight
+  - Connection is now exported from main module
+  - __v is now an accessible property in model instances
+  - Connection instances now have a status
+  - Models cannot be created from connection instances that have not been opened
+
 ## 0.0.1
 ###### _2018-03-19_
 - Initial alpha release of this library!  Thanks for using it! @shawnmcknight
