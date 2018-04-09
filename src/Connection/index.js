@@ -8,6 +8,7 @@ import DbServerError from 'Errors/DbServer';
 import InvalidParameterError from 'Errors/InvalidParameter';
 import InvalidServerFeaturesError from 'Errors/InvalidServerFeatures';
 import getFeatureVersion from 'shared/getFeatureVersion';
+import connectionStatus from 'shared/constants/connectionStatus';
 import { dependencies as serverDependencies } from '.mvomrc.json';
 
 /** A connection object
@@ -90,6 +91,13 @@ class Connection {
 		 * @instance
 		 */
 		this.logger = logger;
+		/**
+		 * Connection status enumeration
+		 * @member status
+		 * @memberof Connection
+		 * @instance
+		 */
+		this.status = connectionStatus.DISCONNECTED;
 	}
 
 	/* public instance methods */
@@ -103,18 +111,21 @@ class Connection {
 	 */
 	open = async () => {
 		this.logger.debug(`opening connection`);
+		this.status = connectionStatus.CONNECTING;
 		await this._getFeatureState();
 
 		if (this._serverFeatureSet.invalidFeatures.length > 0) {
 			// prevent connection attempt if features are invalid
 			this.logger.verbose(`invalid features found: ${this._serverFeatureSet.invalidFeatures}`);
 			this.logger.debug('connection will not be opened');
+			this.status = connectionStatus.DISCONNECTED;
 			throw new InvalidServerFeaturesError({
 				invalidFeatures: this._serverFeatureSet.invalidFeatures,
 			});
 		}
 
 		this.logger.debug(`connection opened`);
+		this.status = connectionStatus.CONNECTED;
 	};
 
 	/**
@@ -223,7 +234,12 @@ class Connection {
 	 * @returns {Model} Model class
 	 * @throws {InvalidParameterError} (indirect) An invalid parameter was passed to the function
 	 */
-	model = (schema, file) => compileModel(this, schema, file);
+	model = (schema, file) => {
+		if (this.status !== connectionStatus.CONNECTED) {
+			throw new Error('Cannot create model until database connection has been established.');
+		}
+		return compileModel(this, schema, file);
+	};
 
 	/* private instance methods */
 	/**

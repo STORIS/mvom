@@ -2,6 +2,7 @@
 import chai, { assert } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { stub } from 'sinon';
+import connectionStatus from 'shared/constants/connectionStatus';
 import mockLogger from 'testHelpers/mockLogger';
 import Connection, { __RewireAPI__ as RewireAPI } from './';
 
@@ -90,6 +91,7 @@ describe('Connection', () => {
 				{
 					_endpoint: 'foo/bar/subroutine/entry',
 					logger: mockLogger,
+					status: connectionStatus.DISCONNECTED,
 				},
 			);
 		});
@@ -126,9 +128,26 @@ describe('Connection', () => {
 				return assert.isFulfilled(connection.open());
 			});
 
+			it('should change state to CONNECTED if nothing invalid is found', async () => {
+				connection._serverFeatureSet = { invalidFeatures: [] };
+				await connection.open();
+				assert.strictEqual(connection.status, connectionStatus.CONNECTED);
+			});
+
 			it('should reject if something invalid is found', () => {
 				connection._serverFeatureSet = { invalidFeatures: ['foo'] };
 				return assert.isRejected(connection.open());
+			});
+
+			it('should leave state as DISCONNECTED if something invalid is found', async () => {
+				connection._serverFeatureSet = { invalidFeatures: ['foo'] };
+				try {
+					// will throw when invalid features are found
+					await connection.open();
+				} catch (err) {
+					// ignore
+				}
+				assert.strictEqual(connection.status, connectionStatus.DISCONNECTED);
 			});
 		});
 
@@ -236,6 +255,7 @@ describe('Connection', () => {
 			});
 
 			beforeEach(() => {
+				connection.status = connectionStatus.DISCONNECTED;
 				compileModel.resetHistory();
 			});
 
@@ -243,11 +263,19 @@ describe('Connection', () => {
 				RewireAPI.__ResetDependency__('compileModel');
 			});
 
+			it('should throw Error if connection has not been opened', () => {
+				assert.throws(() => {
+					connection.model();
+				}, Error);
+			});
+
 			it('should return the result from compileModel', () => {
+				connection.status = connectionStatus.CONNECTED;
 				assert.strictEqual(connection.model(), 'compileModelResult');
 			});
 
 			it('should call compileModel with the expected parameters', () => {
+				connection.status = connectionStatus.CONNECTED;
 				connection.model('foo', 'bar');
 				assert.isTrue(compileModel.calledWith(connection, 'foo', 'bar'));
 			});

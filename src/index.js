@@ -46,4 +46,4 @@ const mvom = {
 };
 
 export default mvom;
-export { Errors, Schema };
+export { Connection, Errors, Schema };

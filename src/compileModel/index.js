@@ -166,10 +166,11 @@ const compileModel = (connection, schema, file) => {
 				 * @member {uuid} __v
 				 * @memberof Model
 				 * @instance
-				 * @private
+				 * @public
 				 */
 				__v: {
 					value: __v,
+					enumerable: true,
 				},
 				save: {
 					configurable: false,
