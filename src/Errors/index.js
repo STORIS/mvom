@@ -7,6 +7,17 @@ import InvalidServerFeaturesError from './InvalidServerFeatures';
 import NotImplementedError from './NotImplemented';
 import TransformDataError from './TransformData';
 
+/**
+ * @typedef {Object} Errors
+ * @property {Error} ConnectionManager
+ * @property {Error} DataValidation
+ * @property {Error} DbServer
+ * @property {Error} DisallowDirect
+ * @property {Error} InvalidParameter
+ * @property {Error} InvalidServerFeatures
+ * @property {Error} NotImplemented
+ * @property {Error} TransformData
+ */
 export default {
 	ConnectionManager: ConnectionManagerError,
 	DataValidation: DataValidationError,

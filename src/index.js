@@ -10,6 +10,21 @@ import InvalidParameterError from 'Errors/InvalidParameter';
  */
 const mvom = {
 	/**
+	 * @member {Connection} Connection
+	 * @memberof mvom
+	 */
+	Connection,
+	/**
+	 * @member {Errors} Errors
+	 * @memberof mvom
+	 */
+	Errors,
+	/**
+	 * @member {Schema} Schema
+	 * @memberof mvom
+	 */
+	Schema,
+	/**
 	 * Create a new connection instance
 	 * @function createConnection
 	 * @memberof mvom
@@ -46,4 +61,3 @@ const mvom = {
 };
 
 export default mvom;
-export { Connection, Errors, Schema };
