@@ -246,6 +246,11 @@ describe('Query', () => {
 				assert.isNull(query._formatSelectionCriteria());
 			});
 
+			it('should call formatConditionList with = condition and "or" joiner when property is an array', () => {
+				query._formatSelectionCriteria({ def: ['henk', 'mos'] });
+				assert.isTrue(Query.formatConditionList.calledWith('def', '=', ['henk', 'mos'], 'or'));
+			});
+
 			it('should call formatCondition with equality condition when property is a non-object', () => {
 				query._formatSelectionCriteria({ def: 'henk' });
 				assert.isTrue(Query.formatCondition.calledWith('def', '=', 'henk'));

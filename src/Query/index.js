@@ -252,9 +252,7 @@ class Query {
 			return null;
 		}
 
-		const andConditions = Object.keys(criteria).map(queryProperty => {
-			const queryValue = criteria[queryProperty];
-
+		const andConditions = Object.entries(criteria).map(([queryProperty, queryValue]) => {
 			if (queryProperty === '$or') {
 				if (!Array.isArray(queryValue) || queryValue.length === 0) {
 					throw new TypeError('The value of the $or property must be an array');
@@ -270,14 +268,18 @@ class Query {
 
 			const dictionaryId = this._getDictionaryId(queryProperty);
 
+			if (Array.isArray(queryValue)) {
+				// assume $in operator if queryValue is an array
+				return Query.formatConditionList(dictionaryId, '=', queryValue, 'or');
+			}
+
 			if (!isPlainObject(queryValue)) {
-				// assume equality if not an object
+				// assume equality if queryValue is not an object
 				return Query.formatCondition(dictionaryId, '=', queryValue);
 			}
 
 			// if query value is an object then it should contain one or more pairs of operator and value
-			const operatorConditions = Object.keys(queryValue).map(operator => {
-				const mvValue = queryValue[operator];
+			const operatorConditions = Object.entries(queryValue).map(([operator, mvValue]) => {
 				switch (operator) {
 					case '$eq':
 						return Query.formatCondition(dictionaryId, '=', mvValue);
@@ -331,9 +333,8 @@ class Query {
 			return null;
 		}
 
-		return Object.keys(criteria)
-			.map(sortProperty => {
-				const sortOrder = criteria[sortProperty];
+		return Object.entries(criteria)
+			.map(([sortProperty, sortOrder]) => {
 				const dictionaryId = this._getDictionaryId(sortProperty);
 
 				let byClause;
