@@ -1,5 +1,10 @@
 # CHANGELOG.md
 
+## 0.0.3
+###### _2018-04-16_
+- When a query property is equal to an array, automatically convert to $in query @shawnmcknight
+- Change default export from library to include Connection, Errors, and Schema @shawnmcknight
+
 ## 0.0.2
 ###### _2018-04-09_
 - Miscellaneous improvements @shawnmcknight
