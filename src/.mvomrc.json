@@ -1,10 +1,10 @@
 {
   "dependencies": {
-    "deleteById": "^0.0.1",
-    "deploy": "^0.0.1",
-    "entry": "^0.0.1",
-    "find": "^0.0.1",
-    "findById": "^0.0.1",
-    "save": "^0.0.1"
+    "deleteById": "^0.0.2",
+    "deploy": "^0.0.2",
+    "entry": "^0.0.2",
+    "find": "^0.0.2",
+    "findById": "^0.0.2",
+    "save": "^0.0.2"
   }
 }
