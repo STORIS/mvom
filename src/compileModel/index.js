@@ -126,7 +126,8 @@ const compileModel = (connection, schema, file) => {
 				id,
 			});
 
-			return new Model(data.result);
+			// if the database returns a result, instantiate a new model with it -- otherwise return null
+			return data.result ? new Model(data.result) : null;
 		};
 
 		constructor({ record, _id = null, __v = null } = {}) {

@@ -8,11 +8,10 @@ const dbErrors = {
 	recordRead: { code: 7, message: 'Error reading database record' },
 	recordWrite: { code: 8, message: 'Error writing database record' },
 	recordDelete: { code: 9, message: 'Error deleting database record' },
-	recordNotFound: { code: 10, message: 'Database record not found' },
-	recordVersion: { code: 11, message: 'Database record version has changed' },
-	recordLocked: { code: 12, message: 'Database record is locked' },
-	query: { code: 13, message: 'Error in database query' },
-	digestHash: { code: 14, message: 'Error in constructing digest hash' },
+	recordVersion: { code: 10, message: 'Database record version has changed' },
+	recordLocked: { code: 11, message: 'Database record is locked' },
+	query: { code: 12, message: 'Error in database query' },
+	digestHash: { code: 13, message: 'Error in constructing digest hash' },
 };
 
 export default dbErrors;

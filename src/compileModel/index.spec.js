@@ -119,6 +119,12 @@ describe('compileModel', () => {
 						__v: 'baz',
 					});
 				});
+
+				it('should return null if the dbFeature returns empty string (document not found)', async () => {
+					executeDbFeature.resolves({ result: '' });
+					const Test = compileModel(connection, schema, 'foo');
+					assert.isNull(await Test.findById());
+				});
 			});
 		});
 
