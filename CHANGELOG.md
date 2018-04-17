@@ -1,5 +1,9 @@
 # CHANGELOG.md
 
+## 0.0.5
+###### _2018-04-17_
+- Do not treat missing records as an error condition - instead return null from findById @shawnmcknight
+
 ## 0.0.4
 ###### _2018-04-16_
 - Partially revert changes to default export -- continue to export as named exports as well @shawnmcknight
