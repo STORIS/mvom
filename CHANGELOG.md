@@ -1,5 +1,9 @@
 # CHANGELOG.md
 
+## 0.0.4
+###### _2018-04-16_
+- Partially revert changes to default export -- continue to export as named exports as well @shawnmcknight
+
 ## 0.0.3
 ###### _2018-04-16_
 - When a query property is equal to an array, automatically convert to $in query @shawnmcknight
