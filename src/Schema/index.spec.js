@@ -17,6 +17,16 @@ describe('Schema', () => {
 		it('should throw if dictionaries is not an object', () => {
 			assert.throws(() => new Schema({}, { dictionaries: 'foo' }));
 		});
+
+		it('should set the dict path for the record _id to the default @ID dictionary', () => {
+			const schema = new Schema({});
+			assert.deepEqual(schema.dictPaths, { _id: '@ID' });
+		});
+
+		it('should allow the default dictionary for _id to be overridden', () => {
+			const schema = new Schema({}, { dictionaries: { _id: 'bar' } });
+			assert.deepEqual(schema.dictPaths, { _id: 'bar' });
+		});
 	});
 
 	describe('instance methods', () => {
