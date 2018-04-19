@@ -41,7 +41,7 @@ class Schema {
 		 * @memberof Schema
 		 * @instance
 		 */
-		this.dictPaths = dictionaries;
+		this.dictPaths = { _id: '@ID', ...dictionaries };
 		/**
 		 * The compiled schema object path stucture
 		 * @member {Object} paths
