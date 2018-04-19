@@ -1,5 +1,9 @@
 # CHANGELOG.md
 
+## 0.0.6
+###### _2018-04-19_
+- Provide default dictionary of @ID for _id property @kthompson23
+
 ## 0.0.5
 ###### _2018-04-17_
 - Do not treat missing records as an error condition - instead return null from findById @shawnmcknight
