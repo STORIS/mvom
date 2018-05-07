@@ -1,5 +1,10 @@
 # CHANGELOG.md
 
+## 0.0.7
+### Breaking change
+###### _2018-05-07
+- Use array of arrays for sort criteria to preserve sequencing; can no longer be specified as object @kthompson23
+
 ## 0.0.6
 ###### _2018-04-19_
 - Provide default dictionary of @ID for _id property @kthompson23
