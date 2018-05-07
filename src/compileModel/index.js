@@ -99,7 +99,7 @@ const compileModel = (connection, schema, file) => {
 		 * @param {Object} [options = {}]
 		 * @param {number} [options.skip = 0] - Skip this number of items in the result set
 		 * @param {number} [options.limit = null] - Limit the result set to this number of items
-		 * @param {Object} [options.sort = {}] - Object keys defining sort criteria; value of 1 indicates ascending and -1 indicates descending
+		 * @param {Array} [options.sort = []] - Array of field/direction nested arrays defining sort criteria. ex: [[foo, 1], [bar, -1]] where value of 1 indicates ascending and -1 indicates descending
 		 * @returns {Promise.<Model[]>} Array of model instances
 		 * @throws {ConnectionManagerError} (indirect) An error occurred in connection manager communications
 		 * @throws {DbServerError} (indirect) An error occurred on the database server

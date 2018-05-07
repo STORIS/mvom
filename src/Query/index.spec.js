@@ -399,16 +399,23 @@ describe('Query', () => {
 				assert.isNull(query._formatSortCriteria());
 			});
 
+			it('should return an ascending sort criteria if no sort direction is passed in', () => {
+				assert.strictEqual(query._formatSortCriteria(['foo', 'bar']), 'by foo by bar');
+			});
+
 			it('should return an ascending sort criteria', () => {
-				assert.strictEqual(query._formatSortCriteria({ foo: 1 }), 'by foo');
+				assert.strictEqual(query._formatSortCriteria([['foo', 1]]), 'by foo');
 			});
 
 			it('should return a descending sort criteria', () => {
-				assert.strictEqual(query._formatSortCriteria({ foo: -1 }), 'by.dsnd foo');
+				assert.strictEqual(query._formatSortCriteria([['foo', -1]]), 'by.dsnd foo');
 			});
 
 			it('should return multiple space-delimited sort criteria', () => {
-				assert.strictEqual(query._formatSortCriteria({ foo: 1, bar: -1 }), 'by foo by.dsnd bar');
+				assert.strictEqual(
+					query._formatSortCriteria([['foo', 1], ['bar', -1]]),
+					'by foo by.dsnd bar',
+				);
 			});
 		});
 
