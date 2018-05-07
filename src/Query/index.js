@@ -8,7 +8,7 @@ import InvalidParameterError from 'Errors/InvalidParameter';
  * @param {Object} [options = {}]
  * @param {number} [options.skip = 0] - Skip this number of items in the result set
  * @param {number} [options.limit = null] - Limit the result set to this number of items
- * @param {Object} [options.sort = {}] - Object keys defining sort criteria; value of 1 indicates ascending and -1 indicates descending
+ * @param {SortCriteria} [options.sort = []] - List of field/direction nested arrays defining sort criteria
  * @throws {TypeError} (indirect) The value of the $or property must be an array
  * @throws {TypeError} (indirect) Invalid conditional operator specified
  * @throws {InvalidParameterError} (indirect) An invalid parameter was passed to the function
@@ -224,10 +224,10 @@ class Query {
 	 * @function sort
 	 * @memberof Query
 	 * @instance
-	 * @param {Object} [criteria = {}] - Object keys defining sort criteria; value of 1 indicates ascending and -1 indicates descending
+	 * @param {SortCriteria} [criteria = []] - List of field/direction nested arrays defining sort criteria
 	 * @modifies {this._sortCriteria}
 	 */
-	sort = (criteria = {}) => {
+	sort = (criteria = []) => {
 		this._sortCriteria = this._formatSortCriteria(criteria);
 	};
 
@@ -323,18 +323,19 @@ class Query {
 	 * @memberof Query
 	 * @instance
 	 * @private
-	 * @param {Object} [criteria = {}] - Sort criteria object
+	 * @param {SortCriteria} [criteria = []] - List of field/direction nested arrays defining sort criteria
 	 * @returns {string|null} String to use as sort criteria in query
 	 * @throws {InvalidParameterError} (indirect) Nonexistent schema property or property does not have a dictionary specified
 	 */
-	_formatSortCriteria = (criteria = {}) => {
-		const criteriaProperties = Object.keys(criteria);
-		if (criteriaProperties.length === 0) {
+	_formatSortCriteria = (criteria = []) => {
+		if (criteria.length === 0) {
 			return null;
 		}
 
-		return Object.entries(criteria)
-			.map(([sortProperty, sortOrder]) => {
+		return criteria
+			.map(sortEntry => {
+				// if the caller did not pass in a property/order pair as an array default to an ascending sort
+				const [sortProperty, sortOrder] = Array.isArray(sortEntry) ? sortEntry : [sortEntry, 1];
 				const dictionaryId = this._getDictionaryId(sortProperty);
 
 				let byClause;
@@ -378,7 +379,7 @@ class Query {
 	 * @param {Object} [options = {}]
 	 * @param {number} [options.skip = 0] - Skip this number of items in the result set
 	 * @param {number} [options.limit = null] - Limit the result set to this number of items
-	 * @param {Object} [options.sort = {}] - Object keys defining sort criteria; value of 1 indicates ascending and -1 indicates descending
+	 * @param {Array} [options.sort = []] - List of field/direction nested arrays defining sort criteria. ex: [[foo, 1], [bar, -1]] where value of 1 indicates ascending and -1 indicates descending
 	 * @throws {InvalidParameterError} (indirect) An invalid parameter was passed to the function
 	 */
 	_setOptions = ({ limit, skip, sort } = {}) => {
