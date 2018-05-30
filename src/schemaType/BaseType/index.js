@@ -25,6 +25,16 @@ class BaseType {
 	}
 
 	/**
+	 * Cast to complex data type (when applicable)
+	 * @function cast
+	 * @memberof BaseType
+	 * @instance
+	 * @param {*} value - Value to cast
+	 * @returns {*} Formatted data value
+	 */
+	cast = value => value;
+
+	/**
 	 * Get value from mv data
 	 * @function get
 	 * @memberof BaseType

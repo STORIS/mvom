@@ -1,6 +1,7 @@
 import assignIn from 'lodash/assignIn';
 import cloneDeep from 'lodash/cloneDeep';
 import getIn from 'lodash/get';
+import isPlainObject from 'lodash/isPlainObject';
 import setIn from 'lodash/set';
 import Schema from 'Schema';
 import InvalidParameterError from 'Errors/InvalidParameter';
@@ -10,18 +11,18 @@ import TransformDataError from 'Errors/TransformData';
  * A document object
  * @class Document
  * @param {Schema} schema - Schema instance to derive document from
- * @param {*[]} [record = []] - Array data to construct document instance properties from
+ * @param {Object} [data = {}] - Object to construct document instance from
  * @param {Object} [options = {}]
  * @param {Boolean} [options.isSubdocument = false] Indicates whether document should behave as a subdocument
  * @throws {InvalidParameterError} An invalid parameter was passed to the function
  */
 class Document {
-	constructor(schema, record = [], { isSubdocument = false } = {}) {
+	constructor(schema, data = {}, { isSubdocument = false } = {}) {
 		if (!(schema instanceof Schema)) {
 			throw new InvalidParameterError({ parameterName: 'schema' });
 		}
-		if (!Array.isArray(record)) {
-			throw new InvalidParameterError({ parameterName: 'record' });
+		if (!isPlainObject(data)) {
+			throw new InvalidParameterError({ parameterName: 'data' });
 		}
 
 		Object.defineProperties(this, {
@@ -43,7 +44,7 @@ class Document {
 			 * @private
 			 */
 			_record: {
-				value: record,
+				value: [],
 				writable: true,
 			},
 			/**
@@ -65,24 +66,13 @@ class Document {
 			transformationErrors: {
 				value: [],
 			},
-			transformDocumentToRecord: {
-				configurable: false,
-				enumerable: false,
-				writable: false,
-			},
-			validate: {
-				configurable: false,
-				enumerable: false,
-				writable: false,
-			},
-			_transformRecordToDocument: {
-				configurable: false,
-				enumerable: false,
-				writable: false,
-			},
+			transformDocumentToRecord: {},
+			transformRecordToDocument: {},
+			validate: {},
 		});
 
-		assignIn(this, this._transformRecordToDocument());
+		// load the data passed to constructor into document instance
+		assignIn(this, data);
 	}
 
 	/* public instance methods */
@@ -95,10 +85,50 @@ class Document {
 	 * @returns {*[]} Array data of output record format
 	 */
 	transformDocumentToRecord = () =>
-		Object.keys(this._schema.paths).reduce((record, keyPath) => {
+		Object.entries(this._schema.paths).reduce((record, [keyPath, schemaType]) => {
 			const value = getIn(this, keyPath, null);
-			return this._schema.paths[keyPath].set(record, value);
+			return schemaType.set(record, value);
 		}, this._isSubdocument ? [] : cloneDeep(this._record));
+
+	/**
+	 * Apply schema structure using record to document instance
+	 * @function transformRecordToDocument
+	 * @memberof Document
+	 * @instance
+	 * @param {*[]} record - Array data to construct document instance properties from
+	 * @modifies {this}
+	 */
+	transformRecordToDocument = record => {
+		if (!Array.isArray(record)) {
+			throw new InvalidParameterError({ parameterName: 'record' });
+		}
+
+		// hold on to the original to use as the baseline when saving
+		this._record = record;
+
+		const plainDocument = Object.entries(this._schema.paths).reduce(
+			(document, [keyPath, schemaType]) => {
+				let setValue;
+				try {
+					setValue = schemaType.get(this._record);
+				} catch (err) {
+					if (err instanceof TransformDataError) {
+						// if this was an error in data transformation, set the value to null and add to transformationErrors list
+						setValue = null;
+						this.transformationErrors.push(err);
+					} else {
+						// otherwise rethrow any other type of error
+						throw err;
+					}
+				}
+				setIn(document, keyPath, setValue);
+				return document;
+			},
+			{},
+		);
+
+		assignIn(this, plainDocument);
+	};
 
 	/**
 	 * Validate document for errors
@@ -112,47 +142,25 @@ class Document {
 		const documentErrors = {};
 
 		await Promise.all(
-			Object.keys(this._schema.paths).map(async keyPath => {
-				const value = getIn(this, keyPath, null);
-				const errors = await this._schema.paths[keyPath].validate(value, this);
-				if (errors.length > 0) {
-					documentErrors[keyPath] = errors;
+			Object.entries(this._schema.paths).map(async ([keyPath, schemaType]) => {
+				let value = getIn(this, keyPath, null);
+				// cast to complex data type if necessary
+				try {
+					value = schemaType.cast(value);
+					setIn(this, keyPath, value);
+
+					const errors = await schemaType.validate(value, this);
+					if (errors.length > 0) {
+						documentErrors[keyPath] = errors;
+					}
+				} catch (err) {
+					// an error was thrown - return the message from that error in the documentErrors list
+					documentErrors[keyPath] = err.message;
 				}
 			}),
 		);
 		return documentErrors;
 	};
-
-	/* private instance methods */
-
-	/**
-	 * Apply schema structure against data
-	 * @function _transformRecordToDocument
-	 * @memberof Document
-	 * @instance
-	 * @private
-	 * @returns {Object} Object created by applying schema to record
-	 */
-	_transformRecordToDocument = () =>
-		Object.keys(this._schema.paths).reduce((document, keyPath) => {
-			let setValue;
-			try {
-				// an instance of a schemaType exists at this._schema.paths[keyPath] which has a get() method
-				// to pull data from the record
-				setValue = this._schema.paths[keyPath].get(this._record);
-			} catch (err) {
-				if (err instanceof TransformDataError) {
-					// if this was an error in data transformation, set the value to null and add to transformationErrors list
-					setValue = null;
-					this.transformationErrors.push(err);
-				} else {
-					// otherwise rethrow any other type of error
-					throw err;
-				}
-			}
-			setIn(document, keyPath, setValue);
-			return document;
-		}, {});
 }
 
 export default Document;

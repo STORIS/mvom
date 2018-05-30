@@ -9,8 +9,10 @@ describe('compileModel', () => {
 	let connection;
 	let schema;
 
+	const transformRecordToDocument = stub();
 	const validate = stub();
 	const Document = class {
+		transformRecordToDocument = transformRecordToDocument;
 		validate = validate;
 		transformationErrors = [
 			{ transformClass: 'class1', transformValue: 'value1' },
@@ -52,6 +54,7 @@ describe('compileModel', () => {
 		queryConstructor.resetHistory();
 		exec.resetHistory();
 		connection.logger.warn.resetHistory();
+		transformRecordToDocument.resetHistory();
 		validate.reset();
 	});
 
@@ -77,53 +80,87 @@ describe('compileModel', () => {
 
 	describe('Model class', () => {
 		describe('static methods', () => {
-			describe('deleteById', () => {
-				it('should instantiate a new model instance with the results of the dbFeature execution', async () => {
-					executeDbFeature.resolves({ result: { record: 'foo', _id: 'bar', __v: 'baz' } });
-					const Test = compileModel(connection, schema, 'foo');
-					assert.deepInclude(await Test.deleteById(), {
-						_id: 'bar',
-						__id: 'bar',
-						__v: 'baz',
-					});
-				});
-
-				it('should return null if dbFeature resolves with null', async () => {
-					executeDbFeature.resolves({ result: null });
-					const Test = compileModel(connection, schema, 'foo');
-					assert.isNull(await Test.deleteById());
-				});
+			let Test;
+			before(() => {
+				Test = compileModel(connection, schema, 'foo');
 			});
 
 			describe('find', () => {
 				it('should call the query constructor with the passed parameters', async () => {
-					const Test = compileModel(connection, schema, 'foo');
 					await Test.find('foo', 'bar');
 					assert.isTrue(queryConstructor.calledWith(Test, 'foo', 'bar'));
 				});
 
 				it('should return the results of the execution of the query', async () => {
 					exec.resolves('foo');
-					const Test = compileModel(connection, schema, 'foo');
 					assert.strictEqual(await Test.find(), 'foo');
 				});
 			});
 
-			describe('findById', () => {
-				it('should instantiate a new model instance with the results of the dbFeature execution', async () => {
-					executeDbFeature.resolves({ result: { record: 'foo', _id: 'bar', __v: 'baz' } });
-					const Test = compileModel(connection, schema, 'foo');
-					assert.deepInclude(await Test.findById(), {
-						_id: 'bar',
-						__id: 'bar',
-						__v: 'baz',
+			describe('makeModelFromDbResult', () => {
+				it('should call transformRecordToDocument', () => {
+					Test.makeModelFromDbResult({ record: 'foo' });
+					assert.isTrue(transformRecordToDocument.calledOnce);
+					assert.isTrue(transformRecordToDocument.calledWith('foo'));
+				});
+
+				it('should return an instance of the model', () => {
+					assert.instanceOf(Test.makeModelFromDbResult(), Test);
+				});
+
+				it('should return an instance of the model with the passed id and version values', async () => {
+					assert.deepInclude(
+						await Test.makeModelFromDbResult({ record: 'foo', _id: 'bar', __v: 'baz' }),
+						{
+							_id: 'bar',
+							__id: 'bar',
+							__v: 'baz',
+						},
+					);
+				});
+			});
+
+			describe('calls makeModelFromDbResult', () => {
+				before(() => {
+					stub(Test, 'makeModelFromDbResult');
+				});
+
+				after(() => {
+					Test.makeModelFromDbResult.restore();
+				});
+
+				beforeEach(() => {
+					Test.makeModelFromDbResult.resetHistory();
+				});
+
+				describe('deleteById', () => {
+					it('should call makeModelFromDbResult', async () => {
+						const result = { record: 'foo', _id: 'bar', __v: 'baz' };
+						executeDbFeature.resolves({ result });
+						await Test.deleteById();
+						assert.isTrue(Test.makeModelFromDbResult.calledOnce);
+						assert.isTrue(Test.makeModelFromDbResult.calledWith(result));
+					});
+
+					it('should return null if dbFeature resolves with null', async () => {
+						executeDbFeature.resolves({ result: null });
+						assert.isNull(await Test.deleteById());
 					});
 				});
 
-				it('should return null if the dbFeature returns empty string (document not found)', async () => {
-					executeDbFeature.resolves({ result: '' });
-					const Test = compileModel(connection, schema, 'foo');
-					assert.isNull(await Test.findById());
+				describe('findById', () => {
+					it('should call makeModelFromDbResult', async () => {
+						const result = { record: 'foo', _id: 'bar', __v: 'baz' };
+						executeDbFeature.resolves({ result });
+						await Test.findById();
+						assert.isTrue(Test.makeModelFromDbResult.calledOnce);
+						assert.isTrue(Test.makeModelFromDbResult.calledWith(result));
+					});
+
+					it('should return null if the dbFeature returns empty string (document not found)', async () => {
+						executeDbFeature.resolves({ result: '' });
+						assert.isNull(await Test.findById());
+					});
 				});
 			});
 		});
@@ -136,7 +173,7 @@ describe('compileModel', () => {
 
 			it('should set the expected instance properties', () => {
 				const Test = compileModel(connection, schema, 'foo');
-				assert.deepInclude(new Test({ _id: 'bar', __v: 'baz' }), {
+				assert.deepInclude(new Test({}, { _id: 'bar', __v: 'baz' }), {
 					_id: 'bar',
 					__id: 'bar',
 					__v: 'baz',
@@ -165,14 +202,14 @@ describe('compileModel', () => {
 
 				it('should throw DataValidationError if validate resolves with errors', () => {
 					validate.resolves({ foo: 'bar' });
-					const test = new Test({ record: [], _id: 'foo' });
+					const test = new Test({}, { _id: 'foo' });
 					return assert.isRejected(test.save(), DataValidationError);
 				});
 
 				it('should instantiate a new model instance with the results of the dbFeature execution', async () => {
 					validate.resolves({});
 					executeDbFeature.resolves({ result: { record: [], _id: 'bar', __v: 'baz' } });
-					const test = new Test({ record: [], _id: 'foo' });
+					const test = new Test({}, { _id: 'foo' });
 					test.transformDocumentToRecord = stub();
 					assert.deepInclude(await test.save(), {
 						_id: 'bar',

@@ -26,6 +26,13 @@ describe('BaseType', () => {
 			extension = new Extension();
 		});
 
+		describe('cast', () => {
+			it('should return whatever was passed', () => {
+				const param = 'foo';
+				assert.strictEqual(extension.cast(param), param);
+			});
+		});
+
 		describe('get', () => {
 			it('should throw NotImplementedError if called', () => {
 				assert.throws(extension.get, NotImplementedError);

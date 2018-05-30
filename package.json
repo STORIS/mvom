@@ -33,7 +33,7 @@
     "database"
   ],
   "author": "STORIS",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "dependencies": {
     "axios": "^0.17.1",
     "fs-extra": "^5.0.0",

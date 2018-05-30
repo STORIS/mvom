@@ -77,9 +77,11 @@ describe('Query', () => {
 
 	describe('instance methods', () => {
 		const executeDbFeature = stub();
+		const makeModelFromDbResult = stub();
 		const Model = class {
 			static connection = { executeDbFeature, logger: mockLogger };
 			static file = 'foo';
+			static makeModelFromDbResult = makeModelFromDbResult;
 		};
 		let query;
 		before(() => {
@@ -88,6 +90,7 @@ describe('Query', () => {
 
 		beforeEach(() => {
 			executeDbFeature.reset();
+			makeModelFromDbResult.resetHistory();
 			query._Model.schema = 'initial';
 			query._limit = null;
 			query._selectionCriteria = null;
@@ -144,11 +147,19 @@ describe('Query', () => {
 				assert.strictEqual(executeDbFeature.args[0][1].limit, 'foo');
 			});
 
-			it('should return an array of Model instances', async () => {
-				executeDbFeature.resolves({ result: [{}] });
+			it('should call makeModelFromDbResult for each result', async () => {
+				executeDbFeature.resolves({ result: ['foo', 'bar'] });
+				await query.exec();
+				assert.isTrue(makeModelFromDbResult.calledTwice);
+				assert.isTrue(makeModelFromDbResult.calledWith('foo'));
+				assert.isTrue(makeModelFromDbResult.calledWith('bar'));
+			});
+
+			it('should return an array with length equal to the number of results', async () => {
+				executeDbFeature.resolves({ result: ['foo', 'bar'] });
 				const results = await query.exec();
 				assert.isArray(results);
-				assert.instanceOf(results[0], Model);
+				assert.strictEqual(results.length, 2);
 			});
 		});
 

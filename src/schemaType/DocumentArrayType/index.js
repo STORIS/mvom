@@ -1,5 +1,7 @@
+import castArray from 'lodash/castArray';
 import cloneDeep from 'lodash/cloneDeep';
 import compact from 'lodash/compact';
+import isPlainObject from 'lodash/isPlainObject';
 import setIn from 'lodash/set';
 import Document from 'Document';
 import Schema from 'Schema';
@@ -21,7 +23,7 @@ class DocumentArrayType extends ComplexType {
 
 		super();
 		/**
-		 * An instance of Schema representing the the document structure of the array's contents
+		 * An instance of Schema representing the document structure of the array's contents
 		 * @member {Schema} _valueSchema
 		 * @memberof DocumentArrayType
 		 * @instance
@@ -31,6 +33,31 @@ class DocumentArrayType extends ComplexType {
 	}
 
 	/* public instance methods */
+
+	/**
+	 * Cast to array of documents
+	 * @function cast
+	 * @memberof DocumentArrayType
+	 * @override
+	 * @instance
+	 * @param {*} value - Value to cast
+	 * @returns {Document[]} An array of subdocuments representing embedded Document structure
+	 * @throws {TypeError} Throws if a non-null/non-object is passed
+	 */
+	cast = value => {
+		if (value == null) {
+			return [];
+		}
+
+		return castArray(value).map(subdocument => {
+			// convert subdocument to a plain structure and then recast as document
+			const plainValue = subdocument == null ? {} : JSON.parse(JSON.stringify(subdocument));
+			if (!isPlainObject(plainValue)) {
+				throw new TypeError('Cast value must be an object');
+			}
+			return new Document(this._valueSchema, plainValue, { isSubdocument: true });
+		});
+	};
 
 	/**
 	 * Get value from mv data
@@ -114,7 +141,9 @@ class DocumentArrayType extends ComplexType {
 			if (subRecord.length === 0) {
 				return;
 			}
-			yield new Document(this._valueSchema, subRecord, { isSubdocument: true });
+			const subdocument = new Document(this._valueSchema, {}, { isSubdocument: true });
+			subdocument.transformRecordToDocument(subRecord);
+			yield subdocument;
 			iteration += 1;
 		}
 	}
