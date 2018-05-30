@@ -1,4 +1,9 @@
 # CHANGELOG.md
+## 0.0.8
+### Breaking change
+###### _2018-05-30
+- Document constructor no longer accepts "record" -- instead it accepts an object of data @shawnmcknight
+- Plain objects can now be used with subdocuments, enabling far easier use of thse structures @shawnmcknight
 
 ## 0.0.7
 ### Breaking change
