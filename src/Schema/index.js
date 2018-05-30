@@ -112,8 +112,7 @@ class Schema {
 	 * @throws {InvalidParameterError} An invalid parameter was passed to the function
 	 */
 	_buildPaths = (definition, prev) => {
-		Object.keys(definition).forEach(key => {
-			const value = definition[key];
+		Object.entries(definition).forEach(([key, value]) => {
 			if (!isObject(value)) {
 				// all property values must either be an object or an array (which is a language type of object)
 				throw new InvalidParameterError({ parameterName: 'definition' });
@@ -298,11 +297,11 @@ class Schema {
 	 * @modifies {this.dictPaths}
 	 */
 	_mergeSchemaDictionaries = (schema, keyPath) => {
-		this.dictPaths = Object.keys(schema.dictPaths).reduce((acc, subDictPath) => {
+		this.dictPaths = Object.entries(schema.dictPaths).reduce((acc, [subDictPath, subDictId]) => {
 			const dictKey = `${keyPath}.${subDictPath}`;
 			return {
 				...acc,
-				[dictKey]: schema.dictPaths[subDictPath],
+				[dictKey]: subDictId,
 			};
 		}, this.dictPaths);
 	};

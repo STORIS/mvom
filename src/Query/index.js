@@ -168,7 +168,7 @@ class Query {
 		this._Model.connection.logger.debug(`executing query "${queryCommand}"`);
 		const data = await this._Model.connection.executeDbFeature('find', options);
 
-		return data.result.map(record => new this._Model(record));
+		return data.result.map(dbResultItem => this._Model.makeModelFromDbResult(dbResultItem));
 	};
 
 	/**

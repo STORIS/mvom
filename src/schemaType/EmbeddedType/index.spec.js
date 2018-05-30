@@ -25,11 +25,15 @@ describe('EmbeddedType', () => {
 	});
 
 	describe('instance methods', () => {
+		const transformRecordToDocument = stub();
 		const Document = class {
-			constructor(schema, record) {
+			constructor(schema, data, { isSubdocument }) {
 				this._schema = schema;
-				this._record = record;
+				this.data = data;
+				this.isSubdocument = isSubdocument;
 			}
+
+			transformRecordToDocument = transformRecordToDocument;
 		};
 		let embeddedType;
 		before(() => {
@@ -41,11 +45,56 @@ describe('EmbeddedType', () => {
 			RewireAPI.__ResetDependency__('Document');
 		});
 
+		beforeEach(() => {
+			transformRecordToDocument.resetHistory();
+		});
+
+		describe('cast', () => {
+			it('should throw TypeError if non-null/object passed', () => {
+				assert.throws(() => {
+					embeddedType.cast('foo');
+				});
+			});
+
+			describe('object value', () => {
+				const value = { foo: 'bar' };
+
+				it('should return a Document instance', () => {
+					assert.instanceOf(embeddedType.cast(value), Document);
+				});
+
+				it('should pass the data type to the document constructor', () => {
+					const embeddedDoc = embeddedType.cast(value);
+					assert.deepEqual(embeddedDoc.data, value);
+				});
+
+				it('should pass the supplied value to the document constructor', () => {
+					const embeddedDoc = embeddedType.cast(value);
+					assert.strictEqual(embeddedDoc._schema, embeddedType._valueSchema);
+				});
+
+				it('should construct the document with the subdocument flag', () => {
+					const embeddedDoc = embeddedType.cast(value);
+					assert.isTrue(embeddedDoc.isSubdocument);
+				});
+			});
+
+			describe('null value', () => {
+				const value = null;
+
+				it('should pass an empty object to the document constructor', () => {
+					const embeddedDoc = embeddedType.cast(value);
+					assert.deepEqual(embeddedDoc.data, {});
+				});
+			});
+		});
+
 		describe('get', () => {
 			it('should return a newly instantiated Document using instance schema and passed record', () => {
 				const getValue = embeddedType.get('foo');
 				assert.instanceOf(getValue._schema, Schema);
-				assert.strictEqual(getValue._record, 'foo');
+				assert.isTrue(transformRecordToDocument.calledOnce);
+				assert.isTrue(transformRecordToDocument.calledWith('foo'));
 			});
 		});
 

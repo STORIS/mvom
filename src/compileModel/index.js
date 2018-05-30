@@ -35,8 +35,8 @@ const compileModel = (connection, schema, file) => {
 	 * Construct a document instance of a compiled model
 	 * @class Model
 	 * @extends Document
+	 * @param {Object} [data = {}] - Object to construct model instance from
 	 * @param {Object} doc - Document
-	 * @param {*[]} doc.record - Array data to construct model instance properties from
 	 * @param {string} [doc._id = null] - Model instance identifier
 	 * @param {uuid} [doc.__v = null] - Record version hash
 	 */
@@ -86,7 +86,7 @@ const compileModel = (connection, schema, file) => {
 
 			// if the record existed prior to delete then the record prior to delete will be returned;
 			// if the record did not exist prior to delete then null will be returned
-			return data.result ? new Model(data.result) : null;
+			return data.result ? Model.makeModelFromDbResult(data.result) : null;
 		};
 
 		/**
@@ -127,11 +127,28 @@ const compileModel = (connection, schema, file) => {
 			});
 
 			// if the database returns a result, instantiate a new model with it -- otherwise return null
-			return data.result ? new Model(data.result) : null;
+			return data.result ? Model.makeModelFromDbResult(data.result) : null;
 		};
 
-		constructor({ record, _id = null, __v = null } = {}) {
-			super(Model.schema, record);
+		/**
+		 * Create a new model instance from the result of a database feature execution
+		 * @function makeModelFromDbResult
+		 * @memberof Model
+		 * @static
+		 * @param {Object} [dbResult = {}] - Result property returned from database feature execution
+		 * @param {*[]} [dbResult.record = []] Array data to construct document instance properties from
+		 * @param {string} [dbResult._id = null] - Model instance identifier
+		 * @param {uuid} [dbResult.__v = null] - Record version hash
+		 * @returns {Model} Model instance
+		 */
+		static makeModelFromDbResult = ({ record = [], _id = null, __v = null } = {}) => {
+			const model = new Model({}, { _id, __v });
+			model.transformRecordToDocument(record);
+			return model;
+		};
+
+		constructor(data = {}, { _id = null, __v = null } = {}) {
+			super(Model.schema, data);
 
 			Object.defineProperties(this, {
 				/**
@@ -222,7 +239,7 @@ const compileModel = (connection, schema, file) => {
 				record: this.transformDocumentToRecord(),
 			});
 
-			return new Model(data.result);
+			return Model.makeModelFromDbResult(data.result);
 		};
 	}
 

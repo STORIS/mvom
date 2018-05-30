@@ -1,4 +1,5 @@
 import cloneDeep from 'lodash/cloneDeep';
+import isPlainObject from 'lodash/isPlainObject';
 import setIn from 'lodash/set';
 import Document from 'Document';
 import Schema from 'Schema';
@@ -29,6 +30,25 @@ class EmbeddedType extends ComplexType {
 	}
 
 	/**
+	 * Cast to embedded data type
+	 * @function cast
+	 * @memberof EmbeddedType
+	 * @override
+	 * @instance
+	 * @param {*} value - Value to cast
+	 * @returns {Document} Embedded document instance
+	 * @throws {TypeError} Throws if a non-null/non-object is passed
+	 */
+	cast = value => {
+		// convert value to a plain structure and then recast as embedded document
+		const plainValue = value == null ? {} : JSON.parse(JSON.stringify(value));
+		if (!isPlainObject(plainValue)) {
+			throw new TypeError('Cast value must be an object');
+		}
+		return new Document(this._valueSchema, plainValue, { isSubdocument: true });
+	};
+
+	/**
 	 * Get value from mv data
 	 * @function get
 	 * @memberof EmbeddedType
@@ -36,7 +56,11 @@ class EmbeddedType extends ComplexType {
 	 * @param {*[]} record - Data to get values from
 	 * @returns {Document} Embedded document instance
 	 */
-	get = record => new Document(this._valueSchema, record, { isSubdocument: true });
+	get = record => {
+		const embeddedDocument = new Document(this._valueSchema, {}, { isSubdocument: true });
+		embeddedDocument.transformRecordToDocument(record);
+		return embeddedDocument;
+	};
 
 	/**
 	 * Set specified embedded document value into mv record

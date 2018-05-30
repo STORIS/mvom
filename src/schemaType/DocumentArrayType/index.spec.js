@@ -27,12 +27,15 @@ describe('DocumentArrayType', () => {
 	});
 
 	describe('instance methods', () => {
+		const transformRecordToDocument = stub();
 		const Document = class {
-			constructor(schema, record, options) {
+			constructor(schema, data, { isSubdocument }) {
 				this._schema = schema;
-				this._record = record;
-				this._isSubdocument = options.isSubdocument;
+				this.data = data;
+				this.isSubdocument = isSubdocument;
 			}
+
+			transformRecordToDocument = transformRecordToDocument;
 		};
 		let documentArrayType;
 
@@ -43,6 +46,92 @@ describe('DocumentArrayType', () => {
 
 		after(() => {
 			RewireAPI.__ResetDependency__('Document');
+		});
+
+		beforeEach(() => {
+			transformRecordToDocument.resetHistory();
+		});
+
+		describe('cast', () => {
+			it('should return empty array if value is not defined', () => {
+				const subdocArray = documentArrayType.cast();
+				assert.isArray(subdocArray);
+				assert.isEmpty(subdocArray);
+			});
+
+			it('should throw TypeError if non-null/object passed', () => {
+				assert.throws(() => {
+					documentArrayType.cast('foo');
+				});
+			});
+
+			describe('cast passed value to array', () => {
+				const value = { foo: 'bar' };
+
+				it('should return an array of length 1', () => {
+					const subdocArray = documentArrayType.cast(value);
+					assert.isArray(subdocArray);
+					assert.strictEqual(subdocArray.length, 1);
+				});
+
+				it('should pass the data type to the document constructor', () => {
+					const [subdoc] = documentArrayType.cast(value);
+					assert.deepEqual(subdoc.data, value);
+				});
+
+				it('should pass the supplied value to the document constructor', () => {
+					const [subdoc] = documentArrayType.cast(value);
+					assert.strictEqual(subdoc._schema, documentArrayType._valueSchema);
+				});
+
+				it('should construct the document with the subdocument flag', () => {
+					const [subdoc] = documentArrayType.cast(value);
+					assert.isTrue(subdoc.isSubdocument);
+				});
+			});
+
+			describe('value passed as array', () => {
+				const value = [{ foo: 'bar' }, { baz: 'qux' }];
+
+				it('should return an array of same length as passed array', () => {
+					const subdocArray = documentArrayType.cast(value);
+					assert.isArray(subdocArray);
+					assert.strictEqual(subdocArray.length, value.length);
+				});
+
+				it('should pass the data type to the document constructor', () => {
+					const [subdoc1, subdoc2] = documentArrayType.cast(value);
+					assert.deepEqual(subdoc1.data, value[0]);
+					assert.deepEqual(subdoc2.data, value[1]);
+				});
+
+				it('should pass the supplied value to the document constructor', () => {
+					const [subdoc1, subdoc2] = documentArrayType.cast(value);
+					assert.strictEqual(subdoc1._schema, documentArrayType._valueSchema);
+					assert.strictEqual(subdoc2._schema, documentArrayType._valueSchema);
+				});
+
+				it('should construct the document with the subdocument flag', () => {
+					const [subdoc1, subdoc2] = documentArrayType.cast(value);
+					assert.isTrue(subdoc1.isSubdocument);
+					assert.isTrue(subdoc2.isSubdocument);
+				});
+			});
+
+			describe('null value in array', () => {
+				const value = [null];
+
+				it('should return an array of length 1', () => {
+					const subdocArray = documentArrayType.cast(value);
+					assert.isArray(subdocArray);
+					assert.strictEqual(subdocArray.length, 1);
+				});
+
+				it('should pass an empty object to the document constructor', () => {
+					const [subdoc] = documentArrayType.cast(value);
+					assert.deepEqual(subdoc.data, {});
+				});
+			});
 		});
 
 		describe('get', () => {
@@ -136,8 +225,9 @@ describe('DocumentArrayType', () => {
 				const { value, done } = it.next();
 				assert.isFalse(done);
 				assert.instanceOf(value, Document);
-				assert.deepEqual(value._record, ['foo', 'baz']);
-				assert.strictEqual(value._isSubdocument, true);
+				assert.isTrue(transformRecordToDocument.calledOnce);
+				assert.isTrue(transformRecordToDocument.calledWith(['foo', 'baz']));
+				assert.strictEqual(value.isSubdocument, true);
 			});
 
 			it('should return a new subdocument instance from the second subrecord when yielding a second time', () => {
@@ -146,8 +236,9 @@ describe('DocumentArrayType', () => {
 				const { value, done } = it.next();
 				assert.isFalse(done);
 				assert.instanceOf(value, Document);
-				assert.deepEqual(value._record, ['bar', 'qux']);
-				assert.strictEqual(value._isSubdocument, true);
+				assert.isTrue(transformRecordToDocument.calledTwice);
+				assert.isTrue(transformRecordToDocument.calledWith(['bar', 'qux']));
+				assert.strictEqual(value.isSubdocument, true);
 			});
 
 			it('should return as done when no subrecord is possible at iteration position', () => {
