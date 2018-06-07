@@ -1,6 +1,7 @@
 import moment from 'moment';
 import SimpleType from 'schemaType/SimpleType';
 import TransformDataError from 'Errors/TransformData';
+import { ISOTimeFormat } from 'shared/constants/time';
 import handleTypeValidation from 'shared/handleTypeValidation';
 
 /**
@@ -11,14 +12,6 @@ import handleTypeValidation from 'shared/handleTypeValidation';
  * @param {string} [definition.dbFormat = 's'] - Allowed values: 's' & 'ms'; indicates whether time is stored in seconds or milliseconds past midnight
  */
 class ISOTimeType extends SimpleType {
-	/**
-	 * External format for ISO Time data
-	 * @member {string} ISOTimeFormat
-	 * @memberof ISOTimeType
-	 * @static
-	 */
-	static ISOTimeFormat = 'HH:mm:ss.SSS';
-
 	constructor(definition) {
 		super(definition);
 		const { dbFormat = 's' } = definition;
@@ -75,7 +68,7 @@ class ISOTimeType extends SimpleType {
 			isoTime.add(castValue, 'seconds');
 		}
 
-		return isoTime.format(ISOTimeType.ISOTimeFormat);
+		return isoTime.format(ISOTimeFormat);
 	};
 
 	/**
@@ -96,9 +89,9 @@ class ISOTimeType extends SimpleType {
 		const startOfDay = moment().startOf('day');
 
 		if (this._isDbInMs) {
-			return String(moment(value, ISOTimeType.ISOTimeFormat).diff(startOfDay, 'milliseconds'));
+			return String(moment(value, ISOTimeFormat).diff(startOfDay, 'milliseconds'));
 		}
-		return String(moment(value, ISOTimeType.ISOTimeFormat).diff(startOfDay, 'seconds'));
+		return String(moment(value, ISOTimeFormat).diff(startOfDay, 'seconds'));
 	};
 
 	/* private instance methods */
@@ -113,8 +106,7 @@ class ISOTimeType extends SimpleType {
 	 * @param {*[]} value - Value to validate for data type casting
 	 * @returns {Promise.<Boolean>} True if valid / false if invalid
 	 */
-	_validateType = async value =>
-		value == null || moment(value, ISOTimeType.ISOTimeFormat).isValid();
+	_validateType = async value => value == null || moment(value, ISOTimeFormat).isValid();
 }
 
 export default ISOTimeType;

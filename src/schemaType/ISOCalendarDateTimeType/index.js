@@ -43,7 +43,7 @@ class ISOCalendarDateTimeType extends SimpleType {
 	 * @public
 	 * @override
 	 * @param {string|number|null} value - Value to transform
-	 * @returns {string|null} Transformed ISO 8601 String Time value (HH:mm:ss.SSS)
+	 * @returns {string|null} Transformed ISO 8601 String date/time value (yyyy-mm-ddTHH:mm:ss.SSS)
 	 * @throws {TransformDataError} (indirect) Database value could not be transformed to external format
 	 */
 	transformFromDb = value => {

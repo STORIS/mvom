@@ -1,6 +1,7 @@
 import moment from 'moment';
 import SimpleType from 'schemaType/SimpleType';
 import TransformDataError from 'Errors/TransformData';
+import { epoch, ISOCalendarDateFormat } from 'shared/constants/time';
 import handleTypeValidation from 'shared/handleTypeValidation';
 
 /**
@@ -11,21 +12,6 @@ import handleTypeValidation from 'shared/handleTypeValidation';
  */
 class ISOCalendarDateType extends SimpleType {
 	/* static properties */
-
-	/**
-	 * External format for ISO Calendar Date data
-	 * @member {string} ISOCalendarDateFormat
-	 * @memberof ISOCalendarDateType
-	 * @static
-	 */
-	static ISOCalendarDateFormat = 'YYYY-MM-DD';
-	/**
-	 * The multivalue date epoch
-	 * @member {string} epoch
-	 * @memberof ISOCalendarDateType
-	 * @static
-	 */
-	static epoch = '1967-12-31';
 
 	constructor(definition) {
 		super(definition);
@@ -59,9 +45,9 @@ class ISOCalendarDateType extends SimpleType {
 			});
 		}
 
-		return moment(ISOCalendarDateType.epoch)
+		return moment(epoch)
 			.add(castValue, 'days')
-			.format(ISOCalendarDateType.ISOCalendarDateFormat);
+			.format(ISOCalendarDateFormat);
 	};
 
 	/**
@@ -75,7 +61,7 @@ class ISOCalendarDateType extends SimpleType {
 	 * @returns {string|null} Transformed string integer representing number of days since mv epoch
 	 */
 	transformToDb = value =>
-		value == null ? null : String(moment(value).diff(moment(ISOCalendarDateType.epoch), 'days'));
+		value == null ? null : String(moment(value).diff(moment(epoch), 'days'));
 
 	/* private instance methods */
 
@@ -89,8 +75,7 @@ class ISOCalendarDateType extends SimpleType {
 	 * @param {*[]} value - Value to validate for data type casting
 	 * @returns {Promise.<Boolean>} True if valid / false if invalid
 	 */
-	_validateType = async value =>
-		value == null || moment(value, ISOCalendarDateType.ISOCalendarDateFormat).isValid();
+	_validateType = async value => value == null || moment(value, ISOCalendarDateFormat).isValid();
 }
 
 export default ISOCalendarDateType;
