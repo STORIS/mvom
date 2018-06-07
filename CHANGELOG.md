@@ -1,4 +1,14 @@
 # CHANGELOG.md
+## 0.0.9
+###### _2018-06-07_
+- Connection instances now expose `getDbDate`, `getDbDateTime`, and `getDbTime` functions.
+  These can be used to calculate the date and time values as represented at the
+  database layer since it is likely to differ from the layer running mvom.  This
+  will allow consumers to get these values so they can be provided in the data.
+  Note: This information is cached with a tunable time period (default 1 hour) in order
+  to provide low latency feedback but also reasonably handle shifts in the database time
+  (e.g. daylight saving time, server migrations, etc.) @shawnmcknight
+
 ## 0.0.8
 ### Breaking change
 ###### _2018-05-30
