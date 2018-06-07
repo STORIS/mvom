@@ -1,6 +1,7 @@
 import axios from 'axios';
 import fs from 'fs-extra';
 import path from 'path';
+import moment from 'moment';
 import semver from 'semver';
 import compileModel from 'compileModel';
 import ConnectionManagerError from 'Errors/ConnectionManager';
@@ -9,6 +10,12 @@ import InvalidParameterError from 'Errors/InvalidParameter';
 import InvalidServerFeaturesError from 'Errors/InvalidServerFeatures';
 import getFeatureVersion from 'shared/getFeatureVersion';
 import connectionStatus from 'shared/constants/connectionStatus';
+import {
+	epoch,
+	ISOCalendarDateFormat,
+	ISOCalendarDateTimeFormat,
+	ISOTimeFormat,
+} from 'shared/constants/time';
 import { dependencies as serverDependencies } from '.mvomrc.json';
 
 /** A connection object
@@ -16,6 +23,7 @@ import { dependencies as serverDependencies } from '.mvomrc.json';
  * @param {string} options.connectionManagerUri - URI of the connection manager which faciliates access to the mv database
  * @param {string} options.account - Database account that connection will be used against
  * @param options.logger - Winston logger instance used for diagnostic logging
+ * @param {number} [options.cacheMaxAge=3600] - Maximum age, in seconds, of the cache of db server tier information
  */
 class Connection {
 	/* static properties */
@@ -72,32 +80,73 @@ class Connection {
 	 */
 	_serverFeatureSet = { validFeatures: {}, invalidFeatures: [] };
 
-	constructor({ connectionManagerUri, account, logger }) {
+	constructor({ connectionManagerUri, account, logger, cacheMaxAge = 3600 }) {
 		logger.debug(`creating new connection instance`);
-		/**
-		 * URI of the full endpoint for communicating with the database
-		 * @member {string} _endpoint
-		 * @memberof Connection
-		 * @instance
-		 * @private
-		 */
-		this._endpoint = `${connectionManagerUri}/${account}/subroutine/${Connection.getServerProgramName(
-			'entry',
-		)}`;
-		/**
-		 * Winston logger instance used for diagnostic logging
-		 * @member logger
-		 * @memberof Connection
-		 * @instance
-		 */
-		this.logger = logger;
-		/**
-		 * Connection status enumeration
-		 * @member status
-		 * @memberof Connection
-		 * @instance
-		 */
-		this.status = connectionStatus.DISCONNECTED;
+		Object.defineProperties(this, {
+			/**
+			 * Winston logger instance used for diagnostic logging
+			 * @member logger
+			 * @memberof Connection
+			 * @instance
+			 */
+			logger: {
+				value: logger,
+			},
+			/**
+			 * Connection status enumeration
+			 * @member status
+			 * @memberof Connection
+			 * @instance
+			 */
+			status: {
+				value: connectionStatus.DISCONNECTED,
+				enumerable: true,
+				writable: true,
+			},
+			/**
+			 * Time that the connection information cache will expire
+			 * @member _cacheExpiry
+			 * @memberof Connection
+			 * @instance
+			 * @private
+			 */
+			_cacheExpiry: {
+				value: 0,
+				writable: true,
+			},
+			/**
+			 * Maximum age of the cache before it must be refreshed
+			 * @member _cacheMaxAge
+			 * @memberof Connection
+			 * @instance
+			 * @private
+			 */
+			_cacheMaxAge: {
+				value: cacheMaxAge,
+			},
+			/**
+			 * URI of the full endpoint for communicating with the database
+			 * @member {string} _endpoint
+			 * @memberof Connection
+			 * @instance
+			 * @private
+			 */
+			_endpoint: {
+				value: `${connectionManagerUri}/${account}/subroutine/${Connection.getServerProgramName(
+					'entry',
+				)}`,
+			},
+			/**
+			 * +/- in milliseconds between database server time and local server time
+			 * @member _timeDrift
+			 * @memberof Connection
+			 * @instance
+			 * @private
+			 */
+			_timeDrift: {
+				writable: true,
+			},
+		});
 	}
 
 	/* public instance methods */
@@ -123,6 +172,8 @@ class Connection {
 				invalidFeatures: this._serverFeatureSet.invalidFeatures,
 			});
 		}
+
+		await this._getDbServerInfo(); // establish baseline for database server information
 
 		this.logger.debug(`connection opened`);
 		this.status = connectionStatus.CONNECTED;
@@ -202,12 +253,12 @@ class Connection {
 	 * @instance
 	 * @async
 	 * @param {string} feature - Name of feature to execute
-	 * @param {*} options - Options parameter to pass to database feature
+	 * @param {*} [options={}] - Options parameter to pass to database feature
 	 * @returns {*} Output from database feature
 	 * @throws {ConnectionManagerError} (indirect) An error occurred in connection manager communications
 	 * @throws {DbServerError} (indirect) An error occurred on the database server
 	 */
-	executeDbFeature = async (feature, options) => {
+	executeDbFeature = async (feature, options = {}) => {
 		this.logger.debug(`executing database feature "${feature}"`);
 		const data = {
 			action: 'subroutine',
@@ -222,6 +273,51 @@ class Connection {
 		this.logger.debug(`executing database subroutine ${data.subroutineId}`);
 
 		return this._executeDb(data);
+	};
+
+	/**
+	 * Get the current ISOCalendarDate from the database
+	 * @function getDbDate
+	 * @memberof Connection
+	 * @instance
+	 * @async
+	 * @return {Promise.<String>} Current db server time as ISO 8601 String Date value (yyyy-mm-dd)
+	 */
+	getDbDate = async () => {
+		await this._getDbServerInfo();
+		return moment()
+			.add(this._timeDrift)
+			.format(ISOCalendarDateFormat);
+	};
+
+	/**
+	 * Get the current ISOCalendarDateTime from the database
+	 * @function getDbDateTime
+	 * @memberof Connection
+	 * @instance
+	 * @async
+	 * @return {Promise.<String>} Current db server time as ISO 8601 String date/time value (yyyy-mm-ddTHH:mm:ss.SSS)
+	 */
+	getDbDateTime = async () => {
+		await this._getDbServerInfo();
+		return moment()
+			.add(this._timeDrift)
+			.format(ISOCalendarDateTimeFormat);
+	};
+
+	/**
+	 * Get the current ISOTime from the database
+	 * @function getDbTime
+	 * @memberof Connection
+	 * @instance
+	 * @async
+	 * @return {Promise.<String>} Current db server time as ISO 8601 String Time value (HH:mm:ss.SSS)
+	 */
+	getDbTime = async () => {
+		await this._getDbServerInfo();
+		return moment()
+			.add(this._timeDrift)
+			.format(ISOTimeFormat);
 	};
 
 	/**
@@ -284,6 +380,31 @@ class Connection {
 
 		// return the relevant portion from the db server response
 		return response.data.output;
+	};
+
+	/**
+	 * Get the db server information (date, time, etc.)
+	 * @function _getDbServerInfo
+	 * @memberof Connection
+	 * @instance
+	 * @private
+	 * @async
+	 * @modifies {this}
+	 */
+	_getDbServerInfo = async () => {
+		if (Date.now() > this._cacheExpiry) {
+			this.logger.debug('getting db server information');
+			const data = await this.executeDbFeature('getServerInfo');
+
+			const { date, time } = data;
+
+			this._timeDrift = moment(epoch)
+				.add(date, 'days')
+				.add(time, 'ms')
+				.diff(moment());
+
+			this._cacheExpiry = Date.now() + this._cacheMaxAge * 1000;
+		}
 	};
 
 	/**

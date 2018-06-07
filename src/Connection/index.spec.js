@@ -1,7 +1,13 @@
 /* eslint-disable no-underscore-dangle */
 import chai, { assert } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { stub } from 'sinon';
+import { stub, useFakeTimers } from 'sinon';
+import {
+	epoch,
+	ISOCalendarDateFormat,
+	ISOCalendarDateTimeFormat,
+	ISOTimeFormat,
+} from 'shared/constants/time';
 import connectionStatus from 'shared/constants/connectionStatus';
 import mockLogger from 'testHelpers/mockLogger';
 import Connection, { __RewireAPI__ as RewireAPI } from './';
@@ -87,11 +93,27 @@ describe('Connection', () => {
 					connectionManagerUri: 'foo',
 					account: 'bar',
 					logger: mockLogger,
+					cacheMaxAge: 'baz',
 				}),
 				{
 					_endpoint: 'foo/bar/subroutine/entry',
 					logger: mockLogger,
 					status: connectionStatus.DISCONNECTED,
+					_cacheMaxAge: 'baz',
+				},
+			);
+		});
+
+		it('should set default instance values', () => {
+			assert.include(
+				new Connection({
+					connectionManagerUri: 'foo',
+					account: 'bar',
+					logger: mockLogger,
+				}),
+				{
+					_cacheMaxAge: 3600,
+					_cacheExpiry: 0,
 				},
 			);
 		});
@@ -117,6 +139,7 @@ describe('Connection', () => {
 					logger: mockLogger,
 				});
 				stub(connection, '_getFeatureState').resolves();
+				stub(connection, '_getDbServerInfo').resolves();
 			});
 
 			beforeEach(() => {
@@ -239,6 +262,90 @@ describe('Connection', () => {
 					executeDb.calledWith({ action: 'subroutine', subroutineId: 'foo', options: 'bar' }),
 				);
 			});
+
+			it('should call executeDb with the an empty options object', async () => {
+				await connection.executeDbFeature('foo');
+				assert.isTrue(
+					executeDb.calledWith({ action: 'subroutine', subroutineId: 'foo', options: {} }),
+				);
+			});
+		});
+
+		describe('date/time methods', () => {
+			let connection;
+			let _getDbServerInfo;
+
+			const add = stub().returnsThis();
+			const format = stub().returnsThis();
+			const moment = stub().returns({ add, format });
+
+			before(() => {
+				connection = new Connection({
+					connectionManagerUri: 'foo',
+					account: 'bar',
+					logger: mockLogger,
+				});
+				_getDbServerInfo = stub(connection, '_getDbServerInfo').resolves();
+
+				connection._timeDrift = 'timeDriftValue';
+
+				RewireAPI.__Rewire__('moment', moment);
+			});
+
+			after(() => {
+				RewireAPI.__ResetDependency__('moment');
+			});
+
+			beforeEach(() => {
+				_getDbServerInfo.resetHistory();
+				add.resetHistory();
+				format.resetHistory();
+			});
+
+			describe('getDbDate', () => {
+				it('should call _getDbServerInfo', async () => {
+					await connection.getDbDate();
+					assert.isTrue(_getDbServerInfo.calledOnce);
+				});
+
+				it('should call moment.add/format', async () => {
+					await connection.getDbDate();
+					assert.isTrue(add.calledOnce);
+					assert.isTrue(add.calledWith(connection._timeDrift));
+					assert.isTrue(format.calledOnce);
+					assert.isTrue(format.calledWith(ISOCalendarDateFormat));
+				});
+			});
+
+			describe('getDbDateTime', () => {
+				it('should call _getDbServerInfo', async () => {
+					await connection.getDbDateTime();
+					assert.isTrue(_getDbServerInfo.calledOnce);
+				});
+
+				it('should call moment.add/format', async () => {
+					await connection.getDbDateTime();
+					assert.isTrue(add.calledOnce);
+					assert.isTrue(add.calledWith(connection._timeDrift));
+					assert.isTrue(format.calledOnce);
+					assert.isTrue(format.calledWith(ISOCalendarDateTimeFormat));
+				});
+			});
+
+			describe('getDbTime', () => {
+				it('should call _getDbServerInfo', async () => {
+					await connection.getDbTime();
+					assert.isTrue(_getDbServerInfo.calledOnce);
+				});
+
+				it('should call moment.add/format', async () => {
+					await connection.getDbTime();
+					assert.isTrue(add.calledOnce);
+					assert.isTrue(add.calledWith(connection._timeDrift));
+					assert.isTrue(format.calledOnce);
+					assert.isTrue(format.calledWith(ISOTimeFormat));
+				});
+			});
 		});
 
 		describe('model', () => {
@@ -336,6 +443,90 @@ describe('Connection', () => {
 			it('should return the data.output property', () => {
 				post.resolves({ data: { output: 'bar' } });
 				return assert.eventually.strictEqual(connection._executeDb({ action: 'foo' }), 'bar');
+			});
+		});
+
+		describe('_getDbServerInfo', () => {
+			let connection;
+
+			const serverInfo = {
+				date: 'dateInfo',
+				time: 'timeInfo',
+			};
+
+			const add = stub().returnsThis();
+			const diff = stub().returnsThis();
+			const momentReturnVal = { add, diff };
+			const moment = stub().returns(momentReturnVal);
+
+			before(() => {
+				connection = new Connection({
+					connectionManagerUri: 'foo',
+					account: 'bar',
+					logger: mockLogger,
+				});
+
+				stub(connection, 'executeDbFeature').resolves(serverInfo);
+
+				RewireAPI.__Rewire__('moment', moment);
+			});
+
+			after(() => {
+				RewireAPI.__ResetDependency__('moment');
+			});
+
+			beforeEach(() => {
+				moment.resetHistory();
+				add.resetHistory();
+				diff.resetHistory();
+				connection._cacheExpiry = 0;
+				connection._timeDrift = null;
+			});
+
+			it('should do nothing if cache expiry is in the future', async () => {
+				connection._cacheExpiry = Date.now() + 10000;
+				await connection._getDbServerInfo();
+				assert.isTrue(moment.notCalled);
+				assert.isTrue(add.notCalled);
+				assert.isTrue(diff.notCalled);
+				assert.isNull(connection._timeDrift);
+			});
+
+			it('should call moment once with the epoch and once without anything', async () => {
+				await connection._getDbServerInfo();
+				assert.isTrue(moment.calledTwice);
+				assert.isTrue(moment.calledWith(epoch));
+				assert.isTrue(moment.calledWith());
+			});
+
+			it('should call add with days and milliseconds', async () => {
+				await connection._getDbServerInfo();
+				assert.isTrue(add.calledTwice);
+				assert.isTrue(add.calledWith('dateInfo', 'days'));
+				assert.isTrue(add.calledWith('timeInfo', 'ms'));
+			});
+
+			it('should call diff with the return val from moment invocation', async () => {
+				await connection._getDbServerInfo();
+				assert.isTrue(diff.calledOnce);
+				assert.isTrue(diff.calledWith(momentReturnVal));
+			});
+
+			describe('cache expiration', () => {
+				let clock;
+				before(() => {
+					clock = useFakeTimers();
+				});
+
+				after(() => {
+					clock.restore();
+				});
+
+				it('should set the cache expiry based on the the default value', async () => {
+					connection._cacheExpiry = -1;
+					await connection._getDbServerInfo();
+					assert.strictEqual(connection._cacheExpiry, 3600000);
+				});
 			});
 		});
 
