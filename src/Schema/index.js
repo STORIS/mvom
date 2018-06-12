@@ -284,7 +284,9 @@ class Schema {
 	 * @param {Object} obj - Object to test
 	 * @returns {Boolean} True if object is a data definition; false otherwise
 	 */
-	_isDataDefinition = obj => Object.prototype.hasOwnProperty.call(obj, this._typeProperty);
+	_isDataDefinition = obj =>
+		Object.prototype.hasOwnProperty.call(obj, this._typeProperty) &&
+		Object.prototype.hasOwnProperty.call(obj, 'path');
 
 	/**
 	 * Merge subdocument schema dictionaries with the parent schema's dictionaries
