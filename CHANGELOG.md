@@ -1,4 +1,12 @@
 # CHANGELOG.md
+## 0.0.10
+###### _2018-06-12_
+- An object in the Schema is now only considered to be a "data definition" if it contains both
+  a `type` and a `path` property.  If an object doesn't contain both of these properties, it will
+  be treated as a subdocument object instead of a data definition.  The upshot of this is that
+  `type` can now be used as a data-describing property in a Schema definition, provided that it does
+  not appear alongside a `path` property in that same definition. @shawnmcknight
+
 ## 0.0.9
 ###### _2018-06-07_
 - Connection instances now expose `getDbDate`, `getDbDateTime`, and `getDbTime` functions.
