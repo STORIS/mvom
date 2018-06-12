@@ -283,12 +283,20 @@ describe('Schema', () => {
 				schema = new Schema({});
 			});
 
-			it('should return false', () => {
+			it('should return false if neither type nor path present', () => {
 				assert.isFalse(schema._isDataDefinition('foo'));
 			});
 
-			it('should return true', () => {
-				assert.isTrue(schema._isDataDefinition({ type: 'foo' }));
+			it('should return false if only has type', () => {
+				assert.isFalse(schema._isDataDefinition({ type: 'foo' }));
+			});
+
+			it('should return false if only has path', () => {
+				assert.isFalse(schema._isDataDefinition({ path: 'foo' }));
+			});
+
+			it('should return true if has path and type', () => {
+				assert.isTrue(schema._isDataDefinition({ type: 'foo', path: 'bar' }));
 			});
 		});
 
