@@ -5,7 +5,7 @@ import DocumentArrayType, { __RewireAPI__ as RewireAPI } from './';
 
 describe('DocumentArrayType', () => {
 	const Schema = class {
-		getMvPaths = stub().returns([0, 1]);
+		getMvPaths = stub().returns([[0], [1], [2, 0]]);
 	};
 	before(() => {
 		RewireAPI.__Rewire__('Schema', Schema);
@@ -238,6 +238,20 @@ describe('DocumentArrayType', () => {
 				assert.instanceOf(value, Document);
 				assert.isTrue(transformRecordToDocument.calledTwice);
 				assert.isTrue(transformRecordToDocument.calledWith(['bar', 'qux']));
+				assert.strictEqual(value.isSubdocument, true);
+			});
+
+			it('should traverse the subvalued array', () => {
+				const it = documentArrayType._makeSubDocument([
+					['foo', 'bar'],
+					['baz', 'qux'],
+					[['quux', 'corge']],
+				]);
+				const { value, done } = it.next();
+				assert.isFalse(done);
+				assert.instanceOf(value, Document);
+				assert.isTrue(transformRecordToDocument.calledOnce);
+				assert.isTrue(transformRecordToDocument.calledWith(['foo', 'baz', ['quux']]));
 				assert.strictEqual(value.isSubdocument, true);
 			});
 
