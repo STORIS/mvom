@@ -1,4 +1,13 @@
 # CHANGELOG.md
+## 0.1.0
+###### _2018-08-10_
+We've graduated from Alpha to Beta!  Semver has been updated so breaking vs. non-breaking changes
+can be more easily identified go forward.
+- A bug was discovered where a subdocument array could not reference a multi-part path.  That is,
+  the subdocument array had a path in the format of `x.y` indicating the data was located at a
+  particular attribute and value and the array should iterate across the subvalue.  In this structure,
+  the properties in the subdocument arrays would end up empty.  This has been corrected. @shawnmcknight
+
 ## 0.0.10
 ###### _2018-06-12_
 - An object in the Schema is now only considered to be a "data definition" if it contains both
