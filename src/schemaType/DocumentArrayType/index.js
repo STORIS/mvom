@@ -128,7 +128,7 @@ class DocumentArrayType extends ComplexType {
 	*_makeSubDocument(record) {
 		const makeSubRecord = iteration =>
 			this._valueSchema.getMvPaths().reduce((acc, path) => {
-				const value = getFromMvArray(record, [path, iteration]);
+				const value = getFromMvArray(record, path.concat([iteration]));
 				if (typeof value !== 'undefined') {
 					setIn(acc, path, value);
 				}

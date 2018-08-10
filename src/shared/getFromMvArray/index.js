@@ -14,7 +14,7 @@ const getFromMvArray = (record = [], path) => {
 		return null;
 	}
 
-	if (record[path[0]] == null) {
+	if (record[path[0]] == null || (path.length === 3 && record[path[0]][path[1]] == null)) {
 		// if the entire contents of the record at the base path is null then we must treat this as a special case:
 		// - returning undefined won't alter the behavior of simple data types (e.g. string, Boolean) since the undefined
 		//   value will essentially get typecast back into null which is handled by all simple types.

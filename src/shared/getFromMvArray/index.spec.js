@@ -30,6 +30,10 @@ describe('getFromMvArray', () => {
 		assert.strictEqual(getFromMvArray(['foo'], [0, 0]), 'foo');
 	});
 
+	it('should return undefined if nested path position is null', () => {
+		assert.isUndefined(getFromMvArray([[null, null]], [0, 0, 0]));
+	});
+
 	it('should get value from two-level deep path', () => {
 		assert.strictEqual(getFromMvArray([[['foo', 'bar'], ['baz', 'qux']]], [0, 1, 1]), 'qux');
 	});
