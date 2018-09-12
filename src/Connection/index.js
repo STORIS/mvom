@@ -22,8 +22,8 @@ import handleDbServerError from './handleDbServerError';
  * @param {Object} options
  * @param {string} options.connectionManagerUri - URI of the connection manager which faciliates access to the mv database
  * @param {string} options.account - Database account that connection will be used against
- * @param options.logger - Winston logger instance used for diagnostic logging
- * @param {number} [options.cacheMaxAge=3600] - Maximum age, in seconds, of the cache of db server tier information
+ * @param options.logger - Logger instance used for diagnostic logging
+ * @param {number} options.cacheMaxAge - Maximum age, in seconds, of the cache of db server tier information
  */
 class Connection {
 	/* static properties */
@@ -80,11 +80,11 @@ class Connection {
 	 */
 	_serverFeatureSet = { validFeatures: {}, invalidFeatures: [] };
 
-	constructor({ connectionManagerUri, account, logger, cacheMaxAge = 3600 }) {
+	constructor({ connectionManagerUri, account, logger, cacheMaxAge }) {
 		logger.debug(`creating new connection instance`);
 		Object.defineProperties(this, {
 			/**
-			 * Winston logger instance used for diagnostic logging
+			 * Logger instance used for diagnostic logging
 			 * @member logger
 			 * @memberof Connection
 			 * @instance

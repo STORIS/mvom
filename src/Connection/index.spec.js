@@ -103,20 +103,6 @@ describe('Connection', () => {
 				},
 			);
 		});
-
-		it('should set default instance values', () => {
-			assert.include(
-				new Connection({
-					connectionManagerUri: 'foo',
-					account: 'bar',
-					logger: mockLogger,
-				}),
-				{
-					_cacheMaxAge: 3600,
-					_cacheExpiry: 0,
-				},
-			);
-		});
 	});
 
 	describe('instance methods', () => {
@@ -446,6 +432,7 @@ describe('Connection', () => {
 					connectionManagerUri: 'foo',
 					account: 'bar',
 					logger: mockLogger,
+					cacheMaxAge: 1,
 				});
 
 				stub(connection, 'executeDbFeature').resolves(serverInfo);
@@ -504,10 +491,10 @@ describe('Connection', () => {
 					clock.restore();
 				});
 
-				it('should set the cache expiry based on the the default value', async () => {
+				it('should set the cache expiry based on the provided _cacheMaxAge', async () => {
 					connection._cacheExpiry = -1;
 					await connection._getDbServerInfo();
-					assert.strictEqual(connection._cacheExpiry, 3600000);
+					assert.strictEqual(connection._cacheExpiry, 1000);
 				});
 			});
 		});
