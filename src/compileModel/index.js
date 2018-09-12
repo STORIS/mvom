@@ -220,6 +220,8 @@ const compileModel = (connection, schema, file) => {
 		 * @throws {TypeError} _id value was not set prior to calling the function
 		 * @throws {ConnectionManagerError} (indirect) An error occurred in connection manager communications
 		 * @throws {DbServerError} (indirect) An error occurred on the database server
+		 * @throws {RecordLockedError} (indirect) The record was locked which prevented update
+		 * @throws {RecordVersionError} (indirect) The record changed after reading which prevented update
 		 */
 		save = async () => {
 			if (this._id == null) {
@@ -232,14 +234,24 @@ const compileModel = (connection, schema, file) => {
 				throw new DataValidationError({ validationErrors });
 			}
 
-			const data = await Model.connection.executeDbFeature('save', {
-				filename: Model.file,
-				id: this._id,
-				__v: this.__v,
-				record: this.transformDocumentToRecord(),
-			});
+			try {
+				const data = await Model.connection.executeDbFeature('save', {
+					filename: Model.file,
+					id: this._id,
+					__v: this.__v,
+					record: this.transformDocumentToRecord(),
+				});
+				return Model.makeModelFromDbResult(data.result);
+			} catch (err) {
+				// enrich caught error object with additional information and rethrow
+				err.other = {
+					...err.other, // ensure properties are not lost in the event the "other" object existed previously
+					filename: Model.file,
+					_id: this._id,
+				};
 
-			return Model.makeModelFromDbResult(data.result);
+				throw err;
+			}
 		};
 	}
 

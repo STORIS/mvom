@@ -189,9 +189,10 @@ describe('compileModel', () => {
 		});
 
 		describe('instance methods', () => {
+			const filename = 'filename-value';
 			let Test;
 			before(() => {
-				Test = compileModel(connection, schema, 'foo');
+				Test = compileModel(connection, schema, filename);
 			});
 
 			describe('save', () => {
@@ -216,6 +217,29 @@ describe('compileModel', () => {
 						__id: 'bar',
 						__v: 'baz',
 					});
+				});
+
+				it('should enrich and rethrow error if executeDbFeature rejects', async () => {
+					validate.resolves({});
+					const error = new Error();
+					error.other = { foo: 'bar' };
+					executeDbFeature.rejects(error);
+					const _id = '_id-value';
+					const test = new Test({}, { _id });
+					test.transformDocumentToRecord = stub();
+					try {
+						await test.save();
+						assert.fail(); // if save() doesn't reject then that is a failed test
+					} catch (err) {
+						const expected = {
+							other: {
+								foo: 'bar',
+								filename,
+								_id,
+							},
+						};
+						assert.deepInclude(err, expected);
+					}
 				});
 			});
 		});

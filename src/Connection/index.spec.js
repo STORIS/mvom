@@ -399,10 +399,12 @@ describe('Connection', () => {
 					logger: mockLogger,
 				});
 				RewireAPI.__Rewire__('axios', { post });
+				RewireAPI.__Rewire__('handleDbServerError', stub());
 			});
 
 			after(() => {
 				RewireAPI.__ResetDependency__('axios');
+				RewireAPI.__ResetDependency__('handleDbServerError');
 			});
 
 			beforeEach(() => {
@@ -418,26 +420,6 @@ describe('Connection', () => {
 			it('should reject with ConnectionManagerError if post rejects', () => {
 				post.rejects();
 				return assert.isRejected(connection._executeDb({ action: 'foo' }), ConnectionManagerError);
-			});
-
-			it('should reject with DbServerError if response is falsy', () => {
-				post.resolves(null);
-				return assert.isRejected(connection._executeDb({ action: 'foo' }), DbServerError);
-			});
-
-			it('should reject with DbServerError if response has falsy data', () => {
-				post.resolves({});
-				return assert.isRejected(connection._executeDb({ action: 'foo' }), DbServerError);
-			});
-
-			it('should reject with DbServerError if response has falsy data.output', () => {
-				post.resolves({ data: {} });
-				return assert.isRejected(connection._executeDb({ action: 'foo' }), DbServerError);
-			});
-
-			it('should reject with DbServerError if response has a truthy errorCode', () => {
-				post.resolves({ data: { output: { errorCode: 1 } } });
-				return assert.isRejected(connection._executeDb({ action: 'foo' }), DbServerError);
 			});
 
 			it('should return the data.output property', () => {

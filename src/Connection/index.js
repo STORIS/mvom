@@ -5,7 +5,6 @@ import moment from 'moment';
 import semver from 'semver';
 import compileModel from 'compileModel';
 import ConnectionManagerError from 'Errors/ConnectionManager';
-import DbServerError from 'Errors/DbServer';
 import InvalidParameterError from 'Errors/InvalidParameter';
 import InvalidServerFeaturesError from 'Errors/InvalidServerFeatures';
 import getFeatureVersion from 'shared/getFeatureVersion';
@@ -17,6 +16,7 @@ import {
 	ISOTimeFormat,
 } from 'shared/constants/time';
 import { dependencies as serverDependencies } from '.mvomrc.json';
+import handleDbServerError from './handleDbServerError';
 
 /** A connection object
  * @param {Object} options
@@ -368,15 +368,7 @@ class Connection {
 			throw new ConnectionManagerError({ request: err.request, response: err.response });
 		}
 
-		if (!response || !response.data || !response.data.output) {
-			// handle invalid response
-			throw new DbServerError();
-		}
-
-		if (+response.data.output.errorCode) {
-			// handle specific error returned from subroutine
-			throw new DbServerError({ errorCode: response.data.output.errorCode });
-		}
+		handleDbServerError(response);
 
 		// return the relevant portion from the db server response
 		return response.data.output;

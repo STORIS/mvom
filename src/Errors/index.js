@@ -5,6 +5,8 @@ import DisallowDirectError from './DisallowDirect';
 import InvalidParameterError from './InvalidParameter';
 import InvalidServerFeaturesError from './InvalidServerFeatures';
 import NotImplementedError from './NotImplemented';
+import RecordLockedError from './RecordLocked';
+import RecordVersionError from './RecordVersion';
 import TransformDataError from './TransformData';
 
 /**
@@ -16,6 +18,8 @@ import TransformDataError from './TransformData';
  * @property {Error} InvalidParameter
  * @property {Error} InvalidServerFeatures
  * @property {Error} NotImplemented
+ * @property {Error} RecordLocked
+ * @property {Error} RecordVersion
  * @property {Error} TransformData
  */
 export default {
@@ -26,5 +30,7 @@ export default {
 	InvalidParameter: InvalidParameterError,
 	InvalidServerFeatures: InvalidServerFeaturesError,
 	NotImplemented: NotImplementedError,
+	RecordLocked: RecordLockedError,
+	RecordVersion: RecordVersionError,
 	TransformData: TransformDataError,
 };
