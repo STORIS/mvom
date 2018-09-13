@@ -94,12 +94,14 @@ describe('Connection', () => {
 					account: 'bar',
 					logger: mockLogger,
 					cacheMaxAge: 'baz',
+					timeout: 'qux',
 				}),
 				{
 					_endpoint: 'foo/bar/subroutine/entry',
 					logger: mockLogger,
 					status: connectionStatus.DISCONNECTED,
 					_cacheMaxAge: 'baz',
+					_timeout: 'qux',
 				},
 			);
 		});
@@ -383,6 +385,7 @@ describe('Connection', () => {
 					connectionManagerUri: 'foo',
 					account: 'bar',
 					logger: mockLogger,
+					timeout: 'baz',
 				});
 				RewireAPI.__Rewire__('axios', { post });
 				RewireAPI.__Rewire__('handleDbServerError', stub());
@@ -411,6 +414,36 @@ describe('Connection', () => {
 			it('should return the data.output property', () => {
 				post.resolves({ data: { output: 'bar' } });
 				return assert.eventually.strictEqual(connection._executeDb({ action: 'foo' }), 'bar');
+			});
+
+			describe('request parameters', () => {
+				const data = { action: 'foo' };
+				beforeEach(() => {
+					post.resolves({ data: { output: 'bar' } });
+				});
+
+				it('should post call axios.post', async () => {
+					await connection._executeDb(data);
+					assert.isTrue(post.calledOnce);
+				});
+
+				it('should post to the defined endpoint', async () => {
+					await connection._executeDb(data);
+					const expected = connection._endpoint;
+					assert.strictEqual(post.args[0][0], expected);
+				});
+
+				it('should post with the provided data', async () => {
+					await connection._executeDb(data);
+					const expected = { input: data };
+					assert.deepEqual(post.args[0][1], expected);
+				});
+
+				it('should post with the timeout option', async () => {
+					await connection._executeDb(data);
+					const expected = connection._timeout;
+					assert.strictEqual(post.args[0][2].timeout, expected);
+				});
 			});
 		});
 

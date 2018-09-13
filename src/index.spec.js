@@ -29,6 +29,7 @@ describe('mvom', () => {
 					account: 'bar',
 					logger: dummyLogger,
 					cacheMaxAge: 3600,
+					timeout: 0,
 				}),
 				'Connection constructor should be called with expected parameters',
 			);
@@ -48,6 +49,13 @@ describe('mvom', () => {
 
 				assert.strictEqual(Connection.args[0][0].cacheMaxAge, cacheMaxAge);
 			});
+
+			it('should allow the timeout to be overridden', () => {
+				const timeout = 1337;
+				mvom.createConnection('foo', 'bar', { timeout });
+
+				assert.strictEqual(Connection.args[0][0].timeout, timeout);
+			});
 		});
 
 		describe('errors', () => {
@@ -65,6 +73,10 @@ describe('mvom', () => {
 
 			it('should throw if cacheMaxAge is not an integer', () => {
 				assert.throws(mvom.createConnection.bind(mvom, 'foo', 'bar', { cacheMaxAge: 1.23 }));
+			});
+
+			it('should throw if timeout is not an integer', () => {
+				assert.throws(mvom.createConnection.bind(mvom, 'foo', 'bar', { timeout: 1.23 }));
 			});
 		});
 	});

@@ -24,6 +24,7 @@ import handleDbServerError from './handleDbServerError';
  * @param {string} options.account - Database account that connection will be used against
  * @param options.logger - Logger instance used for diagnostic logging
  * @param {number} options.cacheMaxAge - Maximum age, in seconds, of the cache of db server tier information
+ * @param {number} options.timeout - Request timeout, in milliseconds
  */
 class Connection {
 	/* static properties */
@@ -80,7 +81,7 @@ class Connection {
 	 */
 	_serverFeatureSet = { validFeatures: {}, invalidFeatures: [] };
 
-	constructor({ connectionManagerUri, account, logger, cacheMaxAge }) {
+	constructor({ connectionManagerUri, account, logger, cacheMaxAge, timeout }) {
 		logger.debug(`creating new connection instance`);
 		Object.defineProperties(this, {
 			/**
@@ -145,6 +146,16 @@ class Connection {
 			 */
 			_timeDrift: {
 				writable: true,
+			},
+			/**
+			 * Request timeout, in milliseconds
+			 * @member _timeout
+			 * @memberof Connection
+			 * @instance
+			 * @private
+			 */
+			_timeout: {
+				value: timeout,
 			},
 		});
 	}
@@ -363,9 +374,13 @@ class Connection {
 
 		let response;
 		try {
-			response = await axios.post(this._endpoint, { input: data });
+			response = await axios.post(this._endpoint, { input: data }, { timeout: this._timeout });
 		} catch (err) {
-			throw new ConnectionManagerError({ request: err.request, response: err.response });
+			throw new ConnectionManagerError({
+				message: err.message,
+				connectionManagerRequest: err.request,
+				connectionManagerResponse: err.response,
+			});
 		}
 
 		handleDbServerError(response);

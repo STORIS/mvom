@@ -6,8 +6,8 @@ describe('ConnectionManagerError', () => {
 		it('should set instance members with default values', () => {
 			const error = new ConnectionManagerError();
 			assert.strictEqual(error.name, 'ConnectionManagerError');
-			assert.deepEqual(error.request, {});
-			assert.deepEqual(error.response, {});
+			assert.deepEqual(error.connectionManagerRequest, {});
+			assert.deepEqual(error.connectionManagerResponse, {});
 			assert.strictEqual(error.message, 'Error in Connection Manager communication');
 		});
 
@@ -16,14 +16,14 @@ describe('ConnectionManagerError', () => {
 			assert.strictEqual(error.message, 'foo');
 		});
 
-		it('should override default request value', () => {
-			const error = new ConnectionManagerError({ request: 'foo' });
-			assert.strictEqual(error.request, 'foo');
+		it('should override default connectionManagerRequest value', () => {
+			const error = new ConnectionManagerError({ connectionManagerRequest: 'foo' });
+			assert.strictEqual(error.connectionManagerRequest, 'foo');
 		});
 
-		it('should override default response value', () => {
-			const error = new ConnectionManagerError({ response: 'foo' });
-			assert.strictEqual(error.response, 'foo');
+		it('should override default connectionManagerResponse value', () => {
+			const error = new ConnectionManagerError({ connectionManagerResponse: 'foo' });
+			assert.strictEqual(error.connectionManagerResponse, 'foo');
 		});
 
 		it('should destructure remaining properties into other property', () => {
