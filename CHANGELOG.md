@@ -1,4 +1,23 @@
 # CHANGELOG.md
+## 0.2.0
+###### _2018-09-18_
+- Nearly all dependencies and devDependencies have been updated to the latest versions. @shawnmcknight
+- Connections now accept a timeout parameter which will override the default of no timeout.  The default remains to be
+no timeout. @shawnmcknight
+- The `request` and `response` properties of the `ConnectionManager` error object have now been renamed so they do not appear
+to be errors that directly came from axios.  They are now `connectionManagerRequest` and `connectionManagerResponse`
+respectively. @shawnmcknight
+- The `Connection` class is no longer exported.  Connections should be established via the `createConnection` method which
+now accepts all parameters that the `Connection` class accepts. @shawnmcknight
+- mvom will no longer create a default winston logger if one is not passed to the connection constructor.  All consumers who wish
+to have mvom provide logging should pass in their own logger (such as [winston](https://www.npmjs.com/package/winston))
+which provides methods conforming to the npm log levels. @shawnmcknight
+- Db server tier errors can now be cast to error class instances.  Errors due to record locking will
+now be cast to `RecordLockedError` and errors due to record version mismatches will be cast to `RecordVersionError` @shawnmcknight
+- Db server errors occuring during save will now enrich the error object with the filename and record id in the error
+object's `other` property. @shawnmcknight
+- All errors thrown from mvom will now contain a source property with a value of `mvom`. @shawnmcknight
+
 ## 0.1.0
 ###### _2018-08-10_
 We've graduated from Alpha to Beta!  Semver has been updated so breaking vs. non-breaking changes
