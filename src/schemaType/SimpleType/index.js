@@ -168,7 +168,7 @@ class SimpleType extends BaseType {
 			await Promise.all(
 				this._validators
 					.concat(handleRequiredValidation(this._required, this._validateRequired))
-					.map(async ({ validator, message }) => !await validator(value, document) && message),
+					.map(async ({ validator, message }) => !(await validator(value, document)) && message),
 			),
 		);
 	/* private instance methods */
