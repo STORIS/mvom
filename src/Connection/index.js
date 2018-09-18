@@ -5,7 +5,6 @@ import moment from 'moment';
 import semver from 'semver';
 import compileModel from 'compileModel';
 import ConnectionManagerError from 'Errors/ConnectionManager';
-import DbServerError from 'Errors/DbServer';
 import InvalidParameterError from 'Errors/InvalidParameter';
 import InvalidServerFeaturesError from 'Errors/InvalidServerFeatures';
 import getFeatureVersion from 'shared/getFeatureVersion';
@@ -17,13 +16,15 @@ import {
 	ISOTimeFormat,
 } from 'shared/constants/time';
 import { dependencies as serverDependencies } from '.mvomrc.json';
+import handleDbServerError from './handleDbServerError';
 
 /** A connection object
  * @param {Object} options
  * @param {string} options.connectionManagerUri - URI of the connection manager which faciliates access to the mv database
  * @param {string} options.account - Database account that connection will be used against
- * @param options.logger - Winston logger instance used for diagnostic logging
- * @param {number} [options.cacheMaxAge=3600] - Maximum age, in seconds, of the cache of db server tier information
+ * @param options.logger - Logger instance used for diagnostic logging
+ * @param {number} options.cacheMaxAge - Maximum age, in seconds, of the cache of db server tier information
+ * @param {number} options.timeout - Request timeout, in milliseconds
  */
 class Connection {
 	/* static properties */
@@ -80,11 +81,11 @@ class Connection {
 	 */
 	_serverFeatureSet = { validFeatures: {}, invalidFeatures: [] };
 
-	constructor({ connectionManagerUri, account, logger, cacheMaxAge = 3600 }) {
+	constructor({ connectionManagerUri, account, logger, cacheMaxAge, timeout }) {
 		logger.debug(`creating new connection instance`);
 		Object.defineProperties(this, {
 			/**
-			 * Winston logger instance used for diagnostic logging
+			 * Logger instance used for diagnostic logging
 			 * @member logger
 			 * @memberof Connection
 			 * @instance
@@ -145,6 +146,16 @@ class Connection {
 			 */
 			_timeDrift: {
 				writable: true,
+			},
+			/**
+			 * Request timeout, in milliseconds
+			 * @member _timeout
+			 * @memberof Connection
+			 * @instance
+			 * @private
+			 */
+			_timeout: {
+				value: timeout,
 			},
 		});
 	}
@@ -363,20 +374,16 @@ class Connection {
 
 		let response;
 		try {
-			response = await axios.post(this._endpoint, { input: data });
+			response = await axios.post(this._endpoint, { input: data }, { timeout: this._timeout });
 		} catch (err) {
-			throw new ConnectionManagerError({ request: err.request, response: err.response });
+			throw new ConnectionManagerError({
+				message: err.message,
+				connectionManagerRequest: err.request,
+				connectionManagerResponse: err.response,
+			});
 		}
 
-		if (!response || !response.data || !response.data.output) {
-			// handle invalid response
-			throw new DbServerError();
-		}
-
-		if (+response.data.output.errorCode) {
-			// handle specific error returned from subroutine
-			throw new DbServerError({ errorCode: response.data.output.errorCode });
-		}
+		handleDbServerError(response);
 
 		// return the relevant portion from the db server response
 		return response.data.output;

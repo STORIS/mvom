@@ -19,6 +19,13 @@ class BaseError extends Error {
 
 		super(message);
 		/**
+		 * Source of the error - always "mvom"
+		 * @member {string} source
+		 * @memberof BaseError
+		 * @instance
+		 */
+		this.source = 'mvom';
+		/**
 		 * Name of the error - used for identification purposes
 		 * @member {string} name
 		 * @memberof BaseError

@@ -20,6 +20,7 @@ describe('BaseError', () => {
 
 		it('should set instance members with default values', () => {
 			const error = new Extension();
+			assert.strictEqual(error.source, 'mvom');
 			assert.strictEqual(error.name, 'BaseError');
 			assert.strictEqual(error.message, 'Base Error');
 		});

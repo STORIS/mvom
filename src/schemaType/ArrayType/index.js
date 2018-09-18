@@ -96,7 +96,9 @@ class ArrayType extends ComplexType {
 				await Promise.all(
 					this._validators
 						.concat(handleRequiredValidation(this._required, this._validateRequired))
-						.map(async ({ validator, message }) => !await validator(castValue, document) && message)
+						.map(
+							async ({ validator, message }) => !(await validator(castValue, document)) && message,
+						)
 						.concat(
 							castValue.map(async arrayItem => this._valueSchemaType.validate(arrayItem, document)),
 						),

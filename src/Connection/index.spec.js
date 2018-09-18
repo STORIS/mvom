@@ -94,26 +94,14 @@ describe('Connection', () => {
 					account: 'bar',
 					logger: mockLogger,
 					cacheMaxAge: 'baz',
+					timeout: 'qux',
 				}),
 				{
 					_endpoint: 'foo/bar/subroutine/entry',
 					logger: mockLogger,
 					status: connectionStatus.DISCONNECTED,
 					_cacheMaxAge: 'baz',
-				},
-			);
-		});
-
-		it('should set default instance values', () => {
-			assert.include(
-				new Connection({
-					connectionManagerUri: 'foo',
-					account: 'bar',
-					logger: mockLogger,
-				}),
-				{
-					_cacheMaxAge: 3600,
-					_cacheExpiry: 0,
+					_timeout: 'qux',
 				},
 			);
 		});
@@ -397,12 +385,15 @@ describe('Connection', () => {
 					connectionManagerUri: 'foo',
 					account: 'bar',
 					logger: mockLogger,
+					timeout: 'baz',
 				});
 				RewireAPI.__Rewire__('axios', { post });
+				RewireAPI.__Rewire__('handleDbServerError', stub());
 			});
 
 			after(() => {
 				RewireAPI.__ResetDependency__('axios');
+				RewireAPI.__ResetDependency__('handleDbServerError');
 			});
 
 			beforeEach(() => {
@@ -420,29 +411,39 @@ describe('Connection', () => {
 				return assert.isRejected(connection._executeDb({ action: 'foo' }), ConnectionManagerError);
 			});
 
-			it('should reject with DbServerError if response is falsy', () => {
-				post.resolves(null);
-				return assert.isRejected(connection._executeDb({ action: 'foo' }), DbServerError);
-			});
-
-			it('should reject with DbServerError if response has falsy data', () => {
-				post.resolves({});
-				return assert.isRejected(connection._executeDb({ action: 'foo' }), DbServerError);
-			});
-
-			it('should reject with DbServerError if response has falsy data.output', () => {
-				post.resolves({ data: {} });
-				return assert.isRejected(connection._executeDb({ action: 'foo' }), DbServerError);
-			});
-
-			it('should reject with DbServerError if response has a truthy errorCode', () => {
-				post.resolves({ data: { output: { errorCode: 1 } } });
-				return assert.isRejected(connection._executeDb({ action: 'foo' }), DbServerError);
-			});
-
 			it('should return the data.output property', () => {
 				post.resolves({ data: { output: 'bar' } });
 				return assert.eventually.strictEqual(connection._executeDb({ action: 'foo' }), 'bar');
+			});
+
+			describe('request parameters', () => {
+				const data = { action: 'foo' };
+				beforeEach(() => {
+					post.resolves({ data: { output: 'bar' } });
+				});
+
+				it('should post call axios.post', async () => {
+					await connection._executeDb(data);
+					assert.isTrue(post.calledOnce);
+				});
+
+				it('should post to the defined endpoint', async () => {
+					await connection._executeDb(data);
+					const expected = connection._endpoint;
+					assert.strictEqual(post.args[0][0], expected);
+				});
+
+				it('should post with the provided data', async () => {
+					await connection._executeDb(data);
+					const expected = { input: data };
+					assert.deepEqual(post.args[0][1], expected);
+				});
+
+				it('should post with the timeout option', async () => {
+					await connection._executeDb(data);
+					const expected = connection._timeout;
+					assert.strictEqual(post.args[0][2].timeout, expected);
+				});
 			});
 		});
 
@@ -464,6 +465,7 @@ describe('Connection', () => {
 					connectionManagerUri: 'foo',
 					account: 'bar',
 					logger: mockLogger,
+					cacheMaxAge: 1,
 				});
 
 				stub(connection, 'executeDbFeature').resolves(serverInfo);
@@ -522,10 +524,10 @@ describe('Connection', () => {
 					clock.restore();
 				});
 
-				it('should set the cache expiry based on the the default value', async () => {
+				it('should set the cache expiry based on the provided _cacheMaxAge', async () => {
 					connection._cacheExpiry = -1;
 					await connection._getDbServerInfo();
-					assert.strictEqual(connection._cacheExpiry, 3600000);
+					assert.strictEqual(connection._cacheExpiry, 1000);
 				});
 			});
 		});

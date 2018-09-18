@@ -57,7 +57,7 @@ class NestedArrayType extends ComplexType {
 					castArray(itemValue).map(nestedValue =>
 						this._valueSchemaType.transformFromDb(nestedValue),
 					),
-				);
+			  );
 	};
 
 	/**
@@ -101,7 +101,9 @@ class NestedArrayType extends ComplexType {
 				await Promise.all(
 					this._validators
 						.concat(handleRequiredValidation(this._required, this._validateRequired))
-						.map(async ({ validator, message }) => !await validator(castValue, document) && message)
+						.map(
+							async ({ validator, message }) => !(await validator(castValue, document)) && message,
+						)
 						.concat(
 							flatten(castValue).map(async arrayItem =>
 								this._valueSchemaType.validate(arrayItem, document),
