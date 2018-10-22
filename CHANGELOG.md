@@ -1,4 +1,9 @@
 # CHANGELOG.md
+## 0.2.1
+###### _2018-10-22_
+- The constant values for queries will now be converted from the external schema format to the internal u2 format.
+This affects the date/time types as well as Booleans. @shawnmcknight
+
 ## 0.2.0
 ###### _2018-09-18_
 - Nearly all dependencies and devDependencies have been updated to the latest versions. @shawnmcknight
