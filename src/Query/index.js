@@ -15,76 +15,6 @@ import InvalidParameterError from 'Errors/InvalidParameter';
  * @throws {Error} (indirect) Passed constant parameter contains both single and double quotes
  */
 class Query {
-	/* static methods */
-
-	/**
-	 * Format a conditional expression
-	 * @function formatCondition
-	 * @memberof Query
-	 * @static
-	 * @private
-	 * @param {string} dictionaryId - Multivalue dictionary to use in expression
-	 * @param {string} operator - Relational operator to use in expression
-	 * @param {string} value - Constant value to use in expression
-	 * @returns {string} Formatted conditional expression
-	 * @throws {Error} (indirect) Passed constant parameter contains both single and double quotes
-	 */
-	static formatCondition = (dictionaryId, operator, value) =>
-		`${dictionaryId} ${operator} ${Query.formatConstant(value)}`;
-
-	/**
-	 * Format a list of conditional expressions
-	 * @function formatConditionList
-	 * @memberof Query
-	 * @static
-	 * @private
-	 * @param {string} dictionaryId - Multivalue dictionary to use in expression
-	 * @param {string} operator - Relational operator to use in expression
-	 * @param {string[]} valueList - Array of constant values to use in expressions
-	 * @param {string} joinString - String to join conditional expressions with
-	 * @returns {string} Formatted group of joined conditional expressions
-	 * @throws {InvalidParameterError} An invalid parameter was passed to the function
-	 */
-	static formatConditionList = (dictionaryId, operator, valueList, joinString) => {
-		if (!Array.isArray(valueList)) {
-			throw new InvalidParameterError({ parameterName: 'valueList' });
-		}
-
-		const conditionList = valueList.map(value =>
-			Query.formatCondition(dictionaryId, operator, value),
-		);
-
-		return conditionList.length === 1
-			? conditionList[0]
-			: `(${conditionList.join(` ${joinString} `)})`;
-	};
-
-	/**
-	 * Format a constant for use in queries
-	 * @function formatConstant
-	 * @memberof Query
-	 * @static
-	 * @private
-	 * @param {string} constant - Constant value to format
-	 * @returns {string} Constant value enclosed in appropriate quotation marks
-	 * @throws {Error} Passed constant parameter contains both single and double quotes
-	 */
-	static formatConstant = constant => {
-		if (constant.includes(`'`) && constant.includes(`"`)) {
-			// cannot query if string has both single and double quotes in it
-			throw new Error('Query constants cannot contain both single and double quotes');
-		}
-
-		let quoteCharacter;
-		if (constant.includes(`"`)) {
-			quoteCharacter = `'`;
-		} else {
-			quoteCharacter = `"`;
-		}
-
-		return `${quoteCharacter}${constant}${quoteCharacter}`;
-	};
-
 	constructor(Model, selectionCriteria = {}, options = {}) {
 		/**
 		 * Model constructor to use with query
@@ -234,6 +164,81 @@ class Query {
 	/* private instance methods */
 
 	/**
+	 * Format a conditional expression
+	 * @function _formatCondition
+	 * @memberof Query
+	 * @instance
+	 * @private
+	 * @param {string} property - String keypath of property
+	 * @param {string} operator - Relational operator to use in expression
+	 * @param {string} value - Constant value to use in expression
+	 * @returns {string} Formatted conditional expression
+	 * @throws {Error} (indirect) Passed constant parameter contains both single and double quotes
+	 */
+	_formatCondition = (property, operator, value) => {
+		const dictionaryId = this._getDictionaryId(property);
+		return `${dictionaryId} ${operator} ${this._formatConstant(property, value)}`;
+	};
+
+	/**
+	 * Format a list of conditional expressions
+	 * @function _formatConditionList
+	 * @memberof Query
+	 * @instance
+	 * @private
+	 * @param {string} property - String keypath of property
+	 * @param {string} operator - Relational operator to use in expression
+	 * @param {string[]} valueList - Array of constant values to use in expressions
+	 * @param {string} joinString - String to join conditional expressions with
+	 * @returns {string} Formatted group of joined conditional expressions
+	 * @throws {InvalidParameterError} An invalid parameter was passed to the function
+	 */
+	_formatConditionList = (property, operator, valueList, joinString) => {
+		if (!Array.isArray(valueList)) {
+			throw new InvalidParameterError({ parameterName: 'valueList' });
+		}
+
+		const conditionList = valueList.map(value => this._formatCondition(property, operator, value));
+
+		return conditionList.length === 1
+			? conditionList[0]
+			: `(${conditionList.join(` ${joinString} `)})`;
+	};
+
+	/**
+	 * Format a constant for use in queries
+	 * @function _formatConstant
+	 * @memberof Query
+	 * @instance
+	 * @private
+	 * @param {string} property - String keypath of property
+	 * @param {string} constant - Constant value to format
+	 * @returns {string} Constant value enclosed in appropriate quotation marks
+	 * @throws {Error} Passed constant parameter contains both single and double quotes
+	 */
+	_formatConstant = (property, constant) => {
+		let constantToFormat = constant;
+		const queryTransformer = this._getQueryTransformer(property);
+		if (typeof queryTransformer === 'function') {
+			constantToFormat = queryTransformer(constantToFormat);
+		}
+
+		if (constantToFormat.includes(`'`) && constantToFormat.includes(`"`)) {
+			// cannot query if string has both single and double quotes in it
+			throw new Error('Query constants cannot contain both single and double quotes');
+		}
+
+		let quoteCharacter;
+		if (constantToFormat.includes(`"`)) {
+			quoteCharacter = `'`;
+		} else {
+			quoteCharacter = `"`;
+		}
+
+		return `${quoteCharacter}${constantToFormat}${quoteCharacter}`;
+	};
+
+	/**
 	 * Format the selection criteria object into a string to use in multivalue query
 	 * @function _formatSelectionCriteria
 	 * @memberof Query
@@ -266,43 +271,41 @@ class Query {
 				return `(${orConditions.join(' or ')})`;
 			}
 
-			const dictionaryId = this._getDictionaryId(queryProperty);
-
 			if (Array.isArray(queryValue)) {
 				// assume $in operator if queryValue is an array
-				return Query.formatConditionList(dictionaryId, '=', queryValue, 'or');
+				return this._formatConditionList(queryProperty, '=', queryValue, 'or');
 			}
 
 			if (!isPlainObject(queryValue)) {
 				// assume equality if queryValue is not an object
-				return Query.formatCondition(dictionaryId, '=', queryValue);
+				return this._formatCondition(queryProperty, '=', queryValue);
 			}
 
 			// if query value is an object then it should contain one or more pairs of operator and value
 			const operatorConditions = Object.entries(queryValue).map(([operator, mvValue]) => {
 				switch (operator) {
 					case '$eq':
-						return Query.formatCondition(dictionaryId, '=', mvValue);
+						return this._formatCondition(queryProperty, '=', mvValue);
 					case '$gt':
-						return Query.formatCondition(dictionaryId, '>', mvValue);
+						return this._formatCondition(queryProperty, '>', mvValue);
 					case '$gte':
-						return Query.formatCondition(dictionaryId, '>=', mvValue);
+						return this._formatCondition(queryProperty, '>=', mvValue);
 					case '$lt':
-						return Query.formatCondition(dictionaryId, '<', mvValue);
+						return this._formatCondition(queryProperty, '<', mvValue);
 					case '$lte':
-						return Query.formatCondition(dictionaryId, '<=', mvValue);
+						return this._formatCondition(queryProperty, '<=', mvValue);
 					case '$ne':
-						return Query.formatCondition(dictionaryId, '#', mvValue);
+						return this._formatCondition(queryProperty, '#', mvValue);
 					case '$contains':
-						return Query.formatCondition(dictionaryId, 'like', `...${mvValue}...`);
+						return this._formatCondition(queryProperty, 'like', `...${mvValue}...`);
 					case '$startsWith':
-						return Query.formatCondition(dictionaryId, 'like', `${mvValue}...`);
+						return this._formatCondition(queryProperty, 'like', `${mvValue}...`);
 					case '$endsWith':
-						return Query.formatCondition(dictionaryId, 'like', `...${mvValue}`);
+						return this._formatCondition(queryProperty, 'like', `...${mvValue}`);
 					case '$in':
-						return Query.formatConditionList(dictionaryId, '=', mvValue, 'or');
+						return this._formatConditionList(queryProperty, '=', mvValue, 'or');
 					case '$nin':
-						return Query.formatConditionList(dictionaryId, '#', mvValue, 'and');
+						return this._formatConditionList(queryProperty, '#', mvValue, 'and');
 					default:
 						// unknown operator
 						throw new TypeError('Invalid conditional operator specified');
@@ -369,6 +372,18 @@ class Query {
 		}
 		return dictionaryId;
 	};
+
+	/**
+	 * Get the function to convert query constant to internal u2 format (if applicable)
+	 * @function _getQueryTransformer
+	 * @memberof Query
+	 * @instance
+	 * @private
+	 * @param {string} property - String keypath of property
+	 * @returns {Function|undefined} Function to execute to convert query constant to internal u2 format
+	 */
+	_getQueryTransformer = property =>
+		this._Model.schema.paths[property] && this._Model.schema.paths[property].transformToQuery;
 
 	/**
 	 * Set options passed via constructor

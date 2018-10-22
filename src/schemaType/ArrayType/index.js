@@ -1,45 +1,14 @@
 import castArray from 'lodash/castArray';
 import compact from 'lodash/compact';
 import flatten from 'lodash/flatten';
-import ComplexType from 'schemaType/ComplexType';
-import SimpleType from 'schemaType/SimpleType';
-import InvalidParameterError from 'Errors/InvalidParameter';
+import BasePrimitiveArrayType from 'schemaType/BasePrimitiveArrayType';
 import handleRequiredValidation from 'shared/handleRequiredValidation';
 
 /**
  * An Array Schema Type
- * @extends ComplexType
- * @param {SimpleType} valueSchemaType - A schemaType representing the type of the array's contents
- * @throws {InvalidParameterError} An invalid parameter was passed to the function
+ * @extends BasePrimitiveArrayType
  */
-class ArrayType extends ComplexType {
-	constructor(valueSchemaType) {
-		if (!(valueSchemaType instanceof SimpleType)) {
-			// array values must be a child of SimpleType class
-			throw new InvalidParameterError({ parameterName: 'valueSchemaType' });
-		}
-		super();
-
-		const { required = false } = valueSchemaType.definition;
-
-		/**
-		 * A schemaType representing the type of the array's contents
-		 * @member {SimpleType} _valueSchemaType
-		 * @memberof ArrayType
-		 * @instance
-		 * @private
-		 */
-		this._valueSchemaType = valueSchemaType;
-		/**
-		 * Required validation value for the array
-		 * @member {Boolean|Function} _required
-		 * @memberof ArrayType
-		 * @instance
-		 * @private
-		 */
-		this._required = required;
-	}
-
+class ArrayType extends BasePrimitiveArrayType {
 	/* public instance methods */
 
 	/**
@@ -47,6 +16,7 @@ class ArrayType extends ComplexType {
 	 * @function get
 	 * @memberof ArrayType
 	 * @instance
+	 * @override
 	 * @param {*[]} record - Data to get values from
 	 * @returns {*[]} Array of formatted data values
 	 * @throws {TransformDataError} (indirect) Database value could not be transformed to external format
@@ -63,6 +33,7 @@ class ArrayType extends ComplexType {
 	 * @function set
 	 * @memberof ArrayType
 	 * @instance
+	 * @override
 	 * @param {*[]} originalRecord - Record structure to use as basis for applied changes
 	 * @param {*[]} setValue - Array to set into record
 	 * @returns {*[]} Array data of output record format
@@ -78,6 +49,7 @@ class ArrayType extends ComplexType {
 	 * @function validate
 	 * @memberof ArrayType
 	 * @instance
+	 * @override
 	 * @async
 	 * @param {*[]} value - Array to validate
 	 * @param {Document} document - Document object
@@ -106,20 +78,6 @@ class ArrayType extends ComplexType {
 			),
 		);
 	};
-
-	/* private instance methods */
-
-	/**
-	 * Array required validator
-	 * @function _validateRequired
-	 * @memberof ArrayType
-	 * @instance
-	 * @private
-	 * @async
-	 * @param {*[]} value - Array to validate
-	 * @returns {Promise.<Boolean>} True if valid / false if invalid
-	 */
-	_validateRequired = async value => value.length > 0;
 }
 
 export default ArrayType;

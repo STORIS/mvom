@@ -151,6 +151,17 @@ class SimpleType extends BaseType {
 	};
 
 	/**
+	 * Transform query constants to the format schema
+	 * @function transformToQuery
+	 * @memberof SimpleType
+	 * @instance
+	 * @public
+	 * @param {*} value - Value to convert
+	 * @returns {*} No transformation - returns original input value
+	 */
+	transformToQuery = value => value;
+
+	/**
 	 * Validate the simple type
 	 * @function validate
 	 * @memberof SimpleType

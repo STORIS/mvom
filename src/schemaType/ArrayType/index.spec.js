@@ -2,10 +2,11 @@
 import { assert } from 'chai';
 import castArray from 'lodash/castArray';
 import { spy, stub } from 'sinon';
+import SimpleType from 'schemaType/SimpleType';
 import ArrayType, { __RewireAPI__ as RewireAPI } from './';
 
 describe('ArrayType', () => {
-	const SimpleType = class {
+	const SimpleTypeExtended = class extends SimpleType {
 		getFromMvData = stub();
 		setIntoMvData = stub();
 		transformFromDb = stub();
@@ -20,24 +21,11 @@ describe('ArrayType', () => {
 		message: 'requiredValidator',
 	});
 	before(() => {
-		RewireAPI.__Rewire__('SimpleType', SimpleType);
 		RewireAPI.__Rewire__('handleRequiredValidation', handleRequiredValidation);
 	});
 
 	after(() => {
-		RewireAPI.__ResetDependency__('SimpleType');
-		RewireAPI.__ResetDependency__('handleRequiredValidation');
-	});
-
-	describe('constructor', () => {
-		it('should throw when valueSchemaType is not an instance of SimpleType', () => {
-			assert.throws(() => new ArrayType('foo'));
-		});
-
-		it('should set _valueSchemaType instance member', () => {
-			const arrayType = new ArrayType(new SimpleType());
-			assert.instanceOf(arrayType._valueSchemaType, SimpleType);
-		});
+		__rewire_reset_all__();
 	});
 
 	describe('instance methods', () => {
@@ -47,7 +35,7 @@ describe('ArrayType', () => {
 			let arrayType;
 			before(() => {
 				RewireAPI.__Rewire__('castArray', castArraySpy);
-				simpleType = new SimpleType({});
+				simpleType = new SimpleTypeExtended({});
 				simpleType.transformFromDb.withArgs('foo').returns('def');
 				simpleType.transformFromDb.withArgs('bar').returns('henk');
 				arrayType = new ArrayType(simpleType);
@@ -87,7 +75,7 @@ describe('ArrayType', () => {
 			let simpleType;
 			let arrayType;
 			before(() => {
-				simpleType = new SimpleType({});
+				simpleType = new SimpleTypeExtended({});
 				simpleType.transformToDb.withArgs('foo').returns('def');
 				simpleType.transformToDb.withArgs('bar').returns('henk');
 				arrayType = new ArrayType(simpleType);
@@ -121,7 +109,7 @@ describe('ArrayType', () => {
 			const fooValidator = stub();
 			const barValidator = stub();
 			before(() => {
-				simpleType = new SimpleType({});
+				simpleType = new SimpleTypeExtended({});
 				arrayType = new ArrayType(simpleType);
 				arrayType._validators.push({ validator: fooValidator, message: 'foo' });
 				arrayType._validators.push({ validator: barValidator, message: 'bar' });
@@ -213,23 +201,6 @@ describe('ArrayType', () => {
 				requiredValidator.resolves(true);
 				simpleType.validate.resolves([]);
 				assert.deepEqual(await arrayType.validate([]), []);
-			});
-		});
-
-		describe('_validateRequired', () => {
-			let simpleType;
-			let arrayType;
-			before(() => {
-				simpleType = new SimpleType({});
-				arrayType = new ArrayType(simpleType);
-			});
-
-			it('should resolve as false if array is empty', async () => {
-				assert.isFalse(await arrayType._validateRequired([]));
-			});
-
-			it('should resolve as true if array is not empty', async () => {
-				assert.isTrue(await arrayType._validateRequired(['foo']));
 			});
 		});
 	});

@@ -1,16 +1,16 @@
 import moment from 'moment';
-import SimpleType from 'schemaType/SimpleType';
+import BaseDateType from 'schemaType/BaseDateType';
 import TransformDataError from 'Errors/TransformData';
 import { epoch, ISOCalendarDateFormat } from 'shared/constants/time';
 import handleTypeValidation from 'shared/handleTypeValidation';
 
 /**
  * An ISOCalendarDate Schema Type
- * @extends SimpleType
+ * @extends BaseDateType
  * @param {Object} definition - Data definition
  * @param {string} [definition.path = null] - 1-indexed String path
  */
-class ISOCalendarDateType extends SimpleType {
+class ISOCalendarDateType extends BaseDateType {
 	/* static properties */
 
 	constructor(definition) {

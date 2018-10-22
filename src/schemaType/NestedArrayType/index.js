@@ -1,50 +1,20 @@
 import castArray from 'lodash/castArray';
 import compact from 'lodash/compact';
 import flatten from 'lodash/flatten';
-import ComplexType from 'schemaType/ComplexType';
-import SimpleType from 'schemaType/SimpleType';
-import InvalidParameterError from 'Errors/InvalidParameter';
+import BasePrimitiveArrayType from 'schemaType/BasePrimitiveArrayType';
 import handleRequiredValidation from 'shared/handleRequiredValidation';
 
 /**
  * A Nested Array Schema Type
- * @extends ComplexType
- * @param {SimpleType} valueSchemaType - A schemaType representing the type of the child array's contents
- * @throws {InvalidParameterError} An invalid parameter was passed to the function
+ * @extends BasePrimitiveArrayType
  */
-class NestedArrayType extends ComplexType {
-	constructor(valueSchemaType) {
-		if (!(valueSchemaType instanceof SimpleType)) {
-			// array values must be a child of SimpleType class
-			throw new InvalidParameterError({ parameterName: 'valueSchemaType' });
-		}
-		super();
-
-		const { required = false } = valueSchemaType.definition;
-
-		/**
-		 * A schemaType representing the type of the child array's contents
-		 * @member {SimpleType} _valueSchemaType
-		 * @memberof NestedArrayType
-		 * @instance
-		 * @private
-		 */
-		this._valueSchemaType = valueSchemaType;
-		/**
-		 * Required validation value for the array
-		 * @member {Boolean|Function} _required
-		 * @memberof NestedArrayType
-		 * @instance
-		 * @private
-		 */
-		this._required = required;
-	}
-
+class NestedArrayType extends BasePrimitiveArrayType {
 	/**
 	 * Get value from mv data
 	 * @function get
 	 * @memberof NestedArrayType
 	 * @instance
+	 * @override
 	 * @param {*[]} record - Data to get values from
 	 * @returns {Array.<Array.<*>>} Nested array of formatted data values
 	 * @throws {TransformDataError} (indirect) Database value could not be transformed to external format
@@ -65,6 +35,7 @@ class NestedArrayType extends ComplexType {
 	 * @function set
 	 * @memberof NestedArrayType
 	 * @instance
+	 * @override
 	 * @param {*[]} originalRecord - Record structure to use as basis for applied changes
 	 * @param {Array.<Array.<*>>} setValue - Nested array to set into record
 	 * @returns {*[]} Array data of output record format
@@ -82,6 +53,7 @@ class NestedArrayType extends ComplexType {
 	 * @function validate
 	 * @memberof NestedArrayType
 	 * @instance
+	 * @override
 	 * @async
 	 * @param {Array.<Array.<*>>} value - Nested array to validate
 	 * @param {Document} document - Document object
@@ -113,20 +85,6 @@ class NestedArrayType extends ComplexType {
 			),
 		);
 	};
-
-	/* private instance methods */
-
-	/**
-	 * Nested array required validator
-	 * @function _validateRequired
-	 * @memberof NestedArrayType
-	 * @instance
-	 * @private
-	 * @async
-	 * @param {Array.<Array.<*>>} value - Nested array to validate
-	 * @returns {Promise.<Boolean>} True if valid / false if invalid
-	 */
-	_validateRequired = async value => value.length > 0;
 }
 
 export default NestedArrayType;
