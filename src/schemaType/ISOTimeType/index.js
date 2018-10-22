@@ -1,17 +1,17 @@
 import moment from 'moment';
-import SimpleType from 'schemaType/SimpleType';
+import BaseDateType from 'schemaType/SimpleType';
 import TransformDataError from 'Errors/TransformData';
 import { ISOTimeFormat } from 'shared/constants/time';
 import handleTypeValidation from 'shared/handleTypeValidation';
 
 /**
  * An ISOTime Schema Type
- * @extends SimpleType
+ * @extends BaseDateType
  * @param {Object} definition - Data definition
  * @param {string} [definition.path = null] - 1-indexed String path
  * @param {string} [definition.dbFormat = 's'] - Allowed values: 's' & 'ms'; indicates whether time is stored in seconds or milliseconds past midnight
  */
-class ISOTimeType extends SimpleType {
+class ISOTimeType extends BaseDateType {
 	constructor(definition) {
 		super(definition);
 		const { dbFormat = 's' } = definition;

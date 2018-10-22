@@ -62,5 +62,46 @@ describe('BooleanType', () => {
 				assert.strictEqual(booleanType.transformToDb(0), '0');
 			});
 		});
+
+		describe('transformToQuery', () => {
+			let booleanType;
+			before(() => {
+				booleanType = new BooleanType({ path: '1' });
+			});
+
+			describe('truthy', () => {
+				it('should return 1 for Boolean true', () => {
+					assert.strictEqual(booleanType.transformToQuery(true), '1');
+				});
+
+				it('should return 1 for string true', () => {
+					assert.strictEqual(booleanType.transformToQuery('true'), '1');
+				});
+
+				it('should return 1 for string TRUE', () => {
+					assert.strictEqual(booleanType.transformToQuery('TRUE'), '1');
+				});
+			});
+
+			describe('falsy', () => {
+				it('should return 0 for Boolean false', () => {
+					assert.strictEqual(booleanType.transformToQuery(false), '0');
+				});
+
+				it('should return 0 for string false', () => {
+					assert.strictEqual(booleanType.transformToQuery('false'), '0');
+				});
+
+				it('should return 0 for string FALSE', () => {
+					assert.strictEqual(booleanType.transformToQuery('FALSE'), '0');
+				});
+			});
+
+			describe('other', () => {
+				it('should return the passed value', () => {
+					assert.strictEqual(booleanType.transformToQuery('foo'), 'foo');
+				});
+			});
+		});
 	});
 });

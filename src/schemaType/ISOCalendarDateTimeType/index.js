@@ -1,19 +1,19 @@
 import isString from 'lodash/isString';
+import BaseDateType from 'schemaType/BaseDateType';
 import ISOCalendarDateType from 'schemaType/ISOCalendarDateType';
 import ISOTimeType from 'schemaType/ISOTimeType';
-import SimpleType from 'schemaType/SimpleType';
 import InvalidParameterError from 'Errors/InvalidParameter';
 import handleTypeValidation from 'shared/handleTypeValidation';
 
 /**
  * An ISOCalendarDateTime Schema Type
- * @extends SimpleType
+ * @extends BaseDateType
  * @param {Object} definition - Data definition
  * @param {string} definition.path - 1-indexed String path
  * @param {string} [definition.dbFormat = 'ms'] - Allowed values: 's' & 'ms'; indicates whether time is stored in seconds or milliseconds past midnight
  * @throws {InvalidParameterError} An invalid parameter was passed to the function
  */
-class ISOCalendarDateTimeType extends SimpleType {
+class ISOCalendarDateTimeType extends BaseDateType {
 	constructor(definition) {
 		if (definition.path == null) {
 			throw new InvalidParameterError({ parameterName: 'definition.path' });

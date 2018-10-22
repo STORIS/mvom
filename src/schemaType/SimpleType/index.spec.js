@@ -18,9 +18,7 @@ describe('SimpleType', () => {
 	});
 
 	after(() => {
-		RewireAPI.__ResetDependency__('NotImplementedError');
-		RewireAPI.__ResetDependency__('getFromMvArray');
-		RewireAPI.__ResetDependency__('handleRequiredValidation');
+		__rewire_reset_all__();
 	});
 
 	beforeEach(() => {
@@ -178,6 +176,18 @@ describe('SimpleType', () => {
 
 			it('should throw NotImplementedError if called', () => {
 				assert.throws(extension.transformToDb, NotImplementedError);
+			});
+		});
+
+		describe('transformToQuery', () => {
+			let extension;
+			before(() => {
+				const Extension = class extends SimpleType {};
+				extension = new Extension({});
+			});
+
+			it('should return the value passed in', () => {
+				assert.strictEqual(extension.transformToQuery('foo'), 'foo');
 			});
 		});
 

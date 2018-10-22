@@ -43,6 +43,26 @@ class BooleanType extends SimpleType {
 	 * @returns {'1'|'0'} Transformed value
 	 */
 	transformToDb = value => (value ? '1' : '0');
+
+	/**
+	 * Transform query constants to u2 formatted Boolean
+	 * @function transformToQuery
+	 * @memberof SimpleType
+	 * @instance
+	 * @public
+	 * @override
+	 * @param {Boolean|string|*} value - Value to convert
+	 * @returns {'1'|'0'|*} Returns "1" if boolean or string true, "0" if boolean or string false, and original value if anything else
+	 */
+	transformToQuery = value => {
+		if ([true, 'true', 'TRUE'].includes(value)) {
+			return '1';
+		}
+		if ([false, 'false', 'FALSE'].includes(value)) {
+			return '0';
+		}
+		return value;
+	};
 }
 
 export default BooleanType;

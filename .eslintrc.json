@@ -9,7 +9,9 @@
     "node": true,
     "mocha": true
   },
-  "globals": {},
+  "globals": {
+    "__rewire_reset_all__": false
+  },
   "parser": "babel-eslint",
   "parserOptions": {
     "sourceType": "module"

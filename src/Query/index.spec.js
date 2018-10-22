@@ -5,65 +5,6 @@ import mockLogger from 'testHelpers/mockLogger';
 import Query from './';
 
 describe('Query', () => {
-	describe('static methods', () => {
-		describe('formatCondition', () => {
-			before(() => {
-				stub(Query, 'formatConstant').returnsArg(0);
-			});
-
-			after(() => {
-				Query.formatConstant.restore();
-			});
-
-			it('should return a query conditional expression', () => {
-				assert.strictEqual(Query.formatCondition('foo', 'bar', 'baz'), 'foo bar baz');
-			});
-		});
-
-		describe('formatConditionList', () => {
-			before(() => {
-				stub(Query, 'formatCondition').returnsArg(2);
-			});
-
-			after(() => {
-				Query.formatCondition.restore();
-			});
-
-			it('should throw if valueList parameter is not an array', () => {
-				assert.throws(Query.formatConditionList.bind(Query, 'foo', 'bar', 'baz', 'qux'));
-			});
-
-			it('should return an unjoined query conditional expression', () => {
-				assert.strictEqual(Query.formatConditionList('foo', 'bar', ['baz'], 'corge'), 'baz');
-			});
-
-			it('should returned a joined list of query conditional expressions', () => {
-				assert.strictEqual(
-					Query.formatConditionList('foo', 'bar', ['baz', 'qux', 'quux'], 'corge'),
-					'(baz corge qux corge quux)',
-				);
-			});
-		});
-
-		describe('formatConstant', () => {
-			it('should throw if constant parameter contains both single and double quotes', () => {
-				assert.throws(Query.formatConstant.bind(Query, `'"`));
-			});
-
-			it('should return a string enclosed in single quotes if string parameter contains a double quote', () => {
-				assert.strictEqual(Query.formatConstant(`"foo`), `'"foo'`);
-			});
-
-			it('should return a string enclosed in double quotes if string parameter contains a single quote', () => {
-				assert.strictEqual(Query.formatConstant(`'foo`), `"'foo"`);
-			});
-
-			it("should return a string enclosed in double quotes if string parameter doesn't contain any quotes", () => {
-				assert.strictEqual(Query.formatConstant(`foo`), `"foo"`);
-			});
-		});
-	});
-
 	describe('constructor', () => {
 		it('should set the instance members to their default values', () => {
 			const query = new Query('foo');
@@ -235,22 +176,108 @@ describe('Query', () => {
 			});
 		});
 
-		describe('_formatSelectionCriteria', () => {
+		describe('_formatCondition', () => {
 			before(() => {
-				stub(Query, 'formatCondition').returns('formatConditionResult');
-				stub(Query, 'formatConditionList').returns('formatConditionListResult');
+				stub(query, '_formatConstant').returnsArg(1);
 				stub(query, '_getDictionaryId').returnsArg(0);
 			});
 
 			after(() => {
-				Query.formatCondition.restore();
-				Query.formatConditionList.restore();
+				query._formatConstant.restore();
 				query._getDictionaryId.restore();
 			});
 
+			it('should return a query conditional expression', () => {
+				assert.strictEqual(query._formatCondition('foo', 'bar', 'baz'), 'foo bar baz');
+			});
+		});
+
+		describe('_formatConditionList', () => {
+			before(() => {
+				stub(query, '_formatCondition').returnsArg(2);
+			});
+
+			after(() => {
+				query._formatCondition.restore();
+			});
+
+			it('should throw if valueList parameter is not an array', () => {
+				assert.throws(() => {
+					query._formatConditionList('foo', 'bar', 'baz', 'qux');
+				});
+			});
+
+			it('should return an unjoined query conditional expression', () => {
+				assert.strictEqual(query._formatConditionList('foo', 'bar', ['baz'], 'corge'), 'baz');
+			});
+
+			it('should returned a joined list of query conditional expressions', () => {
+				assert.strictEqual(
+					query._formatConditionList('foo', 'bar', ['baz', 'qux', 'quux'], 'corge'),
+					'(baz corge qux corge quux)',
+				);
+			});
+		});
+
+		describe('_formatConstant', () => {
+			const queryTransformer = stub().returnsArg(0);
+			before(() => {
+				stub(query, '_getQueryTransformer');
+			});
+
 			beforeEach(() => {
-				Query.formatCondition.resetHistory();
-				Query.formatConditionList.resetHistory();
+				query._getQueryTransformer.returns(queryTransformer);
+				queryTransformer.resetHistory();
+			});
+
+			after(() => {
+				query._getQueryTransformer.restore();
+			});
+
+			it('should throw if constant parameter contains both single and double quotes', () => {
+				assert.throws(() => {
+					query._formatConstant({}, `'"`);
+				});
+			});
+
+			it('should return a string enclosed in single quotes if string parameter contains a double quote', () => {
+				assert.strictEqual(query._formatConstant({}, `"foo`), `'"foo'`);
+			});
+
+			it('should return a string enclosed in double quotes if string parameter contains a single quote', () => {
+				assert.strictEqual(query._formatConstant({}, `'foo`), `"'foo"`);
+			});
+
+			it("should return a string enclosed in double quotes if string parameter doesn't contain any quotes", () => {
+				assert.strictEqual(query._formatConstant({}, `foo`), `"foo"`);
+			});
+
+			it('should call queryTransformer if one is defined', () => {
+				query._formatConstant({}, `foo`);
+				assert.isTrue(queryTransformer.calledOnce);
+			});
+
+			it('should call queryTransformer if one is not defined', () => {
+				query._getQueryTransformer.returns();
+				query._formatConstant({}, `foo`);
+				assert.isTrue(queryTransformer.notCalled);
+			});
+		});
+
+		describe('_formatSelectionCriteria', () => {
+			before(() => {
+				stub(query, '_formatCondition').returns('formatConditionResult');
+				stub(query, '_formatConditionList').returns('formatConditionListResult');
+			});
+
+			after(() => {
+				query._formatCondition.restore();
+				query._formatConditionList.restore();
+			});
+
+			beforeEach(() => {
+				query._formatCondition.resetHistory();
+				query._formatConditionList.resetHistory();
 			});
 
 			it('should return null if no parameter passed', () => {
@@ -259,67 +286,67 @@ describe('Query', () => {
 
 			it('should call formatConditionList with = condition and "or" joiner when property is an array', () => {
 				query._formatSelectionCriteria({ def: ['henk', 'mos'] });
-				assert.isTrue(Query.formatConditionList.calledWith('def', '=', ['henk', 'mos'], 'or'));
+				assert.isTrue(query._formatConditionList.calledWith('def', '=', ['henk', 'mos'], 'or'));
 			});
 
 			it('should call formatCondition with equality condition when property is a non-object', () => {
 				query._formatSelectionCriteria({ def: 'henk' });
-				assert.isTrue(Query.formatCondition.calledWith('def', '=', 'henk'));
+				assert.isTrue(query._formatCondition.calledWith('def', '=', 'henk'));
 			});
 
 			it('should call formatCondition with equality condition when property is an object with a $eq property', () => {
 				query._formatSelectionCriteria({ def: { $eq: 'henk' } });
-				assert.isTrue(Query.formatCondition.calledWith('def', '=', 'henk'));
+				assert.isTrue(query._formatCondition.calledWith('def', '=', 'henk'));
 			});
 
 			it('should call formatCondition with > condition when property is an object with a $gt property', () => {
 				query._formatSelectionCriteria({ def: { $gt: 'henk' } });
-				assert.isTrue(Query.formatCondition.calledWith('def', '>', 'henk'));
+				assert.isTrue(query._formatCondition.calledWith('def', '>', 'henk'));
 			});
 
 			it('should call formatCondition with >= condition when property is an object with a $gte property', () => {
 				query._formatSelectionCriteria({ def: { $gte: 'henk' } });
-				assert.isTrue(Query.formatCondition.calledWith('def', '>=', 'henk'));
+				assert.isTrue(query._formatCondition.calledWith('def', '>=', 'henk'));
 			});
 
 			it('should call formatCondition with < condition when property is an object with a $lt property', () => {
 				query._formatSelectionCriteria({ def: { $lt: 'henk' } });
-				assert.isTrue(Query.formatCondition.calledWith('def', '<', 'henk'));
+				assert.isTrue(query._formatCondition.calledWith('def', '<', 'henk'));
 			});
 
 			it('should call formatCondition with <= condition when property is an object with a $lte property', () => {
 				query._formatSelectionCriteria({ def: { $lte: 'henk' } });
-				assert.isTrue(Query.formatCondition.calledWith('def', '<=', 'henk'));
+				assert.isTrue(query._formatCondition.calledWith('def', '<=', 'henk'));
 			});
 
 			it('should call formatCondition with # condition when property is an object with a $ne property', () => {
 				query._formatSelectionCriteria({ def: { $ne: 'henk' } });
-				assert.isTrue(Query.formatCondition.calledWith('def', '#', 'henk'));
+				assert.isTrue(query._formatCondition.calledWith('def', '#', 'henk'));
 			});
 
 			it('should call formatCondition with like condition and wildcarded on both sides when property is an object with a $contains property', () => {
 				query._formatSelectionCriteria({ def: { $contains: 'henk' } });
-				assert.isTrue(Query.formatCondition.calledWith('def', 'like', '...henk...'));
+				assert.isTrue(query._formatCondition.calledWith('def', 'like', '...henk...'));
 			});
 
 			it('should call formatCondition with like condition and wildcarded tail when property is an object with a $startsWith property', () => {
 				query._formatSelectionCriteria({ def: { $startsWith: 'henk' } });
-				assert.isTrue(Query.formatCondition.calledWith('def', 'like', 'henk...'));
+				assert.isTrue(query._formatCondition.calledWith('def', 'like', 'henk...'));
 			});
 
 			it('should call formatCondition with like condition and wildcarded prefix when property is an object with a $endsWith property', () => {
 				query._formatSelectionCriteria({ def: { $endsWith: 'henk' } });
-				assert.isTrue(Query.formatCondition.calledWith('def', 'like', '...henk'));
+				assert.isTrue(query._formatCondition.calledWith('def', 'like', '...henk'));
 			});
 
 			it('should call formatConditionList with = condition and "or" joiner when property is an object with a $in property', () => {
 				query._formatSelectionCriteria({ def: { $in: ['henk', 'mos'] } });
-				assert.isTrue(Query.formatConditionList.calledWith('def', '=', ['henk', 'mos'], 'or'));
+				assert.isTrue(query._formatConditionList.calledWith('def', '=', ['henk', 'mos'], 'or'));
 			});
 
 			it('should call formatConditionList with # condition and "and" joiner when property is an object with a $nin property', () => {
 				query._formatSelectionCriteria({ def: { $nin: ['henk', 'mos'] } });
-				assert.isTrue(Query.formatConditionList.calledWith('def', '#', ['henk', 'mos'], 'and'));
+				assert.isTrue(query._formatConditionList.calledWith('def', '#', ['henk', 'mos'], 'and'));
 			});
 
 			it('should throw if property contains an unknown operator', () => {
@@ -439,6 +466,18 @@ describe('Query', () => {
 			it('should return the dictionary value at the given path', () => {
 				query._Model.schema = { dictPaths: { foo: 'bar' } };
 				assert.strictEqual(query._getDictionaryId('foo'), 'bar');
+			});
+		});
+
+		describe('_getQueryTransformer', () => {
+			it('should return undefined if no schema type is present at the given path', () => {
+				query._Model.schema = { paths: {} };
+				assert.isUndefined(query._getQueryTransformer('foo'));
+			});
+
+			it('should return the transformToQuery property', () => {
+				query._Model.schema = { paths: { foo: { transformToQuery: 'bar' } } };
+				assert.strictEqual(query._getQueryTransformer('foo'), 'bar');
 			});
 		});
 
