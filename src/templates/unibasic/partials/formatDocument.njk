@@ -4,6 +4,8 @@ subroutine format_document(record, recordId, document, errorCode)
 
 {% include "./errorConstants.njk" %}
 
+{% include "./remove.njk" %}
+
 errorCode = ''
 
 * create output document object
@@ -18,16 +20,29 @@ if udoSetProperty(document, '_id', recordId) then
   go returnFromSub
 end
 
-* create a hash of the record for versioning purposes
-if digest('MD5', record, 1, recordHash) then
-  errorCode = ERROR_DIGEST_HASH
-  go returnFromSub
-end
+if record eq '' then
+  * empty record
+  if udoCreate(UDO_NULL, null) then
+    errorCode = ERROR_UDO
+    go returnFromSub
+  end
 
-* set document version property
-if udoSetProperty(document, '__v', oconv(recordHash, 'MX0C')) then
-  errorCode = ERROR_UDO
-  go returnFromSub
+  if udoSetProperty(document, '__v', null) then
+    errorCode = ERROR_UDO
+    go returnFromSub
+  end
+end else
+  * create a hash of the record for versioning purposes
+  if digest('MD5', record, 1, recordHash) then
+    errorCode = ERROR_DIGEST_HASH
+    go returnFromSub
+  end
+
+  * set document version property
+  if udoSetProperty(document, '__v', oconv(recordHash, 'MX0C')) then
+    errorCode = ERROR_UDO
+    go returnFromSub
+  end
 end
 
 * create udo array as container for the record
@@ -36,90 +51,125 @@ if udoCreate(UDO_ARRAY, recordContents) then
   go returnFromSub
 end
 
-* iterate the record attributes
-lastAttribute = dcount(record, @am)
-for attributeCounter = 1 to lastAttribute
-  lastValue = dcount(record<attributeCounter>, @vm)
+prevDelim = ''
+valueContents = ''
+subValueContents = ''
+
+rmvDataRec = record
+rmvDelimChar = ''
+loop until (rmvDelimChar eq RMV_DELIM_END)
+  gosub rmvRemove
+
+  token = rmvDataStr
+  delim = rmvDelimChar
 
   begin case
-    case lastValue le 0
-      if udoCreate(UDO_NULL, null) then
+    case (delim eq RMV_DELIM_ATTRIBUTE or delim eq RMV_DELIM_END) and (prevDelim eq RMV_DELIM_ATTRIBUTE or prevDelim eq '')
+      * append at the attribute level
+      appendArray = recordContents
+      gosub appendToArray
+      if errorCode eq ERROR_UDO then
+        go returnFromSub
+      end
+    case delim eq RMV_DELIM_VALUE and (prevDelim eq RMV_DELIM_ATTRIBUTE or prevDelim eq '')
+      * starting a new value marked array
+      if udoCreate(UDO_ARRAY, valueContents) then
         errorCode = ERROR_UDO
         go returnFromSub
       end
 
-      if udoArrayInsertItem(recordContents, attributeCounter, null) then
+      appendArray = valueContents
+      gosub appendToArray
+      if errorCode eq ERROR_UDO then
+        go returnFromSub
+      end
+    case delim eq RMV_DELIM_VALUE and prevDelim eq RMV_DELIM_VALUE
+      * continuing a value marked array
+      appendArray = valueContents
+      gosub appendToArray
+      if errorCode eq ERROR_UDO then
+        go returnFromSub
+      end
+    case (delim eq RMV_DELIM_ATTRIBUTE or delim eq RMV_DELIM_END) and prevDelim eq RMV_DELIM_VALUE
+      * completing the value marked array
+      appendArray = valueContents
+      gosub appendToArray
+      if errorCode eq ERROR_UDO then
+        go returnFromSub
+      end
+
+      if udoArrayAppendItem(recordContents, valueContents) then
         errorCode = ERROR_UDO
         go returnFromSub
       end
-    case lastValue eq 1
-      if udoArrayInsertItem(recordContents, attributeCounter, record<attributeCounter>) then
+
+      valueContents = ''
+    case delim eq RMV_DELIM_SUBVALUE and prevDelim NE RMV_DELIM_SUBVALUE
+      * starting a subvalued array
+      if udoGetType(valueContents, type) then
         errorCode = ERROR_UDO
         go returnFromSub
+      end
+
+      if type NE UDO_ARRAY then
+        * A subvalue array cannot be directly appended to recordContents
+        * ie it's always a nested array so if we don't have a value marked array in progress, start one
+        if udoCreate(UDO_ARRAY, valueContents) then
+          errorCode = ERROR_UDO
+          go returnFromSub
+        end
+      end
+
+      if udoCreate(UDO_ARRAY, subValueContents) then
+        errorCode = ERROR_UDO
+        go returnFromSub
+      end
+
+      appendArray = subValueContents
+      gosub appendToArray
+      if errorCode eq ERROR_UDO then
+        go returnFromSub
+      end
+    case delim eq RMV_DELIM_SUBVALUE and prevDelim eq RMV_DELIM_SUBVALUE
+      * continuing a sub value marked array
+      appendArray = subValueContents
+      gosub appendToArray
+      if errorCode eq ERROR_UDO then
+        go returnFromSub
+      end
+    case delim ne RMV_DELIM_SUBVALUE and prevDelim eq RMV_DELIM_SUBVALUE
+      * completing a subvalued array
+      appendArray = subValueContents
+      gosub appendToArray
+      if errorCode eq ERROR_UDO then
+        go returnFromSub
+      end
+
+      * Subvalue arrays can not be directly appended to the attribute array
+      if udoArrayAppendItem(valueContents, subValueContents) then
+        errorCode = ERROR_UDO
+        go returnFromSub
+      end
+      subValueContents = ''
+
+      if delim eq RMV_DELIM_ATTRIBUTE or delim eq RMV_DELIM_END then
+        * moving on to a new attribute or finished the record. Append whatever we have
+        if udoArrayAppendItem(recordContents, valueContents) then
+          errorCode = ERROR_UDO
+          go returnFromSub
+        end
+        valueContents = ''
       end
     case 1
-      if udoCreate(UDO_ARRAY, attributeContents) then
-        errorCode = ERROR_UDO
-        go returnFromSub
-      end
-
-      for valueCounter = 1 to lastValue
-        lastSubvalue = dcount(record<attributeCounter, valueCounter>, @svm)
-
-        begin case
-          case lastSubvalue le 0
-            if udoCreate(UDO_NULL, null) then
-             errorCode = ERROR_UDO
-              go returnFromSub
-            end
-
-            if udoArrayInsertItem(attributeContents, valueCounter, null) then
-              errorCode = ERROR_UDO
-              go returnFromSub
-            end
-          case lastSubvalue eq 1
-            if udoArrayInsertItem(attributeContents, valueCounter, record<attributeCounter, valueCounter>) then
-              errorCode = ERROR_UDO
-              go returnFromSub
-            end
-          case 1
-            if udoCreate(UDO_ARRAY, valueContents) then
-              errorCode = ERROR_UDO
-              go returnFromSub
-            end
-
-            for subvalueCounter = 1 to lastSubvalue
-              if record<attributeCounter, valueCounter, subvalueCounter> eq '' then
-                if udoCreate(UDO_NULL, null) then
-                  errorCode = ERROR_UDO
-                  go returnFromSub
-                end
-
-                if udoArrayInsertItem(valueContents, subvalueCounter, null) then
-                  errorCode = ERROR_UDO
-                  go returnFromSub
-                end
-              end else
-                if udoArrayInsertItem(valueContents, subvalueCounter, record<attributeCounter, valueCounter, subvalueCounter>) then
-                 errorCode = ERROR_UDO
-                  go returnFromSub
-                end
-              end
-            next subvalueCounter
-
-            if udoArrayInsertItem(attributeContents, valueCounter, valueContents) then
-              errorCode = ERROR_UDO
-              go returnFromSub
-            end
-        end case
-      next valueCounter
-
-      if udoArrayInsertItem(recordContents, attributeCounter, attributeContents) then
-        errorCode = ERROR_UDO
-        go returnFromSub
-      end
+      * unknown condition. We are appending to the end of the array so we cannot simply skip this value
+      * rather than returning incorrect data, return an error
+      call error_handler(ERROR_MALFORMED_INPUT, output)
+      go returnFromSub
   end case
-next attributeCounter
+
+  prevDelim = delim
+
+repeat
 
 * set document record property
 if udoSetProperty(document, 'record', recordContents) then
@@ -129,3 +179,26 @@ end
 
 returnFromSub:
 return; * returning to caller
+
+appendToArray:
+  * token - value to append
+  * appendArray - UDO reference to the array to append the token value to
+
+  if token eq '' then
+    if udoCreate(UDO_NULL, null) then
+      errorCode = ERROR_UDO
+      go appendToArrayX
+    end
+    if udoArrayAppendItem(appendArray, null) then
+      errorCode = ERROR_UDO
+      go appendToArrayX
+    end
+  end else
+    if udoArrayAppendItem(appendArray, token) then
+      errorCode = ERROR_UDO
+      go appendToArrayX
+    end
+  end
+
+appendToArrayX:
+  return

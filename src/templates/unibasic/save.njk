@@ -49,12 +49,19 @@ end locked
   call error_handler(ERROR_RECORD_LOCKED, output)
   go closeAndReturnFromSub
 end then
-  if digest('MD5', record, 1, originalRecordHash) then
-    errorCode = ERROR_DIGEST_HASH
-    go closeReleaseAndReturnFromSub
+  if record eq '' then
+    * empty record
+    originalRecordHash = ''
+  end else
+    if digest('MD5', record, 1, originalRecordHash) then
+      errorCode = ERROR_DIGEST_HASH
+      go closeReleaseAndReturnFromSub
+    end
+
+    originalRecordHash = oconv(originalRecordHash, 'MX0C')
   end
 
-  if oconv(originalRecordHash, 'MX0C') ne recordHash then
+  if originalRecordHash ne recordHash then
     call error_handler(ERROR_RECORD_VERSION, output)
     go closeReleaseAndReturnFromSub
   end
