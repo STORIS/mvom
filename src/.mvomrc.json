@@ -1,11 +1,11 @@
 {
   "dependencies": {
-    "deleteById": "^0.0.2",
-    "deploy": "^0.0.2",
-    "entry": "^0.0.2",
-    "find": "^0.0.2",
-    "findById": "^0.0.2",
-    "getServerInfo": "^0.0.1",
-    "save": "^0.0.2"
+    "deleteById": "^0.1.0",
+    "deploy": "^0.1.0",
+    "entry": "^0.1.0",
+    "find": "^0.1.0",
+    "findById": "^0.1.0",
+    "getServerInfo": "^0.1.0",
+    "save": "^0.1.0"
   }
 }

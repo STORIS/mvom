@@ -1,4 +1,10 @@
 # CHANGELOG.md
+## 0.3.0
+###### _2018-12-27_
+- Improve the performance of the server-side formatDocument routine on large records by switching to REMOVE and udoAppendArrayItem @kthompson23
+- Fix an abort from the U2 digest function when reading or overwriting a previously empty record. @kthompson23
+- Correctly format an attribute that only contains subvalued data. Previously this returned a string with embedded subvalue delimiters. This now returns a nested array. @kthompson23
+
 ## 0.2.1
 ###### _2018-10-22_
 - The constant values for queries will now be converted from the external schema format to the internal u2 format.
