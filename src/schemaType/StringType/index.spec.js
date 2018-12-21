@@ -100,6 +100,11 @@ describe('StringType', () => {
 		});
 
 		describe('_validateEnum', () => {
+			it('should skip enum validation and return true if value is null even if an enum property is provided', async () => {
+				const stringType = new StringType({ path: '1', enum: ['foo'] });
+				assert.isTrue(await stringType._validateEnum(null));
+			});
+
 			it('should return true if no enum property was provided', async () => {
 				const stringType = new StringType({ path: '1' });
 				assert.isTrue(await stringType._validateEnum('foo'));
