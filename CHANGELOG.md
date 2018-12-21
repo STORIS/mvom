@@ -1,6 +1,10 @@
 # CHANGELOG.md
+## 0.3.1
+###### _2018-12-21_
+- Fix an issue where enum validation returns a data validation error on null values on non-required fields. @kthompson23
+
 ## 0.3.0
-###### _2018-12-27_
+###### _2018-12-17_
 - Improve the performance of the server-side formatDocument routine on large records by switching to REMOVE and udoAppendArrayItem @kthompson23
 - Fix an abort from the U2 digest function when reading or overwriting a previously empty record. @kthompson23
 - Correctly format an attribute that only contains subvalued data. Previously this returned a string with embedded subvalue delimiters. This now returns a nested array. @kthompson23
@@ -9,6 +13,7 @@
 ###### _2018-10-22_
 - The constant values for queries will now be converted from the external schema format to the internal u2 format.
 This affects the date/time types as well as Booleans. @shawnmcknight
+- Add support for specifying allowed enum values in the schema for string types. @shawnmcknight
 
 ## 0.2.0
 ###### _2018-09-18_
