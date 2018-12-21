@@ -70,7 +70,7 @@ class StringType extends SimpleType {
 	 */
 	_validateEnum = async value =>
 		// skip validation on nullish values because a required valdation error, if applicable, is more helpful
-		value == null ? true : this._enum == null || this._enum.includes(value);
+		value == null || this._enum == null || this._enum.includes(value);
 
 	/**
 	 * String required validator
