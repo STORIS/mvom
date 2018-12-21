@@ -68,7 +68,9 @@ class StringType extends SimpleType {
 	 * @param {string} value - String to validate
 	 * @returns {Promise.<Boolean>} True if valid / false if invalid
 	 */
-	_validateEnum = async value => this._enum == null || this._enum.includes(value);
+	_validateEnum = async value =>
+		// skip validation on nullish values because a required valdation error, if applicable, is more helpful
+		value == null || this._enum == null || this._enum.includes(value);
 
 	/**
 	 * String required validator
