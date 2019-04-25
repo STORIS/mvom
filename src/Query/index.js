@@ -69,7 +69,7 @@ class Query {
 	 * @memberof Query
 	 * @instance
 	 * @async
-	 * @returns {Model[]} Array of model instances
+	 * @returns {Promise.<ResultsObject>} Query results object
 	 * @throws {ConnectionManagerError} (indirect) An error occurred in connection manager communications
 	 * @throws {DbServerError} (indirect) An error occurred on the database server
 	 */
@@ -98,7 +98,12 @@ class Query {
 		this._Model.connection.logger.debug(`executing query "${queryCommand}"`);
 		const data = await this._Model.connection.executeDbFeature('find', options);
 
-		return data.result.map(dbResultItem => this._Model.makeModelFromDbResult(dbResultItem));
+		return {
+			count: data.count,
+			documents: data.documents.map(dbResultItem =>
+				this._Model.makeModelFromDbResult(dbResultItem),
+			),
+		};
 	};
 
 	/**

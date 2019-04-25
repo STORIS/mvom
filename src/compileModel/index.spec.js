@@ -86,14 +86,32 @@ describe('compileModel', () => {
 			});
 
 			describe('find', () => {
+				beforeEach(() => {
+					exec.resolves({ count: 5, documents: ['foo', 'bar'] });
+				});
+
 				it('should call the query constructor with the passed parameters', async () => {
 					await Test.find('foo', 'bar');
 					assert.isTrue(queryConstructor.calledWith(Test, 'foo', 'bar'));
 				});
 
 				it('should return the results of the execution of the query', async () => {
-					exec.resolves('foo');
-					assert.strictEqual(await Test.find(), 'foo');
+					assert.deepEqual(await Test.find(), ['foo', 'bar']);
+				});
+			});
+
+			describe('findAndCount', () => {
+				beforeEach(() => {
+					exec.resolves({ count: 5, documents: ['foo', 'bar'] });
+				});
+
+				it('should call the query constructor with the passed parameters', async () => {
+					await Test.findAndCount('foo', 'bar');
+					assert.isTrue(queryConstructor.calledWith(Test, 'foo', 'bar'));
+				});
+
+				it('should return the results of the execution of the query', async () => {
+					assert.deepEqual(await Test.findAndCount(), { count: 5, documents: ['foo', 'bar'] });
 				});
 			});
 
