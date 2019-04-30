@@ -24,6 +24,7 @@ describe('compileModel', () => {
 	const exec = stub();
 
 	class DataValidationError extends Error {}
+	class InvalidParameterError extends Error {}
 	before(() => {
 		chai.use(chaiAsPromised);
 		const Connection = class {};
@@ -33,6 +34,7 @@ describe('compileModel', () => {
 		connection.executeDbFeature = executeDbFeature;
 
 		RewireAPI.__Rewire__('Document', Document);
+		RewireAPI.__Rewire__('InvalidParameterError', InvalidParameterError);
 
 		const Query = class {
 			constructor(Model, selectionCriteria, options) {
@@ -64,6 +66,7 @@ describe('compileModel', () => {
 		RewireAPI.__ResetDependency__('Query');
 		RewireAPI.__ResetDependency__('Schema');
 		RewireAPI.__ResetDependency__('DataValidationError');
+		RewireAPI.__ResetDependency__('InvalidParameterError');
 	});
 
 	it('should throw an error if Connection not provided', () => {
@@ -179,6 +182,41 @@ describe('compileModel', () => {
 						executeDbFeature.resolves({ result: '' });
 						assert.isNull(await Test.findById());
 					});
+				});
+
+				describe('findByIds', () => {
+					it('should call makeModelFromDbResult for each item in the result array', async () => {
+						const result = [
+							{ record: 'foo1', _id: 'bar1', __v: 'baz1' },
+							{ record: 'foo2', _id: 'bar2', __v: 'baz2' },
+							{ record: 'foo3', _id: 'bar3', __v: 'baz3' },
+						];
+						executeDbFeature.resolves({ result });
+						await Test.findByIds(['id1', 'id2', 'id3']);
+						assert.isTrue(Test.makeModelFromDbResult.calledThrice);
+						assert.isTrue(Test.makeModelFromDbResult.firstCall.calledWith(result[0]));
+						assert.isTrue(Test.makeModelFromDbResult.secondCall.calledWith(result[1]));
+						assert.isTrue(Test.makeModelFromDbResult.thirdCall.calledWith(result[2]));
+					});
+
+					it('should call findByIds dbFeature with an array even if a single id is passed in', async () => {
+						const result = [{ record: 'foo1', _id: 'bar1', __v: 'baz1' }];
+						executeDbFeature.resolves({ result });
+						await Test.findByIds('id1');
+						assert.isTrue(
+							executeDbFeature.calledWith('findByIds', { filename: Test.file, ids: ['id1'] }),
+						);
+					});
+
+					it('should return an array with null values for each empty string passed back from the dbFeature', async () => {
+						const expectedResult = [null, null, null];
+						const dbResult = ['', '', ''];
+						executeDbFeature.resolves({ result: dbResult });
+						assert.deepEqual(await Test.findByIds(['id1', {}, []]), expectedResult);
+					});
+
+					it('should throw an InvalidParameterError if no ids are passed in', () =>
+						assert.isRejected(Test.findByIds(), InvalidParameterError));
 				});
 			});
 		});

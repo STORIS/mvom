@@ -152,6 +152,36 @@ const compileModel = (connection, schema, file) => {
 		};
 
 		/**
+		 * Find multiple documents by their ids
+		 * @function findByIds
+		 * @memberof Model
+		 * @static
+		 * @async
+		 * @param {string[]} ids - Array of document identifiers
+		 * @returns {Promise.<Model[]>} Array of model instances
+		 * @throws {InvalidParameterError} An invalid parameter was passed to the function
+		 * @throws {ConnectionManagerError} (indirect) An error occurred in connection manager communications
+		 * @throws {DbServerError} (indirect) An error occurred on the database server
+		 */
+		static findByIds = async ids => {
+			if (ids == null) {
+				throw new InvalidParameterError({ parameterName: 'ids' });
+			}
+			// this will cast ids to an array in the event only a single id is passed in
+			const idsArray = [].concat(ids);
+			const data = await Model.connection.executeDbFeature('findByIds', {
+				filename: Model.file,
+				ids: idsArray,
+			});
+
+			// returns an array of newly instantiated Models
+			// there may be empty strings in the array if a particular document couldn't be found or contained corrupt data
+			return data.result.map(
+				dbResultItem => (dbResultItem ? Model.makeModelFromDbResult(dbResultItem) : null),
+			);
+		};
+
+		/**
 		 * Create a new model instance from the result of a database feature execution
 		 * @function makeModelFromDbResult
 		 * @memberof Model
