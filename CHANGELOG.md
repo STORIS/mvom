@@ -1,4 +1,10 @@
 # CHANGELOG.md
+## 0.3.2
+###### _2019-05-13_
+- Add new `findByIds` static model method which finds a list of documents by id. ReedMattos
+- Add new `findAndCount` static model method which returns both the documents matching the query as well as the count of
+  all documents matching the query irrespective of skip and limit. @ReedMattos
+
 ## 0.3.1
 ###### _2018-12-21_
 - Fix an issue where enum validation returns a data validation error on null values on non-required fields. @kthompson23
