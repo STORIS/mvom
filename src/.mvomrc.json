@@ -3,8 +3,9 @@
     "deleteById": "^0.1.0",
     "deploy": "^0.1.0",
     "entry": "^0.1.0",
-    "find": "^0.1.0",
+    "find": "^0.2.0",
     "findById": "^0.1.0",
+    "findByIds": "^0.1.0",
     "getServerInfo": "^0.1.0",
     "save": "^0.1.0"
   }

@@ -1,0 +1,102 @@
+$basictype 'u'
+subroutine mvom_findByIds(options, output)
+* find and return documents given a filename and record ids
+{% include "./partials/udoConstants.njk" %}
+
+{% include "./partials/errorConstants.njk" %}
+
+* get the filename from the options
+if udoGetProperty(options, 'filename', filename, type) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go returnFromSub
+end
+
+* get the array of recordIds from the options
+if udoGetProperty(options, 'ids', recordIds, type) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go returnFromSub
+end
+
+recordIdsCount = 0
+begin case
+  case type ne UDO_ARRAY
+    call error_handler(ERROR_MALFORMED_INPUT, output)
+    go returnFromSub
+  case udoArrayGetSize(recordIds, recordIdsCount) ne UDO_SUCCESS
+    call error_handler(ERROR_UDO, output)
+    go returnFromSub
+end case
+
+* make sure the array of ids passed in wasn't empty
+if recordIdsCount eq 0 then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go returnFromSub
+end
+
+* create the udo structure to hold the returned documents
+if udoCreate(UDO_ARRAY, documentList) then
+  call error_handler(ERROR_UDO, output)
+  go returnFromSub
+end
+
+* open the file
+open filename to f.file on error
+  call error_handler(ERROR_FILE_OPEN, output)
+  go returnFromSub
+end else
+  call error_handler(ERROR_FILE_OPEN, output)
+  go returnFromSub
+end
+
+processCount = 0
+loop while processCount lt recordIdsCount
+  processCount+= 1
+  * get the next record id from the array
+  if udoArrayGetNextItem(recordIds, recordId, type) ne UDO_SUCCESS then
+    call error_handler(ERROR_UDO, output)
+    go returnFromSub
+  end
+
+  * initialize document to empty string here
+  * if this array item is not a string or number, or if the read fails due to an error or because the
+  * record doesn't exist, the empty string value will be added to the array for this document
+  document = ''
+  if type eq UDO_STRING or type eq UDO_NUMBER then
+    * read the record from the file
+    read record from f.file, recordId then
+      * format the record into an object structure
+      call format_document(record, recordId, document, errorCode)
+      if errorCode then
+        * received an error when trying to format document, return empty string for this document
+        document = ''
+      end
+    end
+  end
+
+  * add the document to the output list
+  if udoArrayAppendItem(documentList, document) then
+    call error_handler(ERROR_UDO, output)
+    go closeAndReturnFromSub
+  end
+repeat
+
+close f.file on error null
+
+* set the result property
+if udoSetProperty(output, 'result', documentList) then
+  call error_handler(ERROR_UDO, output)
+  go returnFromSub
+end
+
+go returnFromSub;* skip close behavior
+
+closeAndReturnFromSub:
+close f.file on error null
+* fall through to return
+
+returnFromSub:
+return; * returning to caller
+
+{% include "./partials/formatDocument.njk" %}
+
+{% include "./partials/errorHandler.njk" %}

@@ -40,67 +40,72 @@ describe('Query', () => {
 		});
 
 		describe('exec', () => {
-			it('should set queryCommand without criteria if none specified', async () => {
-				executeDbFeature.resolves({ result: [] });
-				await query.exec();
-				assert.strictEqual(executeDbFeature.args[0][1].queryCommand, 'select foo');
-			});
+			describe('query options', () => {
+				beforeEach(() => {
+					executeDbFeature.resolves({ count: 0, documents: [] });
+				});
+				it('should set queryCommand without criteria if none specified', async () => {
+					await query.exec();
+					assert.strictEqual(executeDbFeature.args[0][1].queryCommand, 'select foo');
+				});
 
-			it('should set queryCommand with selection criteria if specified', async () => {
-				executeDbFeature.resolves({ result: [] });
-				query._selectionCriteria = 'bar';
-				await query.exec();
-				assert.strictEqual(executeDbFeature.args[0][1].queryCommand, 'select foo with bar');
-			});
+				it('should set queryCommand with selection criteria if specified', async () => {
+					query._selectionCriteria = 'bar';
+					await query.exec();
+					assert.strictEqual(executeDbFeature.args[0][1].queryCommand, 'select foo with bar');
+				});
 
-			it('should set queryCommand with sort criteria if specified', async () => {
-				executeDbFeature.resolves({ result: [] });
-				query._sortCriteria = 'baz';
-				await query.exec();
-				assert.strictEqual(executeDbFeature.args[0][1].queryCommand, 'select foo baz');
-			});
+				it('should set queryCommand with sort criteria if specified', async () => {
+					query._sortCriteria = 'baz';
+					await query.exec();
+					assert.strictEqual(executeDbFeature.args[0][1].queryCommand, 'select foo baz');
+				});
 
-			it('should set queryCommand with selection and sort criteria if specified', async () => {
-				executeDbFeature.resolves({ result: [] });
-				query._selectionCriteria = 'bar';
-				query._sortCriteria = 'baz';
-				await query.exec();
-				assert.strictEqual(executeDbFeature.args[0][1].queryCommand, 'select foo with bar baz');
-			});
+				it('should set queryCommand with selection and sort criteria if specified', async () => {
+					query._selectionCriteria = 'bar';
+					query._sortCriteria = 'baz';
+					await query.exec();
+					assert.strictEqual(executeDbFeature.args[0][1].queryCommand, 'select foo with bar baz');
+				});
 
-			it("should set filename option based on Model's file", async () => {
-				executeDbFeature.resolves({ result: [] });
-				await query.exec();
-				assert.strictEqual(executeDbFeature.args[0][1].filename, 'foo');
-			});
+				it("should set filename option based on Model's file", async () => {
+					await query.exec();
+					assert.strictEqual(executeDbFeature.args[0][1].filename, 'foo');
+				});
 
-			it('should set the skip option if specified', async () => {
-				executeDbFeature.resolves({ result: [] });
-				query._skip = 'foo';
-				await query.exec();
-				assert.strictEqual(executeDbFeature.args[0][1].skip, 'foo');
-			});
+				it('should set the skip option if specified', async () => {
+					query._skip = 'foo';
+					await query.exec();
+					assert.strictEqual(executeDbFeature.args[0][1].skip, 'foo');
+				});
 
-			it('should set the limit option if specified', async () => {
-				executeDbFeature.resolves({ result: [] });
-				query._limit = 'foo';
-				await query.exec();
-				assert.strictEqual(executeDbFeature.args[0][1].limit, 'foo');
+				it('should set the limit option if specified', async () => {
+					query._limit = 'foo';
+					await query.exec();
+					assert.strictEqual(executeDbFeature.args[0][1].limit, 'foo');
+				});
 			});
 
 			it('should call makeModelFromDbResult for each result', async () => {
-				executeDbFeature.resolves({ result: ['foo', 'bar'] });
+				executeDbFeature.resolves({ count: 10, documents: ['foo', 'bar'] });
 				await query.exec();
 				assert.isTrue(makeModelFromDbResult.calledTwice);
 				assert.isTrue(makeModelFromDbResult.calledWith('foo'));
 				assert.isTrue(makeModelFromDbResult.calledWith('bar'));
 			});
 
-			it('should return an array with length equal to the number of results', async () => {
-				executeDbFeature.resolves({ result: ['foo', 'bar'] });
+			it('should return an object containing an array with length equal to the number of results', async () => {
+				executeDbFeature.resolves({ count: 2, documents: ['foo', 'bar'] });
 				const results = await query.exec();
-				assert.isArray(results);
-				assert.strictEqual(results.length, 2);
+				assert.isObject(results);
+				assert.strictEqual(results.documents.length, 2);
+			});
+
+			it('should return an object with a count property equal to the total number of items that matched the query', async () => {
+				executeDbFeature.resolves({ count: 5, documents: ['foo', 'bar'] });
+				const results = await query.exec();
+				assert.isObject(results);
+				assert.strictEqual(results.count, 5);
 			});
 		});
 

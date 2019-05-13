@@ -104,7 +104,28 @@ const compileModel = (connection, schema, file) => {
 		 * @throws {ConnectionManagerError} (indirect) An error occurred in connection manager communications
 		 * @throws {DbServerError} (indirect) An error occurred on the database server
 		 */
-		static find = (selectionCriteria = {}, options = {}) => {
+		static find = async (selectionCriteria = {}, options = {}) => {
+			const query = new Query(Model, selectionCriteria, options);
+			const { documents } = await query.exec();
+			return documents;
+		};
+
+		/**
+		 * Find documents via query, returning them along with a count
+		 * @function findAndCount
+		 * @memberof Model
+		 * @static
+		 * @async
+		 * @param {Object} [selectionCriteria = {}] - Selection criteria object
+		 * @param {Object} [options = {}]
+		 * @param {number} [options.skip = 0] - Skip this number of items in the result set
+		 * @param {number} [options.limit = null] - Limit the result set to this number of items
+		 * @param {Array} [options.sort = []] - Array of field/direction nested arrays defining sort criteria. ex: [[foo, 1], [bar, -1]] where value of 1 indicates ascending and -1 indicates descending
+		 * @returns {Promise.<ResultsObject>} Query results object
+		 * @throws {ConnectionManagerError} (indirect) An error occurred in connection manager communications
+		 * @throws {DbServerError} (indirect) An error occurred on the database server
+		 */
+		static findAndCount = (selectionCriteria = {}, options = {}) => {
 			const query = new Query(Model, selectionCriteria, options);
 			return query.exec();
 		};
@@ -128,6 +149,36 @@ const compileModel = (connection, schema, file) => {
 
 			// if the database returns a result, instantiate a new model with it -- otherwise return null
 			return data.result ? Model.makeModelFromDbResult(data.result) : null;
+		};
+
+		/**
+		 * Find multiple documents by their ids
+		 * @function findByIds
+		 * @memberof Model
+		 * @static
+		 * @async
+		 * @param {string[]} ids - Array of document identifiers
+		 * @returns {Promise.<Model[]>} Array of model instances
+		 * @throws {InvalidParameterError} An invalid parameter was passed to the function
+		 * @throws {ConnectionManagerError} (indirect) An error occurred in connection manager communications
+		 * @throws {DbServerError} (indirect) An error occurred on the database server
+		 */
+		static findByIds = async ids => {
+			if (ids == null) {
+				throw new InvalidParameterError({ parameterName: 'ids' });
+			}
+			// this will cast ids to an array in the event only a single id is passed in
+			const idsArray = [].concat(ids);
+			const data = await Model.connection.executeDbFeature('findByIds', {
+				filename: Model.file,
+				ids: idsArray,
+			});
+
+			// returns an array of newly instantiated Models
+			// there may be empty strings in the array if a particular document couldn't be found or contained corrupt data
+			return data.result.map(
+				dbResultItem => (dbResultItem ? Model.makeModelFromDbResult(dbResultItem) : null),
+			);
 		};
 
 		/**
