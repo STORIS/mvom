@@ -35,7 +35,7 @@ if @system.return.code lt 0 then
 end
 
 * set the count property
-if udoSetProperty(output, 'count', system(11)) then
+if udoSetProperty(output, 'count', system(11), UDO_NUMBER) then
   call error_handler(ERROR_UDO, output)
   go returnFromSub
 end

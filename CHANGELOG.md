@@ -1,7 +1,11 @@
 # CHANGELOG.md
+## 0.3.3
+###### _2019-05-16_
+- Ensure that the `count` property returned from `findAndCount` is numeric. @shawnmcknight
+
 ## 0.3.2
 ###### _2019-05-13_
-- Add new `findByIds` static model method which finds a list of documents by id. ReedMattos
+- Add new `findByIds` static model method which finds a list of documents by id. @ReedMattos
 - Add new `findAndCount` static model method which returns both the documents matching the query as well as the count of
   all documents matching the query irrespective of skip and limit. @ReedMattos
 
