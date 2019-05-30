@@ -1,4 +1,8 @@
 # CHANGELOG.md
+## 0.3.4
+###### _2019-05-30_
+- Add TypeScript declaration file. @abair91
+
 ## 0.3.3
 ###### _2019-05-16_
 - Ensure that the `count` property returned from `findAndCount` is numeric. @shawnmcknight
