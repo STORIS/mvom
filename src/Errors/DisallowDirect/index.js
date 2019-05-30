@@ -25,6 +25,13 @@ class DisallowDirectError extends Error {
 		 */
 		this.name = 'DisallowDirectError';
 		/**
+		 * Source of the error - always "mvom"
+		 * @member {string} source
+		 * @memberof BaseError
+		 * @instance
+		 */
+		this.source = 'mvom';
+		/**
 		 * Name of the class that was being instantiated
 		 * @member {string} className
 		 * @memberof DisallowDirectError

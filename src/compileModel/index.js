@@ -157,7 +157,7 @@ const compileModel = (connection, schema, file) => {
 		 * @memberof Model
 		 * @static
 		 * @async
-		 * @param {string[]} ids - Array of document identifiers
+		 * @param {string|string[]} ids - Array of document identifiers
 		 * @returns {Promise.<Model[]>} Array of model instances
 		 * @throws {InvalidParameterError} An invalid parameter was passed to the function
 		 * @throws {ConnectionManagerError} (indirect) An error occurred in connection manager communications

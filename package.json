@@ -1,9 +1,19 @@
 {
   "name": "mvom",
   "private": true,
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "Multivalue Object Mapper",
   "main": "index.js",
+  "types": "./src/index.d.ts",
+  "tsd": {
+    "compilerOptions": {
+      "noImplicitAny": true,
+      "noImplicitThis": true,
+      "strictNullChecks": true,
+      "strictFunctionTypes": true
+    },
+    "directory": "test/types"
+  },
   "scripts": {
     "build": "npm run build:node && npm run build:prepare-unibasic && npm run build:make-sub-definitions && npm run build:copy-files",
     "build:copy-files": "babel-node ./scripts/copy-files",
@@ -18,10 +28,11 @@
     "lint": "eslint . --cache && echo \"eslint: no lint errors\"",
     "lint:fix": "eslint . --fix && echo \"eslint: no lint errors\"",
     "prebuild": "npm run clean:build",
-    "test": "npm run lint && cross-env NODE_ENV=test BABEL_ENV=coverage nyc --reporter=text-summary --check-coverage mocha",
+    "test": "npm run lint && npm run test:ts && cross-env NODE_ENV=test BABEL_ENV=coverage nyc --reporter=text-summary --check-coverage mocha",
     "test:unit": "cross-env NODE_ENV=test mocha",
     "test:coverage": "cross-env NODE_ENV=test BABEL_ENV=coverage nyc mocha",
-    "test:coverage:html": "npm run test:coverage && nyc report --reporter=html"
+    "test:coverage:html": "npm run test:coverage && nyc report --reporter=html",
+    "test:ts": "tsd"
   },
   "repository": {
     "type": "git",
@@ -42,30 +53,31 @@
     "semver": "^5.5.1"
   },
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-eslint": "^9.0.0",
-    "babel-plugin-istanbul": "^5.0.1",
-    "babel-plugin-module-resolver": "^3.1.1",
-    "babel-plugin-rewire": "^1.1.0",
-    "babel-plugin-syntax-object-rest-spread": "^6.13.0",
-    "babel-plugin-transform-class-properties": "^6.24.1",
-    "babel-preset-env": "^1.7.0",
-    "babel-register": "^6.26.0",
-    "chai": "^4.1.2",
-    "chai-as-promised": "^7.1.1",
-    "cross-env": "^5.2.0",
-    "documentation": "^8.1.2",
-    "eslint": "^4.17.0",
-    "eslint-config-airbnb-base": "^12.1.0",
-    "eslint-config-prettier": "^3.0.1",
-    "eslint-import-resolver-babel-module": "^4.0.0",
-    "eslint-plugin-import": "^2.14.0",
-    "eslint-plugin-prettier": "^2.6.2",
-    "mocha": "^5.2.0",
-    "nunjucks": "^3.1.3",
-    "nyc": "^13.0.1",
-    "prettier": "^1.14.2",
-    "rimraf": "^2.6.2",
-    "sinon": "^6.3.1"
+    "babel-cli": "6.26.0",
+    "babel-eslint": "9.0.0",
+    "babel-plugin-istanbul": "5.0.1",
+    "babel-plugin-module-resolver": "3.1.1",
+    "babel-plugin-rewire": "1.1.0",
+    "babel-plugin-syntax-object-rest-spread": "6.13.0",
+    "babel-plugin-transform-class-properties": "6.24.1",
+    "babel-preset-env": "1.7.0",
+    "babel-register": "6.26.0",
+    "chai": "4.1.2",
+    "chai-as-promised": "7.1.1",
+    "cross-env": "5.2.0",
+    "documentation": "8.1.2",
+    "eslint": "4.17.0",
+    "eslint-config-airbnb-base": "12.1.0",
+    "eslint-config-prettier": "3.0.1",
+    "eslint-import-resolver-babel-module": "4.0.0",
+    "eslint-plugin-import": "2.14.0",
+    "eslint-plugin-prettier": "2.6.2",
+    "mocha": "5.2.0",
+    "nunjucks": "3.1.3",
+    "nyc": "13.0.1",
+    "prettier": "1.14.2",
+    "rimraf": "2.6.2",
+    "sinon": "6.3.1",
+    "tsd": "0.7.2"
   }
 }
