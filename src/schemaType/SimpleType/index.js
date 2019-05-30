@@ -14,7 +14,7 @@ import handleRequiredValidation from 'shared/handleRequiredValidation';
  * @extends BaseType
  * @hideconstructor
  * @param {Object} [definition = {}] - Data definition
- * @param {Number[]} [definition.path = null] - 0-indexed Array path
+ * @param {string} [definition.path = null] - 1-index string path
  * @param {string} [definition.dictionary = null] - Multivalue dictionary id
  * @param {Boolean|Function} [definition.required = false] Indicates that a value is required when validating
  * @throws {DisallowDirectError} Class cannot be instantiated directly

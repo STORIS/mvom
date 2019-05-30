@@ -6,6 +6,7 @@ describe('DisallowDirectError', () => {
 		it('should set instance members with default values', () => {
 			const error = new DisallowDirectError();
 			assert.strictEqual(error.name, 'DisallowDirectError');
+			assert.strictEqual(error.source, 'mvom');
 			assert.strictEqual(error.className, 'Unknown');
 			assert.strictEqual(error.message, 'This class cannot be instantiated directly');
 		});

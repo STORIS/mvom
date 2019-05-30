@@ -5,7 +5,13 @@ import packageData from '../package.json';
 
 const getBuildPath = file => path.join(process.cwd(), 'dist', path.basename(file));
 
-const files = ['README.md', 'CHANGELOG.md', 'LICENSE', path.join('src', '.mvomrc.json')];
+const files = [
+	'README.md',
+	'CHANGELOG.md',
+	'LICENSE',
+	path.join('src', '.mvomrc.json'),
+	path.join('src', 'index.d.ts'),
+];
 files.forEach(file => {
 	const buildPath = getBuildPath(file);
 	try {
