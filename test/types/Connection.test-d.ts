@@ -12,7 +12,11 @@ const dummyLogger = {
 };
 
 const connection: Connection = createConnection('foo', 'bar');
-expectType<Connection>(createConnection('foo', 'bar', {cacheMaxAge: 3600, logger: dummyLogger, timeout: 0})); // include optional params
+expectType<Connection>(createConnection('foo', 'bar', {
+  cacheMaxAge: 3600,
+  logger: dummyLogger,
+  timeout: 0
+})); // include optional params
 expectType<Promise<void>>(connection.open());
 expectType<Promise<void>>(connection.deployFeatures('foo'));
 expectType<Promise<string>>(connection.getDbDate());
@@ -25,9 +29,13 @@ const testSchema: Schema = new Schema({test: 'foo'});
 const modelClass: typeof Model = connection.model(testSchema, 'foo');
 const model = new modelClass();
 expectType<Promise<Model>>(model.save());
-expectType<Promise<Model|null>>(model.deleteById('id'));
-expectType<Promise<Model[]>>(model.find({}, {skip: 40, limit: null, sort: ['field']}));
-expectType<Promise<GenericObject>>(model.findAndCount({}, {skip: 40, limit: null, sort: ['field']}));
-expectType<Promise<Model>>(model.findById('id'));
-expectType<Promise<Model[]>>(model.findByIds('id'));
-expectType<Promise<Model[]>>(model.findByIds(['id']));
+expectType<Promise<Model|null>>(modelClass.deleteById('id'));
+expectType<Promise<Model[]>>(modelClass.find({}, {skip: 40, limit: null, sort: ['field']}));
+expectType<Promise<{ documents: GenericObject[], count: number }>>(modelClass.findAndCount({}, {
+  skip: 40,
+  limit: null,
+  sort: ['field']
+}));
+expectType<Promise<Model>>(modelClass.findById('id'));
+expectType<Promise<Model[]>>(modelClass.findByIds('id'));
+expectType<Promise<Model[]>>(modelClass.findByIds(['id']));
