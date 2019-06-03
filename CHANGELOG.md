@@ -1,4 +1,8 @@
 # CHANGELOG.md
+## 0.3.5
+###### _2019-06-03_
+- Correct static members on Model class in TS declaration file. @abair91
+
 ## 0.3.4
 ###### _2019-05-30_
 - Add TypeScript declaration file. @abair91

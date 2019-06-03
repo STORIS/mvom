@@ -38,12 +38,15 @@ declare namespace mvom {
 
   class Model {
     constructor(data?: GenericObject);
+    static deleteById(id: string): Promise<Model|null>;
+    static find(selectionCriteria?: GenericObject, options?: findOptions): Promise<Model[]>;
+    static findAndCount(selectionCriteria?: GenericObject, options?: findOptions): Promise<{
+      documents: GenericObject[],
+      count: number,
+    }>;
+    static findById(id: string): Promise<Model>;
+    static findByIds(ids: string|string[]): Promise<Model[]>;
     save(): Promise<Model>;
-    deleteById(id: string): Promise<Model|null>;
-    find(selectionCriteria?: GenericObject, options?: findOptions): Promise<Model[]>;
-    findAndCount(selectionCriteria?: GenericObject, options?: findOptions): Promise<GenericObject>;
-    findById(id: string): Promise<Model>;
-    findByIds(ids: string|string[]): Promise<Model[]>;
   }
 
   interface findOptions {
