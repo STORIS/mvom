@@ -32,7 +32,7 @@
     "test:unit": "cross-env NODE_ENV=test mocha",
     "test:coverage": "cross-env NODE_ENV=test BABEL_ENV=coverage nyc mocha",
     "test:coverage:html": "npm run test:coverage && nyc report --reporter=html",
-    "test:ts": "tsd"
+    "test:ts": "tsd && echo \"tsd: no tsd errors\""
   },
   "repository": {
     "type": "git",
