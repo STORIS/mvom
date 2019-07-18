@@ -44,7 +44,15 @@ class StringType extends SimpleType {
 	 * @param {string|null} value - Value to transform
 	 * @returns {string|null} Transformed value
 	 */
-	transformFromDb = value => (value == null ? null : String(value));
+	transformFromDb = value => {
+		if (value == null) {
+			// if this property has an enumeration constraint and one of those constraints is empty string then return empty string;
+			// otherwise return null
+			return this._enum !== null && this._enum.includes('') ? '' : null;
+		}
+
+		return String(value);
+	};
 
 	/**
 	 * Transform js string to mv string
