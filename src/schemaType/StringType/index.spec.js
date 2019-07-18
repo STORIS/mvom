@@ -62,21 +62,35 @@ describe('StringType', () => {
 
 	describe('instance methods', () => {
 		describe('transformFromDb', () => {
-			let stringType;
-			before(() => {
-				stringType = new StringType({ path: '1' });
+			describe('no enum', () => {
+				let stringType;
+				before(() => {
+					stringType = new StringType({ path: '1' });
+				});
+
+				it('should return null if value is not provided', () => {
+					assert.isNull(stringType.transformFromDb());
+				});
+
+				it('should return passed string value', () => {
+					assert.strictEqual(stringType.transformFromDb('foo'), 'foo');
+				});
+
+				it('should return cast string value', () => {
+					assert.strictEqual(stringType.transformFromDb(1337), '1337');
+				});
 			});
 
-			it('should return null if value is not provided', () => {
-				assert.isNull(stringType.transformFromDb());
-			});
+			describe('enum', () => {
+				it('should return empty string if enum contains empty string', () => {
+					const stringType = new StringType({ path: '1', enum: ['', 'foo', 'bar'] });
+					assert.strictEqual(stringType.transformFromDb(null), '');
+				});
 
-			it('should return passed string value', () => {
-				assert.strictEqual(stringType.transformFromDb('foo'), 'foo');
-			});
-
-			it('should return cast string value', () => {
-				assert.strictEqual(stringType.transformFromDb(1337), '1337');
+				it('should return null if enum does not contain empty string', () => {
+					const stringType = new StringType({ path: '1', enum: ['foo', 'bar'] });
+					assert.isNull(stringType.transformFromDb(null));
+				});
 			});
 		});
 
