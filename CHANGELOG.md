@@ -1,4 +1,9 @@
 # CHANGELOG.md
+## 0.4.0
+###### _2019-07-18_
+- String types with an enumeration of empty string will return empty string instead of null from the database. @shawnmcknight
+- Improve the Model class in the typescript declaration. @shawnmcknight
+
 ## 0.3.5
 ###### _2019-06-03_
 - Correct static members on Model class in TS declaration file. @abair91
