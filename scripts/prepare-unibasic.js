@@ -2,9 +2,9 @@
 import fs from 'fs-extra';
 import nunjucks from 'nunjucks';
 import path from 'path';
-import dbErrors from 'shared/dbErrors';
+import { dbErrors } from '#shared/constants';
 
-const inputDir = path.join(process.cwd(), 'src', 'templates', 'unibasic');
+const inputDir = path.join(process.cwd(), 'src', 'unibasicTemplates');
 const outputDir = path.join(process.cwd(), 'dist', 'unibasic');
 
 const env = new nunjucks.Environment(new nunjucks.FileSystemLoader(inputDir), {

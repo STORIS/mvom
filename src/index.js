@@ -1,6 +1,6 @@
-import Errors from 'Errors';
-import Schema from 'Schema';
-import createConnection from 'createConnection';
+import * as Errors from '#shared/Errors';
+import createConnection from './createConnection';
+import Schema from './Schema';
 
 /**
  * Main mvom module
@@ -20,5 +20,6 @@ const mvom = {
 	createConnection,
 };
 
+/* eslint-disable-next-line import/no-default-export */
 export default mvom;
 export { Errors, Schema, createConnection };

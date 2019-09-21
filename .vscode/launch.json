@@ -7,38 +7,78 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Mocha Tests",
-      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
-      "args": [
-        "--timeout",
-        "999999",
-        "--colors",
-        "${workspaceFolder}/test"
-      ],
-      "internalConsoleOptions": "openOnSessionStart",
+      "name": "Debug All Unit Tests",
       "env": {
-        "NODE_ENV": "test"
+        "BABEL_ENV": "testDebug",
       },
+      "program": "${workspaceFolder}/node_modules/jest/bin/jest",
+      "runtimeArgs": [
+        "--nolazy"
+      ],
+      "args": [
+        "--runInBand",
+        "--no-cache",
+      ],
+      "sourceMaps": true,
+      "outputCapture": "std",
+      "console": "integratedTerminal",
       "skipFiles": [
-        "<node_internals>/**/*.js",
-        "${workspaceRoot}/node_modules/**/*.js"
-      ]
+        "<node_internals>/**/*.js"
+      ],
     },
     {
       "type": "node",
       "request": "launch",
-      "name": "Mocha Tests including Node Modules",
-      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
-      "args": [
-        "--timeout",
-        "999999",
-        "--colors",
-        "${workspaceFolder}/test"
-      ],
-      "internalConsoleOptions": "openOnSessionStart",
+      "name": "Debug Unit Tests for current workspace file",
       "env": {
-        "NODE_ENV": "test"
-      }
+        "BABEL_ENV": "testDebug",
+      },
+      "program": "${workspaceFolder}/node_modules/jest/bin/jest",
+      "runtimeArgs": [
+        "--nolazy"
+      ],
+      "args": [
+        "${fileBasenameNoExtension}",
+        "--runInBand",
+        "--no-cache",
+      ],
+      "sourceMaps": true,
+      "outputCapture": "std",
+      "console": "integratedTerminal",
+      "skipFiles": [
+        "<node_internals>/**/*.js"
+      ],
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Unit Tests by TestPathPattern",
+      "env": {
+        "BABEL_ENV": "testDebug",
+      },
+      "program": "${workspaceFolder}/node_modules/jest/bin/jest",
+      "runtimeArgs": [
+        "--nolazy"
+      ],
+      "args": [
+        "${input:testPathPattern}",
+        "--runInBand",
+        "--no-cache",
+      ],
+      "sourceMaps": true,
+      "outputCapture": "std",
+      "console": "integratedTerminal",
+      "skipFiles": [
+        "<node_internals>/**/*.js"
+      ],
+    }
+  ],
+  "inputs": [
+    {
+      "id": "testPathPattern",
+      "type": "promptString",
+      "description": "Enter Test Path Pattern",
+      "default": ""
     }
   ]
 }

@@ -1,8 +1,7 @@
-import { assert } from 'chai';
-import mvom from './';
+import mvom from '.';
 
 describe('mvom', () => {
-	it('should export an object', () => {
-		assert.isObject(mvom);
+	test('should export an object', () => {
+		expect(typeof mvom).toBe('object');
 	});
 });
