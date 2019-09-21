@@ -249,9 +249,7 @@ const compileModel = (connection, schema, file) => {
 			this.transformationErrors.forEach(error => {
 				// errors occurred while transforming data from multivalue format - log them
 				Model.connection.logger.warn(
-					`error transforming data -- file: ${Model.file}; _id: ${this._id}; class: ${
-						error.transformClass
-					}; value: ${error.transformValue}`,
+					`error transforming data -- file: ${Model.file}; _id: ${this._id}; class: ${error.transformClass}; value: ${error.transformValue}`,
 				);
 			});
 		}

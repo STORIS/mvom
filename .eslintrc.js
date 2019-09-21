@@ -38,6 +38,8 @@ module.exports = {
 					'error',
 					{ devDependencies: true, optionalDependencies: false, peerDependencies: false },
 				],
+				// allow tests to create multiple classes
+				'max-classes-per-file': 'off',
 			},
 		},
 	],
