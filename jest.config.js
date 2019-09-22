@@ -9,9 +9,10 @@ module.exports = {
 		'!**/__mocks__/**', // do not test jest mocks
 		'!**/test/**', // do not test any test helpers
 		'!**/src/**/index.*', // do not test index export files
+		'!**/src/shared/types/**', // do not test local type definitions
 		'!**/@types/**', // do not test ambient declarations
 		'!**/index.d.ts', // do not test typescript declaration files
-		'!**/src/shared/constants/**', // do not test shared constants folder
+		'!**/src/**/constants/**', // do not test shared constants folder
 		'!src/shared/typedefs/**', // do not test jsdoc type definitions
 	],
 	coverageThreshold: {

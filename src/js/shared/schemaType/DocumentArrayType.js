@@ -1,5 +1,5 @@
 import { castArray, cloneDeep, compact, isPlainObject, set as setIn } from 'lodash';
-import { getFromMvArray } from '#sharedjs/helpers';
+import { getFromMvArray } from '#shared/utils';
 import Document from '../../Document';
 import ComplexType from './ComplexType';
 

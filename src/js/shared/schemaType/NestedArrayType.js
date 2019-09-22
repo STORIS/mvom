@@ -1,5 +1,5 @@
 import { castArray, compact, flatten } from 'lodash';
-import { handleRequiredValidation } from '#sharedjs/helpers';
+import { handleRequiredValidation } from '#shared/utils';
 import BasePrimitiveArrayType from './BasePrimitiveArrayType';
 
 /**

@@ -5,8 +5,8 @@ module.exports = {
 			ignore: ['**/*.test.ts', '**/__mocks__/**', '**/*.spec.js'],
 			presets: [['@babel/env', { targets: { node: '8.16.0' } }], '@babel/typescript'],
 		},
-		test: { plugins: ['rewire'] },
-		testDebug: { plugins: ['rewire'], sourceMaps: true, retainLines: true },
+		test: { plugins: ['rewire-ts'] },
+		testDebug: { plugins: ['rewire-ts'], sourceMaps: true, retainLines: true },
 	},
 	presets: [['@babel/env', { targets: { node: 'current' } }], '@babel/typescript'],
 	plugins: [

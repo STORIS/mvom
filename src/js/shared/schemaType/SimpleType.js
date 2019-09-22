@@ -1,6 +1,6 @@
 import { cloneDeep, compact, set as setIn, toPath } from 'lodash';
 import { DisallowDirectError, InvalidParameterError, NotImplementedError } from '#shared/errors';
-import { getFromMvArray, handleRequiredValidation } from '#sharedjs/helpers';
+import { getFromMvArray, handleRequiredValidation } from '#shared/utils';
 import BaseType from './BaseType';
 
 /**
