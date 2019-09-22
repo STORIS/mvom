@@ -9,9 +9,9 @@
   },
   "scripts": {
     "build": "npm run build:node && npm run build:prepare-unibasic && npm run build:copy-files",
-    "build:copy-files": "babel-node ./scripts/copy-files",
-    "build:node": "babel ./srcjs ./src --env-name build --out-dir ./dist --extensions .ts,.js",
-    "build:prepare-unibasic": "babel-node ./scripts/prepare-unibasic",
+    "build:copy-files": "babel-node --extensions .ts,.js ./scripts/copy-files",
+    "build:node": "babel ./src --env-name build --out-dir ./dist --extensions .ts,.js",
+    "build:prepare-unibasic": "babel-node --extensions .ts,.js ./scripts/prepare-unibasic",
     "clean": "npm run clean:build",
     "clean:build": "rimraf ./dist",
     "docgen": "rimraf ./docs && documentation build src/** -f html -o docs --parse-extension js",
@@ -20,11 +20,12 @@
     "lint": "eslint . && echo \"eslint: no lint errors\"",
     "lint:fix": "eslint . --fix && echo \"eslint: no lint errors\"",
     "prebuild": "npm run clean:build",
-    "test": "npm run lint && npm run test:coverage:summary",
+    "test": "npm run typecheck && npm run lint && npm run test:coverage:summary",
     "test:unit": "jest",
     "test:coverage": "jest --collectCoverage --coverageReporters text",
     "test:coverage:html": "jest --collectCoverage --coverageReporters html",
-    "test:coverage:summary": "jest --collectCoverage --coverageReporters text-summary"
+    "test:coverage:summary": "jest --collectCoverage --coverageReporters text-summary",
+    "typecheck": "tsc --noEmit && echo \"tsc: no typecheck errors\""
   },
   "repository": {
     "type": "git",
@@ -52,6 +53,7 @@
     "@babel/preset-env": "7.6.0",
     "@babel/preset-typescript": "7.6.0",
     "@babel/register": "7.6.0",
+    "@types/jest": "24.0.18",
     "@types/node": "8.10.54",
     "@typescript-eslint/eslint-plugin": "2.3.0",
     "@typescript-eslint/parser": "2.3.0",

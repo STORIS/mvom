@@ -18,10 +18,7 @@ module.exports = {
 		// see https://github.com/prettier/eslint-config-prettier/blob/master/CHANGELOG.md v4.0.0
 		'prefer-arrow-callback': ['error', { allowNamedFunctions: false, allowUnboundThis: true }],
 		// allow dangling _id and __v
-		'no-underscore-dangle': [
-			'error',
-			{ allow: ['_id', '__v', '__Rewire__', '__ResetDependency__'], allowAfterThis: true },
-		],
+		'no-underscore-dangle': ['error', { allow: ['_id', '__v'] }],
 		// make ts camelcase rule line up with airbnb variant
 		'@typescript-eslint/camelcase': ['error', { properties: 'never', ignoreDestructuring: false }],
 		// make ts no-unused-vars rule line up with airbnb variant
@@ -29,15 +26,31 @@ module.exports = {
 			'error',
 			{ vars: 'all', args: 'after-used', ignoreRestSiblings: true },
 		],
-		// enforce consistent order of class members
-		'@typescript-eslint/member-ordering': 'error',
 	},
 	settings: { 'import/resolver': { 'babel-module': {} } },
 	overrides: [
 		{
+			files: ['**/*.ts'],
+			rules: {
+				// enforce consistent order of class members
+				'@typescript-eslint/member-ordering': 'error',
+				// ensure consistent array typings
+				'@typescript-eslint/array-type': 'error',
+				// force explicit member accessibility modifiers
+				'@typescript-eslint/explicit-member-accessibility': 'error',
+				// disallow parameter properties in favor of explicit class declarations
+				'@typescript-eslint/no-parameter-properties': 'error',
+			},
+		},
+		{
 			files: ['**/*.js'],
 			parser: 'babel-eslint',
 			rules: {
+				// allow dangling _id and __v, use of rewire, and implicitly private class members
+				'no-underscore-dangle': [
+					'error',
+					{ allow: ['_id', '__v', '__Rewire__', '__ResetDependency__'], allowAfterThis: true },
+				],
 				// ignore typescript rules
 				'@typescript-eslint/explicit-function-return-type': 'off',
 				'@typescript-eslint/member-ordering': 'off',

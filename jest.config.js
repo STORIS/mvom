@@ -4,21 +4,22 @@ module.exports = {
 	restoreMocks: true, // restore initial behavior of mocked functions
 	collectCoverageFrom: [
 		'**/*.ts', // test typescript files
-		'srcjs/**/*.js', // test unconverted source javascript files
+		'src/js/**/*.js', // test unconverted source javascript files
 		'!**/node_modules/**', // do not test node_modules
 		'!**/__mocks__/**', // do not test jest mocks
 		'!**/test/**', // do not test any test helpers
 		'!**/src/**/index.*', // do not test index export files
-		'!**/src/@types/**', // do not test ambient declarations
+		'!**/@types/**', // do not test ambient declarations
 		'!**/index.d.ts', // do not test typescript declaration files
+		'!**/src/shared/constants/**', // do not test shared constants folder
 		'!src/shared/typedefs/**', // do not test jsdoc type definitions
 	],
 	coverageThreshold: {
 		global: {
-			branches: 0,
-			functions: 0,
-			lines: 0,
-			statements: 0,
+			branches: 98,
+			functions: 98,
+			lines: 98,
+			statements: 98,
 		},
 	},
 };

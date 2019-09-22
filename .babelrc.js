@@ -2,7 +2,7 @@ module.exports = {
 	ignore: ['**/*.d.ts'],
 	env: {
 		build: {
-			ignore: ['**/*.spec.js', '**/__mocks__/**'],
+			ignore: ['**/*.test.ts', '**/__mocks__/**', '**/*.spec.js'],
 			presets: [['@babel/env', { targets: { node: '8.16.0' } }], '@babel/typescript'],
 		},
 		test: { plugins: ['rewire'] },
@@ -16,8 +16,8 @@ module.exports = {
 			{
 				extensions: ['.js', '.ts'],
 				alias: {
-					'#shared': './src/shared',
-					'#sharedjs': './srcjs/shared',
+					'#shared': './src/ts/shared',
+					'#sharedjs': './src/js/shared',
 					'#test': './test',
 				},
 			},

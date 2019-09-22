@@ -41,7 +41,7 @@ const minimalPackage = {
 	author,
 	version,
 	description,
-	main: './index.js',
+	main: './js/index.js',
 	keywords,
 	repository,
 	license,
