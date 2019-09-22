@@ -1,4 +1,4 @@
-import { DisallowDirectError } from '#shared/Errors';
+import { DisallowDirectError } from '#sharedjs/Errors';
 import SimpleType from './SimpleType';
 
 /**

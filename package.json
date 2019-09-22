@@ -10,7 +10,7 @@
   "scripts": {
     "build": "npm run build:node && npm run build:prepare-unibasic && npm run build:copy-files",
     "build:copy-files": "babel-node ./scripts/copy-files",
-    "build:node": "babel ./src --env-name build --out-dir ./dist",
+    "build:node": "babel ./srcjs ./src --env-name build --out-dir ./dist --extensions .ts,.js",
     "build:prepare-unibasic": "babel-node ./scripts/prepare-unibasic",
     "clean": "npm run clean:build",
     "clean:build": "rimraf ./dist",
@@ -20,12 +20,11 @@
     "lint": "eslint . && echo \"eslint: no lint errors\"",
     "lint:fix": "eslint . --fix && echo \"eslint: no lint errors\"",
     "prebuild": "npm run clean:build",
-    "test": "npm run lint && npm run test:ts && npm run test:coverage:summary",
+    "test": "npm run lint && npm run test:coverage:summary",
     "test:unit": "jest",
     "test:coverage": "jest --collectCoverage --coverageReporters text",
     "test:coverage:html": "jest --collectCoverage --coverageReporters html",
-    "test:coverage:summary": "jest --collectCoverage --coverageReporters text-summary",
-    "test:ts": "tsd && echo \"tsd: no tsd errors\""
+    "test:coverage:summary": "jest --collectCoverage --coverageReporters text-summary"
   },
   "repository": {
     "type": "git",
@@ -51,7 +50,11 @@
     "@babel/node": "7.6.1",
     "@babel/plugin-proposal-class-properties": "7.5.5",
     "@babel/preset-env": "7.6.0",
+    "@babel/preset-typescript": "7.6.0",
     "@babel/register": "7.6.0",
+    "@types/node": "8.10.54",
+    "@typescript-eslint/eslint-plugin": "2.3.0",
+    "@typescript-eslint/parser": "2.3.0",
     "babel-eslint": "10.0.3",
     "babel-jest": "24.9.0",
     "babel-plugin-module-resolver": "3.2.0",
@@ -68,16 +71,7 @@
     "prettier": "1.18.2",
     "rimraf": "3.0.0",
     "sinon": "7.4.2",
-    "tsd": "0.8.0"
+    "typescript": "3.6.3"
   },
-  "types": "./src/index.d.ts",
-  "tsd": {
-    "compilerOptions": {
-      "noImplicitAny": true,
-      "noImplicitThis": true,
-      "strictNullChecks": true,
-      "strictFunctionTypes": true
-    },
-    "directory": "test/types"
-  }
+  "types": "./src/index.d.ts"
 }

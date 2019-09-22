@@ -1,4 +1,4 @@
-import { DataValidationError, InvalidParameterError } from '#shared/Errors';
+import { DataValidationError, InvalidParameterError } from '#sharedjs/Errors';
 import Document from './Document';
 import Query from './Query';
 import Schema from './Schema';

@@ -1,6 +1,6 @@
 import { isObject, isPlainObject } from 'lodash';
-import * as schemaType from '#shared/schemaType';
-import { InvalidParameterError } from '#shared/Errors';
+import * as schemaType from '#sharedjs/schemaType';
+import { InvalidParameterError } from '#sharedjs/Errors';
 
 const {
 	ArrayType,

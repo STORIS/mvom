@@ -1,10 +1,15 @@
 module.exports = {
-	extends: ['airbnb-base', 'plugin:prettier/recommended'],
+	extends: [
+		'airbnb-base',
+		'plugin:@typescript-eslint/recommended',
+		'plugin:prettier/recommended',
+		'prettier/@typescript-eslint',
+	],
 	env: { es6: true, node: true, jest: true },
 	globals: {
 		__rewire_reset_all__: false,
 	},
-	parser: 'babel-eslint',
+	parser: '@typescript-eslint/parser',
 	rules: {
 		// arrow-body-style must be manually enabled because prettier/recommended is disabling it
 		// see https://github.com/prettier/eslint-config-prettier/blob/master/CHANGELOG.md v4.0.0
@@ -17,12 +22,29 @@ module.exports = {
 			'error',
 			{ allow: ['_id', '__v', '__Rewire__', '__ResetDependency__'], allowAfterThis: true },
 		],
+		// make ts camelcase rule line up with airbnb variant
+		'@typescript-eslint/camelcase': ['error', { properties: 'never', ignoreDestructuring: false }],
+		// make ts no-unused-vars rule line up with airbnb variant
+		'@typescript-eslint/no-unused-vars': [
+			'error',
+			{ vars: 'all', args: 'after-used', ignoreRestSiblings: true },
+		],
+		// enforce consistent order of class members
+		'@typescript-eslint/member-ordering': 'error',
 	},
 	settings: { 'import/resolver': { 'babel-module': {} } },
 	overrides: [
 		{
-			files: ['**/index.js'],
+			files: ['**/*.js'],
 			parser: 'babel-eslint',
+			rules: {
+				// ignore typescript rules
+				'@typescript-eslint/explicit-function-return-type': 'off',
+				'@typescript-eslint/member-ordering': 'off',
+			},
+		},
+		{
+			files: ['**/index.*'],
 			rules: {
 				// in index files, always use named exports
 				'import/prefer-default-export': 'off',
@@ -30,14 +52,29 @@ module.exports = {
 			},
 		},
 		{
-			files: ['**/*.spec.js', '**/scripts/**'],
-			parser: 'babel-eslint',
+			files: ['**/scripts/**'],
 			rules: {
 				// allow dev dependencies
 				'import/no-extraneous-dependencies': [
 					'error',
 					{ devDependencies: true, optionalDependencies: false, peerDependencies: false },
 				],
+			},
+		},
+		{
+			files: ['**/test/**', '**/*.test.ts', '**/*.spec.js'],
+			rules: {
+				// allow explicit any in tests
+				'@typescript-eslint/no-explicit-any': 'off',
+				// allow dev dependencies
+				'import/no-extraneous-dependencies': [
+					'error',
+					{ devDependencies: true, optionalDependencies: false, peerDependencies: false },
+				],
+				// allow non-null-assertions
+				'@typescript-eslint/no-non-null-assertion': 'off',
+				// allow ts-ignore in tests
+				'@typescript-eslint/ban-ts-ignore': 'off',
 				// allow tests to create multiple classes
 				'max-classes-per-file': 'off',
 			},

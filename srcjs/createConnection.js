@@ -1,5 +1,5 @@
-import { InvalidParameterError } from '#shared/Errors';
-import { dummyLogger } from '#shared/utils';
+import { InvalidParameterError } from '#sharedjs/Errors';
+import { dummyLogger } from '#sharedjs/utils';
 import Connection from './Connection';
 
 /**

@@ -10,7 +10,7 @@ import {
 	ISOCalendarDateFormat,
 	ISOCalendarDateTimeFormat,
 	ISOTimeFormat,
-} from '#shared/constants';
+} from '#sharedjs/constants';
 import {
 	ConnectionManagerError,
 	DbServerError,
@@ -18,9 +18,9 @@ import {
 	InvalidServerFeaturesError,
 	RecordLockedError,
 	RecordVersionError,
-} from '#shared/Errors';
+} from '#sharedjs/Errors';
 import compileModel from './compileModel';
-import { dependencies as serverDependencies } from './.mvomrc.json';
+import { dependencies as serverDependencies } from '../src/.mvomrc.json';
 
 /** A connection object
  * @param {Object} options

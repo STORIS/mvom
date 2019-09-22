@@ -1,4 +1,4 @@
-import { DisallowDirectError, NotImplementedError } from '#shared/Errors';
+import { DisallowDirectError, NotImplementedError } from '#sharedjs/Errors';
 
 /**
  * A Base Schema Type

@@ -1,4 +1,4 @@
-import { dbErrors } from '#shared/constants';
+import { dbErrors } from '#sharedjs/constants';
 import BaseError from './BaseError';
 
 /**

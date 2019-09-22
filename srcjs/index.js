@@ -1,4 +1,4 @@
-import * as Errors from '#shared/Errors';
+import * as Errors from '#sharedjs/Errors';
 import createConnection from './createConnection';
 import Schema from './Schema';
 

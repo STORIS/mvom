@@ -1,6 +1,6 @@
 import { isString } from 'lodash';
-import { InvalidParameterError } from '#shared/Errors';
-import { handleTypeValidation } from '#shared/helpers';
+import { InvalidParameterError } from '#sharedjs/Errors';
+import { handleTypeValidation } from '#sharedjs/helpers';
 import BaseDateType from './BaseDateType';
 import ISOCalendarDateType from './ISOCalendarDateType';
 import ISOTimeType from './ISOTimeType';

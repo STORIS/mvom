@@ -1,5 +1,5 @@
 import { isPlainObject } from 'lodash';
-import { InvalidParameterError } from '#shared/Errors';
+import { InvalidParameterError } from '#sharedjs/Errors';
 
 /**
  * A query object

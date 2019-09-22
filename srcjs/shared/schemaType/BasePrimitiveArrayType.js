@@ -1,4 +1,4 @@
-import { DisallowDirectError, InvalidParameterError, NotImplementedError } from '#shared/Errors';
+import { DisallowDirectError, InvalidParameterError, NotImplementedError } from '#sharedjs/Errors';
 import ComplexType from './ComplexType';
 import SimpleType from './SimpleType';
 

@@ -6,7 +6,7 @@ import {
 	ISOCalendarDateFormat,
 	ISOCalendarDateTimeFormat,
 	ISOTimeFormat,
-} from '#shared/constants';
+} from '#sharedjs/constants';
 import { mockLogger } from '#test/helpers';
 /* eslint-disable-next-line import/named */
 import Connection, { __RewireAPI__ as RewireAPI } from './Connection';

@@ -1,0 +1,18 @@
+// Place your settings in this file to overwrite the default settings
+{
+  // The default end of line character. Use \n for LF and \r\n for CRLF.
+  "files.eol": "\n",
+  "javascript.format.enable": false,
+  "typescript.format.enable": false,
+  "eslint.validate": [
+    {
+      "language": "javascript",
+      "autoFix": true
+    },
+    {
+      "language": "typescript",
+      "autoFix": true
+    }
+  ],
+  "typescript.tsdk": "node_modules\\typescript\\lib"
+}

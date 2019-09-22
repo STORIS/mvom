@@ -1,5 +1,5 @@
 import { assignIn, cloneDeep, get as getIn, isPlainObject, set as setIn } from 'lodash';
-import { InvalidParameterError, TransformDataError } from '#shared/Errors';
+import { InvalidParameterError, TransformDataError } from '#sharedjs/Errors';
 
 /**
  * A document object

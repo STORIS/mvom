@@ -1,4 +1,4 @@
-import { InvalidParameterError } from '#shared/Errors';
+import { InvalidParameterError } from '#sharedjs/Errors';
 import SimpleType from './SimpleType';
 
 /**

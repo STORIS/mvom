@@ -1,5 +1,5 @@
-import { InvalidParameterError, TransformDataError } from '#shared/Errors';
-import { handleTypeValidation } from '#shared/helpers';
+import { InvalidParameterError, TransformDataError } from '#sharedjs/Errors';
+import { handleTypeValidation } from '#sharedjs/helpers';
 import SimpleType from './SimpleType';
 
 /**

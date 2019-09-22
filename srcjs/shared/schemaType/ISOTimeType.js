@@ -1,7 +1,7 @@
 import moment from 'moment';
-import { TransformDataError } from '#shared/Errors';
-import { ISOTimeFormat } from '#shared/constants';
-import { handleTypeValidation } from '#shared/helpers';
+import { TransformDataError } from '#sharedjs/Errors';
+import { ISOTimeFormat } from '#sharedjs/constants';
+import { handleTypeValidation } from '#sharedjs/helpers';
 import BaseDateType from './BaseDateType';
 
 /**
