@@ -86,52 +86,46 @@ declare namespace mvom {
       name: string;
       other: GenericObject;
     }
-    class ConnectionManager extends Base {
+    class ConnectionManagerError extends Base {
       constructor(opts?: {message?: string, connectionManagerRequest?: GenericObject, connectionManagerResponse?: GenericObject, [key: string]: any});
       name: 'ConnectionManagerError';
       connectionManagerRequest: GenericObject;
       connectionManagerResponse: GenericObject;
     }
-    class DataValidation extends Base {
+    class DataValidationError extends Base {
       constructor(opts?: {message?: string, validationErrors?: GenericObject, [key: string]: any});
       name: 'DataValidationError';
       validationErrors: GenericObject;
     }
-    class DbServer extends Base {
+    class DbServerError extends Base {
       constructor(opts?: {message?: string, errorCode?: GenericObject, [key: string]: any});
       name: 'DbServerError';
     }
-    class DisallowDirect extends Error {
-      constructor(opts?: {message?: string, className?: string, [key: string]: any});
-      name: 'DisallowDirectError';
-      className: string;
-      other: GenericObject;
-    }
-    class InvalidParameter extends Base {
+    class InvalidParameterError extends Base {
       constructor(opts?: {message?: string, parameterName?: string, [key: string]: any});
       name: 'InvalidParameterError';
       parameterName: string;
     }
-    class InvalidServerFeatures extends Base {
+    class InvalidServerFeaturesError extends Base {
       constructor(opts?: {message?: string, invalidFeatures?: string[], [key: string]: any});
       name: 'InvalidServerFeaturesError';
       invalidFeatures: string[];
     }
-    class NotImplemented extends Base {
+    class NotImplementedError extends Base {
       constructor(opts?: {message?: string, methodName?: string, className?: string, [key: string]: any});
       name: 'NotImplementedError';
       methodName: string;
       className: string;
     }
-    class RecordLocked extends Base {
+    class RecordLockedError extends Base {
       constructor(opts?: {message?: string, [key: string]: any});
       name: 'RecordLockedError';
     }
-    class RecordVersion extends Base {
+    class RecordVersionError extends Base {
       constructor(opts?: {message?: string, [key: string]: any});
       name: 'RecordVersionError';
     }
-    class TransformData extends Base {
+    class TransformDataError extends Base {
       constructor(opts?: {message?: string, transformClass?: string, transformValue?: any, [key: string]: any});
       name: 'TransformDataError';
       transformClass: string;

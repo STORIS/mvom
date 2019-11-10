@@ -145,9 +145,22 @@ describe('DocumentArrayType', () => {
 		});
 
 		describe('set', () => {
+			const SetSchema = class {
+				getMvPaths = stub().returns([[0], [1]]);
+			};
+			const setDocumentArrayType = new DocumentArrayType(new SetSchema());
+
+			test('should clear out the document array if an empty array is passed in', () => {
+				expect(setDocumentArrayType.set([['foo', 'bar'], ['baz', 'qux'], 'corge'], [])).toEqual([
+					null,
+					null,
+					'corge',
+				]);
+			});
+
 			test('should return an array of arrays based on what is returned from transformDocumentToRecord', () => {
 				const transformDocumentToRecord = stub().returns(['foo', 'bar']);
-				expect(documentArrayType.set([], [{ transformDocumentToRecord }])).toEqual([
+				expect(setDocumentArrayType.set([], [{ transformDocumentToRecord }])).toEqual([
 					['foo'],
 					['bar'],
 				]);
@@ -158,17 +171,33 @@ describe('DocumentArrayType', () => {
 				transformDocumentToRecord.onCall(0).returns(['foo', 'bar']);
 				transformDocumentToRecord.onCall(1).returns(['baz', 'qux']);
 				expect(
-					documentArrayType.set([], [{ transformDocumentToRecord }, { transformDocumentToRecord }]),
+					setDocumentArrayType.set(
+						[],
+						[{ transformDocumentToRecord }, { transformDocumentToRecord }],
+					),
 				).toEqual([['foo', 'baz'], ['bar', 'qux']]);
 			});
 
-			test('should not mutate the original record contents if the subdocuments do not return values', () => {
-				const transformDocumentToRecord = stub();
+			test('should return an updated array of arrays based on what is returned from transformDocumentToRecord', () => {
+				const transformDocumentToRecord = stub().returns(['foo2', 'bar2']);
+				expect(
+					setDocumentArrayType.set(
+						[['foo', 'bar'], ['baz', 'qux'], 'corge'],
+						[{ transformDocumentToRecord }],
+					),
+				).toEqual([['foo2'], ['bar2'], 'corge']);
+			});
+
+			test('should null out the original record contents if the subdocuments do not return values', () => {
+				const transformDocumentToRecord = stub().returns(['foo2', 'bar2']);
 				transformDocumentToRecord.onCall(0).returns([undefined, 'foo', 'bar']);
 				transformDocumentToRecord.onCall(1).returns([undefined, 'baz', 'qux']);
 				expect(
-					documentArrayType.set([], [{ transformDocumentToRecord }, { transformDocumentToRecord }]),
-				).toEqual([undefined, ['foo', 'baz'], ['bar', 'qux']]);
+					setDocumentArrayType.set(
+						[],
+						[{ transformDocumentToRecord }, { transformDocumentToRecord }],
+					),
+				).toEqual([null, ['foo', 'baz'], ['bar', 'qux']]);
 			});
 		});
 

@@ -71,6 +71,10 @@ class DocumentArrayType extends ComplexType {
 	 */
 	set = (originalRecord, setValue) => {
 		const record = cloneDeep(originalRecord);
+		// A subdocumentArray is always overwritten entirely so clear out all associated fields
+		this._valueSchema.getMvPaths().forEach(path => {
+			setIn(record, path, null);
+		});
 		setValue.forEach((subdocument, iteration) => {
 			const subrecord = subdocument.transformDocumentToRecord();
 			subrecord.forEach((value, arrayPos) => {

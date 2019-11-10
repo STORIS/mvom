@@ -93,6 +93,8 @@ for attributeCounter = 1 to lastAttribute
         go closeReleaseAndReturnFromSub
       end
 
+      record<attributeCounter> = ''
+
       for valueCounter = 1 to lastValue
         if udoArrayGetItem(attributeContents, valueCounter, valueContents, valueType) then
           call error_handler(ERROR_UDO, output)
@@ -105,6 +107,8 @@ for attributeCounter = 1 to lastAttribute
               call error_handler(ERROR_UDO, output)
               go closeReleaseAndReturnFromSub
             end
+
+            record<attributeCounter, valueCounter> = ''
 
             for subvalueCounter = 1 to lastSubvalue
               if udoArrayGetItem(valueContents, subvalueCounter, subvalueContents, subvalueType) then

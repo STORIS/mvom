@@ -14,6 +14,7 @@ module.exports = {
 		'!**/index.d.ts', // do not test typescript declaration files
 		'!**/src/**/constants/**', // do not test shared constants folder
 		'!src/shared/typedefs/**', // do not test jsdoc type definitions
+		'!dist/**', // do not test compiled output
 	],
 	coverageThreshold: {
 		global: {
