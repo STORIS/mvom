@@ -1,4 +1,10 @@
 # CHANGELOG.md
+## 0.5.0
+###### _2019-11-11_
+- Fix simple and document array handling so they can be cleared using an empty array syntax and also update correctly when changing the length. @kthompson23
+- Change exported error names so they contain an `Error` suffix for clarity. @shawnmcknight
+- Update dependencies and begin conversion to TypeScript. @shawnmcknight
+
 ## 0.4.0
 ###### _2019-07-18_
 - String types with an enumeration of empty string will return empty string instead of null from the database. @shawnmcknight
