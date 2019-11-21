@@ -1,4 +1,8 @@
 # CHANGELOG.md
+## 0.5.1
+###### _2019-11-21_
+- Rollback fs-extra version to avoid memory leak @kthompson23
+
 ## 0.5.0
 ###### _2019-11-11_
 - Fix simple and document array handling so they can be cleared using an empty array syntax and also update correctly when changing the length. @kthompson23
