@@ -1,4 +1,8 @@
 # CHANGELOG.md
+## 0.5.2
+###### _2020_02_25_
+- Allow for null schemas passed to the model constructor.  When schemas are null, no mapping of the record to a document (and vice versa) will occur.  Instead, a property named `_raw` will be added to the document which contains an array of the record contents.  When saving, this array will overwrite the entire record. @reedmattos
+
 ## 0.5.1
 ###### _2019-11-21_
 - Rollback fs-extra version to avoid memory leak @kthompson23
