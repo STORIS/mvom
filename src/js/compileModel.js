@@ -9,13 +9,13 @@ import Schema from './Schema';
  * @package
  * @private
  * @param {Connection} connection - Connection instance to construct model definition from
- * @param {Schema} schema - Schema instance to derive model from
+ * @param {Schema | null} schema - Schema instance to derive model from, null indicates the entire record is being used
  * @param {string} file - Name of database file associated with model
  * @returns {Model} Model class
  * @throws {InvalidParameterError} An invalid parameter was passed to the function
  */
 const compileModel = (connection, schema, file) => {
-	if (!(schema instanceof Schema)) {
+	if (!(schema instanceof Schema) && schema !== null) {
 		throw new InvalidParameterError({ parameterName: 'schema' });
 	}
 
@@ -55,7 +55,7 @@ const compileModel = (connection, schema, file) => {
 
 		/**
 		 * Schema that defines this model
-		 * @member {Schema} schema
+		 * @member {Schema | null} schema
 		 * @memberof Model
 		 * @static
 		 */

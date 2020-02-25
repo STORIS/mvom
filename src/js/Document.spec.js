@@ -179,6 +179,12 @@ describe('Document', () => {
 					const documentErrors = await document.validate();
 					expect(documentErrors).toEqual({ foo: ['def', 'henk'], bar: ['mos', 'thud'] });
 				});
+
+				test('should return empty object if schema is set to null', async () => {
+					const newDocument = new Document(null);
+					const documentErrors = await newDocument.validate();
+					expect(documentErrors).toEqual({});
+				});
 			});
 
 			describe('failed cast', () => {
@@ -490,6 +496,23 @@ describe('Document', () => {
 						document.transformRecordToDocument(record);
 						expect(document).toMatchObject({ propertyA: 'foo' });
 					});
+				});
+			});
+
+			describe('null schema', () => {
+				const schema = null;
+
+				test('should create a document with all data as a single array under a "_raw" property if schema is null', () => {
+					const record = ['foo', 'bar', 'baz'];
+					const document = new Document(schema);
+					document.transformRecordToDocument(record);
+					expect(document).toMatchObject({ _raw: ['foo', 'bar', 'baz'] });
+				});
+
+				test('should transform a document to a record of a single array if the schema is set to null', () => {
+					const document = new Document(schema, { _raw: ['foo', 'bar', 'baz'] });
+					const record = document.transformDocumentToRecord();
+					expect(record).toEqual(['foo', 'bar', 'baz']);
 				});
 			});
 		});

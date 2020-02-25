@@ -4,7 +4,7 @@ import { InvalidParameterError, TransformDataError } from '#shared/errors';
 /**
  * A document object
  * @class Document
- * @param {Schema} schema - Schema instance to derive document from
+ * @param {Schema | null} schema - Schema instance to derive document from, null indicates the entire record is being used
  * @param {Object} [data = {}] - Object to construct document instance from
  * @param {Object} [options = {}]
  * @param {Boolean} [options.isSubdocument = false] Indicates whether document should behave as a subdocument
@@ -19,7 +19,7 @@ class Document {
 		Object.defineProperties(this, {
 			/**
 			 * Schema instance which defined this document
-			 * @member {Schema} _schema
+			 * @member {Schema | null} _schema
 			 * @memberof Document
 			 * @instance
 			 * @private
@@ -76,13 +76,15 @@ class Document {
 	 * @returns {*[]} Array data of output record format
 	 */
 	transformDocumentToRecord = () =>
-		Object.entries(this._schema.paths).reduce(
-			(record, [keyPath, schemaType]) => {
-				const value = getIn(this, keyPath, null);
-				return schemaType.set(record, value);
-			},
-			this._isSubdocument ? [] : cloneDeep(this._record),
-		);
+		this._schema === null
+			? getIn(this, '_raw', [])
+			: Object.entries(this._schema.paths).reduce(
+					(record, [keyPath, schemaType]) => {
+						const value = getIn(this, keyPath, null);
+						return schemaType.set(record, value);
+					},
+					this._isSubdocument ? [] : cloneDeep(this._record),
+			  );
 
 	/**
 	 * Apply schema structure using record to document instance
@@ -100,26 +102,26 @@ class Document {
 		// hold on to the original to use as the baseline when saving
 		this._record = record;
 
-		const plainDocument = Object.entries(this._schema.paths).reduce(
-			(document, [keyPath, schemaType]) => {
-				let setValue;
-				try {
-					setValue = schemaType.get(this._record);
-				} catch (err) {
-					if (err instanceof TransformDataError) {
-						// if this was an error in data transformation, set the value to null and add to transformationErrors list
-						setValue = null;
-						this.transformationErrors.push(err);
-					} else {
-						// otherwise rethrow any other type of error
-						throw err;
-					}
-				}
-				setIn(document, keyPath, setValue);
-				return document;
-			},
-			{},
-		);
+		const plainDocument =
+			this._schema === null
+				? { _raw: this._record }
+				: Object.entries(this._schema.paths).reduce((document, [keyPath, schemaType]) => {
+						let setValue;
+						try {
+							setValue = schemaType.get(this._record);
+						} catch (err) {
+							if (err instanceof TransformDataError) {
+								// if this was an error in data transformation, set the value to null and add to transformationErrors list
+								setValue = null;
+								this.transformationErrors.push(err);
+							} else {
+								// otherwise rethrow any other type of error
+								throw err;
+							}
+						}
+						setIn(document, keyPath, setValue);
+						return document;
+				  }, {});
 
 		assignIn(this, plainDocument);
 	};
@@ -135,24 +137,26 @@ class Document {
 	validate = async () => {
 		const documentErrors = {};
 
-		await Promise.all(
-			Object.entries(this._schema.paths).map(async ([keyPath, schemaType]) => {
-				let value = getIn(this, keyPath, null);
-				// cast to complex data type if necessary
-				try {
-					value = schemaType.cast(value);
-					setIn(this, keyPath, value);
+		if (this._schema !== null) {
+			await Promise.all(
+				Object.entries(this._schema.paths).map(async ([keyPath, schemaType]) => {
+					let value = getIn(this, keyPath, null);
+					// cast to complex data type if necessary
+					try {
+						value = schemaType.cast(value);
+						setIn(this, keyPath, value);
 
-					const errors = await schemaType.validate(value, this);
-					if (errors.length > 0) {
-						documentErrors[keyPath] = errors;
+						const errors = await schemaType.validate(value, this);
+						if (errors.length > 0) {
+							documentErrors[keyPath] = errors;
+						}
+					} catch (err) {
+						// an error was thrown - return the message from that error in the documentErrors list
+						documentErrors[keyPath] = err.message;
 					}
-				} catch (err) {
-					// an error was thrown - return the message from that error in the documentErrors list
-					documentErrors[keyPath] = err.message;
-				}
-			}),
-		);
+				}),
+			);
+		}
 		return documentErrors;
 	};
 }

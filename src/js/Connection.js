@@ -388,7 +388,7 @@ class Connection {
 	 * @function model
 	 * @memberof Connection
 	 * @instance
-	 * @param {Schema} schema - Schema instance to derive model from
+	 * @param {Schema | null} schema - Schema instance to derive model from, null indicates the entire record is being used
 	 * @param {string} file - Name of database file associated with model
 	 * @returns {Model} Model class
 	 * @throws {InvalidParameterError} (indirect) An invalid parameter was passed to the function

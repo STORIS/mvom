@@ -25,7 +25,7 @@ declare namespace mvom {
     getDbDate(): Promise<string>;
     getDbDateTime(): Promise<string>;
     getDbTime(): Promise<string>;
-    model(schema: Schema, file: string): typeof Model;
+    model(schema: Schema | null, file: string): typeof Model;
     status: connectionStatus;
   }
 
