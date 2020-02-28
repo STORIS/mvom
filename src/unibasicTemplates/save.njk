@@ -26,6 +26,12 @@ if recordHashType eq UDO_NULL then
   recordHash = ''
 end
 
+* get the clearAttributes flag from the options
+if udoGetProperty(options, 'clearAttributes', clearAttributes, clearAttributesType) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go returnFromSub
+end
+
 * get the record contents from the options
 if udoGetProperty(options, 'record', recordContents, type) then
   call error_handler(ERROR_MALFORMED_INPUT, output)
@@ -78,6 +84,13 @@ end
 if udoArrayGetSize(recordContents, lastAttribute) then
   call error_handler(ERROR_UDO, output)
   go closeReleaseAndReturnFromSub
+end
+
+* if the clearAttributes flag is set, we are dealing with a schema-less file meaning the record
+* can be an array of varying length, so we need to clear the record to ensure updates overwrite
+* the existing data instead of merging the new record with the current one
+if clearAttributesType eq UDO_TRUE then
+  record = ''
 end
 
 for attributeCounter = 1 to lastAttribute

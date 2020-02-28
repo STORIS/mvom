@@ -7,6 +7,6 @@
     "findById": "^0.1.0",
     "findByIds": "^0.1.0",
     "getServerInfo": "^0.1.0",
-    "save": "^0.1.1"
+    "save": "^0.1.2"
   }
 }
