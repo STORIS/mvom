@@ -1,0 +1,9 @@
+$basictype 'u'
+subroutine mvom_setup(setupOptions)
+* Perform any needed environment setup
+
+com /S$MVOM/ S$MVOM.PROCESS
+S$MVOM.PROCESS = @TRUE
+
+returnFromSub:
+return; * returning to caller

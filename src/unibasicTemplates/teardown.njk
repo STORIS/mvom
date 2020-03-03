@@ -1,0 +1,8 @@
+$basictype 'u'
+subroutine mvom_teardown(teardownOptions)
+* Perform any needed environment teardown
+
+clearcommon /S$MVOM/
+
+returnFromSub:
+return; * returning to caller

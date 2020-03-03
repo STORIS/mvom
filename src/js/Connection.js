@@ -84,7 +84,7 @@ class Connection {
 	 * @private
 	 * @async
 	 * @param {string} feature - Feature name
-	 * @returns {string} UniBasic source code
+	 * @returns {Promise.<String>} UniBasic source code
 	 */
 	static getUnibasicSource = async feature => {
 		const filePath = path.join(Connection.unibasicPath, `${feature}.mvb`);
@@ -317,11 +317,13 @@ class Connection {
 	 * @async
 	 * @param {string} feature - Name of feature to execute
 	 * @param {*} [options={}] - Options parameter to pass to database feature
+	 * @param {*} [setupOptions={}] - Options parameter to pass to setup feature
+	 * @param {*} [teardownOptions={}] - Options parameter to pass to teardown feature
 	 * @returns {*} Output from database feature
 	 * @throws {ConnectionManagerError} (indirect) An error occurred in connection manager communications
 	 * @throws {DbServerError} (indirect) An error occurred on the database server
 	 */
-	executeDbFeature = async (feature, options = {}) => {
+	executeDbFeature = async (feature, options = {}, setupOptions = {}, teardownOptions = {}) => {
 		this.logger.debug(`executing database feature "${feature}"`);
 		const data = {
 			action: 'subroutine',
@@ -330,7 +332,17 @@ class Connection {
 				feature,
 				this._serverFeatureSet.validFeatures[feature],
 			),
+			setupId: Connection.getServerProgramName(
+				'setup',
+				this._serverFeatureSet.validFeatures.setupId,
+			),
+			teardownId: Connection.getServerProgramName(
+				'teardown',
+				this._serverFeatureSet.validFeatures.teardownId,
+			),
 			options,
+			setupOptions,
+			teardownOptions,
 		};
 
 		this.logger.debug(`executing database subroutine ${data.subroutineId}`);

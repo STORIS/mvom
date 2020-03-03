@@ -142,7 +142,31 @@ begin case
       go response
     end
 
+    if udoGetProperty(input, 'setupId', setupId, type) then
+      call error_handler(ERROR_MALFORMED_INPUT, output)
+      go response
+    end
+
+    if udoGetProperty(input, 'setupOptions', setupOptions, type) then
+      call error_handler(ERROR_MALFORMED_INPUT, output)
+      go response
+    end
+
+    if udoGetProperty(input, 'teardownId', teardownId, type) then
+      call error_handler(ERROR_MALFORMED_INPUT, output)
+      go response
+    end
+
+    if udoGetProperty(input, 'teardownOptions', teardownOptions, type) then
+      call error_handler(ERROR_MALFORMED_INPUT, output)
+      go response
+    end
+
+    call @setupId(setupOptions)
+
     call @subroutineId(options, output)
+
+    call @teardownId(teardownOptions)
   case 1
     call error_handler(ERROR_UNSUPPORTED_ACTION, output)
     go response

@@ -222,16 +222,32 @@ describe('Connection', () => {
 			});
 
 			test('should call executeDb with the subroutine data format', async () => {
-				await connection.executeDbFeature('foo', 'bar');
+				await connection.executeDbFeature('foo', 'bar', 'baz', 'qux');
 				expect(
-					executeDb.calledWith({ action: 'subroutine', subroutineId: 'foo', options: 'bar' }),
+					executeDb.calledWith({
+						action: 'subroutine',
+						subroutineId: 'foo',
+						setupId: 'setup',
+						teardownId: 'teardown',
+						options: 'bar',
+						setupOptions: 'baz',
+						teardownOptions: 'qux',
+					}),
 				).toBe(true);
 			});
 
-			test('should call executeDb with the an empty options object', async () => {
+			test('should call executeDb with empty options objects', async () => {
 				await connection.executeDbFeature('foo');
 				expect(
-					executeDb.calledWith({ action: 'subroutine', subroutineId: 'foo', options: {} }),
+					executeDb.calledWith({
+						action: 'subroutine',
+						subroutineId: 'foo',
+						setupId: 'setup',
+						teardownId: 'teardown',
+						options: {},
+						setupOptions: {},
+						teardownOptions: {},
+					}),
 				).toBe(true);
 			});
 		});
