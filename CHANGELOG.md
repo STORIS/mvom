@@ -1,4 +1,16 @@
 # CHANGELOG.md
+## 0.6.0
+###### _2020_03_03_
+- Add new setup and teardown features which will run before and after a subroutine feature to setup and teardown the environment. While configurable, the initial implementation creates and clears a named common block called `S$MVOM`, which includes one variable called `S$MVOM.PROCESS` set to `true`. UniBasic programs can check for this variable to determine if they were initiated by `MVIS`. This may be necessary when code not shipped through MVOM is run like in a database trigger or virtual dictionary. @kthompson23
+
+UniBasic programs should include the below to use this new variable:
+
+```UniBasic
+COM /S$MVOM/ S$MVOM.PROCESS
+```
+
+- Enhance the save action to support clearing all attributes before writing out the record. This fixes an issue with schema less documents where the record being written has less attributes than what is already on disk. This is automatically set when working with schema less files. @reedmattos 
+
 ## 0.5.2
 ###### _2020_02_25_
 - Allow for null schemas passed to the model constructor.  When schemas are null, no mapping of the record to a document (and vice versa) will occur.  Instead, a property named `_raw` will be added to the document which contains an array of the record contents.  When saving, this array will overwrite the entire record. @reedmattos
