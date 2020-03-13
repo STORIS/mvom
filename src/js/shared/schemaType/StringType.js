@@ -7,6 +7,7 @@ import SimpleType from './SimpleType';
  * @param {Object} definition - Data definition
  * @param {string} definition.path - 1-indexed String path
  * @param {string[]} [definition.enum] - Array of allowed values
+ * @param {RegExp} [definition.match] - Regular expression to validate the property value against
  * @throws {InvalidParameterError} An invalid parameter was passed to the function
  */
 class StringType extends SimpleType {
@@ -25,12 +26,30 @@ class StringType extends SimpleType {
 		return { validator: defaultValidator, message };
 	};
 
+	/**
+	 * Create validation object for match validation
+	 * @function matchValidation
+	 * @memberof StringType
+	 * @static
+	 * @private
+	 * @param {Function|AsyncFunction} defaultValidator - Match validation function to use
+	 * @returns {ValidationObject} Object containing validation function and failure message
+	 */
+	static matchValidation = defaultValidator => {
+		const message = 'Value does not match pattern';
+
+		return { validator: defaultValidator, message };
+	};
+
 	constructor(definition) {
 		if (definition.path == null) {
 			throw new InvalidParameterError({ parameterName: 'definition.path' });
 		}
 		if (definition.enum != null && !Array.isArray(definition.enum)) {
 			throw new InvalidParameterError({ parameterName: 'definition.enum' });
+		}
+		if (definition.match != null && !(definition.match instanceof RegExp)) {
+			throw new InvalidParameterError({ parameterName: 'definition.match' });
 		}
 
 		super(definition);
@@ -44,7 +63,17 @@ class StringType extends SimpleType {
 		 */
 		this._enum = definition.enum || null;
 
+		/**
+		 * Regular expression to validate the property value against
+		 * @member {RegExp|null} _match
+		 * @memberof StringType
+		 * @instance
+		 * @private
+		 */
+		this._match = definition.match || null;
+
 		// add validators for this type
+		this._validators.unshift(StringType.matchValidation(this._validateMatch));
 		this._validators.unshift(StringType.handleEnumValidation(this._validateEnum));
 	}
 
@@ -93,6 +122,20 @@ class StringType extends SimpleType {
 	_validateEnum = async value =>
 		// skip validation on nullish values because a required valdation error, if applicable, is more helpful
 		value == null || this._enum == null || this._enum.includes(value);
+
+	/**
+	 * Match validator
+	 * @function _validateMatch
+	 * @memberof StringType
+	 * @instance
+	 * @private
+	 * @async
+	 * @param {string} value - String to validate
+	 * @returns {Promise.<Boolean>} True if valid / false if invalid
+	 */
+	_validateMatch = async value =>
+		// skip validation on nullish values because a required valdation error, if applicable, is more helpful
+		value == null || this._match == null || this._match.test(value);
 
 	/**
 	 * String required validator

@@ -21,6 +21,7 @@ const {
  * @param {Object} [options = {}]
  * @param {string} [options.typeProperty = "type"] The name of the property to use for data typing
  * @param {Object} [options.dictionaries = {}] Additional dictionaries for use in query (key/value paired)
+ * @param {RegExp} [options.idMatch] Regular expression to validate the record id against
  * @example const example = new Schema({ propertyA: [{ property1: { path: '1'} }] })
  * @throws {InvalidParameterError} An invalid parameter was passed to the function
  */
@@ -40,12 +41,15 @@ class Schema {
 		ISOTime: ISOTimeType,
 	};
 
-	constructor(definition, { typeProperty = 'type', dictionaries = {} } = {}) {
+	constructor(definition, { typeProperty = 'type', dictionaries = {}, idMatch } = {}) {
 		if (!isPlainObject(definition)) {
 			throw new InvalidParameterError({ parameterName: 'definition' });
 		}
 		if (!isPlainObject(dictionaries)) {
 			throw new InvalidParameterError({ parameterName: 'dictionaries' });
+		}
+		if (idMatch != null && !(idMatch instanceof RegExp)) {
+			throw new InvalidParameterError({ parameterName: 'idMatch' });
 		}
 		/**
 		 * Key/value pairs of schema object path structure and associated multivalue dictionary ids
@@ -61,6 +65,13 @@ class Schema {
 		 * @instance
 		 */
 		this.paths = {};
+		/**
+		 * Regular expression to validate the record id against
+		 * @member {string} idMatch
+		 * @memberof Schema
+		 * @instance
+		 */
+		this.idMatch = idMatch;
 		/**
 		 * The schema definition passed to the constructor
 		 * @member {Object} _definition

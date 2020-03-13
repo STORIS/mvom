@@ -138,6 +138,9 @@ class Document {
 		const documentErrors = {};
 
 		if (this._schema !== null) {
+			if (this._schema.idMatch != null && !this._schema.idMatch.test(this._id)) {
+				documentErrors._id = 'Document id does not match pattern';
+			}
 			await Promise.all(
 				Object.entries(this._schema.paths).map(async ([keyPath, schemaType]) => {
 					let value = getIn(this, keyPath, null);

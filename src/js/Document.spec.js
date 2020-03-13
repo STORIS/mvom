@@ -185,6 +185,49 @@ describe('Document', () => {
 					const documentErrors = await newDocument.validate();
 					expect(documentErrors).toEqual({});
 				});
+
+				describe('idMatch', () => {
+					const SchemaWithIdMatch = class {
+						paths = {
+							foo: {
+								cast,
+								get,
+								validate,
+							},
+							bar: {
+								cast,
+								get,
+								validate,
+							},
+						};
+
+						idMatch = /\w+\*+\w/;
+					};
+					let newDocument;
+
+					beforeAll(() => {
+						RewireAPI.__Rewire__('Schema', SchemaWithIdMatch);
+						newDocument = new Document(new SchemaWithIdMatch());
+					});
+
+					test('should not return any errors if the id matches the idMatch regular expression', async () => {
+						validate.returns([]);
+						newDocument._id = 'foo*bar';
+						newDocument.foo = 'foo';
+						newDocument.bar = 'bar';
+						const documentErrors = await newDocument.validate();
+						expect(documentErrors).toEqual({});
+					});
+
+					test('should return an error if the id does not match the idMatch regular expression', async () => {
+						validate.returns([]);
+						newDocument._id = 'foo*';
+						newDocument.foo = 'foo';
+						newDocument.bar = 'bar';
+						const documentErrors = await newDocument.validate();
+						expect(documentErrors).toEqual({ _id: 'Document id does not match pattern' });
+					});
+				});
 			});
 
 			describe('failed cast', () => {

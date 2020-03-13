@@ -71,7 +71,7 @@ declare namespace mvom {
   }
 
   export class Schema {
-    constructor(definition: GenericObject, opts?: {typeProperty?: string, dictionaries?: GenericObject});
+    constructor(definition: GenericObject, opts?: {typeProperty?: string, dictionaries?: GenericObject, idMatch?: RegExp});
     static Types: {
       ISOCalendarDateTime: typeof ISOCalendarDateTimeType;
       ISOCalendarDate: typeof ISOCalendarDateType;
