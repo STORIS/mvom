@@ -1,4 +1,9 @@
 # CHANGELOG.md
+## 0.6.1
+###### _2020_03_13_
+- Allow for regular expression pattern matching for strings and ids.  Strings will accept a property named `match` in the schema definition for any string type.  Document ids can be matched by providing an `idMatch` property to the Schema constructor options. @reedmattos
+- Update some vulnerable dependencies @shawnmcknight
+
 ## 0.6.0
 ###### _2020_03_03_
 - Add new setup and teardown features which will run before and after a subroutine feature to setup and teardown the environment. While configurable, the initial implementation creates and clears a named common block called `S$MVOM`, which includes one variable called `S$MVOM.PROCESS` set to `true`. UniBasic programs can check for this variable to determine if they were initiated by `MVIS`. This may be necessary when code not shipped through MVOM is run like in a database trigger or virtual dictionary. @kthompson23
