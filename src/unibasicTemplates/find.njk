@@ -17,6 +17,14 @@ if udoGetProperty(options, 'queryCommand', queryCommand, type) then
   go returnFromSub
 end
 
+* Temporary length check on the query since this is the query limit we are most likely to exceed.
+* STORIS Rocket case 00656416 - exceeding a query limit does not set an error condition in @system.return.code
+* TODO CXM-2318 - Add handling to mvom to prevent queries that will exceed db server limits
+if charlen(queryCommand) > 9247 then
+  call error_handler(ERROR_QUERY, output)
+  go returnFromSub
+end
+
 * get the limit value (if any) from the options
 if udoGetProperty(options, 'limit', limit, type) then
   limit = ''
@@ -28,7 +36,10 @@ if udoGetProperty(options, 'skip', skip, type) then
 end
 
 * execute the query
-udtexecute queryCommand returning errorCodes
+* intentionally not using the returning clause because it causes a hard abort when any query limits are exceeded
+* Proposed to be fixed in UniData 8.2.2 - STORIS case 00648972
+* TODO CXM-2318 - Add handling to mvom to prevent queries that will exceed db server limits
+udtexecute queryCommand
 if @system.return.code lt 0 then
   call error_handler(ERROR_QUERY, output)
   go returnFromSub
