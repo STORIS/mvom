@@ -171,14 +171,20 @@ describe('Connection', () => {
 
 			test('should resolve if all features are already present', async () => {
 				getFeatureState.callsFake(function() {
-					this._serverFeatureSet = { validFeatures: { deploy: '1.0.0' }, invalidFeatures: [] };
+					this._serverFeatureSet = {
+						validFeatures: { deploy: '1.0.0', setup: '1.0.0', teardown: '1.0.0' },
+						invalidFeatures: [],
+					};
 				});
 				expect(await connection.deployFeatures('foo')).toBeUndefined();
 			});
 
 			test('should create directory if the option is specified', async () => {
 				getFeatureState.callsFake(function() {
-					this._serverFeatureSet = { validFeatures: { deploy: '1.0.0' }, invalidFeatures: ['foo'] };
+					this._serverFeatureSet = {
+						validFeatures: { deploy: '1.0.0', setup: '1.0.0', teardown: '1.0.0' },
+						invalidFeatures: ['foo'],
+					};
 				});
 				await connection.deployFeatures('foo', { createDir: true });
 				expect(
@@ -194,14 +200,46 @@ describe('Connection', () => {
 					this._serverFeatureSet = { validFeatures: {}, invalidFeatures: ['deploy'] };
 				});
 				getFeatureState.onCall(1).callsFake(function() {
-					this._serverFeatureSet = { validFeatures: { deploy: '1.0.0' }, invalidFeatures: [] };
+					this._serverFeatureSet = {
+						validFeatures: { deploy: '1.0.0', setup: '1.0.0', teardown: '1.0.0' },
+						invalidFeatures: [],
+					};
+				});
+				expect(await connection.deployFeatures('foo')).toBeUndefined();
+			});
+
+			test('should resolve if the setup feature is successfully deployed', async () => {
+				getFeatureState.onCall(0).callsFake(function() {
+					this._serverFeatureSet = { validFeatures: {}, invalidFeatures: ['setup'] };
+				});
+				getFeatureState.onCall(1).callsFake(function() {
+					this._serverFeatureSet = {
+						validFeatures: { deploy: '1.0.0', setup: '1.0.0', teardown: '1.0.0' },
+						invalidFeatures: [],
+					};
+				});
+				expect(await connection.deployFeatures('foo')).toBeUndefined();
+			});
+
+			test('should resolve if the teardown feature is successfully deployed', async () => {
+				getFeatureState.onCall(0).callsFake(function() {
+					this._serverFeatureSet = { validFeatures: {}, invalidFeatures: ['teardown'] };
+				});
+				getFeatureState.onCall(1).callsFake(function() {
+					this._serverFeatureSet = {
+						validFeatures: { deploy: '1.0.0', setup: '1.0.0', teardown: '1.0.0' },
+						invalidFeatures: [],
+					};
 				});
 				expect(await connection.deployFeatures('foo')).toBeUndefined();
 			});
 
 			test('should resolve if missing features are successfully deployed', async () => {
 				getFeatureState.callsFake(function() {
-					this._serverFeatureSet = { validFeatures: { deploy: '1.0.0' }, invalidFeatures: ['foo'] };
+					this._serverFeatureSet = {
+						validFeatures: { deploy: '1.0.0', setup: '1.0.0', teardown: '1.0.0' },
+						invalidFeatures: [],
+					};
 				});
 				expect(await connection.deployFeatures('foo')).toBeUndefined();
 			});

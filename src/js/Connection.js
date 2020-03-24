@@ -278,19 +278,27 @@ class Connection {
 			await this._executeDb(data);
 		}
 
-		if (!Object.prototype.hasOwnProperty.call(this._serverFeatureSet.validFeatures, 'deploy')) {
-			// deployment feature is unavailable - use basic deployment to make it available
-			this.logger.debug(`deploying the "deployment" feature to ${sourceDir}`);
-			const data = {
-				action: 'deploy',
-				sourceDir,
-				source: await Connection.getUnibasicSource('deploy'),
-				programName: Connection.getServerProgramName('deploy'),
-			};
+		const bootstrapFeatures = ['deploy', 'setup', 'teardown'];
+		const bootstrapped = await Promise.all(
+			bootstrapFeatures.map(async feature => {
+				if (!Object.prototype.hasOwnProperty.call(this._serverFeatureSet.validFeatures, feature)) {
+					this.logger.debug(`deploying the "${feature}" feature to ${sourceDir}`);
+					const data = {
+						action: 'deploy',
+						sourceDir,
+						source: await Connection.getUnibasicSource(feature),
+						programName: Connection.getServerProgramName(feature),
+					};
 
-			await this._executeDb(data);
+					await this._executeDb(data);
+					return true;
+				}
+				return false;
+			}),
+		);
 
-			// now that the deploy feature should be available, restart the deployment process
+		if (bootstrapped.includes(true)) {
+			// Bootstrap features needed for the deployment feature were installed, restart the deployment process
 			await this.deployFeatures(sourceDir);
 			return;
 		}
