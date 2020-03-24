@@ -1,4 +1,11 @@
 # CHANGELOG.md
+## 0.6.2
+###### _2020_03_24_
+- Fix a deployment issue introduced in 0.6.0. Make sure that all features needed for the `deploy` feature are deployed as part of a bootstrap step @kthompson23
+- Add temporary workarounds for several issues identified in UniQuery @kthompson23
+  - Using the `returning` clause on a query where a query limit is exceeded causes an abort (proposed to be fixed in UniData 8.2.2)
+  - Exceeding the sentence length limit does to set an error condition in `@system.return.code` therefore returning incorrect results instead of an error.
+
 ## 0.6.1
 ###### _2020_03_13_
 - Allow for regular expression pattern matching for strings and ids.  Strings will accept a property named `match` in the schema definition for any string type.  Document ids can be matched by providing an `idMatch` property to the Schema constructor options. @reedmattos
