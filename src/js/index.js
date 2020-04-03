@@ -1,5 +1,6 @@
 import * as Errors from '#shared/errors';
 import createConnection from './createConnection';
+import Document from './Document';
 import Schema from './Schema';
 
 /**
@@ -22,4 +23,4 @@ const mvom = {
 
 /* eslint-disable-next-line import/no-default-export */
 export default mvom;
-export { Errors, Schema, createConnection };
+export { Document, Errors, Schema, createConnection };

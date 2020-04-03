@@ -5,13 +5,14 @@ import { InvalidParameterError, TransformDataError } from '#shared/errors';
  * A document object
  * @class Document
  * @param {Schema | null} schema - Schema instance to derive document from, null indicates the entire record is being used
- * @param {Object} [data = {}] - Object to construct document instance from
  * @param {Object} [options = {}]
+ * @param {Object} [options.data = {}] - Object to construct document instance from
  * @param {Boolean} [options.isSubdocument = false] Indicates whether document should behave as a subdocument
+ * @param {(( string | null ) | (string | null)[] | (string | null)[][])[]} [options.record] - Array of raw record data to initialize the document with
  * @throws {InvalidParameterError} An invalid parameter was passed to the function
  */
 class Document {
-	constructor(schema, data = {}, { isSubdocument = false } = {}) {
+	constructor(schema, { data = {}, isSubdocument = false, record } = {}) {
 		if (!isPlainObject(data)) {
 			throw new InvalidParameterError({ parameterName: 'data' });
 		}
@@ -62,6 +63,9 @@ class Document {
 			validate: {},
 		});
 
+		if (record != null) {
+			this._transformRecordToDocument(record);
+		}
 		// load the data passed to constructor into document instance
 		assignIn(this, data);
 	}
@@ -91,10 +95,11 @@ class Document {
 	 * @function transformRecordToDocument
 	 * @memberof Document
 	 * @instance
+	 * @private
 	 * @param {*[]} record - Array data to construct document instance properties from
 	 * @modifies {this}
 	 */
-	transformRecordToDocument = record => {
+	_transformRecordToDocument = record => {
 		if (!Array.isArray(record)) {
 			throw new InvalidParameterError({ parameterName: 'record' });
 		}

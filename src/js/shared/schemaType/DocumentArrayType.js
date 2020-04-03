@@ -45,7 +45,7 @@ class DocumentArrayType extends ComplexType {
 			if (!isPlainObject(plainValue)) {
 				throw new TypeError('Cast value must be an object');
 			}
-			return new Document(this._valueSchema, plainValue, { isSubdocument: true });
+			return new Document(this._valueSchema, { data: plainValue, isSubdocument: true });
 		});
 	};
 
@@ -135,8 +135,10 @@ class DocumentArrayType extends ComplexType {
 			if (subRecord.length === 0) {
 				return;
 			}
-			const subdocument = new Document(this._valueSchema, {}, { isSubdocument: true });
-			subdocument.transformRecordToDocument(subRecord);
+			const subdocument = new Document(this._valueSchema, {
+				isSubdocument: true,
+				record: subRecord,
+			});
 			yield subdocument;
 			iteration += 1;
 		}

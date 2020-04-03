@@ -23,13 +23,14 @@ describe('EmbeddedType', () => {
 	describe('instance methods', () => {
 		const transformRecordToDocument = stub();
 		const Document = class {
-			constructor(schema, data, { isSubdocument }) {
+			constructor(schema, { data, isSubdocument, record }) {
 				this._schema = schema;
 				this.data = data;
+				this._record = record;
 				this.isSubdocument = isSubdocument;
 			}
 
-			transformRecordToDocument = transformRecordToDocument;
+			_transformRecordToDocument = transformRecordToDocument;
 		};
 		let embeddedType;
 		beforeAll(() => {
@@ -89,8 +90,6 @@ describe('EmbeddedType', () => {
 			test('should return a newly instantiated Document using instance schema and passed record', () => {
 				const getValue = embeddedType.get('foo');
 				expect(getValue._schema).toBeInstanceOf(Schema);
-				expect(transformRecordToDocument.calledOnce).toBe(true);
-				expect(transformRecordToDocument.calledWith('foo')).toBe(true);
 			});
 		});
 

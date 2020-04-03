@@ -11,7 +11,7 @@ describe('compileModel', () => {
 	const transformRecordToDocument = stub();
 	const validate = stub();
 	const Document = class {
-		transformRecordToDocument = transformRecordToDocument;
+		_transformRecordToDocument = transformRecordToDocument;
 
 		validate = validate;
 
@@ -120,12 +120,6 @@ describe('compileModel', () => {
 			});
 
 			describe('makeModelFromDbResult', () => {
-				test('should call transformRecordToDocument', () => {
-					Test.makeModelFromDbResult({ record: 'foo' });
-					expect(transformRecordToDocument.calledOnce).toBe(true);
-					expect(transformRecordToDocument.calledWith('foo')).toBe(true);
-				});
-
 				test('should return an instance of the model', () => {
 					expect(Test.makeModelFromDbResult()).toBeInstanceOf(Test);
 				});
@@ -230,7 +224,7 @@ describe('compileModel', () => {
 
 			test('should set the expected instance properties', async () => {
 				const Test = compileModel(connection, schema, 'foo');
-				expect(new Test({}, { _id: 'bar', __v: 'baz' })).toMatchObject({
+				expect(new Test({ _id: 'bar', __v: 'baz' })).toMatchObject({
 					_id: 'bar',
 					__id: 'bar',
 					__v: 'baz',
@@ -260,14 +254,14 @@ describe('compileModel', () => {
 
 				test('should throw DataValidationError if validate resolves with errors', async () => {
 					validate.resolves({ foo: 'bar' });
-					const test = new Test({}, { _id: 'foo' });
+					const test = new Test({ _id: 'foo' });
 					await expect(test.save()).rejects.toThrow(DataValidationError);
 				});
 
 				test('should instantiate a new model instance with the results of the dbFeature execution', async () => {
 					validate.resolves({});
 					executeDbFeature.resolves({ result: { record: [], _id: 'bar', __v: 'baz' } });
-					const test = new Test({}, { _id: 'foo' });
+					const test = new Test({ _id: 'foo' });
 					test.transformDocumentToRecord = stub();
 					expect(await test.save()).toMatchObject({ _id: 'bar', __id: 'bar', __v: 'baz' });
 				});
@@ -278,7 +272,7 @@ describe('compileModel', () => {
 					error.other = { foo: 'bar' };
 					executeDbFeature.rejects(error);
 					const _id = '_id-value';
-					const test = new Test({}, { _id });
+					const test = new Test({ _id });
 					test.transformDocumentToRecord = stub();
 					try {
 						await test.save();

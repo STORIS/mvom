@@ -25,13 +25,14 @@ describe('DocumentArrayType', () => {
 	describe('instance methods', () => {
 		const transformRecordToDocument = stub();
 		const Document = class {
-			constructor(schema, data, { isSubdocument }) {
+			constructor(schema, { data, isSubdocument, record }) {
 				this._schema = schema;
 				this.data = data;
+				this._record = record;
 				this.isSubdocument = isSubdocument;
 			}
 
-			transformRecordToDocument = transformRecordToDocument;
+			_transformRecordToDocument = transformRecordToDocument;
 		};
 		let documentArrayType;
 
@@ -248,8 +249,6 @@ describe('DocumentArrayType', () => {
 				const { value, done } = it.next();
 				expect(done).toBe(false);
 				expect(value).toBeInstanceOf(Document);
-				expect(transformRecordToDocument.calledOnce).toBe(true);
-				expect(transformRecordToDocument.calledWith(['foo', 'baz'])).toBe(true);
 				expect(value.isSubdocument).toBe(true);
 			});
 
@@ -259,8 +258,6 @@ describe('DocumentArrayType', () => {
 				const { value, done } = it.next();
 				expect(done).toBe(false);
 				expect(value).toBeInstanceOf(Document);
-				expect(transformRecordToDocument.calledTwice).toBe(true);
-				expect(transformRecordToDocument.calledWith(['bar', 'qux'])).toBe(true);
 				expect(value.isSubdocument).toBe(true);
 			});
 
@@ -273,8 +270,6 @@ describe('DocumentArrayType', () => {
 				const { value, done } = it.next();
 				expect(done).toBe(false);
 				expect(value).toBeInstanceOf(Document);
-				expect(transformRecordToDocument.calledOnce).toBe(true);
-				expect(transformRecordToDocument.calledWith(['foo', 'baz', ['quux']])).toBe(true);
 				expect(value.isSubdocument).toBe(true);
 			});
 

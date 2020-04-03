@@ -38,7 +38,7 @@ class EmbeddedType extends ComplexType {
 		if (!isPlainObject(plainValue)) {
 			throw new TypeError('Cast value must be an object');
 		}
-		return new Document(this._valueSchema, plainValue, { isSubdocument: true });
+		return new Document(this._valueSchema, { data: plainValue, isSubdocument: true });
 	};
 
 	/**
@@ -50,8 +50,7 @@ class EmbeddedType extends ComplexType {
 	 * @returns {Document} Embedded document instance
 	 */
 	get = record => {
-		const embeddedDocument = new Document(this._valueSchema, {}, { isSubdocument: true });
-		embeddedDocument.transformRecordToDocument(record);
+		const embeddedDocument = new Document(this._valueSchema, { isSubdocument: true, record });
 		return embeddedDocument;
 	};
 

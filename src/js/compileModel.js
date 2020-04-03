@@ -29,10 +29,11 @@ const compileModel = (connection, schema, file) => {
 	 * Construct a document instance of a compiled model
 	 * @class Model
 	 * @extends Document
-	 * @param {Object} [data = {}] - Object to construct model instance from
-	 * @param {Object} doc - Document
-	 * @param {string} [doc._id = null] - Model instance identifier
-	 * @param {uuid} [doc.__v = null] - Record version hash
+	 * @param {Object} options
+	 * @param {string} [options._id = null] - Model instance identifier
+	 * @param {uuid} [options.__v = null] - Record version hash
+	 * @param {Object} [options.data = {}] - Object to construct model instance from
+	 * @param {(( string | null ) | (string | null)[] | (string | null)[][])[]} [options.record] - Array of raw record data to initialize the model with
 	 */
 	class Model extends Document {
 		/* static properties */
@@ -189,13 +190,12 @@ const compileModel = (connection, schema, file) => {
 		 * @returns {Model} Model instance
 		 */
 		static makeModelFromDbResult = ({ record = [], _id = null, __v = null } = {}) => {
-			const model = new Model({}, { _id, __v });
-			model.transformRecordToDocument(record);
+			const model = new Model({ _id, __v, record });
 			return model;
 		};
 
-		constructor(data = {}, { _id = null, __v = null } = {}) {
-			super(Model.schema, data);
+		constructor({ _id = null, __v = null, data = {}, record } = {}) {
+			super(Model.schema, { data, record });
 
 			Object.defineProperties(this, {
 				/**

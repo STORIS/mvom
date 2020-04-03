@@ -35,9 +35,10 @@ declare namespace mvom {
     timeout?: number
   }): Connection;
 
+  type RecordTemplate = (( string | null ) | (string | null)[] | (string | null)[][])[]
 
-  class Model {
-    constructor(data?: GenericObject, opts?: { _id?: string });
+  class Model extends Document {
+    constructor(opts?: { _id?: string, data?: GenericObject, record?: RecordTemplate });
     static deleteById(id: string): Promise<Model|null>;
     static find(selectionCriteria?: GenericObject, options?: findOptions): Promise<Model[]>;
     static findAndCount(selectionCriteria?: GenericObject, options?: findOptions): Promise<{
@@ -49,7 +50,11 @@ declare namespace mvom {
     save(): Promise<Model>;
     _id: string | null;
     readonly __v: string | null;
-    [index: string]: any;
+  }
+
+  class Document {
+    constructor(schema: Schema | null, options?: { data?: GenericObject, isSubdocument?: boolean, record?: RecordTemplate });
+    [index: string]: unknown;
   }
 
   interface findOptions {

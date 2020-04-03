@@ -30,7 +30,7 @@ describe('Document', () => {
 		});
 
 		test('should throw InvalidParameterError if passed data is not an object', () => {
-			expect(() => new Document(new SchemaRewire(), 'foo')).toThrow();
+			expect(() => new Document(new SchemaRewire(), { data: 'foo' })).toThrow();
 		});
 
 		test('should set the expected instance properties', () => {
@@ -42,6 +42,28 @@ describe('Document', () => {
 			const document = new Document(new SchemaRewire());
 			expect(document._schema).toBeInstanceOf(SchemaRewire);
 			expect(document._record).toEqual([]);
+		});
+
+		test('should set the _record property to the record property passed into the constructor', () => {
+			const schema = new Schema({
+				propertyA: [
+					new Schema({
+						property1: { path: '1', type: Schema.Types.ISOCalendarDate },
+						property2: { path: '2', type: String },
+						property3: { path: '3', type: Number },
+					}),
+				],
+			});
+			const record = ['19086', 'foo', '5', ['bar', null, 'baz'], null, [['qux', 'quz']]];
+			const document = new Document(schema, { record });
+			expect(document._record).toEqual(record);
+			expect(document).toHaveProperty('propertyA');
+			expect(Array.isArray(document.propertyA)).toBe(true);
+			expect(document.propertyA[0]).toMatchObject({
+				property1: '2020-04-02',
+				property2: 'foo',
+				property3: 5,
+			});
 		});
 	});
 
@@ -101,7 +123,7 @@ describe('Document', () => {
 			});
 
 			test('should call the first setter with an empty array when a subdocument', () => {
-				const subdocument = new Document(new SchemaRewire(), {}, { isSubdocument: true });
+				const subdocument = new Document(new SchemaRewire(), { isSubdocument: true });
 				subdocument._record = ['foo', 'bar'];
 				subdocument.transformDocumentToRecord();
 				expect(set.args[0][0]).toEqual([]);
@@ -286,26 +308,26 @@ describe('Document', () => {
 
 				test('should throw InvalidParameterError is record is not passed', () => {
 					expect(() => {
-						document.transformRecordToDocument();
+						document._transformRecordToDocument();
 					}).toThrow();
 				});
 
 				test('should throw InvalidParameterError is record is not an array', () => {
 					expect(() => {
-						document.transformRecordToDocument('foo');
+						document._transformRecordToDocument('foo');
 					}).toThrow();
 				});
 
 				test('should get from the schemaType instance using the passed record property', () => {
 					const record = ['foo', 'bar', 'baz'];
-					document.transformRecordToDocument(record);
+					document._transformRecordToDocument(record);
 					expect(get.calledWith(record)).toBe(true);
 					expect(get.calledTwice).toBe(true);
 				});
 
 				test("should set at the schema's keypath with the value from get", () => {
 					get.returns('baz');
-					document.transformRecordToDocument([]);
+					document._transformRecordToDocument([]);
 					expect(setIn.calledTwice).toBe(true);
 					expect(setIn.args[0][1]).toBe('foo');
 					expect(setIn.args[0][2]).toBe('baz');
@@ -315,7 +337,7 @@ describe('Document', () => {
 
 				test("should set null at the schema's keypath if get throws with TransformDataError", () => {
 					get.throws(new TransformDataError());
-					document.transformRecordToDocument([]);
+					document._transformRecordToDocument([]);
 					expect(setIn.calledTwice).toBe(true);
 					expect(setIn.args[0][1]).toBe('foo');
 					expect(setIn.args[0][2]).toBeNull();
@@ -325,7 +347,7 @@ describe('Document', () => {
 
 				test('should push two instances of TransformDataError on to transformationErrors instance property if get throws with TransformDataError', () => {
 					get.throws(new TransformDataError());
-					document.transformRecordToDocument([]);
+					document._transformRecordToDocument([]);
 					expect(document.transformationErrors.length).toBe(2);
 					expect(document.transformationErrors[0]).toBeInstanceOf(TransformDataError);
 					expect(document.transformationErrors[1]).toBeInstanceOf(TransformDataError);
@@ -334,7 +356,7 @@ describe('Document', () => {
 				test('should rethrow if any error other than TransformDataError is thrown', () => {
 					get.throws(new Error());
 					expect(() => {
-						document.transformRecordToDocument([]);
+						document._transformRecordToDocument([]);
 					}).toThrow();
 				});
 			});
@@ -362,7 +384,7 @@ describe('Document', () => {
 					test('should properly format well-formatted arrays of Schemas', () => {
 						const record = [['foo', 'bar'], ['baz', 'qux']];
 						const document = new Document(schema);
-						document.transformRecordToDocument(record);
+						document._transformRecordToDocument(record);
 						expect(document).toHaveProperty('propertyA');
 						expect(Array.isArray(document.propertyA)).toBe(true);
 						expect(document.propertyA[0]).toMatchObject({ property1: 'foo', property2: 'baz' });
@@ -372,7 +394,7 @@ describe('Document', () => {
 					test('should properly format arrays of Schemas not structured as arrays in data', () => {
 						const record = ['foo', 'bar'];
 						const document = new Document(schema);
-						document.transformRecordToDocument(record);
+						document._transformRecordToDocument(record);
 						expect(document).toHaveProperty('propertyA');
 						expect(Array.isArray(document.propertyA)).toBe(true);
 						expect(document.propertyA[0]).toMatchObject({ property1: 'foo', property2: 'bar' });
@@ -381,7 +403,7 @@ describe('Document', () => {
 					test('should properly format arrays of Schemas with ragged associations', () => {
 						const record = [['foo', 'bar'], 'baz'];
 						const document = new Document(schema);
-						document.transformRecordToDocument(record);
+						document._transformRecordToDocument(record);
 						expect(document).toHaveProperty('propertyA');
 						expect(Array.isArray(document.propertyA)).toBe(true);
 						expect(document.propertyA[0]).toMatchObject({ property1: 'foo', property2: 'baz' });
@@ -391,7 +413,7 @@ describe('Document', () => {
 					test('should properly format arrays of Schemas with sparse associations', () => {
 						const record = [['foo', null, 'bar'], ['baz', null, 'qux']];
 						const document = new Document(schema);
-						document.transformRecordToDocument(record);
+						document._transformRecordToDocument(record);
 						expect(document).toHaveProperty('propertyA');
 						expect(Array.isArray(document.propertyA)).toBe(true);
 						expect(document.propertyA[0]).toMatchObject({ property1: 'foo', property2: 'baz' });
@@ -416,7 +438,7 @@ describe('Document', () => {
 					test('should properly format nested sub-schemas', () => {
 						const record = [['foo', 'bar'], [['baz', 'qux'], ['quux', 'corge']]];
 						const document = new Document(schema);
-						document.transformRecordToDocument(record);
+						document._transformRecordToDocument(record);
 						expect(document).toHaveProperty('propertyA');
 						expect(Array.isArray(document.propertyA)).toBe(true);
 						expect(document.propertyA[0]).toMatchObject({ property1: 'foo' });
@@ -442,35 +464,35 @@ describe('Document', () => {
 					test('should properly format well-formatted nested arrays', () => {
 						const record = [[['foo', 'bar'], ['baz', 'qux']]];
 						const document = new Document(schema);
-						document.transformRecordToDocument(record);
+						document._transformRecordToDocument(record);
 						expect(document).toMatchObject({ propertyA: [['foo', 'bar'], ['baz', 'qux']] });
 					});
 
 					test('should properly format nested arrays of length 1', () => {
 						const record = [['foo', 'bar']];
 						const document = new Document(schema);
-						document.transformRecordToDocument(record);
+						document._transformRecordToDocument(record);
 						expect(document).toMatchObject({ propertyA: [['foo'], ['bar']] });
 					});
 
 					test('should properly format nested arrays that are not array-like in the data', () => {
 						const record = ['foo'];
 						const document = new Document(schema);
-						document.transformRecordToDocument(record);
+						document._transformRecordToDocument(record);
 						expect(document).toMatchObject({ propertyA: [['foo']] });
 					});
 
 					test('should properly format nested arrays that are null values', () => {
 						const record = [null];
 						const document = new Document(schema);
-						document.transformRecordToDocument(record);
+						document._transformRecordToDocument(record);
 						expect(document).toMatchObject({ propertyA: [] });
 					});
 
 					test('should properly format nested arrays that that have null values at indices other than 0', () => {
 						const record = [[null, null]];
 						const document = new Document(schema);
-						document.transformRecordToDocument(record);
+						document._transformRecordToDocument(record);
 						expect(document).toMatchObject({ propertyA: [[null], [null]] });
 					});
 				});
@@ -484,28 +506,28 @@ describe('Document', () => {
 					test('should properly format well-formatted arrays', () => {
 						const record = [['foo', 'bar']];
 						const document = new Document(schema);
-						document.transformRecordToDocument(record);
+						document._transformRecordToDocument(record);
 						expect(document).toMatchObject({ propertyA: ['foo', 'bar'] });
 					});
 
 					test('should properly format arrays that are not array-like in the data', () => {
 						const record = ['foo'];
 						const document = new Document(schema);
-						document.transformRecordToDocument(record);
+						document._transformRecordToDocument(record);
 						expect(document).toMatchObject({ propertyA: ['foo'] });
 					});
 
 					test('should properly format arrays that are null values', () => {
 						const record = [null];
 						const document = new Document(schema);
-						document.transformRecordToDocument(record);
+						document._transformRecordToDocument(record);
 						expect(document).toMatchObject({ propertyA: [] });
 					});
 
 					test('should properly format arrays that have null values at indices other than 0', () => {
 						const record = [['foo', null]];
 						const document = new Document(schema);
-						document.transformRecordToDocument(record);
+						document._transformRecordToDocument(record);
 						expect(document).toMatchObject({ propertyA: ['foo', null] });
 					});
 				});
@@ -521,7 +543,7 @@ describe('Document', () => {
 					test('should properly format a property whose value is another schema', () => {
 						const record = ['foo'];
 						const document = new Document(schema);
-						document.transformRecordToDocument(record);
+						document._transformRecordToDocument(record);
 						expect(document).toHaveProperty('propertyA');
 						expect(document.propertyA).toMatchObject({ property1: 'foo' });
 					});
@@ -536,7 +558,7 @@ describe('Document', () => {
 					test('should properly format a property whose value is a data definition', () => {
 						const record = ['foo'];
 						const document = new Document(schema);
-						document.transformRecordToDocument(record);
+						document._transformRecordToDocument(record);
 						expect(document).toMatchObject({ propertyA: 'foo' });
 					});
 				});
@@ -548,12 +570,12 @@ describe('Document', () => {
 				test('should create a document with all data as a single array under a "_raw" property if schema is null', () => {
 					const record = ['foo', 'bar', 'baz'];
 					const document = new Document(schema);
-					document.transformRecordToDocument(record);
+					document._transformRecordToDocument(record);
 					expect(document).toMatchObject({ _raw: ['foo', 'bar', 'baz'] });
 				});
 
 				test('should transform a document to a record of a single array if the schema is set to null', () => {
-					const document = new Document(schema, { _raw: ['foo', 'bar', 'baz'] });
+					const document = new Document(schema, { data: { _raw: ['foo', 'bar', 'baz'] } });
 					const record = document.transformDocumentToRecord();
 					expect(record).toEqual(['foo', 'bar', 'baz']);
 				});
