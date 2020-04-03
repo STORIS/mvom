@@ -1,4 +1,10 @@
 # CHANGELOG.md
+## 0.7.0
+### Breaking changes
+###### _2020_04_03_
+- Update to fix dependency vulnerabilities @shawnmcknight
+- Expose the `Document` constructor and allow a record to be passed in the constructor without having fetched it from the DB @reedmattos
+
 ## 0.6.2
 ###### _2020_03_24_
 - Fix a deployment issue introduced in 0.6.0. Make sure that all features needed for the `deploy` feature are deployed as part of a bootstrap step @kthompson23
@@ -12,6 +18,7 @@
 - Update some vulnerable dependencies @shawnmcknight
 
 ## 0.6.0
+### Breaking changes
 ###### _2020_03_03_
 - Add new setup and teardown features which will run before and after a subroutine feature to setup and teardown the environment. While configurable, the initial implementation creates and clears a named common block called `S$MVOM`, which includes one variable called `S$MVOM.PROCESS` set to `true`. UniBasic programs can check for this variable to determine if they were initiated by `MVIS`. This may be necessary when code not shipped through MVOM is run like in a database trigger or virtual dictionary. @kthompson23
 
@@ -32,12 +39,14 @@ COM /S$MVOM/ S$MVOM.PROCESS
 - Rollback fs-extra version to avoid memory leak @kthompson23
 
 ## 0.5.0
+### Breaking changes
 ###### _2019-11-11_
 - Fix simple and document array handling so they can be cleared using an empty array syntax and also update correctly when changing the length. @kthompson23
 - Change exported error names so they contain an `Error` suffix for clarity. @shawnmcknight
 - Update dependencies and begin conversion to TypeScript. @shawnmcknight
 
 ## 0.4.0
+### Breaking changes
 ###### _2019-07-18_
 - String types with an enumeration of empty string will return empty string instead of null from the database. @shawnmcknight
 - Improve the Model class in the typescript declaration. @shawnmcknight
@@ -65,6 +74,7 @@ COM /S$MVOM/ S$MVOM.PROCESS
 - Fix an issue where enum validation returns a data validation error on null values on non-required fields. @kthompson23
 
 ## 0.3.0
+### Breaking changes
 ###### _2018-12-17_
 - Improve the performance of the server-side formatDocument routine on large records by switching to REMOVE and udoAppendArrayItem @kthompson23
 - Fix an abort from the U2 digest function when reading or overwriting a previously empty record. @kthompson23
@@ -77,6 +87,7 @@ This affects the date/time types as well as Booleans. @shawnmcknight
 - Add support for specifying allowed enum values in the schema for string types. @shawnmcknight
 
 ## 0.2.0
+### Breaking changes
 ###### _2018-09-18_
 - Nearly all dependencies and devDependencies have been updated to the latest versions. @shawnmcknight
 - Connections now accept a timeout parameter which will override the default of no timeout.  The default remains to be
@@ -96,6 +107,7 @@ object's `other` property. @shawnmcknight
 - All errors thrown from mvom will now contain a source property with a value of `mvom`. @shawnmcknight
 
 ## 0.1.0
+### Breaking changes
 ###### _2018-08-10_
 We've graduated from Alpha to Beta!  Semver has been updated so breaking vs. non-breaking changes
 can be more easily identified go forward.
@@ -123,13 +135,13 @@ can be more easily identified go forward.
   (e.g. daylight saving time, server migrations, etc.) @shawnmcknight
 
 ## 0.0.8
-### Breaking change
+### Breaking changes
 ###### _2018-05-30
 - Document constructor no longer accepts "record" -- instead it accepts an object of data @shawnmcknight
 - Plain objects can now be used with subdocuments, enabling far easier use of thse structures @shawnmcknight
 
 ## 0.0.7
-### Breaking change
+### Breaking changes
 ###### _2018-05-07
 - Use array of arrays for sort criteria to preserve sequencing; can no longer be specified as object @kthompson23
 
