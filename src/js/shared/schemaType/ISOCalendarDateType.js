@@ -9,12 +9,15 @@ import BaseDateType from './BaseDateType';
  * @extends BaseDateType
  * @param {Object} definition - Data definition
  * @param {string} [definition.path = null] - 1-indexed String path
+ * @param {Object} [options = {}]
+ * @param {Function} [options.encrypt] Encryption function to use to encrypt sensitive fields
+ * @param {Function} [options.decrypt] Decryption function to use to decrypt sensitive fields
  */
 class ISOCalendarDateType extends BaseDateType {
 	/* static properties */
 
-	constructor(definition) {
-		super(definition);
+	constructor(definition, options) {
+		super(definition, options);
 
 		// add validators for this type
 		this._validators.unshift(handleTypeValidation(this._validateType));

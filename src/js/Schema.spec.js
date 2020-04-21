@@ -31,6 +31,14 @@ describe('Schema', () => {
 			const schema = new Schema({}, { dictionaries: { _id: 'bar' } });
 			expect(schema.dictPaths).toEqual({ _id: 'bar' });
 		});
+
+		test('should throw if encrypt is not a function', () => {
+			expect(() => new Schema({}, { encrypt: 'foo' })).toThrow();
+		});
+
+		test('should throw if decrypt is not a function', () => {
+			expect(() => new Schema({}, { decrypt: 'foo' })).toThrow();
+		});
 	});
 
 	describe('instance methods', () => {

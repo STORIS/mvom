@@ -11,11 +11,14 @@ import BaseType from './BaseType';
  * @param {string} [definition.path = null] - 1-index string path
  * @param {string} [definition.dictionary = null] - Multivalue dictionary id
  * @param {Boolean|Function} [definition.required = false] Indicates that a value is required when validating
+ * @param {Object} [options = {}]
+ * @param {Function} [options.encrypt] Encryption function to use to encrypt sensitive fields
+ * @param {Function} [options.decrypt] Decryption function to use to decrypt sensitive fields
  * @throws {DisallowDirectError} Class cannot be instantiated directly
  * @throws {InvalidParameterError} Path definition must be a string of integers split by periods
  */
 class SimpleType extends BaseType {
-	constructor(definition = {}) {
+	constructor(definition = {}, { encrypt, decrypt } = {}) {
 		if (new.target === SimpleType) {
 			// disallow direct instantiation
 			throw new DisallowDirectError({ className: 'SimpleType' });
@@ -23,7 +26,23 @@ class SimpleType extends BaseType {
 
 		super();
 
-		const { dictionary = null, path = null, required = false } = definition;
+		const { dictionary = null, path = null, required = false, encrypted = false } = definition;
+
+		if (encrypted) {
+			if (typeof encrypt !== 'function') {
+				throw new InvalidParameterError({
+					message: 'Encrypt function required to process encrypted fields',
+					parameterName: 'encrypt',
+				});
+			}
+
+			if (typeof decrypt !== 'function') {
+				throw new InvalidParameterError({
+					message: 'Decrypt function required to process encrypted fields',
+					parameterName: 'decrypt',
+				});
+			}
+		}
 
 		/**
 		 * Data definition which this schema type was cosntructed from
@@ -54,6 +73,30 @@ class SimpleType extends BaseType {
 		 * @private
 		 */
 		this._required = required;
+		/**
+		 * Indicates whether data should be encrypted/decrypted
+		 * @member {Boolean} _encrypted
+		 * @memberof SimpleType
+		 * @instance
+		 * @private
+		 */
+		this._encrypted = encrypted;
+		/**
+		 * Encrypt function to call on sensitive data before writing to the database
+		 * @member {Function} _encrypt
+		 * @memberof SimpleType
+		 * @instance
+		 * @private
+		 */
+		this._encrypt = encrypt;
+		/**
+		 * Decrypt function to call on sensitive data encrypted in the database
+		 * @member {Function} _decrypt
+		 * @memberof SimpleType
+		 * @instance
+		 * @private
+		 */
+		this._decrypt = decrypt;
 	}
 
 	/* public instance methods */
@@ -80,7 +123,10 @@ class SimpleType extends BaseType {
 	 * @param {*[]} record - Data to get value from
 	 * @returns {*} Value of data at specified location
 	 */
-	getFromMvData = record => getFromMvArray(record, this.path);
+	getFromMvData = record => {
+		const value = getFromMvArray(record, this.path);
+		return this._encrypted ? this._decrypt(value) : value;
+	};
 
 	/**
 	 * Transform into multivalue format and set specified value into mv record
@@ -108,7 +154,8 @@ class SimpleType extends BaseType {
 			return originalRecord;
 		}
 
-		return setIn(cloneDeep(originalRecord), this.path, setValue);
+		const encryptedSetValue = this._encrypted ? this._encrypt(setValue) : setValue;
+		return setIn(cloneDeep(originalRecord), this.path, encryptedSetValue);
 	};
 
 	/**

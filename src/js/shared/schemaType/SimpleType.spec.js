@@ -35,6 +35,14 @@ describe('SimpleType', () => {
 			const extension = new Extension({ dictionary: 'foo' });
 			expect(extension.dictionary).toBe('foo');
 		});
+
+		test('should throw if the property is set as encrypted but the encrypt function is not provided', () => {
+			expect(() => new Extension({ encrypted: true }, { decrypt: () => {} })).toThrow();
+		});
+
+		test('should throw if the property is set as encrypted but the decrypt function is not provided', () => {
+			expect(() => new Extension({ encrypted: true }, { encrypt: () => {} })).toThrow();
+		});
 	});
 
 	describe('instance methods', () => {
@@ -63,6 +71,9 @@ describe('SimpleType', () => {
 
 		describe('getFromMvData', () => {
 			let extension;
+			const encrypt = stub();
+			const decrypt = stub().returnsArg(0);
+
 			beforeAll(() => {
 				const Extension = class extends SimpleType {};
 				extension = new Extension({});
@@ -70,6 +81,7 @@ describe('SimpleType', () => {
 
 			beforeEach(() => {
 				extension.path = null;
+				decrypt.resetHistory();
 			});
 
 			test("should call getFromMvArray with the passed record and the instance's path", () => {
@@ -82,6 +94,22 @@ describe('SimpleType', () => {
 			test('should return the value returned from getFromMvArray', () => {
 				getFromMvArray.returns('foo');
 				expect(extension.getFromMvData()).toBe('foo');
+			});
+
+			test('should not decrypt the value if the field is not marked as encrypted', () => {
+				const Extension = class extends SimpleType {};
+				extension = new Extension({ encrypted: false }, { encrypt, decrypt });
+				getFromMvArray.returns('foo');
+				expect(extension.getFromMvData()).toBe('foo');
+				expect(decrypt.notCalled);
+			});
+
+			test('should decrypt the value if the field is marked as encrypted', () => {
+				const Extension = class extends SimpleType {};
+				extension = new Extension({ encrypted: true }, { encrypt, decrypt });
+				getFromMvArray.returns('foo');
+				expect(extension.getFromMvData()).toBe('foo');
+				expect(decrypt.calledWith('foo'));
 			});
 		});
 
@@ -121,9 +149,16 @@ describe('SimpleType', () => {
 
 		describe('setIntoMvData', () => {
 			let extension;
+			const encrypt = stub().returnsArg(0);
+			const decrypt = stub();
+
 			beforeAll(() => {
 				const Extension = class extends SimpleType {};
 				extension = new Extension({});
+			});
+
+			beforeEach(() => {
+				encrypt.resetHistory();
 			});
 
 			test('should return unchanged array if instance path is null', () => {
@@ -152,6 +187,22 @@ describe('SimpleType', () => {
 					'bar',
 					[undefined, [undefined, 'baz']],
 				]);
+			});
+
+			test('should not encrypt the value if the field is not marked as encrypted', () => {
+				const Extension = class extends SimpleType {};
+				extension = new Extension({ encrypted: false }, { encrypt, decrypt });
+				extension.path = [2];
+				expect(extension.setIntoMvData(['foo', 'bar'], 'baz')).toEqual(['foo', 'bar', 'baz']);
+				expect(encrypt.notCalled);
+			});
+
+			test('should encrypt the value if the field is marked as encrypted', () => {
+				const Extension = class extends SimpleType {};
+				extension = new Extension({ encrypted: true }, { encrypt, decrypt });
+				extension.path = [2];
+				expect(extension.setIntoMvData(['foo', 'bar'], 'baz')).toEqual(['foo', 'bar', 'baz']);
+				expect(encrypt.calledWith('baz'));
 			});
 		});
 

@@ -6,16 +6,19 @@ import SimpleType from './SimpleType';
  * @extends SimpleType
  * @hideconstructor
  * @param {Object} [definition] - Data definition
+ * @param {Object} [options = {}]
+ * @param {Function} [options.encrypt] Encryption function to use to encrypt sensitive fields
+ * @param {Function} [options.decrypt] Decryption function to use to decrypt sensitive fields
  * @throws {DisallowDirectError} Class cannot be instantiated directly
  */
 class BaseDateType extends SimpleType {
-	constructor(definition) {
+	constructor(definition, options) {
 		if (new.target === BaseDateType) {
 			// disallow direct instantiation
 			throw new DisallowDirectError({ className: 'BaseDateType' });
 		}
 
-		super(definition);
+		super(definition, options);
 	}
 
 	/* public instance methods */

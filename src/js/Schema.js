@@ -22,6 +22,8 @@ const {
  * @param {string} [options.typeProperty = "type"] The name of the property to use for data typing
  * @param {Object} [options.dictionaries = {}] Additional dictionaries for use in query (key/value paired)
  * @param {RegExp} [options.idMatch] Regular expression to validate the record id against
+ * @param {Function} [options.encrypt] Encryption function to use to encrypt sensitive fields
+ * @param {Function} [options.decrypt] Decryption function to use to decrypt sensitive fields
  * @example const example = new Schema({ propertyA: [{ property1: { path: '1'} }] })
  * @throws {InvalidParameterError} An invalid parameter was passed to the function
  */
@@ -41,7 +43,10 @@ class Schema {
 		ISOTime: ISOTimeType,
 	};
 
-	constructor(definition, { typeProperty = 'type', dictionaries = {}, idMatch } = {}) {
+	constructor(
+		definition,
+		{ typeProperty = 'type', dictionaries = {}, idMatch, encrypt, decrypt } = {},
+	) {
 		if (!isPlainObject(definition)) {
 			throw new InvalidParameterError({ parameterName: 'definition' });
 		}
@@ -50,6 +55,12 @@ class Schema {
 		}
 		if (idMatch != null && !(idMatch instanceof RegExp)) {
 			throw new InvalidParameterError({ parameterName: 'idMatch' });
+		}
+		if (encrypt != null && typeof encrypt !== 'function') {
+			throw new InvalidParameterError({ parameterName: 'encrypt' });
+		}
+		if (decrypt != null && typeof decrypt !== 'function') {
+			throw new InvalidParameterError({ parameterName: 'decrypt' });
 		}
 		/**
 		 * Key/value pairs of schema object path structure and associated multivalue dictionary ids
@@ -103,6 +114,22 @@ class Schema {
 		 * @private
 		 */
 		this._typeProperty = typeProperty;
+		/**
+		 * Optional function to use for encryption of sensitive data
+		 * @member {function} _encrypt
+		 * @memberof Schema
+		 * @instance
+		 * @private
+		 */
+		this._encrypt = encrypt;
+		/**
+		 * Optional function to use for decryption of sensitive data
+		 * @member {function} _decrypt
+		 * @memberof Schema
+		 * @instance
+		 * @private
+		 */
+		this._decrypt = decrypt;
 
 		this._buildPaths(this._definition);
 	}
@@ -217,7 +244,11 @@ class Schema {
 			return new ArrayType(this._castDefinition(arrayValue, keyPath));
 		}
 
-		const subdocumentSchema = new Schema(arrayValue, { type: this._typeProperty });
+		const subdocumentSchema = new Schema(arrayValue, {
+			type: this._typeProperty,
+			encrypt: this._encrypt,
+			decrypt: this._decrypt,
+		});
 		this._handleSubDocumentSchemas(subdocumentSchema, keyPath);
 		return new DocumentArrayType(subdocumentSchema);
 	};
@@ -243,6 +274,7 @@ class Schema {
 			});
 		}
 
+		const options = { encrypt: this._encrypt, decrypt: this._decrypt };
 		let schemaTypeValue;
 		switch (castee[this._typeProperty]) {
 			case Boolean:
@@ -252,7 +284,7 @@ class Schema {
 				schemaTypeValue = new ISOCalendarDateTimeType(castee);
 				break;
 			case ISOCalendarDateType:
-				schemaTypeValue = new ISOCalendarDateType(castee);
+				schemaTypeValue = new ISOCalendarDateType(castee, options);
 				break;
 			case ISOTimeType:
 				schemaTypeValue = new ISOTimeType(castee);
@@ -261,7 +293,7 @@ class Schema {
 				schemaTypeValue = new NumberType(castee);
 				break;
 			case String:
-				schemaTypeValue = new StringType(castee);
+				schemaTypeValue = new StringType(castee, options);
 				break;
 			default:
 				throw new InvalidParameterError({

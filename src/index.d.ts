@@ -75,8 +75,26 @@ declare namespace mvom {
     private constructor();
   }
 
+  export type DecryptFunc = {
+    (data: string | null): string | null;
+    (data: (string | null)[]): (string | null)[];
+  }
+
+  export type EncryptFunc = {
+    (data: string | null): string | null;
+    (data: (string | null)[]): (string | null)[];
+  }
+
+  export interface SchemaOpts {
+    typeProperty?: string;
+    dictionaries?: GenericObject;
+    idMatch?: RegExp;
+    encrypt?: EncryptFunc;
+    decrypt?: DecryptFunc
+  }
+
   export class Schema {
-    constructor(definition: GenericObject, opts?: {typeProperty?: string, dictionaries?: GenericObject, idMatch?: RegExp});
+    constructor(definition: GenericObject, opts?: SchemaOpts);
     static Types: {
       ISOCalendarDateTime: typeof ISOCalendarDateTimeType;
       ISOCalendarDate: typeof ISOCalendarDateType;

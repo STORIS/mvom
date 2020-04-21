@@ -8,6 +8,9 @@ import SimpleType from './SimpleType';
  * @param {string} definition.path - 1-indexed String path
  * @param {string[]} [definition.enum] - Array of allowed values
  * @param {RegExp} [definition.match] - Regular expression to validate the property value against
+ * @param {Object} [options = {}]
+ * @param {Function} [options.encrypt] Encryption function to use to encrypt sensitive fields
+ * @param {Function} [options.decrypt] Decryption function to use to decrypt sensitive fields
  * @throws {InvalidParameterError} An invalid parameter was passed to the function
  */
 class StringType extends SimpleType {
@@ -41,7 +44,7 @@ class StringType extends SimpleType {
 		return { validator: defaultValidator, message };
 	};
 
-	constructor(definition) {
+	constructor(definition, options) {
 		if (definition.path == null) {
 			throw new InvalidParameterError({ parameterName: 'definition.path' });
 		}
@@ -52,7 +55,7 @@ class StringType extends SimpleType {
 			throw new InvalidParameterError({ parameterName: 'definition.match' });
 		}
 
-		super(definition);
+		super(definition, options);
 
 		/**
 		 * Array of allowed enumerations
