@@ -1,4 +1,8 @@
 # CHANGELOG.md
+## 0.8.0
+###### _2020_04_21_
+- Add support to encrypt and decrypt strings and ISO calendar dates. String and ISOCalendarDate type fields can be marked as `encrypted`. The Schema constructor now accepts optional `encrypt` and `decrypt` functions. If a field is marked as `encrypted` these provided functions will be run. @kthompson23 
+
 ## 0.7.0
 ### Breaking changes
 ###### _2020_04_03_
