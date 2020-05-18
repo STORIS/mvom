@@ -1,5 +1,4 @@
 import { castArray, compact, flatten } from 'lodash';
-import { handleRequiredValidation } from '#shared/utils';
 import BasePrimitiveArrayType from './BasePrimitiveArrayType';
 
 /**
@@ -65,7 +64,6 @@ class ArrayType extends BasePrimitiveArrayType {
 			flatten(
 				await Promise.all(
 					this._validators
-						.concat(handleRequiredValidation(this._required, this._validateRequired))
 						.map(
 							async ({ validator, message }) => !(await validator(castValue, document)) && message,
 						)

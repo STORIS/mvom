@@ -20,19 +20,6 @@ describe('NestedArrayType', () => {
 		definition = {};
 	};
 
-	const requiredValidator = stub();
-	const handleRequiredValidation = stub().returns({
-		validator: requiredValidator,
-		message: 'requiredValidator',
-	});
-	beforeAll(() => {
-		RewireAPI.__Rewire__('handleRequiredValidation', handleRequiredValidation);
-	});
-
-	afterAll(() => {
-		__rewire_reset_all__();
-	});
-
 	describe('instance methods', () => {
 		describe('get', () => {
 			const castArraySpy = spy(castArray);
@@ -140,29 +127,18 @@ describe('NestedArrayType', () => {
 				simpleType.validate.reset();
 				fooValidator.reset();
 				barValidator.reset();
-				requiredValidator.reset();
-			});
-
-			test('should return an array of any errors from the required validator', async () => {
-				fooValidator.resolves(true);
-				barValidator.resolves(true);
-				requiredValidator.resolves(false);
-				simpleType.validate.resolves([]);
-				expect(await nestedArrayType.validate([])).toEqual(['requiredValidator']);
 			});
 
 			test('should return an array of errors from multiple validators', async () => {
 				fooValidator.resolves(false);
-				barValidator.resolves(true);
-				requiredValidator.resolves(false);
+				barValidator.resolves(false);
 				simpleType.validate.resolves([]);
-				expect(await nestedArrayType.validate([])).toEqual(['foo', 'requiredValidator']);
+				expect(await nestedArrayType.validate([])).toEqual(['foo', 'bar']);
 			});
 
 			test('should return an array of errors from simpleType validator', async () => {
 				fooValidator.resolves(true);
 				barValidator.resolves(true);
-				requiredValidator.resolves(true);
 				simpleType.validate.resolves(['baz', 'qux']);
 				expect(await nestedArrayType.validate(['value1'])).toEqual(['baz', 'qux']);
 			});
@@ -170,7 +146,6 @@ describe('NestedArrayType', () => {
 			test('should return an array of errors from multiple calls into the simpleType validator', async () => {
 				fooValidator.resolves(true);
 				barValidator.resolves(true);
-				requiredValidator.resolves(true);
 				simpleType.validate.onCall(0).resolves(['baz', 'qux']);
 				simpleType.validate.onCall(1).resolves(['quux', 'corge']);
 				expect(await nestedArrayType.validate([['value1'], ['value2']])).toEqual([
@@ -184,7 +159,6 @@ describe('NestedArrayType', () => {
 			test('should return an array of errors from multiple calls into the simpleType validator from nested array elements', async () => {
 				fooValidator.resolves(true);
 				barValidator.resolves(true);
-				requiredValidator.resolves(true);
 				simpleType.validate.onCall(0).resolves(['baz', 'qux']);
 				simpleType.validate.onCall(1).resolves(['quux', 'corge']);
 				simpleType.validate.onCall(2).resolves(['uier', 'grault']);
@@ -197,13 +171,11 @@ describe('NestedArrayType', () => {
 			test('should return an array of errors from all validators', async () => {
 				fooValidator.resolves(false);
 				barValidator.resolves(false);
-				requiredValidator.resolves(false);
 				simpleType.validate.onCall(0).resolves(['baz', 'qux']);
 				simpleType.validate.onCall(1).resolves(['quux', 'corge']);
 				expect(await nestedArrayType.validate([['value1'], ['value2']])).toEqual([
 					'foo',
 					'bar',
-					'requiredValidator',
 					'baz',
 					'qux',
 					'quux',
@@ -214,14 +186,12 @@ describe('NestedArrayType', () => {
 			test('should return an array of errors from all validators when a simpleType validator returns no errors', async () => {
 				fooValidator.resolves(false);
 				barValidator.resolves(false);
-				requiredValidator.resolves(false);
 				simpleType.validate.onCall(0).resolves(['baz', 'qux']);
 				simpleType.validate.onCall(1).resolves([]);
 				simpleType.validate.onCall(2).resolves(['quux', 'corge']);
 				expect(await nestedArrayType.validate([['value1'], ['value2', 'value3']])).toEqual([
 					'foo',
 					'bar',
-					'requiredValidator',
 					'baz',
 					'qux',
 					'quux',
@@ -232,7 +202,6 @@ describe('NestedArrayType', () => {
 			test('should return an empty array if no errors are found', async () => {
 				fooValidator.resolves(true);
 				barValidator.resolves(true);
-				requiredValidator.resolves(true);
 				simpleType.validate.resolves([]);
 				expect(await nestedArrayType.validate([])).toEqual([]);
 			});

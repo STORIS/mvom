@@ -101,23 +101,5 @@ describe('BasePrimitiveArrayType', () => {
 				expect(extension.validate).toThrow();
 			});
 		});
-
-		describe('_validateRequired', () => {
-			let simpleType;
-			let arrayType;
-			beforeAll(() => {
-				const Extension = class extends BasePrimitiveArrayType {};
-				simpleType = new SimpleType({});
-				arrayType = new Extension(simpleType);
-			});
-
-			test('should resolve as false if array is empty', async () => {
-				expect(await arrayType._validateRequired([])).toBe(false);
-			});
-
-			test('should resolve as true if array is not empty', async () => {
-				expect(await arrayType._validateRequired(['foo'])).toBe(true);
-			});
-		});
 	});
 });

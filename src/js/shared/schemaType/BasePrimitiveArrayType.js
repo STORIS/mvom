@@ -24,8 +24,6 @@ class BasePrimitiveArrayType extends ComplexType {
 
 		super();
 
-		const { required = false } = valueSchemaType.definition;
-
 		/**
 		 * A schemaType representing the type of the array's contents
 		 * @member {SimpleType} _valueSchemaType
@@ -34,14 +32,6 @@ class BasePrimitiveArrayType extends ComplexType {
 		 * @private
 		 */
 		this._valueSchemaType = valueSchemaType;
-		/**
-		 * Required validation value for the array
-		 * @member {Boolean|Function} _required
-		 * @memberof ArrayType
-		 * @instance
-		 * @private
-		 */
-		this._required = required;
 	}
 
 	/* public instance methods */
@@ -101,20 +91,6 @@ class BasePrimitiveArrayType extends ComplexType {
 			className: this.constructor.name,
 		});
 	};
-
-	/* private instance methods */
-
-	/**
-	 * Array required validator
-	 * @function _validateRequired
-	 * @memberof BasePrimitiveArrayType
-	 * @instance
-	 * @private
-	 * @async
-	 * @param {*[]} value - Array to validate
-	 * @returns {Promise.<Boolean>} True if valid / false if invalid
-	 */
-	_validateRequired = async value => value.length > 0;
 }
 
 export default BasePrimitiveArrayType;
