@@ -1,29 +1,34 @@
 # CHANGELOG.md
+## 0.9.0
+### Breaking changes
+###### _2020-05-18_
+- Eliminate implicit `required` validation of primitive arrays that was occurring if the primitive's schema definition indicated it was `required`.  This effectively made it so that arrays must have a length greater than 0 if the contents of the array were required.  This caused the `required` flag to effectively serve double-duty -- preventing `null`/`undefined` contents of arrays and enforcing that arrays contained contents. @shawnmcknight
+
 ## 0.8.0
-###### _2020_04_21_
+###### _2020-04-21_
 - Add support to encrypt and decrypt strings and ISO calendar dates. String and ISOCalendarDate type fields can be marked as `encrypted`. The Schema constructor now accepts optional `encrypt` and `decrypt` functions. If a field is marked as `encrypted` these provided functions will be run. @kthompson23 
 
 ## 0.7.0
 ### Breaking changes
-###### _2020_04_03_
+###### _2020-04-03_
 - Update to fix dependency vulnerabilities @shawnmcknight
 - Expose the `Document` constructor and allow a record to be passed in the constructor without having fetched it from the DB @reedmattos
 
 ## 0.6.2
-###### _2020_03_24_
+###### _2020-03-24_
 - Fix a deployment issue introduced in 0.6.0. Make sure that all features needed for the `deploy` feature are deployed as part of a bootstrap step @kthompson23
 - Add temporary workarounds for several issues identified in UniQuery @kthompson23
   - Using the `returning` clause on a query where a query limit is exceeded causes an abort (proposed to be fixed in UniData 8.2.2)
   - Exceeding the sentence length limit does to set an error condition in `@system.return.code` therefore returning incorrect results instead of an error.
 
 ## 0.6.1
-###### _2020_03_13_
+###### _2020-03-13_
 - Allow for regular expression pattern matching for strings and ids.  Strings will accept a property named `match` in the schema definition for any string type.  Document ids can be matched by providing an `idMatch` property to the Schema constructor options. @reedmattos
 - Update some vulnerable dependencies @shawnmcknight
 
 ## 0.6.0
 ### Breaking changes
-###### _2020_03_03_
+###### _2020-03-03_
 - Add new setup and teardown features which will run before and after a subroutine feature to setup and teardown the environment. While configurable, the initial implementation creates and clears a named common block called `S$MVOM`, which includes one variable called `S$MVOM.PROCESS` set to `true`. UniBasic programs can check for this variable to determine if they were initiated by `MVIS`. This may be necessary when code not shipped through MVOM is run like in a database trigger or virtual dictionary. @kthompson23
 
 UniBasic programs should include the below to use this new variable:
@@ -35,7 +40,7 @@ COM /S$MVOM/ S$MVOM.PROCESS
 - Enhance the save action to support clearing all attributes before writing out the record. This fixes an issue with schema less documents where the record being written has less attributes than what is already on disk. This is automatically set when working with schema less files. @reedmattos 
 
 ## 0.5.2
-###### _2020_02_25_
+###### _2020-02-25_
 - Allow for null schemas passed to the model constructor.  When schemas are null, no mapping of the record to a document (and vice versa) will occur.  Instead, a property named `_raw` will be added to the document which contains an array of the record contents.  When saving, this array will overwrite the entire record. @reedmattos
 
 ## 0.5.1
@@ -140,13 +145,13 @@ can be more easily identified go forward.
 
 ## 0.0.8
 ### Breaking changes
-###### _2018-05-30
+###### _2018-05-30_
 - Document constructor no longer accepts "record" -- instead it accepts an object of data @shawnmcknight
 - Plain objects can now be used with subdocuments, enabling far easier use of thse structures @shawnmcknight
 
 ## 0.0.7
 ### Breaking changes
-###### _2018-05-07
+###### _2018-05-07_
 - Use array of arrays for sort criteria to preserve sequencing; can no longer be specified as object @kthompson23
 
 ## 0.0.6
