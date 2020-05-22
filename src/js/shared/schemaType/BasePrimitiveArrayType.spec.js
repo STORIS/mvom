@@ -42,6 +42,26 @@ describe('BasePrimitiveArrayType', () => {
 	});
 
 	describe('instance methods', () => {
+		describe('cast', () => {
+			let extension;
+			beforeAll(() => {
+				const Extension = class extends BasePrimitiveArrayType {};
+				extension = new Extension(new SimpleType());
+			});
+
+			test('should return empty array if cast value is null', () => {
+				expect(extension.cast(null)).toEqual([]);
+			});
+
+			test('should return original value if cast value is non-null and an array', () => {
+				expect(extension.cast(['foo'])).toEqual(['foo']);
+			});
+
+			test('should return primitive cast to array', () => {
+				expect(extension.cast('foo')).toEqual(['foo']);
+			});
+		});
+
 		describe('get', () => {
 			let extension;
 			beforeAll(() => {

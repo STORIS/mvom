@@ -1,3 +1,4 @@
+import { castArray } from 'lodash';
 import { DisallowDirectError, InvalidParameterError, NotImplementedError } from '#shared/errors';
 import ComplexType from './ComplexType';
 import SimpleType from './SimpleType';
@@ -35,6 +36,15 @@ class BasePrimitiveArrayType extends ComplexType {
 	}
 
 	/* public instance methods */
+	/**
+	 * Cast to array type
+	 * @memberof BasePrimitiveArrayType
+	 * @override
+	 * @instance
+	 * @param {*} value - Value to cast
+	 * @returns {*[]} Formatted data value
+	 */
+	cast = value => (value != null ? castArray(value) : []);
 
 	/**
 	 * Get value from mv data
