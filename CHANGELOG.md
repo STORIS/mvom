@@ -1,4 +1,8 @@
 # CHANGELOG.md
+## 0.9.2
+###### _2020_11_19_
+- Several properties on the `Document` instance were intended to not be enumerable and were not getting configured properly to ensure that.  This change ensures that the `transformDocumentToRecord`, `_transformRecordToDocument`, and `validate` properties are not configurable, not enumerable, and not writable.  Since `Model` inherits from `Document`, this will affect instances of that class as well. @shawnmcknight
+
 ## 0.9.1
 ###### _2020-05-22_
 - When a document's property is a schema type of Array or NestedArray, `required` validation will fail when the property is not defined.  This is because during validation the `undefined` property gets cast to `null` and then the array gets cast to `[null]` during validation which fails.  The issue is that `undefined` and `null` values are not cast to arrays prior to validation in the same way that DocumentArray's are.  This change casts `null` and `undefined` properties to `[]` and scalars to an array of that scalar during property validation. @shawnmcknight
