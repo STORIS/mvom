@@ -65,6 +65,33 @@ describe('Document', () => {
 				property3: 5,
 			});
 		});
+
+		test('should have the correct property configurations', () => {
+			const document = new Document(new SchemaRewire());
+			const propertyDescriptors = Object.getOwnPropertyDescriptors(document);
+
+			expect(propertyDescriptors._schema.configurable).toBe(false);
+			expect(propertyDescriptors._schema.enumerable).toBe(false);
+			expect(propertyDescriptors._schema.writable).toBe(false);
+			expect(propertyDescriptors._record.configurable).toBe(false);
+			expect(propertyDescriptors._record.enumerable).toBe(false);
+			expect(propertyDescriptors._record.writable).toBe(true);
+			expect(propertyDescriptors._isSubdocument.configurable).toBe(false);
+			expect(propertyDescriptors._isSubdocument.enumerable).toBe(false);
+			expect(propertyDescriptors._isSubdocument.writable).toBe(false);
+			expect(propertyDescriptors.transformationErrors.configurable).toBe(false);
+			expect(propertyDescriptors.transformationErrors.enumerable).toBe(false);
+			expect(propertyDescriptors.transformationErrors.writable).toBe(false);
+			expect(propertyDescriptors.transformDocumentToRecord.configurable).toBe(false);
+			expect(propertyDescriptors.transformDocumentToRecord.enumerable).toBe(false);
+			expect(propertyDescriptors.transformDocumentToRecord.writable).toBe(false);
+			expect(propertyDescriptors._transformRecordToDocument.configurable).toBe(false);
+			expect(propertyDescriptors._transformRecordToDocument.enumerable).toBe(false);
+			expect(propertyDescriptors._transformRecordToDocument.writable).toBe(false);
+			expect(propertyDescriptors.validate.configurable).toBe(false);
+			expect(propertyDescriptors.validate.enumerable).toBe(false);
+			expect(propertyDescriptors.validate.writable).toBe(false);
+		});
 	});
 
 	describe('instance methods', () => {

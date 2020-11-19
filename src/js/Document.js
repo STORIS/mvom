@@ -58,9 +58,21 @@ class Document {
 			transformationErrors: {
 				value: [],
 			},
-			transformDocumentToRecord: {},
-			transformRecordToDocument: {},
-			validate: {},
+			transformDocumentToRecord: {
+				configurable: false,
+				enumerable: false,
+				writable: false,
+			},
+			_transformRecordToDocument: {
+				configurable: false,
+				enumerable: false,
+				writable: false,
+			},
+			validate: {
+				configurable: false,
+				enumerable: false,
+				writable: false,
+			},
 		});
 
 		if (record != null) {
