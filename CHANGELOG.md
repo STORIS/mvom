@@ -1,4 +1,8 @@
 # CHANGELOG.md
+## 0.9.3
+###### _2021_05_07_
+- Update production dependencies to remedy high vulnerability security issues. @shawnmcknight
+
 ## 0.9.2
 ###### _2020_11_19_
 - Several properties on the `Document` instance were intended to not be enumerable and were not getting configured properly to ensure that.  This change ensures that the `transformDocumentToRecord`, `_transformRecordToDocument`, and `validate` properties are not configurable, not enumerable, and not writable.  Since `Model` inherits from `Document`, this will affect instances of that class as well. @shawnmcknight
