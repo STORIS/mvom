@@ -36,7 +36,7 @@ class ISOCalendarDateType extends BaseDateType {
 	 * @returns {string|null} Transformed ISO 8601 String Date value (yyyy-mm-dd)
 	 * @throws {TransformDataError} Database value could not be transformed to external format
 	 */
-	transformFromDb = value => {
+	transformFromDb(value) {
 		if (value == null) {
 			return null;
 		}
@@ -51,7 +51,7 @@ class ISOCalendarDateType extends BaseDateType {
 		return moment(mvEpoch)
 			.add(castValue, 'days')
 			.format(ISOCalendarDateFormat);
-	};
+	}
 
 	/**
 	 * Transform ISO 8601 approved date format (yyyy-mm-dd) to mv date data
@@ -63,8 +63,9 @@ class ISOCalendarDateType extends BaseDateType {
 	 * @param {string|null} value - Value to transform
 	 * @returns {string|null} Transformed string integer representing number of days since mv epoch
 	 */
-	transformToDb = value =>
-		value == null ? null : String(moment(value).diff(moment(mvEpoch), 'days'));
+	transformToDb(value) {
+		return value == null ? null : String(moment(value).diff(moment(mvEpoch), 'days'));
+	}
 
 	/* private instance methods */
 
@@ -78,7 +79,9 @@ class ISOCalendarDateType extends BaseDateType {
 	 * @param {*[]} value - Value to validate for data type casting
 	 * @returns {Promise.<Boolean>} True if valid / false if invalid
 	 */
-	_validateType = async value => value == null || moment(value, ISOCalendarDateFormat).isValid();
+	async _validateType(value) {
+		return value == null || moment(value, ISOCalendarDateFormat).isValid();
+	}
 }
 
 export default ISOCalendarDateType;

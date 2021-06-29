@@ -46,7 +46,7 @@ class ISOCalendarDateTimeType extends BaseDateType {
 	 * @returns {string|null} Transformed ISO 8601 String date/time value (yyyy-mm-ddTHH:mm:ss.SSS)
 	 * @throws {TransformDataError} (indirect) Database value could not be transformed to external format
 	 */
-	transformFromDb = value => {
+	transformFromDb(value) {
 		if (value == null) {
 			return null;
 		}
@@ -56,7 +56,7 @@ class ISOCalendarDateTimeType extends BaseDateType {
 		const timePart = new ISOTimeType({ dbFormat: this._dbFormat }).transformFromDb(+valueParts[1]);
 
 		return `${datePart}T${timePart}`;
-	};
+	}
 
 	/**
 	 * Transform ISO 8601 approved date/time format (yyyy-mm-ddTHH:mm:ss.SSS) to mv style timestamp data (ddddd.sssss[SSS])
@@ -68,17 +68,20 @@ class ISOCalendarDateTimeType extends BaseDateType {
 	 * @param {string|null} value - Value to transform
 	 * @returns {string|null} Transformed mv style timestamp value (ddddd.sssss[SSS])
 	 */
-	transformToDb = value => {
+	transformToDb(value) {
 		if (value == null) {
 			return null;
 		}
 
 		const [datePart, timePart] = value.split('T');
+		const padLength = this._dbFormat === 'ms' ? 8 : 5;
 
 		return `${new ISOCalendarDateType({}).transformToDb(datePart)}.${new ISOTimeType({
 			dbFormat: this._dbFormat,
-		}).transformToDb(timePart)}`;
-	};
+		})
+			.transformToDb(timePart)
+			.padStart(padLength, '0')}`;
+	}
 
 	/* private instance methods */
 

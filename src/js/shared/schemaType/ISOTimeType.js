@@ -41,7 +41,7 @@ class ISOTimeType extends BaseDateType {
 	 * @returns {string|null} Transformed ISO 8601 String Time value (HH:mm:ss.SSS)
 	 * @throws {TransformDataError} Database value could not be transformed to external format
 	 */
-	transformFromDb = value => {
+	transformFromDb(value) {
 		if (value == null) {
 			return null;
 		}
@@ -69,7 +69,7 @@ class ISOTimeType extends BaseDateType {
 		}
 
 		return isoTime.format(ISOTimeFormat);
-	};
+	}
 
 	/**
 	 * Transform ISO 8601 approved time format (HH:mm:ss.SSS) to mv style time data
@@ -81,7 +81,7 @@ class ISOTimeType extends BaseDateType {
 	 * @param {string|null} value - Value to transform
 	 * @returns {string|null} Transformed string integer representing the number of seconds or milliseconds since midnight
 	 */
-	transformToDb = value => {
+	transformToDb(value) {
 		if (value == null) {
 			return null;
 		}
@@ -92,7 +92,7 @@ class ISOTimeType extends BaseDateType {
 			return String(moment(value, ISOTimeFormat).diff(startOfDay, 'milliseconds'));
 		}
 		return String(moment(value, ISOTimeFormat).diff(startOfDay, 'seconds'));
-	};
+	}
 
 	/* private instance methods */
 
@@ -106,7 +106,9 @@ class ISOTimeType extends BaseDateType {
 	 * @param {*[]} value - Value to validate for data type casting
 	 * @returns {Promise.<Boolean>} True if valid / false if invalid
 	 */
-	_validateType = async value => value == null || moment(value, ISOTimeFormat).isValid();
+	async _validateType(value) {
+		return value == null || moment(value, ISOTimeFormat).isValid();
+	}
 }
 
 export default ISOTimeType;

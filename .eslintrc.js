@@ -26,6 +26,8 @@ module.exports = {
 			'error',
 			{ vars: 'all', args: 'after-used', ignoreRestSiblings: true },
 		],
+		// allow class methods which do not use this
+		'class-methods-use-this': ['off'],
 	},
 	settings: { 'import/resolver': { 'babel-module': {} } },
 	overrides: [

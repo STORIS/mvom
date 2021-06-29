@@ -73,9 +73,9 @@ class BaseType {
 	 * @param {Object} document - Document instance
 	 * @throws {NotImplementedError} Thrown if called directly
 	 */
-	validate = async () => {
+	async validate() {
 		throw new NotImplementedError({ methodName: 'validate', className: this.constructor.name });
-	};
+	}
 }
 
 export default BaseType;

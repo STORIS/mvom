@@ -168,12 +168,12 @@ class SimpleType extends BaseType {
 	 * @returns {*} Transformed value
 	 * @throws {NotImplementedError} Thrown if called directly
 	 */
-	transformFromDb = () => {
+	transformFromDb() {
 		throw new NotImplementedError({
 			methodName: 'transformFromDb',
 			className: this.constructor.name,
 		});
-	};
+	}
 
 	/**
 	 * Transform from externally formatted data to mv data
@@ -185,12 +185,12 @@ class SimpleType extends BaseType {
 	 * @returns {*} Transformed value
 	 * @throws {NotImplementedError} Thrown if called directly
 	 */
-	transformToDb = () => {
+	transformToDb() {
 		throw new NotImplementedError({
 			methodName: 'transformToDb',
 			className: this.constructor.name,
 		});
-	};
+	}
 
 	/**
 	 * Transform query constants to the format schema
@@ -213,17 +213,18 @@ class SimpleType extends BaseType {
 	 * @param {Document} document - Document object
 	 * @returns {Promise.<string[]>} List of errors found while validating
 	 */
-	validate = async (value, document) =>
+	async validate(value, document) {
 		// combining all the validation into one array of promise.all
 		// - a validator will return false or the appropriate error message
 		// - compact the array of resolved promises to remove any falsy values
-		compact(
+		return compact(
 			await Promise.all(
 				this._validators
 					.concat(handleRequiredValidation(this._required, this._validateRequired))
 					.map(async ({ validator, message }) => !(await validator(value, document)) && message),
 			),
 		);
+	}
 	/* private instance methods */
 
 	/**
