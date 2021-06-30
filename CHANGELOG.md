@@ -1,4 +1,10 @@
 # CHANGELOG.md
+
+## 0.9.4
+###### _2021_06_30_
+- Update all dependencies. @shawnmcknight
+- Format the ISOCalendarDateTime type to have the time component left padded with zeroes.
+
 ## 0.9.3
 ###### _2021_05_07_
 - Update production dependencies to remedy high vulnerability security issues. @shawnmcknight
