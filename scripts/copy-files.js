@@ -3,7 +3,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import packageData from '../package.json';
 
-const getBuildPath = file => path.join(process.cwd(), 'dist', path.basename(file));
+const getBuildPath = (file) => path.join(process.cwd(), 'dist', path.basename(file));
 
 const files = [
 	'README.md',
@@ -12,7 +12,7 @@ const files = [
 	path.join('src', '.mvomrc.json'),
 	path.join('src', 'index.d.ts'),
 ];
-files.forEach(file => {
+files.forEach((file) => {
 	const buildPath = getBuildPath(file);
 	try {
 		fs.copySync(file, buildPath);

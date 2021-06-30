@@ -48,9 +48,7 @@ class ISOCalendarDateType extends BaseDateType {
 			});
 		}
 
-		return moment(mvEpoch)
-			.add(castValue, 'days')
-			.format(ISOCalendarDateFormat);
+		return moment(mvEpoch).add(castValue, 'days').format(ISOCalendarDateFormat);
 	}
 
 	/**

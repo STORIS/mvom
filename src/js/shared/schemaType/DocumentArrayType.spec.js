@@ -176,7 +176,10 @@ describe('DocumentArrayType', () => {
 						[],
 						[{ transformDocumentToRecord }, { transformDocumentToRecord }],
 					),
-				).toEqual([['foo', 'baz'], ['bar', 'qux']]);
+				).toEqual([
+					['foo', 'baz'],
+					['bar', 'qux'],
+				]);
 			});
 
 			test('should return an updated array of arrays based on what is returned from transformDocumentToRecord', () => {
@@ -245,7 +248,10 @@ describe('DocumentArrayType', () => {
 
 		describe('_makeSubDocument', () => {
 			test('should return a new document instance from the first subrecord when yielding', () => {
-				const it = documentArrayType._makeSubDocument([['foo', 'bar'], ['baz', 'qux']]);
+				const it = documentArrayType._makeSubDocument([
+					['foo', 'bar'],
+					['baz', 'qux'],
+				]);
 				const { value, done } = it.next();
 				expect(done).toBe(false);
 				expect(value).toBeInstanceOf(Document);
@@ -253,7 +259,10 @@ describe('DocumentArrayType', () => {
 			});
 
 			test('should return a new subdocument instance from the second subrecord when yielding a second time', () => {
-				const it = documentArrayType._makeSubDocument([['foo', 'bar'], ['baz', 'qux']]);
+				const it = documentArrayType._makeSubDocument([
+					['foo', 'bar'],
+					['baz', 'qux'],
+				]);
 				it.next();
 				const { value, done } = it.next();
 				expect(done).toBe(false);
@@ -274,7 +283,10 @@ describe('DocumentArrayType', () => {
 			});
 
 			test('should return as done when no subrecord is possible at iteration position', () => {
-				const it = documentArrayType._makeSubDocument([['foo', 'bar'], ['baz', 'qux']]);
+				const it = documentArrayType._makeSubDocument([
+					['foo', 'bar'],
+					['baz', 'qux'],
+				]);
 				it.next();
 				it.next();
 				const { done } = it.next();

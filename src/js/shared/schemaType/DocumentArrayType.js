@@ -34,12 +34,12 @@ class DocumentArrayType extends ComplexType {
 	 * @returns {Document[]} An array of subdocuments representing embedded Document structure
 	 * @throws {TypeError} Throws if a non-null/non-object is passed
 	 */
-	cast = value => {
+	cast = (value) => {
 		if (value == null) {
 			return [];
 		}
 
-		return castArray(value).map(subdocument => {
+		return castArray(value).map((subdocument) => {
 			// convert subdocument to a plain structure and then recast as document
 			const plainValue = subdocument == null ? {} : JSON.parse(JSON.stringify(subdocument));
 			if (!isPlainObject(plainValue)) {
@@ -58,7 +58,7 @@ class DocumentArrayType extends ComplexType {
 	 * @returns {Document[]} An array of subdocuments representing embedded Document structure
 	 */
 
-	get = record => [...this._makeSubDocument(record)];
+	get = (record) => [...this._makeSubDocument(record)];
 
 	/**
 	 * Set specified document array value into mv record
@@ -72,7 +72,7 @@ class DocumentArrayType extends ComplexType {
 	set = (originalRecord, setValue) => {
 		const record = cloneDeep(originalRecord);
 		// A subdocumentArray is always overwritten entirely so clear out all associated fields
-		this._valueSchema.getMvPaths().forEach(path => {
+		this._valueSchema.getMvPaths().forEach((path) => {
 			setIn(record, path, null);
 		});
 		setValue.forEach((subdocument, iteration) => {
@@ -95,14 +95,14 @@ class DocumentArrayType extends ComplexType {
 	 * @param {Document[]} documentList - Array of documents to validate
 	 * @returns {Promise.<Object[]>} List of errors found while validating
 	 */
-	validate = async documentList =>
+	validate = async (documentList) =>
 		// combining all the validation into one array of promise.all
 		// - validation against the documents in the array will return a single object with 0 to n keys - only those with keys indicate errors;
 		//   if there are errors then the promise will resolve with the error object; otherwise it will resolve with 0
 		// - compact the array of resolved promises to remove any falsy values
 		compact(
 			await Promise.all(
-				documentList.map(async document => {
+				documentList.map(async (document) => {
 					const documentErrors = await document.validate();
 					return Object.keys(documentErrors).length && documentErrors;
 				}),
@@ -120,7 +120,7 @@ class DocumentArrayType extends ComplexType {
 	 * @yields {Document} Subdocument instance
 	 */
 	*_makeSubDocument(record) {
-		const makeSubRecord = iteration =>
+		const makeSubRecord = (iteration) =>
 			this._valueSchema.getMvPaths().reduce((acc, path) => {
 				const value = getFromMvArray(record, path.concat([iteration]));
 				if (typeof value !== 'undefined') {

@@ -28,7 +28,7 @@ class BooleanType extends SimpleType {
 	 * @param {string|number|null} value - Value to transform
 	 * @returns {Boolean} Transformed value
 	 */
-	transformFromDb = value =>
+	transformFromDb = (value) =>
 		// this logic is intentionally trying to mimic the Boolean rules of the UniBasic interpreter
 		value != null && value !== '0' && value !== 0;
 
@@ -42,7 +42,7 @@ class BooleanType extends SimpleType {
 	 * @param {Boolean} value - Value to transform
 	 * @returns {'1'|'0'} Transformed value
 	 */
-	transformToDb = value => (value ? '1' : '0');
+	transformToDb = (value) => (value ? '1' : '0');
 
 	/**
 	 * Transform query constants to u2 formatted Boolean
@@ -54,7 +54,7 @@ class BooleanType extends SimpleType {
 	 * @param {Boolean|string|*} value - Value to convert
 	 * @returns {'1'|'0'|*} Returns "1" if boolean or string true, "0" if boolean or string false, and original value if anything else
 	 */
-	transformToQuery = value => {
+	transformToQuery = (value) => {
 		if ([true, 'true', 'TRUE'].includes(value)) {
 			return '1';
 		}

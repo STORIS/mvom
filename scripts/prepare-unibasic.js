@@ -23,9 +23,9 @@ try {
 try {
 	const fileList = fs
 		.readdirSync(inputDir)
-		.filter(file => fs.statSync(path.join(inputDir, file)).isFile());
+		.filter((file) => fs.statSync(path.join(inputDir, file)).isFile());
 
-	fileList.forEach(inputFile => {
+	fileList.forEach((inputFile) => {
 		const outputFile = `${path.parse(inputFile).name}.mvb`;
 		const buildPath = path.join(outputDir, outputFile);
 		try {

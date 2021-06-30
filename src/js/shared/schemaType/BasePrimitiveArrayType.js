@@ -44,7 +44,7 @@ class BasePrimitiveArrayType extends ComplexType {
 	 * @param {*} value - Value to cast
 	 * @returns {*[]} Formatted data value
 	 */
-	cast = value => (value != null ? castArray(value) : []);
+	cast = (value) => (value != null ? castArray(value) : []);
 
 	/**
 	 * Get value from mv data
@@ -85,7 +85,7 @@ class BasePrimitiveArrayType extends ComplexType {
 	 * @param {string} value - Value to convert
 	 * @returns {string} U2 Internally formatted data
 	 */
-	transformToQuery = value => this._valueSchemaType.transformToQuery(value);
+	transformToQuery = (value) => this._valueSchemaType.transformToQuery(value);
 
 	/**
 	 * Validate the array

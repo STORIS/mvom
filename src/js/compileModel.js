@@ -75,7 +75,7 @@ const compileModel = (connection, schema, file) => {
 		 * @throws {ConnectionManagerError} (indirect) An error occurred in connection manager communications
 		 * @throws {DbServerError} (indirect) An error occurred on the database server
 		 */
-		static deleteById = async id => {
+		static deleteById = async (id) => {
 			const data = await Model.connection.executeDbFeature('deleteById', {
 				filename: Model.file,
 				id,
@@ -138,7 +138,7 @@ const compileModel = (connection, schema, file) => {
 		 * @throws {ConnectionManagerError} (indirect) An error occurred in connection manager communications
 		 * @throws {DbServerError} (indirect) An error occurred on the database server
 		 */
-		static findById = async id => {
+		static findById = async (id) => {
 			const data = await Model.connection.executeDbFeature('findById', {
 				filename: Model.file,
 				id,
@@ -160,7 +160,7 @@ const compileModel = (connection, schema, file) => {
 		 * @throws {ConnectionManagerError} (indirect) An error occurred in connection manager communications
 		 * @throws {DbServerError} (indirect) An error occurred on the database server
 		 */
-		static findByIds = async ids => {
+		static findByIds = async (ids) => {
 			if (ids == null) {
 				throw new InvalidParameterError({ parameterName: 'ids' });
 			}
@@ -173,7 +173,7 @@ const compileModel = (connection, schema, file) => {
 
 			// returns an array of newly instantiated Models
 			// there may be empty strings in the array if a particular document couldn't be found or contained corrupt data
-			return data.result.map(dbResultItem =>
+			return data.result.map((dbResultItem) =>
 				dbResultItem ? Model.makeModelFromDbResult(dbResultItem) : null,
 			);
 		};
@@ -208,7 +208,7 @@ const compileModel = (connection, schema, file) => {
 				_id: {
 					enumerable: true,
 					get: () => this.__id,
-					set: value => {
+					set: (value) => {
 						if (this.__id != null) {
 							throw new Error('_id value cannot be changed once set');
 						}
@@ -246,7 +246,7 @@ const compileModel = (connection, schema, file) => {
 
 			Model.connection.logger.debug(`creating new instance of model for file ${Model.file}`);
 
-			this.transformationErrors.forEach(error => {
+			this.transformationErrors.forEach((error) => {
 				// errors occurred while transforming data from multivalue format - log them
 				Model.connection.logger.warn(
 					`error transforming data -- file: ${Model.file}; _id: ${this._id}; class: ${error.transformClass}; value: ${error.transformValue}`,

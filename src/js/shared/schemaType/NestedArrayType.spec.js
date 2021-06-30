@@ -70,8 +70,14 @@ describe('NestedArrayType', () => {
 			});
 
 			test('should return a transformed nested array when given more than one nested array', () => {
-				simpleType.getFromMvData.returns([['foo', 'bar'], ['baz', 'qux']]);
-				expect(nestedArrayType.get()).toEqual([['def', 'henk'], ['mos', 'thud']]);
+				simpleType.getFromMvData.returns([
+					['foo', 'bar'],
+					['baz', 'qux'],
+				]);
+				expect(nestedArrayType.get()).toEqual([
+					['def', 'henk'],
+					['mos', 'thud'],
+				]);
 			});
 		});
 
@@ -93,7 +99,13 @@ describe('NestedArrayType', () => {
 			});
 
 			test('should call transformToDb with each nested array value passed', () => {
-				nestedArrayType.set([], [['foo', 'bar'], ['baz', 'qux']]);
+				nestedArrayType.set(
+					[],
+					[
+						['foo', 'bar'],
+						['baz', 'qux'],
+					],
+				);
 				expect(simpleType.transformToDb.args[0][0]).toBe('foo');
 				expect(simpleType.transformToDb.args[1][0]).toBe('bar');
 				expect(simpleType.transformToDb.args[2][0]).toBe('baz');
@@ -101,8 +113,17 @@ describe('NestedArrayType', () => {
 			});
 
 			test('should call setIntoMvData with results of transformToDb call', () => {
-				nestedArrayType.set([], [['foo', 'bar'], ['baz', 'qux']]);
-				expect(simpleType.setIntoMvData.args[0][1]).toEqual([['def', 'henk'], ['mos', 'thud']]);
+				nestedArrayType.set(
+					[],
+					[
+						['foo', 'bar'],
+						['baz', 'qux'],
+					],
+				);
+				expect(simpleType.setIntoMvData.args[0][1]).toEqual([
+					['def', 'henk'],
+					['mos', 'thud'],
+				]);
 			});
 
 			test('should return value returned from setIntoMvData', () => {
@@ -164,7 +185,10 @@ describe('NestedArrayType', () => {
 				simpleType.validate.onCall(2).resolves(['uier', 'grault']);
 				simpleType.validate.onCall(3).resolves(['garply', 'waldo']);
 				expect(
-					await nestedArrayType.validate([['value1', 'value2'], ['value3', 'value4']]),
+					await nestedArrayType.validate([
+						['value1', 'value2'],
+						['value3', 'value4'],
+					]),
 				).toEqual(['baz', 'qux', 'quux', 'corge', 'uier', 'grault', 'garply', 'waldo']);
 			});
 

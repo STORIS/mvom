@@ -17,7 +17,7 @@ class DbServerError extends BaseError {
 		if (overrideMessage != null) {
 			message = overrideMessage;
 		} else {
-			const foundError = Object.values(dbErrors).find(errorObj => errorObj.code === +errorCode);
+			const foundError = Object.values(dbErrors).find((errorObj) => errorObj.code === +errorCode);
 			if (foundError != null) {
 				({ message } = foundError);
 			}

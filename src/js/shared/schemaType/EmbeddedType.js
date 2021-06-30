@@ -32,7 +32,7 @@ class EmbeddedType extends ComplexType {
 	 * @returns {Document} Embedded document instance
 	 * @throws {TypeError} Throws if a non-null/non-object is passed
 	 */
-	cast = value => {
+	cast = (value) => {
 		// convert value to a plain structure and then recast as embedded document
 		const plainValue = value == null ? {} : JSON.parse(JSON.stringify(value));
 		if (!isPlainObject(plainValue)) {
@@ -49,7 +49,7 @@ class EmbeddedType extends ComplexType {
 	 * @param {*[]} record - Data to get values from
 	 * @returns {Document} Embedded document instance
 	 */
-	get = record => {
+	get = (record) => {
 		const embeddedDocument = new Document(this._valueSchema, { isSubdocument: true, record });
 		return embeddedDocument;
 	};
@@ -83,7 +83,7 @@ class EmbeddedType extends ComplexType {
 	 * @param {Document} document - Document to validate
 	 * @returns {Promise.<Object[]>} List of errors found while validating
 	 */
-	validate = async document => {
+	validate = async (document) => {
 		// - validation against the embedded document will return a single object with 0 to n keys - only those with keys indicate errors;
 		// - if there are errors then return an array with the error object; otherwise return an empty array
 		const documentErrors = await document.validate();

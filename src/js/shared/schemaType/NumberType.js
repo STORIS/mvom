@@ -48,7 +48,7 @@ class NumberType extends SimpleType {
 	 * @returns {Number|null} Transformed numeric value
 	 * @throws {TransformDataError} Database value could not be transformed to external format
 	 */
-	transformFromDb = value => {
+	transformFromDb = (value) => {
 		if (value == null) {
 			return null;
 		}
@@ -73,7 +73,7 @@ class NumberType extends SimpleType {
 	 * @param {number|null} value - Value to transform
 	 * @returns {string|null} Transformed string integer representing internal multivalue number format
 	 */
-	transformToDb = value => (value == null ? null : (+value * 10 ** this._dbDecimals).toFixed(0));
+	transformToDb = (value) => (value == null ? null : (+value * 10 ** this._dbDecimals).toFixed(0));
 
 	/* private instance methods */
 
@@ -87,7 +87,7 @@ class NumberType extends SimpleType {
 	 * @param {*[]} value - Value to validate for data type casting
 	 * @returns {Promise.<Boolean>} True if valid / false if invalid
 	 */
-	_validateType = async value => value == null || Number.isFinite(+value);
+	_validateType = async (value) => value == null || Number.isFinite(+value);
 }
 
 export default NumberType;

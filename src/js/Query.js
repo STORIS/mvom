@@ -100,7 +100,7 @@ class Query {
 
 		return {
 			count: data.count,
-			documents: data.documents.map(dbResultItem =>
+			documents: data.documents.map((dbResultItem) =>
 				this._Model.makeModelFromDbResult(dbResultItem),
 			),
 		};
@@ -203,7 +203,9 @@ class Query {
 			throw new InvalidParameterError({ parameterName: 'valueList' });
 		}
 
-		const conditionList = valueList.map(value => this._formatCondition(property, operator, value));
+		const conditionList = valueList.map((value) =>
+			this._formatCondition(property, operator, value),
+		);
 
 		return conditionList.length === 1
 			? conditionList[0]
@@ -268,7 +270,7 @@ class Query {
 					throw new TypeError('The value of the $or property must be an array');
 				}
 
-				const orConditions = queryValue.map(queryObj => this._formatSelectionCriteria(queryObj));
+				const orConditions = queryValue.map((queryObj) => this._formatSelectionCriteria(queryObj));
 				if (orConditions.length === 1) {
 					return orConditions[0];
 				}
@@ -341,7 +343,7 @@ class Query {
 		}
 
 		return criteria
-			.map(sortEntry => {
+			.map((sortEntry) => {
 				// if the caller did not pass in a property/order pair as an array default to an ascending sort
 				const [sortProperty, sortOrder] = Array.isArray(sortEntry) ? sortEntry : [sortEntry, 1];
 				const dictionaryId = this._getDictionaryId(sortProperty);
@@ -367,7 +369,7 @@ class Query {
 	 * @returns {string} Dictionary id located at the specified keypath
 	 * @throws {InvalidParameterError} Nonexistent schema property or property does not have a dictionary specified
 	 */
-	_getDictionaryId = property => {
+	_getDictionaryId = (property) => {
 		const dictionaryId = this._Model.schema.dictPaths[property];
 		if (dictionaryId == null) {
 			throw new InvalidParameterError({
@@ -387,7 +389,7 @@ class Query {
 	 * @param {string} property - String keypath of property
 	 * @returns {Function|undefined} Function to execute to convert query constant to internal u2 format
 	 */
-	_getQueryTransformer = property =>
+	_getQueryTransformer = (property) =>
 		this._Model.schema.paths[property] && this._Model.schema.paths[property].transformToQuery;
 
 	/**

@@ -31,7 +31,7 @@ class BaseType {
 	 * @param {*} value - Value to cast
 	 * @returns {*} Formatted data value
 	 */
-	cast = value => value;
+	cast = (value) => value;
 
 	/**
 	 * Get value from mv data

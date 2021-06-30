@@ -95,7 +95,7 @@ class ISOCalendarDateTimeType extends BaseDateType {
 	 * @param {*[]} value - Value to validate for data type casting
 	 * @returns {Promise.<Boolean>} True if valid / false if invalid
 	 */
-	_validateType = async value => {
+	_validateType = async (value) => {
 		if (value == null) {
 			return true;
 		}

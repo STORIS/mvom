@@ -454,7 +454,12 @@ describe('Query', () => {
 			});
 
 			test('should return multiple space-delimited sort criteria', () => {
-				expect(query._formatSortCriteria([['foo', 1], ['bar', -1]])).toBe('by foo by.dsnd bar');
+				expect(
+					query._formatSortCriteria([
+						['foo', 1],
+						['bar', -1],
+					]),
+				).toBe('by foo by.dsnd bar');
 			});
 		});
 

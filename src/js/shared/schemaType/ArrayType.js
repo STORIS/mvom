@@ -18,11 +18,11 @@ class ArrayType extends BasePrimitiveArrayType {
 	 * @returns {*[]} Array of formatted data values
 	 * @throws {TransformDataError} (indirect) Database value could not be transformed to external format
 	 */
-	get = record => {
+	get = (record) => {
 		const value = this._valueSchemaType.getFromMvData(record);
 		return typeof value === 'undefined'
 			? []
-			: castArray(value).map(itemValue => this._valueSchemaType.transformFromDb(itemValue));
+			: castArray(value).map((itemValue) => this._valueSchemaType.transformFromDb(itemValue));
 	};
 
 	/**
@@ -38,7 +38,7 @@ class ArrayType extends BasePrimitiveArrayType {
 	set = (originalRecord, setValue) =>
 		this._valueSchemaType.setIntoMvData(
 			originalRecord,
-			castArray(setValue).map(value => this._valueSchemaType.transformToDb(value)),
+			castArray(setValue).map((value) => this._valueSchemaType.transformToDb(value)),
 		);
 
 	/**
@@ -68,7 +68,9 @@ class ArrayType extends BasePrimitiveArrayType {
 							async ({ validator, message }) => !(await validator(castValue, document)) && message,
 						)
 						.concat(
-							castValue.map(async arrayItem => this._valueSchemaType.validate(arrayItem, document)),
+							castValue.map(async (arrayItem) =>
+								this._valueSchemaType.validate(arrayItem, document),
+							),
 						),
 				),
 			),

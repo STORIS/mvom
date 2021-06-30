@@ -33,7 +33,7 @@ class BaseDateType extends SimpleType {
 	 * @param {string|null} value - String ISO date or time format
 	 * @returns {string} U2 Internally formatted date or time
 	 */
-	transformToQuery = value => (value === '' || value == null ? '' : this.transformToDb(value));
+	transformToQuery = (value) => (value === '' || value == null ? '' : this.transformToDb(value));
 }
 
 export default BaseDateType;

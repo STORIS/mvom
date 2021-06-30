@@ -409,7 +409,10 @@ describe('Document', () => {
 					});
 
 					test('should properly format well-formatted arrays of Schemas', () => {
-						const record = [['foo', 'bar'], ['baz', 'qux']];
+						const record = [
+							['foo', 'bar'],
+							['baz', 'qux'],
+						];
 						const document = new Document(schema);
 						document._transformRecordToDocument(record);
 						expect(document).toHaveProperty('propertyA');
@@ -438,7 +441,10 @@ describe('Document', () => {
 					});
 
 					test('should properly format arrays of Schemas with sparse associations', () => {
-						const record = [['foo', null, 'bar'], ['baz', null, 'qux']];
+						const record = [
+							['foo', null, 'bar'],
+							['baz', null, 'qux'],
+						];
 						const document = new Document(schema);
 						document._transformRecordToDocument(record);
 						expect(document).toHaveProperty('propertyA');
@@ -463,7 +469,13 @@ describe('Document', () => {
 					});
 
 					test('should properly format nested sub-schemas', () => {
-						const record = [['foo', 'bar'], [['baz', 'qux'], ['quux', 'corge']]];
+						const record = [
+							['foo', 'bar'],
+							[
+								['baz', 'qux'],
+								['quux', 'corge'],
+							],
+						];
 						const document = new Document(schema);
 						document._transformRecordToDocument(record);
 						expect(document).toHaveProperty('propertyA');
@@ -489,10 +501,20 @@ describe('Document', () => {
 					});
 
 					test('should properly format well-formatted nested arrays', () => {
-						const record = [[['foo', 'bar'], ['baz', 'qux']]];
+						const record = [
+							[
+								['foo', 'bar'],
+								['baz', 'qux'],
+							],
+						];
 						const document = new Document(schema);
 						document._transformRecordToDocument(record);
-						expect(document).toMatchObject({ propertyA: [['foo', 'bar'], ['baz', 'qux']] });
+						expect(document).toMatchObject({
+							propertyA: [
+								['foo', 'bar'],
+								['baz', 'qux'],
+							],
+						});
 					});
 
 					test('should properly format nested arrays of length 1', () => {

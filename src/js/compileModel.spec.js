@@ -233,7 +233,7 @@ describe('compileModel', () => {
 
 			test('should call the warn logger once for each transformation error added by the Document constructor', () => {
 				const Test = compileModel(connection, schema, 'foo');
-				// eslint-disable-next-line @typescript-eslint/no-unused-vars
+				// eslint-disable-next-line no-unused-vars
 				const test = new Test();
 				expect(connection.logger.warn.calledTwice).toBe(true);
 			});

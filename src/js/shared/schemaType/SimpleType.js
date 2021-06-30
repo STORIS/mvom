@@ -110,7 +110,7 @@ class SimpleType extends BaseType {
 	 * @returns {*} Formatted data value
 	 * @throws {TransformDataError} (indirect) Database value could not be transformed to external format
 	 */
-	get = record => {
+	get = (record) => {
 		const value = this.getFromMvData(record);
 		return this.transformFromDb(value);
 	};
@@ -123,7 +123,7 @@ class SimpleType extends BaseType {
 	 * @param {*[]} record - Data to get value from
 	 * @returns {*} Value of data at specified location
 	 */
-	getFromMvData = record => {
+	getFromMvData = (record) => {
 		const value = getFromMvArray(record, this.path);
 		return this._encrypted ? this._decrypt(value) : value;
 	};
@@ -201,7 +201,7 @@ class SimpleType extends BaseType {
 	 * @param {*} value - Value to convert
 	 * @returns {*} No transformation - returns original input value
 	 */
-	transformToQuery = value => value;
+	transformToQuery = (value) => value;
 
 	/**
 	 * Validate the simple type
@@ -237,13 +237,13 @@ class SimpleType extends BaseType {
 	 * @returns {number[]} 0-indexed Array path
 	 * @throws {InvalidParameterError} Path definition must be a string of integers split by periods
 	 */
-	_normalizeMvPath = path => {
+	_normalizeMvPath = (path) => {
 		if (path == null) {
 			this.path = null;
 			return;
 		}
 
-		this.path = toPath(path).map(val => {
+		this.path = toPath(path).map((val) => {
 			const numVal = +val;
 			if (!Number.isInteger(numVal) || numVal < 1) {
 				throw new InvalidParameterError({
@@ -265,7 +265,7 @@ class SimpleType extends BaseType {
 	 * @param {*} value - Value to validate
 	 * @returns {Promise.<Boolean>} True if valid / false if invalid
 	 */
-	_validateRequired = async value => value != null;
+	_validateRequired = async (value) => value != null;
 }
 
 export default SimpleType;

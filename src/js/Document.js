@@ -111,7 +111,7 @@ class Document {
 	 * @param {*[]} record - Array data to construct document instance properties from
 	 * @modifies {this}
 	 */
-	_transformRecordToDocument = record => {
+	_transformRecordToDocument = (record) => {
 		if (!Array.isArray(record)) {
 			throw new InvalidParameterError({ parameterName: 'record' });
 		}

@@ -29,7 +29,17 @@ test('should return undefined if nested path position is null', () => {
 });
 
 test('should get value from two-level deep path', () => {
-	expect(getFromMvArray([[['foo', 'bar'], ['baz', 'qux']]], [0, 1, 1])).toBe('qux');
+	expect(
+		getFromMvArray(
+			[
+				[
+					['foo', 'bar'],
+					['baz', 'qux'],
+				],
+			],
+			[0, 1, 1],
+		),
+	).toBe('qux');
 });
 
 test('should get value from two-level deep path not formatted as deep array', () => {

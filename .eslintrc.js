@@ -1,39 +1,71 @@
 module.exports = {
-	extends: [
-		'airbnb-base',
-		'plugin:@typescript-eslint/recommended',
-		'plugin:prettier/recommended',
-		'prettier/@typescript-eslint',
-	],
+	extends: ['airbnb-base'],
 	env: { es6: true, node: true, jest: true },
 	globals: {
 		__rewire_reset_all__: false,
 	},
-	parser: '@typescript-eslint/parser',
 	rules: {
-		// arrow-body-style must be manually enabled because prettier/recommended is disabling it
-		// see https://github.com/prettier/eslint-config-prettier/blob/master/CHANGELOG.md v4.0.0
-		'arrow-body-style': ['error', 'as-needed', { requireReturnForObjectLiteral: false }],
-		// prefer-arrow-callback must be manually enabled because prettier/recommended is disabling it
-		// see https://github.com/prettier/eslint-config-prettier/blob/master/CHANGELOG.md v4.0.0
-		'prefer-arrow-callback': ['error', { allowNamedFunctions: false, allowUnboundThis: true }],
-		// allow dangling _id and __v
-		'no-underscore-dangle': ['error', { allow: ['_id', '__v'] }],
-		// make ts camelcase rule line up with airbnb variant
-		'@typescript-eslint/camelcase': ['error', { properties: 'never', ignoreDestructuring: false }],
-		// make ts no-unused-vars rule line up with airbnb variant
-		'@typescript-eslint/no-unused-vars': [
-			'error',
-			{ vars: 'all', args: 'after-used', ignoreRestSiblings: true },
-		],
 		// allow class methods which do not use this
 		'class-methods-use-this': ['off'],
+		// disable import extensions for ts and js files
+		'import/extensions': [
+			'error',
+			'ignorePackages',
+			{
+				ts: 'never',
+				js: 'never',
+			},
+		],
 	},
 	settings: { 'import/resolver': { 'babel-module': {} } },
 	overrides: [
 		{
 			files: ['**/*.ts'],
+			parser: '@typescript-eslint/parser',
+			parserOptions: { project: './tsconfig.json' },
+			extends: [
+				'plugin:@typescript-eslint/recommended',
+				'plugin:import/typescript',
+				'plugin:prettier/recommended',
+			],
+			plugins: ['@typescript-eslint'],
 			rules: {
+				// turn off eslint camelcase rule (handled by naming-convention)
+				camelcase: 'off',
+				// make naming convention rule consistent with airbnb camelcase
+				'@typescript-eslint/naming-convention': [
+					'error',
+					// camelCase for everything not otherwise indicated
+					{ selector: 'default', format: ['camelCase'] },
+					// allow known default exclusions
+					{ selector: 'default', filter: { regex: '^(_id|__v|_raw)$', match: true }, format: null },
+					// allow variables to be camelCase or UPPER_CASE
+					{ selector: 'variable', format: ['camelCase', 'UPPER_CASE'] },
+					// allow known variable exclusions
+					{
+						selector: 'variable',
+						filter: { regex: '^(_id|__v|_raw)$', match: true },
+						format: null,
+					},
+					// do not enforce format on property names
+					{ selector: 'property', format: null },
+					// PascalCase for classes and TypeScript keywords
+					{
+						selector: ['typeLike'],
+						format: ['PascalCase'],
+					},
+					// allow trailing ASC and DESC on enumerations
+					{
+						selector: 'enumMember',
+						filter: { regex: '^.*?_(ASC|DESC)$', match: true },
+						format: null,
+					},
+				],
+				// make ts no-unused-vars rule line up with airbnb variant
+				'@typescript-eslint/no-unused-vars': [
+					'error',
+					{ vars: 'all', args: 'after-used', ignoreRestSiblings: true },
+				],
 				// enforce consistent order of class members
 				'@typescript-eslint/member-ordering': 'error',
 				// ensure consistent array typings
@@ -46,16 +78,14 @@ module.exports = {
 		},
 		{
 			files: ['**/*.js'],
-			parser: 'babel-eslint',
+			parser: '@babel/eslint-parser',
+			extends: ['plugin:prettier/recommended'],
 			rules: {
-				// allow dangling _id and __v, use of rewire, and implicitly private class members
+				// allow _id, __v, and use of rewire
 				'no-underscore-dangle': [
 					'error',
 					{ allow: ['_id', '__v', '__Rewire__', '__ResetDependency__'], allowAfterThis: true },
 				],
-				// ignore typescript rules
-				'@typescript-eslint/explicit-function-return-type': 'off',
-				'@typescript-eslint/member-ordering': 'off',
 			},
 		},
 		{

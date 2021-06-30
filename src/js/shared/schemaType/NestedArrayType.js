@@ -16,12 +16,12 @@ class NestedArrayType extends BasePrimitiveArrayType {
 	 * @returns {Array.<Array.<*>>} Nested array of formatted data values
 	 * @throws {TransformDataError} (indirect) Database value could not be transformed to external format
 	 */
-	get = record => {
+	get = (record) => {
 		const value = this._valueSchemaType.getFromMvData(record);
 		return typeof value === 'undefined'
 			? []
-			: castArray(value).map(itemValue =>
-					castArray(itemValue).map(nestedValue =>
+			: castArray(value).map((itemValue) =>
+					castArray(itemValue).map((nestedValue) =>
 						this._valueSchemaType.transformFromDb(nestedValue),
 					),
 			  );
@@ -40,8 +40,8 @@ class NestedArrayType extends BasePrimitiveArrayType {
 	set = (originalRecord, setValue) =>
 		this._valueSchemaType.setIntoMvData(
 			originalRecord,
-			castArray(setValue).map(value =>
-				castArray(value).map(nestedValue => this._valueSchemaType.transformToDb(nestedValue)),
+			castArray(setValue).map((value) =>
+				castArray(value).map((nestedValue) => this._valueSchemaType.transformToDb(nestedValue)),
 			),
 		);
 
@@ -73,7 +73,7 @@ class NestedArrayType extends BasePrimitiveArrayType {
 							async ({ validator, message }) => !(await validator(castValue, document)) && message,
 						)
 						.concat(
-							flatten(castValue).map(async arrayItem =>
+							flatten(castValue).map(async (arrayItem) =>
 								this._valueSchemaType.validate(arrayItem, document),
 							),
 						),

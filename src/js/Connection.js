@@ -58,7 +58,7 @@ class Connection {
 	 * @param {string} feature - Name of feature
 	 * @returns {string} Version in semver (x.y.z) format
 	 */
-	static getFeatureVersion = feature => serverDependencies[feature].match(/\d\.\d\.\d.*$/)[0];
+	static getFeatureVersion = (feature) => serverDependencies[feature].match(/\d\.\d\.\d.*$/)[0];
 
 	/**
 	 * Get the exact name of a program on the database server
@@ -86,7 +86,7 @@ class Connection {
 	 * @param {string} feature - Feature name
 	 * @returns {Promise.<String>} UniBasic source code
 	 */
-	static getUnibasicSource = async feature => {
+	static getUnibasicSource = async (feature) => {
 		const filePath = path.join(Connection.unibasicPath, `${feature}.mvb`);
 		return fs.readFile(filePath, 'utf8');
 	};
@@ -101,7 +101,7 @@ class Connection {
 	 * @throws {RecordVersionError} A record changed between being read and written and could not be updated
 	 * @throws {DbServerError} An error was encountered on the database server
 	 */
-	static handleDbServerError = response => {
+	static handleDbServerError = (response) => {
 		if (!response || !response.data || !response.data.output) {
 			// handle invalid response
 			throw new DbServerError({ message: 'Response from db server was malformed' });
@@ -280,7 +280,7 @@ class Connection {
 
 		const bootstrapFeatures = ['deploy', 'setup', 'teardown'];
 		const bootstrapped = await Promise.all(
-			bootstrapFeatures.map(async feature => {
+			bootstrapFeatures.map(async (feature) => {
 				if (!Object.prototype.hasOwnProperty.call(this._serverFeatureSet.validFeatures, feature)) {
 					this.logger.debug(`deploying the "${feature}" feature to ${sourceDir}`);
 					const data = {
@@ -305,7 +305,7 @@ class Connection {
 
 		// deploy any other missing features
 		await Promise.all(
-			this._serverFeatureSet.invalidFeatures.map(async feature => {
+			this._serverFeatureSet.invalidFeatures.map(async (feature) => {
 				this.logger.debug(`deploying ${feature} to ${sourceDir}`);
 				const options = {
 					sourceDir,
@@ -368,9 +368,7 @@ class Connection {
 	 */
 	getDbDate = async () => {
 		await this._getDbServerInfo();
-		return moment()
-			.add(this._timeDrift)
-			.format(ISOCalendarDateFormat);
+		return moment().add(this._timeDrift).format(ISOCalendarDateFormat);
 	};
 
 	/**
@@ -383,9 +381,7 @@ class Connection {
 	 */
 	getDbDateTime = async () => {
 		await this._getDbServerInfo();
-		return moment()
-			.add(this._timeDrift)
-			.format(ISOCalendarDateTimeFormat);
+		return moment().add(this._timeDrift).format(ISOCalendarDateTimeFormat);
 	};
 
 	/**
@@ -398,9 +394,7 @@ class Connection {
 	 */
 	getDbTime = async () => {
 		await this._getDbServerInfo();
-		return moment()
-			.add(this._timeDrift)
-			.format(ISOTimeFormat);
+		return moment().add(this._timeDrift).format(ISOTimeFormat);
 	};
 
 	/**
@@ -436,7 +430,7 @@ class Connection {
 	 * @throws {ConnectionManagerError} An error occurred in connection manager communications
 	 * @throws {DbServerError} An error occurred on the database server
 	 */
-	_executeDb = async data => {
+	_executeDb = async (data) => {
 		if (data == null || data.action == null) {
 			// invalid database request
 			this.logger.verbose(`invalid database request format`);
@@ -477,10 +471,7 @@ class Connection {
 
 			const { date, time } = data;
 
-			this._timeDrift = moment(mvEpoch)
-				.add(date, 'days')
-				.add(time, 'ms')
-				.diff(moment());
+			this._timeDrift = moment(mvEpoch).add(date, 'days').add(time, 'ms').diff(moment());
 
 			this._cacheExpiry = Date.now() + this._cacheMaxAge * 1000;
 		}
