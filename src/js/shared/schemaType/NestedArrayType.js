@@ -1,4 +1,4 @@
-import { castArray, compact, flatten } from 'lodash';
+import { castArray, compact } from 'lodash';
 import BasePrimitiveArrayType from './BasePrimitiveArrayType';
 
 /**
@@ -66,19 +66,19 @@ class NestedArrayType extends BasePrimitiveArrayType {
 		// - flatten the results of all validators to ensure an array only 1-level deep
 		// - compact the flattened array to remove any falsy values
 		return compact(
-			flatten(
+			(
 				await Promise.all(
 					this._validators
 						.map(
 							async ({ validator, message }) => !(await validator(castValue, document)) && message,
 						)
 						.concat(
-							flatten(castValue).map(async (arrayItem) =>
-								this._valueSchemaType.validate(arrayItem, document),
-							),
+							castValue
+								.flat()
+								.map(async (arrayItem) => this._valueSchemaType.validate(arrayItem, document)),
 						),
-				),
-			),
+				)
+			).flat(),
 		);
 	};
 }

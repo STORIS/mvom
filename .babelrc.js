@@ -3,14 +3,13 @@ module.exports = {
 	env: {
 		build: {
 			ignore: ['**/*.test.ts', '**/__mocks__/**', '**/*.spec.js'],
-			presets: [['@babel/env', { targets: { node: '8.16.0' } }], '@babel/typescript'],
+			presets: [['@babel/env', { targets: { node: '12.22.0' } }], '@babel/typescript'],
 		},
 		test: { plugins: ['rewire-ts'] },
 		testDebug: { plugins: ['rewire-ts'], sourceMaps: true, retainLines: true },
 	},
 	presets: [['@babel/env', { targets: { node: 'current' } }], '@babel/typescript'],
 	plugins: [
-		'@babel/proposal-class-properties',
 		[
 			'module-resolver',
 			{
