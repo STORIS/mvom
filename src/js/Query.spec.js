@@ -402,6 +402,64 @@ describe('Query', () => {
 				);
 			});
 
+			test('should return a condition string joined by and', () => {
+				expect(query._formatSelectionCriteria({ $and: [{ def: 'foo' }, { henk: 'foo' }] })).toBe(
+					'(formatConditionResult and formatConditionResult)',
+				);
+			});
+
+			test('should return a single condition when $and is used with one condition', () => {
+				expect(query._formatSelectionCriteria({ $and: [{ def: 'foo' }] })).toBe(
+					'formatConditionResult',
+				);
+			});
+
+			test('should return multiple condition strings joined by "and"', () => {
+				expect(
+					query._formatSelectionCriteria({
+						$and: [{ def: 'foo', henk: 'foo' }, { mos: 'foo' }],
+					}),
+				).toBe('((formatConditionResult and formatConditionResult) and formatConditionResult)');
+			});
+
+			test('should return an outer "and" condition string and an inner "and" condition string', () => {
+				expect(
+					query._formatSelectionCriteria({
+						def: 'foo',
+						henk: 'foo',
+						$and: [{ mos: 'foo', thud: 'foo' }, { plugh: 'foo' }],
+					}),
+				).toBe(
+					'(formatConditionResult and formatConditionResult and ((formatConditionResult and formatConditionResult) and formatConditionResult))',
+				);
+			});
+
+			test('should combine inner "or" conditions and add them to the outer "and" condition', () => {
+				expect(
+					query._formatSelectionCriteria({
+						def: 'foo',
+						henk: 'foo',
+						$and: [{ $or: [{ def: 'foo' }, { mos: 'foo' }] }],
+					}),
+				).toBe(
+					'(formatConditionResult and formatConditionResult and (formatConditionResult or formatConditionResult))',
+				);
+			});
+
+			test('should combine multiple inner "or" conditions with "and"', () => {
+				expect(
+					query._formatSelectionCriteria({
+						$and: [
+							{ $or: [{ def: 'foo' }, { mos: 'bar' }] },
+							{ $or: [{ thud: 'foo' }, { plugh: 'bar' }] },
+							{ $or: [{ henk: 'foo' }, { garply: 'bar' }] },
+						],
+					}),
+				).toBe(
+					'((formatConditionResult or formatConditionResult) and (formatConditionResult or formatConditionResult) and (formatConditionResult or formatConditionResult))',
+				);
+			});
+
 			test('should return an "and" condition string with multiple operators on one property', () => {
 				expect(query._formatSelectionCriteria({ def: { $lt: 'foo', $gt: 'foo' } })).toBe(
 					'(formatConditionResult and formatConditionResult)',
@@ -425,6 +483,14 @@ describe('Query', () => {
 
 			test('should throw if $or property value is an empty array', () => {
 				expect(query._formatSelectionCriteria.bind(query, { $or: [] })).toThrow();
+			});
+
+			test('should throw if $and property value is a non-array', () => {
+				expect(query._formatSelectionCriteria.bind(query, { $and: 'foo' })).toThrow();
+			});
+
+			test('should throw if $and property value is an empty array', () => {
+				expect(query._formatSelectionCriteria.bind(query, { $and: [] })).toThrow();
 			});
 		});
 

@@ -265,17 +265,18 @@ class Query {
 		}
 
 		const andConditions = Object.entries(criteria).map(([queryProperty, queryValue]) => {
-			if (queryProperty === '$or') {
+			if (queryProperty === '$or' || queryProperty === '$and') {
 				if (!Array.isArray(queryValue) || queryValue.length === 0) {
-					throw new TypeError('The value of the $or property must be an array');
+					throw new TypeError(`The value of the ${queryProperty} property must be an array`);
 				}
 
-				const orConditions = queryValue.map((queryObj) => this._formatSelectionCriteria(queryObj));
-				if (orConditions.length === 1) {
-					return orConditions[0];
+				const conditions = queryValue.map((queryObj) => this._formatSelectionCriteria(queryObj));
+				if (conditions.length === 1) {
+					return conditions[0];
 				}
 
-				return `(${orConditions.join(' or ')})`;
+				const joinWord = queryProperty === '$or' ? ' or ' : ' and ';
+				return `(${conditions.join(joinWord)})`;
 			}
 
 			if (Array.isArray(queryValue)) {
