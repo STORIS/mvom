@@ -4,8 +4,8 @@ import { InvalidParameterError } from '#shared/errors';
 /**
  * A query object
  * @param {Model} Model - Model constructor to use with query
- * @param {Object} [selectionCriteria = {}] - Selection criteria object
- * @param {Object} [options = {}]
+ * @param {Object} [selectionCriteria] - Selection criteria object
+ * @param {Object} [options]
  * @param {number} [options.skip = 0] - Skip this number of items in the result set
  * @param {number} [options.limit = null] - Limit the result set to this number of items
  * @param {SortCriteria} [options.sort = []] - List of field/direction nested arrays defining sort criteria
@@ -15,7 +15,7 @@ import { InvalidParameterError } from '#shared/errors';
  * @throws {Error} (indirect) Passed constant parameter contains both single and double quotes
  */
 class Query {
-	constructor(Model, selectionCriteria = {}, options = {}) {
+	constructor(Model, selectionCriteria, options) {
 		/**
 		 * Model constructor to use with query
 		 * @member {Model} _Model
@@ -87,6 +87,7 @@ class Query {
 			queryCommand,
 		};
 
+		/* istanbul ignore else: Unreachable since this._setOptions will set this value in the constructor */
 		if (this._skip != null) {
 			options.skip = this._skip;
 		}
@@ -199,7 +200,7 @@ class Query {
 	 * @throws {InvalidParameterError} An invalid parameter was passed to the function
 	 */
 	_formatConditionList = (property, operator, valueList, joinString) => {
-		if (!Array.isArray(valueList)) {
+		if (!Array.isArray(valueList) || valueList.length === 0) {
 			throw new InvalidParameterError({ parameterName: 'valueList' });
 		}
 
@@ -251,14 +252,14 @@ class Query {
 	 * @memberof Query
 	 * @instance
 	 * @private
-	 * @param {Object} [criteria = {}] - Selection criteria object
+	 * @param {Object} criteria - Selection criteria object
 	 * @returns {string|null} String to use as selection criteria in query
 	 * @throws {TypeError} The value of the $or property must be an array
 	 * @throws {TypeError} Invalid conditional operator specified
 	 * @throws {InvalidParameterError} (indirect) An invalid parameter was passed to the function
 	 * @throws {Error} (indirect) Passed constant parameter contains both single and double quotes
 	 */
-	_formatSelectionCriteria = (criteria = {}) => {
+	_formatSelectionCriteria = (criteria) => {
 		const criteriaProperties = Object.keys(criteria);
 		if (criteriaProperties.length === 0) {
 			return null;
@@ -334,11 +335,11 @@ class Query {
 	 * @memberof Query
 	 * @instance
 	 * @private
-	 * @param {SortCriteria} [criteria = []] - List of field/direction nested arrays defining sort criteria
+	 * @param {SortCriteria} criteria - List of field/direction nested arrays defining sort criteria
 	 * @returns {string|null} String to use as sort criteria in query
 	 * @throws {InvalidParameterError} (indirect) Nonexistent schema property or property does not have a dictionary specified
 	 */
-	_formatSortCriteria = (criteria = []) => {
+	_formatSortCriteria = (criteria) => {
 		if (criteria.length === 0) {
 			return null;
 		}
