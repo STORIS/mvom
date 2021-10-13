@@ -46,6 +46,22 @@ class NestedArrayType extends BasePrimitiveArrayType {
 		);
 
 	/**
+	 * Create an array of foreign key definitions that will be validated before save
+	 * @function transformForeignKeyDefinitionsToDb
+	 * @memberof BaseType
+	 * @abstract
+	 * @instance
+	 * @param {Array.<Array.<*>>} value - Nested foreign key values which will be checked against the foreign file
+	 * @returns {*[]} Array of foreign key definitions
+	 */
+	transformForeignKeyDefinitionsToDb = (value) => {
+		return castArray(value)
+			.flat(Infinity)
+			.map((nestedValue) => this._valueSchemaType.transformForeignKeyDefinitionsToDb(nestedValue))
+			.flat();
+	};
+
+	/**
 	 * Validate the nested array
 	 * @function validate
 	 * @memberof NestedArrayType

@@ -263,6 +263,7 @@ describe('compileModel', () => {
 					executeDbFeature.resolves({ result: { record: [], _id: 'bar', __v: 'baz' } });
 					const test = new Test({ _id: 'foo' });
 					test.transformDocumentToRecord = stub();
+					test.buildForeignKeyDefinitions = stub();
 					expect(await test.save()).toMatchObject({ _id: 'bar', __id: 'bar', __v: 'baz' });
 				});
 
@@ -274,6 +275,7 @@ describe('compileModel', () => {
 					const _id = '_id-value';
 					const test = new Test({ _id });
 					test.transformDocumentToRecord = stub();
+					test.buildForeignKeyDefinitions = stub();
 					try {
 						await test.save();
 						expect(false).toBe(true); // if save() doesn't reject then that is a failed test

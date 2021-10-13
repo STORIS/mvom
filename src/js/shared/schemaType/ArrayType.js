@@ -42,6 +42,20 @@ class ArrayType extends BasePrimitiveArrayType {
 		);
 
 	/**
+	 * Create an array of foreign key definitions that will be validated before save
+	 * @function transformForeignKeyDefinitionsToDb
+	 * @memberof BaseType
+	 * @abstract
+	 * @instance
+	 * @param {*[]} value - Foreign key values which will be checked against the foreign file
+	 * @returns {*[]} Array of foreign key definitions
+	 */
+	transformForeignKeyDefinitionsToDb = (value) =>
+		castArray(value)
+			.map((itemValue) => this._valueSchemaType.transformForeignKeyDefinitionsToDb(itemValue))
+			.flat();
+
+	/**
 	 * Validate the array
 	 * @function validate
 	 * @memberof ArrayType

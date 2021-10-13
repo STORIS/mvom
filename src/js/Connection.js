@@ -13,6 +13,7 @@ import {
 
 import {
 	ConnectionManagerError,
+	ForeignKeyValidationError,
 	DbServerError,
 	InvalidParameterError,
 	InvalidServerFeaturesError,
@@ -111,6 +112,10 @@ class Connection {
 
 		if (errorCode) {
 			switch (errorCode) {
+				case dbErrors.foreignKeyValidation.code:
+					throw new ForeignKeyValidationError({
+						foreignKeyValidationErrors: response.data.output.foreignKeyValidationErrors,
+					});
 				case dbErrors.recordLocked.code:
 					throw new RecordLockedError();
 				case dbErrors.recordVersion.code:

@@ -15,6 +15,8 @@ describe('NestedArrayType', () => {
 
 		transformToDb = stub();
 
+		transformForeignKeyDefinitionsToDb = stub();
+
 		validate = stub();
 
 		definition = {};
@@ -129,6 +131,35 @@ describe('NestedArrayType', () => {
 			test('should return value returned from setIntoMvData', () => {
 				simpleType.setIntoMvData.returns('foo');
 				expect(nestedArrayType.set([], [[]])).toBe('foo');
+			});
+		});
+
+		describe('transformForeignKeyDefinitionsToDb', () => {
+			let simpleType;
+			let nestedArrayType;
+			beforeAll(() => {
+				simpleType = new SimpleTypeExtended({});
+				simpleType.transformForeignKeyDefinitionsToDb.withArgs('foo').returns(['foo']);
+				simpleType.transformForeignKeyDefinitionsToDb.withArgs('bar').returns(['bar']);
+				simpleType.transformForeignKeyDefinitionsToDb.withArgs('baz').returns(['baz']);
+				simpleType.transformForeignKeyDefinitionsToDb.withArgs('qux').returns(['qux']);
+				simpleType.transformForeignKeyDefinitionsToDb.withArgs(null).returns([]);
+				nestedArrayType = new NestedArrayType(simpleType);
+			});
+
+			beforeEach(() => {
+				simpleType.transformForeignKeyDefinitionsToDb.resetHistory();
+			});
+
+			test('should return a single level array of values returned from transformForeignKeyDefinitionsToDb', () => {
+				const expected = ['foo', 'bar', 'baz', 'qux'];
+				expect(
+					nestedArrayType.transformForeignKeyDefinitionsToDb([
+						['foo', 'bar', 'baz'],
+						[],
+						['qux', null],
+					]),
+				).toEqual(expected);
 			});
 		});
 

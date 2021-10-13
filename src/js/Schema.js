@@ -22,6 +22,7 @@ const {
  * @param {string} [options.typeProperty = "type"] The name of the property to use for data typing
  * @param {Object} [options.dictionaries = {}] Additional dictionaries for use in query (key/value paired)
  * @param {RegExp} [options.idMatch] Regular expression to validate the record id against
+ * @param {Object} [options.idForeignKey] Foreign key definition for the record id
  * @param {Function} [options.encrypt] Encryption function to use to encrypt sensitive fields
  * @param {Function} [options.decrypt] Decryption function to use to decrypt sensitive fields
  * @example const example = new Schema({ propertyA: [{ property1: { path: '1'} }] })
@@ -45,13 +46,16 @@ class Schema {
 
 	constructor(
 		definition,
-		{ typeProperty = 'type', dictionaries = {}, idMatch, encrypt, decrypt } = {},
+		{ typeProperty = 'type', dictionaries = {}, idForeignKey, idMatch, encrypt, decrypt } = {},
 	) {
 		if (!isPlainObject(definition)) {
 			throw new InvalidParameterError({ parameterName: 'definition' });
 		}
 		if (!isPlainObject(dictionaries)) {
 			throw new InvalidParameterError({ parameterName: 'dictionaries' });
+		}
+		if (idForeignKey != null && !isPlainObject(idForeignKey)) {
+			throw new InvalidParameterError({ parameterName: 'idForeignKey' });
 		}
 		if (idMatch != null && !(idMatch instanceof RegExp)) {
 			throw new InvalidParameterError({ parameterName: 'idMatch' });
@@ -70,12 +74,19 @@ class Schema {
 		 */
 		this.dictPaths = { _id: '@ID', ...dictionaries };
 		/**
-		 * The compiled schema object path stucture
+		 * The compiled schema object path structure
 		 * @member {Object} paths
 		 * @memberof Schema
 		 * @instance
 		 */
 		this.paths = {};
+		/**
+		 * Foreign key definition for the record id
+		 * @member {Object} idForeignKey
+		 * @memberof Schema
+		 * @instance
+		 */
+		this.idForeignKey = idForeignKey;
 		/**
 		 * Regular expression to validate the record id against
 		 * @member {string} idMatch

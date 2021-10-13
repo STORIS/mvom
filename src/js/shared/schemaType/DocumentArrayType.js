@@ -110,6 +110,18 @@ class DocumentArrayType extends ComplexType {
 		);
 
 	/**
+	 * Create an array of foreign key definitions that will be validated before save
+	 * @function transformForeignKeyDefinitionsToDb
+	 * @memberof BaseType
+	 * @abstract
+	 * @instance
+	 * @param {Document[]} documentList - Array of documents to build foreign key validation definitions for
+	 * @returns {*[]} Array of foreign key definitions
+	 */
+	transformForeignKeyDefinitionsToDb = (documentList) =>
+		documentList.map((document) => document.buildForeignKeyDefinitions()).flat();
+
+	/**
 	 * Generate subdocument instances
 	 * @generator
 	 * @function _makeSubDocument

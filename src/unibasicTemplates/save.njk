@@ -38,6 +38,12 @@ if udoGetProperty(options, 'record', recordContents, type) then
   go returnFromSub
 end
 
+* get the foreign key definitions contents from the options
+if udoGetProperty(options, 'foreignKeyDefinitions', fkDefinitions, type) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go returnFromSub
+end
+
 * open the file
 open filename to f.file on error
   call error_handler(ERROR_FILE_OPEN, output)
@@ -79,6 +85,28 @@ end else
   end
 
   record = ''
+end
+
+* validate any foreign keys before updating
+call validate_foreign_keys(fkDefinitions, fkValidationErrors, errorCode)
+if errorCode then
+  call error_handler(errorCode, output)
+  go returnFromSub
+end
+
+if udoSetProperty(output, 'foreignKeyValidationErrors', fkValidationErrors) then
+  call error_handler(ERROR_UDO, output)
+  go closeReleaseAndReturnFromSub
+end
+
+if udoArrayGetSize(fkValidationErrors, fkValidationErrorCount) then
+  call error_handler(ERROR_UDO, output)
+  go closeReleaseAndReturnFromSub
+end
+
+if fkValidationErrorCount > 0 then
+  call error_handler(ERROR_FOREIGN_KEY, output)
+  go closeReleaseAndReturnFromSub
 end
 
 if udoArrayGetSize(recordContents, lastAttribute) then
@@ -195,5 +223,7 @@ returnFromSub:
 return; * returning to caller
 
 {% include "./partials/formatDocument.njk" %}
+
+{% include "./partials/validateForeignKeys.njk" %}
 
 {% include "./partials/errorHandler.njk" %}

@@ -22,6 +22,10 @@ describe('Schema', () => {
 			expect(() => new Schema({}, { idMatch: 'foo' })).toThrow();
 		});
 
+		test('should throw if idForeignKey is not a plain object', () => {
+			expect(() => new Schema({}, { idForeignKey: 'foo' })).toThrow();
+		});
+
 		test('should set the dict path for the record _id to the default @ID dictionary', () => {
 			const schema = new Schema({});
 			expect(schema.dictPaths).toEqual({ _id: '@ID' });

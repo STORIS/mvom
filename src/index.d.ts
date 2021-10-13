@@ -89,20 +89,86 @@ declare namespace mvom {
     typeProperty?: string;
     dictionaries?: GenericObject;
     idMatch?: RegExp;
+    idForeignKey?: SchemaForeignKeyDefinition | SchemaCompoundForeignKeyDefinition;
     encrypt?: EncryptFunc;
     decrypt?: DecryptFunc
   }
 
+  type ISOCalendarDateTime = typeof ISOCalendarDateTimeType;
+  type ISOCalendarDate = typeof ISOCalendarDateType;
+  type ISOTime = typeof ISOTimeType;
+
+  export interface SchemaForeignKeyDefinition {
+    file: string | string[];
+    keysToIgnore?: string[];
+    entityName: string;
+  }
+
+  interface PositionForeignKeyDefinition {
+    [key: number]: SchemaForeignKeyDefinition;
+  }
+
+  export type SchemaCompoundForeignKeyDefinition = PositionForeignKeyDefinition & {
+    splitCharacter: string;
+  };
+
+  interface BaseSchemaProperty {
+    path: string | number;
+    dictionary?: string;
+    required?: boolean;
+    encrypted?: boolean;
+  }
+
+  export interface SchemaStringProperty extends BaseSchemaProperty {
+    type: StringConstructor;
+    enum?: string[];
+    match?: RegExp;
+    foreignKey?: SchemaForeignKeyDefinition | SchemaCompoundForeignKeyDefinition;
+  }
+
+  export interface SchemaNumberProperty extends BaseSchemaProperty {
+    type: NumberConstructor;
+    dbDecimals?: number;
+  }
+
+  export interface SchemaBooleanProperty extends BaseSchemaProperty {
+    type: BooleanConstructor;
+  }
+
+  export interface SchemaISOCalendarDateTimeProperty extends BaseSchemaProperty {
+    type: ISOCalendarDateTime;
+    dbFormat?: 's' | 'ms';
+  }
+
+  export interface SchemaISOCalendarDateProperty extends BaseSchemaProperty {
+    type: ISOCalendarDate;
+  }
+
+  export interface SchemaISOTimeProperty extends BaseSchemaProperty {
+    type: ISOTime;
+    dbFormat?: 's' | 'ms';
+  }
+
+  export type SchemaPropertyTypes = SchemaStringProperty | SchemaNumberProperty | SchemaBooleanProperty | SchemaISOCalendarDateProperty | SchemaISOCalendarDateTimeProperty | SchemaISOTimeProperty;
+
+  export interface SchemaDefinition {
+    [x: string]: SchemaPropertyTypes | SchemaPropertyTypes[] | SchemaPropertyTypes[][] | SchemaDefinition | SchemaDefinition[] | SchemaDefinition[][];
+  }
+
   export class Schema {
-    constructor(definition: GenericObject, opts?: SchemaOpts);
+    constructor(definition: SchemaDefinition, opts?: SchemaOpts);
     static Types: {
-      ISOCalendarDateTime: typeof ISOCalendarDateTimeType;
-      ISOCalendarDate: typeof ISOCalendarDateType;
-      ISOTime: typeof ISOTimeType;
+      ISOCalendarDateTime: ISOCalendarDateTime;
+      ISOCalendarDate: ISOCalendarDate;
+      ISOTime: ISOTime;
     };
   }
 
   export namespace Errors {
+    interface ForeignKeyValidationErrorData {
+      entityName: string;
+      entityId: string;
+    }
     abstract class Base extends Error {
       constructor(opts?: {message?: string, name?: string, [key: string]: any});
       source: 'mvom';
@@ -123,6 +189,11 @@ declare namespace mvom {
     class DbServerError extends Base {
       constructor(opts?: {message?: string, errorCode?: GenericObject, [key: string]: any});
       name: 'DbServerError';
+    }
+    class ForeignKeyValidationError extends Base {
+      constructor(opts?: {message?: string, foreignKeyValidationErrors?: ForeignKeyValidationErrorData[], [key: string]: any});
+      name: 'ForeignKeyValidationError';
+      foreignKeyValidationErrors: ForeignKeyValidationErrorData[];
     }
     class InvalidParameterError extends Base {
       constructor(opts?: {message?: string, parameterName?: string, [key: string]: any});

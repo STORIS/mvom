@@ -63,6 +63,17 @@ class BaseType {
 	};
 
 	/**
+	 * Create an array of foreign key definitions that will be validated before save
+	 * @function transformForeignKeyDefinitionsToDb
+	 * @memberof BaseType
+	 * @abstract
+	 * @instance
+	 * @param {*} value - Foreign key value which will be checked against the foreign file
+	 * @returns {*[]} Array of foreign key definitions
+	 */
+	transformForeignKeyDefinitionsToDb = () => [];
+
+	/**
 	 * Validate value
 	 * @function validate
 	 * @memberof BaseType

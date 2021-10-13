@@ -1,4 +1,5 @@
-import { assignIn, cloneDeep, get as getIn, isPlainObject, set as setIn } from 'lodash';
+import { assignIn, castArray, cloneDeep, get as getIn, isPlainObject, set as setIn } from 'lodash';
+import { ForeignKeyDbTransformer } from '#shared/classes';
 import { InvalidParameterError, TransformDataError } from '#shared/errors';
 
 /**
@@ -58,6 +59,11 @@ class Document {
 			transformationErrors: {
 				value: [],
 			},
+			buildForeignKeyDefinitions: {
+				configurable: false,
+				enumerable: false,
+				writable: false,
+			},
 			transformDocumentToRecord: {
 				configurable: false,
 				enumerable: false,
@@ -101,6 +107,61 @@ class Document {
 					},
 					this._isSubdocument ? [] : cloneDeep(this._record),
 			  );
+
+	/**
+	 * Build a list of foreign key definitions to be used by the database for foreign key validation
+	 * @function buildForeignKeyDefinitions
+	 * @memberof Document
+	 * @instance
+	 * @returns {*[]} Array of database foreign key definitions
+	 */
+	buildForeignKeyDefinitions = () => {
+		if (this._schema === null) {
+			return [];
+		}
+
+		// U2 does not allow commas in filenames so we can use it to separate filename/entityName combinations
+		const separator = ',';
+		const definitionMap = Object.entries(this._schema.paths).reduce(
+			(foreignKeyDefinitions, [keyPath, schemaType]) => {
+				const value = getIn(this, keyPath, null);
+				const definitions = schemaType.transformForeignKeyDefinitionsToDb(value);
+				// Deduplicate foreign key definitions by using a filename / entity name combination
+				// We could deduplicate using just the filename but ignoring the entity name could result in confusing error messages
+				definitions.forEach(({ filename, entityIds, entityName }) => {
+					const key = `${filename}${separator}${entityName}`;
+					// TODO - switch to null-coalescing operator in node 14
+					const accumulatedEntityIds = foreignKeyDefinitions.get(key) || new Set();
+					// For array types we may need to validated multiple foreign keys
+					accumulatedEntityIds.add(...castArray(entityIds));
+					foreignKeyDefinitions.set(key, accumulatedEntityIds);
+				});
+
+				return foreignKeyDefinitions;
+			},
+			new Map(),
+		);
+
+		if (this._schema.idForeignKey != null) {
+			const foreignKeyDbTransformer = new ForeignKeyDbTransformer(this._schema.idForeignKey);
+			const definitions = foreignKeyDbTransformer.transform(this._id);
+			definitions.forEach(({ filename, entityIds, entityName }) => {
+				const key = `${filename}${separator}${entityName}`;
+				const accumulatedEntityIds = definitionMap.get(key) || new Set();
+				accumulatedEntityIds.add(entityIds);
+				definitionMap.set(key, accumulatedEntityIds);
+			});
+		}
+
+		return Array.from(definitionMap).reduce((acc, [key, value]) => {
+			const keyParts = key.split(separator);
+			const filename = keyParts[0];
+			// Just incase the entity name included a comma, rejoin
+			const entityName = keyParts.slice(1).join(separator);
+			acc.push({ filename, entityName, entityIds: Array.from(value) });
+			return acc;
+		}, []);
+	};
 
 	/**
 	 * Apply schema structure using record to document instance

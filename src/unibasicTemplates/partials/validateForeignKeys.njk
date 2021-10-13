@@ -1,0 +1,146 @@
+subroutine validate_foreign_keys(fkDefinitions, fkValidationErrors, errorCode)
+* Validate foreign keys
+* This routine will not set an errorCode for a foreign key validation. Instead it will return an array of fkValidationErrors
+* Callers should check errorCode first. Then check the length of the fkValidationErrors array.
+{% include "./udoConstants.njk" %}
+
+{% include "./errorConstants.njk" %}
+
+errorCode = ''
+
+if udoCreate(UDO_ARRAY, fkValidationErrors) then
+  errorCode = ERROR_UDO
+  go returnFromSub
+end
+
+loop
+  result = udoArrayGetNextItem(fkDefinitions, fkDefinition, type)
+  if result eq UDO_ERROR then
+    * reached the end of the array
+    exit
+  end
+  if result ne UDO_SUCCESS then
+    * any other possible error
+    errorCode = ERROR_UDO
+    go returnFromSub
+  end
+
+  if UDOGetProperty(fkDefinition, 'filename', fkFileNames, type) then
+    errorCode = ERROR_MALFORMED_INPUT
+    go returnFromSub
+  end
+
+  if (type = UDO_ARRAY) then
+    * This property may be a foreign key to one or more files
+    if udoArrayGetSize(fkFileNames, fkFileCount) then
+      errorCode = ERROR_UDO
+      go returnFromSub
+    end
+
+    dim fkFiles(fkFileCount)
+
+    for fkFileCounter = 1 to fkFileCount
+      if udoArrayGetItem(fkFileNames, fkFileCounter, fkFileName, type) then
+        errorCode = ERROR_UDO
+        go closeAndReturnFromSub
+      end
+
+      open fkFileName to fk.file on error
+        errorCode = ERROR_FILE_OPEN
+        go closeAndReturnFromSub
+      end else
+        errorCode = ERROR_FILE_OPEN
+        go closeAndReturnFromSub
+      end
+
+      fkFiles(fkFileCounter) = fk.file
+    next fkFileCounter
+  end else
+    dim fkFiles(1)
+
+    open fkFileNames to fk.file on error
+      errorCode = ERROR_FILE_OPEN
+      go closeAndReturnFromSub
+    end else
+      errorCode = ERROR_FILE_OPEN
+      go closeAndReturnFromSub
+    end
+
+    fkFiles(1) = fk.file
+  end
+
+  if UDOGetProperty(fkDefinition, 'entityIds', fkEntityIds, type) then
+    errorCode = ERROR_MALFORMED_INPUT
+    go closeAndReturnFromSub
+  end
+
+  * Informational field for foreign key data validation error reporting
+  if UDOGetProperty(fkDefinition, 'entityName', fkEntityName, type) then
+    errorCode = ERROR_MALFORMED_INPUT
+    go closeAndReturnFromSub
+  end
+
+  * Begin processing foreign key validations
+  loop
+    result = udoArrayGetNextItem(fkEntityIds, fkEntityId, type)
+    if result eq UDO_ERROR then
+      * reached the end of the array
+      exit
+    end
+    if result ne UDO_SUCCESS then
+      * any other possible error
+      errorCode = ERROR_UDO
+      go closeAndReturnFromSub
+    end
+
+    fkValid = @false
+
+    for fkFileCounter = 1 to inmat(fkFiles)
+      readv exists from fkFiles(fkFileCounter), fkEntityId, 0 then
+        fkValid = @true
+        exit
+      end
+    next fkFileCounter
+
+    if not(fkValid) then
+      if udoCreate(UDO_OBJECT, fkError) then
+        errorCode = ERROR_UDO
+        go closeAndReturnFromSub
+      end
+
+      if udoSetProperty(fkError, 'entityName', fkEntityName) then
+        errorCode = ERROR_UDO
+        go closeAndReturnFromSub
+      end
+
+      if udoSetProperty(fkError, 'entityId', fkEntityId) then
+        errorCode = ERROR_UDO
+        go closeAndReturnFromSub
+      end
+
+      if udoArrayAppendItem(fkValidationErrors, fkError) then
+        errorCode = ERROR_UDO
+        go closeAndReturnFromSub
+      end
+      * For iterable properties exit on the first error encountered
+      exit
+    end
+  repeat
+
+  for fkFileCounter = 1 to inmat(fkFiles)
+    close fkFiles(fkFileCounter) on error null
+  next fkFileCounter
+
+repeat
+
+go returnFromSub
+
+closeAndReturnFromSub:
+for fkFileCounter = 1 to inmat(fkFiles)
+  close fkFiles(fkFileCounter) on error null
+next fkFileCounter
+
+returnFromSub:
+
+return; * returning to caller
+

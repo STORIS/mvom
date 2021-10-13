@@ -630,5 +630,225 @@ describe('Document', () => {
 				});
 			});
 		});
+
+		describe('buildForeignKeyDefinitions', () => {
+			test('should return an empty array of definitions for a null schema', () => {
+				const schema = null;
+				const document = new Document(schema, { data: { _raw: ['foo'] } });
+				expect(document.buildForeignKeyDefinitions()).toEqual([]);
+			});
+
+			test('should return an empty array of definitions for a schema with no foreign key validations', () => {
+				const schema = new Schema({
+					propertyA: { type: String, path: '1' },
+					propertyB: [{ type: String, path: '2' }],
+				});
+				const document = new Document(schema, {
+					data: { propertyA: 'foo', propertyB: ['bar', null, 'baz'] },
+				});
+				document.transformDocumentToRecord();
+				expect(document.buildForeignKeyDefinitions()).toEqual([]);
+			});
+
+			test('should return an array of fk definitions with an filename/entity name pairs de-duplicated', () => {
+				const schema = new Schema({
+					propertyA: {
+						type: String,
+						path: '1',
+						foreignKey: { file: 'FILE1', entityName: 'entityName1' },
+					},
+					propertyB: [
+						{ type: String, path: '2', foreignKey: { file: 'FILE1', entityName: 'entityName2' } },
+					],
+					propertyC: {
+						type: String,
+						path: '3',
+						foreignKey: { file: 'FILE1', entityName: 'entityName1' },
+					},
+					propertyD: { type: String, path: '4' },
+				});
+				const document = new Document(schema, {
+					data: {
+						propertyA: 'propertyA1',
+						propertyB: ['propertyB1', null, 'propertyB2'],
+						propertyC: 'propertyA1',
+						propertyD: 'propertyD',
+					},
+				});
+				document.transformDocumentToRecord();
+				const expected = [
+					{
+						filename: 'FILE1',
+						entityName: 'entityName1',
+						entityIds: ['propertyA1'], // de-duplicated between propertyA and propertyC
+					},
+					{
+						filename: 'FILE1',
+						entityName: 'entityName2',
+						entityIds: ['propertyB1', 'propertyB2'],
+					},
+				];
+				expect(document.buildForeignKeyDefinitions()).toEqual(expected);
+			});
+
+			test('should return an array of fk definitions with an filename/entity name pairs de-duplicated correctly handling commas in the entity name', () => {
+				const schema = new Schema({
+					propertyA: {
+						type: String,
+						path: '1',
+						foreignKey: { file: 'FILE1', entityName: 'entity, Name1' },
+					},
+					propertyB: [
+						{ type: String, path: '2', foreignKey: { file: 'FILE1', entityName: 'entity, Name2' } },
+					],
+					propertyC: {
+						type: String,
+						path: '3',
+						foreignKey: { file: 'FILE1', entityName: 'entity, Name1' },
+					},
+					propertyD: { type: String, path: '4' },
+				});
+				const document = new Document(schema, {
+					data: {
+						propertyA: 'propertyA1',
+						propertyB: ['propertyB1', null, 'propertyB2'],
+						propertyC: 'propertyA1',
+						propertyD: 'propertyD',
+					},
+				});
+				document.transformDocumentToRecord();
+				const expected = [
+					{
+						filename: 'FILE1',
+						entityName: 'entity, Name1',
+						entityIds: ['propertyA1'], // de-duplicated between propertyA and propertyC
+					},
+					{
+						filename: 'FILE1',
+						entityName: 'entity, Name2',
+						entityIds: ['propertyB1', 'propertyB2'],
+					},
+				];
+				expect(document.buildForeignKeyDefinitions()).toEqual(expected);
+			});
+
+			test('should return an array of fk definitions with any entityIds also de-duplicated', () => {
+				const schema = new Schema({
+					propertyA: {
+						type: String,
+						path: '1',
+						foreignKey: { file: 'FILE1', entityName: 'entityName1' },
+					},
+					propertyB: [
+						{ type: String, path: '2', foreignKey: { file: 'FILE2', entityName: 'entityName2' } },
+					],
+					propertyC: { type: String, path: '3' },
+				});
+				const document = new Document(schema, {
+					data: {
+						propertyA: 'propertyA1',
+						propertyB: ['propertyB1', null, 'propertyB1', 'propertyB2'],
+						propertyC: 'propertyC1',
+					},
+				});
+				document.transformDocumentToRecord();
+				const expected = [
+					{
+						filename: 'FILE1',
+						entityName: 'entityName1',
+						entityIds: ['propertyA1'],
+					},
+					{
+						filename: 'FILE2',
+						entityName: 'entityName2',
+						entityIds: ['propertyB1', 'propertyB2'], // de-duplicated 'propertyB1'
+					},
+				];
+				expect(document.buildForeignKeyDefinitions()).toEqual(expected);
+			});
+
+			test('should generate foreign key definitions for the record id if specified', () => {
+				const schema = new Schema(
+					{
+						propertyA: {
+							type: String,
+							path: '1',
+							foreignKey: { file: 'FILE1', entityName: 'entityName1' },
+						},
+						propertyB: [
+							{ type: String, path: '2', foreignKey: { file: 'FILE2', entityName: 'entityName2' } },
+						],
+						propertyC: { type: String, path: '3' },
+					},
+					{ idForeignKey: { file: 'FILE3', entityName: 'entityName3' } },
+				);
+				const document = new Document(schema, {
+					data: {
+						_id: 'id',
+						propertyA: 'propertyA1',
+						propertyB: ['propertyB1', null, 'propertyB2'],
+						propertyC: 'propertyC1',
+					},
+				});
+				document.transformDocumentToRecord();
+				const expected = [
+					{
+						filename: 'FILE1',
+						entityName: 'entityName1',
+						entityIds: ['propertyA1'],
+					},
+					{
+						filename: 'FILE2',
+						entityName: 'entityName2',
+						entityIds: ['propertyB1', 'propertyB2'],
+					},
+					{
+						filename: 'FILE3',
+						entityName: 'entityName3',
+						entityIds: ['id'],
+					},
+				];
+				expect(document.buildForeignKeyDefinitions()).toEqual(expected);
+			});
+
+			test('should de-duplicate the id foreign key definition if already set to be validated', () => {
+				const schema = new Schema(
+					{
+						propertyA: {
+							type: String,
+							path: '1',
+							foreignKey: { file: 'FILE1', entityName: 'entityName1' },
+						},
+						propertyB: [
+							{ type: String, path: '2', foreignKey: { file: 'FILE2', entityName: 'entityName2' } },
+						],
+						propertyC: { type: String, path: '3' },
+					},
+					{ idForeignKey: { file: 'FILE1', entityName: 'entityName1' } },
+				);
+				const document = new Document(schema, {
+					data: {
+						_id: 'propertyA1',
+						propertyA: 'propertyA1',
+						propertyB: ['propertyB1', null, 'propertyB2'],
+						propertyC: 'propertyC1',
+					},
+				});
+				document.transformDocumentToRecord();
+				const expected = [
+					{
+						filename: 'FILE1',
+						entityName: 'entityName1',
+						entityIds: ['propertyA1'], // de-duplicated id
+					},
+					{
+						filename: 'FILE2',
+						entityName: 'entityName2',
+						entityIds: ['propertyB1', 'propertyB2'],
+					},
+				];
+				expect(document.buildForeignKeyDefinitions()).toEqual(expected);
+			});
+		});
 	});
 });

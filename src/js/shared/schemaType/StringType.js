@@ -1,3 +1,4 @@
+import { ForeignKeyDbTransformer } from '#shared/classes';
 import { InvalidParameterError } from '#shared/errors';
 import SimpleType from './SimpleType';
 
@@ -75,6 +76,15 @@ class StringType extends SimpleType {
 		 */
 		this._match = definition.match || null;
 
+		/**
+		 * Transform schema foreign key definitions to the db format
+		 * @member {ForeignKeyDbTransformer} _foreignKeyDbTransformer
+		 * @memberof StringType
+		 * @instance
+		 * @private
+		 */
+		this._foreignKeyDbTransformer = new ForeignKeyDbTransformer(definition.foreignKey);
+
 		// add validators for this type
 		this._validators.unshift(StringType.matchValidation(this._validateMatch));
 		this._validators.unshift(StringType.handleEnumValidation(this._validateEnum));
@@ -113,6 +123,17 @@ class StringType extends SimpleType {
 	transformToDb = (value) => (value == null ? null : String(value));
 
 	/**
+	 * Create an array of foreign key definitions that will be validated before save
+	 * @function transformForeignKeyDefinitionsToDb
+	 * @memberof BaseType
+	 * @abstract
+	 * @instance
+	 * @param {*} value - Foreign key value which will be checked against the foreign file
+	 * @returns {*[]} Array of foreign key definitions
+	 */
+	transformForeignKeyDefinitionsToDb = (value) => this._foreignKeyDbTransformer.transform(value);
+
+	/**
 	 * Enum validator
 	 * @function _validateEnum
 	 * @memberof StringType
@@ -123,7 +144,7 @@ class StringType extends SimpleType {
 	 * @returns {Promise.<Boolean>} True if valid / false if invalid
 	 */
 	_validateEnum = async (value) =>
-		// skip validation on nullish values because a required valdation error, if applicable, is more helpful
+		// skip validation on nullish values because a required validation error, if applicable, is more helpful
 		value == null || this._enum == null || this._enum.includes(value);
 
 	/**
@@ -137,7 +158,7 @@ class StringType extends SimpleType {
 	 * @returns {Promise.<Boolean>} True if valid / false if invalid
 	 */
 	_validateMatch = async (value) =>
-		// skip validation on nullish values because a required valdation error, if applicable, is more helpful
+		// skip validation on nullish values because a required validation error, if applicable, is more helpful
 		value == null || this._match == null || this._match.test(value);
 
 	/**

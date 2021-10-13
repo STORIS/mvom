@@ -285,6 +285,7 @@ const compileModel = (connection, schema, file) => {
 					id: this._id,
 					__v: this.__v,
 					record: this.transformDocumentToRecord(),
+					foreignKeyDefinitions: this.buildForeignKeyDefinitions(),
 					clearAttributes: Model.schema === null, // clears all attributes before writing new record
 				});
 				return Model.makeModelFromDbResult(data.result);

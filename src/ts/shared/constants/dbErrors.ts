@@ -17,6 +17,7 @@ const dbErrors: Record<string, DbError> = {
 	recordLocked: { code: 11, message: 'Database record is locked' },
 	query: { code: 12, message: 'Error in database query' },
 	digestHash: { code: 13, message: 'Error in constructing digest hash' },
+	foreignKeyValidation: { code: 14, message: 'Foreign key validation error' },
 };
 
 export default dbErrors;

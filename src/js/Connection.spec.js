@@ -1,6 +1,7 @@
 /* eslint-disable no-underscore-dangle */
 import { stub, useFakeTimers } from 'sinon';
 import {
+	dbErrors,
 	mvEpoch,
 	ISOCalendarDateFormat,
 	ISOCalendarDateTimeFormat,
@@ -14,17 +15,26 @@ describe('Connection', () => {
 	class ConnectionManagerError extends Error {}
 	class InvalidParameterError extends Error {}
 	class DbServerError extends Error {}
+	class ForeignKeyValidationError extends Error {}
+	class RecordLockedError extends Error {}
+	class RecordVersionError extends Error {}
 
 	beforeAll(() => {
 		RewireAPI.__Rewire__('ConnectionManagerError', ConnectionManagerError);
 		RewireAPI.__Rewire__('DbServerError', DbServerError);
+		RewireAPI.__Rewire__('ForeignKeyValidationError', ForeignKeyValidationError);
 		RewireAPI.__Rewire__('InvalidParameterError', InvalidParameterError);
+		RewireAPI.__Rewire__('RecordLockedError', RecordLockedError);
+		RewireAPI.__Rewire__('RecordVersionError', RecordVersionError);
 	});
 
 	afterAll(() => {
 		RewireAPI.__ResetDependency__('ConnectionManagerError');
 		RewireAPI.__ResetDependency__('DbServerError');
+		RewireAPI.__ResetDependency__('ForeignKeyValidationError');
 		RewireAPI.__ResetDependency__('InvalidParameterError');
+		RewireAPI.__ResetDependency__('RecordLockedError');
+		RewireAPI.__ResetDependency__('RecordVersionError');
 	});
 
 	describe('static methods', () => {
@@ -51,6 +61,48 @@ describe('Connection', () => {
 
 			test('should return the result of fs.readFile()', async () => {
 				expect(await Connection.getUnibasicSource('baz')).toEqual('foo');
+			});
+		});
+
+		describe('handleDbServerError', () => {
+			test('should throw a db server error if no response is given', () => {
+				const response = undefined;
+				expect(() => Connection.handleDbServerError(response)).toThrow(DbServerError);
+			});
+
+			test('should throw a db server error if the response has no data', () => {
+				const response = { foo: 'bar' };
+				expect(() => Connection.handleDbServerError(response)).toThrow(DbServerError);
+			});
+
+			test('should throw a db server error if the response data has no output', () => {
+				const response = { data: { foo: 'bar' } };
+				expect(() => Connection.handleDbServerError(response)).toThrow(DbServerError);
+			});
+
+			test('should throw a foreign key validation error if the foreign key validation error code is returned from the database', () => {
+				const response = { data: { output: { errorCode: dbErrors.foreignKeyValidation.code } } };
+				expect(() => Connection.handleDbServerError(response)).toThrow(ForeignKeyValidationError);
+			});
+
+			test('should throw a record locked error if the record locked error code is returned from the database', () => {
+				const response = { data: { output: { errorCode: dbErrors.recordLocked.code } } };
+				expect(() => Connection.handleDbServerError(response)).toThrow(RecordLockedError);
+			});
+
+			test('should throw a record version error if the record version error code is returned from the database', () => {
+				const response = { data: { output: { errorCode: dbErrors.recordVersion.code } } };
+				expect(() => Connection.handleDbServerError(response)).toThrow(RecordVersionError);
+			});
+
+			test('should throw a db server error if the response output has an unknown error code', () => {
+				const response = { data: { output: { errorCode: 1000 } } };
+				expect(() => Connection.handleDbServerError(response)).toThrow(DbServerError);
+			});
+
+			test('should do nothing if a non numeric error code is returned', () => {
+				const response = { data: { output: { errorCode: 'foo' } } };
+				expect(() => Connection.handleDbServerError(response)).not.toThrow(DbServerError);
 			});
 		});
 	});

@@ -246,6 +246,49 @@ describe('DocumentArrayType', () => {
 			});
 		});
 
+		describe('transformForeignKeyDefinitionsToDb', () => {
+			let document;
+			beforeAll(() => {
+				document = { buildForeignKeyDefinitions: stub() };
+			});
+
+			beforeEach(() => {
+				document.buildForeignKeyDefinitions.reset();
+			});
+
+			test('should return an empty array if foreign key definitions exist', () => {
+				document.buildForeignKeyDefinitions.returns([]);
+				expect(documentArrayType.transformForeignKeyDefinitionsToDb([document, document])).toEqual(
+					[],
+				);
+			});
+
+			test("should resolve with an array of the first document's foreign key definitions", () => {
+				document.buildForeignKeyDefinitions.onCall(0).returns([{ foo: 'bar', baz: 'qux' }]);
+				document.buildForeignKeyDefinitions.onCall(1).returns([]);
+				expect(documentArrayType.transformForeignKeyDefinitionsToDb([document, document])).toEqual([
+					{ foo: 'bar', baz: 'qux' },
+				]);
+			});
+
+			test("should resolve with an array of the second document's foreign key definitions", () => {
+				document.buildForeignKeyDefinitions.onCall(0).returns([]);
+				document.buildForeignKeyDefinitions.onCall(1).returns([{ quux: 'corge', uier: 'grault' }]);
+				expect(documentArrayType.transformForeignKeyDefinitionsToDb([document, document])).toEqual([
+					{ quux: 'corge', uier: 'grault' },
+				]);
+			});
+
+			test("should resolve with an array of each document's foreign key definitions", () => {
+				document.buildForeignKeyDefinitions.onCall(0).returns([{ foo: 'bar', baz: 'qux' }]);
+				document.buildForeignKeyDefinitions.onCall(1).returns([{ quux: 'corge', uier: 'grault' }]);
+				expect(documentArrayType.transformForeignKeyDefinitionsToDb([document, document])).toEqual([
+					{ foo: 'bar', baz: 'qux' },
+					{ quux: 'corge', uier: 'grault' },
+				]);
+			});
+		});
+
 		describe('_makeSubDocument', () => {
 			test('should return a new document instance from the first subrecord when yielding', () => {
 				const it = documentArrayType._makeSubDocument([

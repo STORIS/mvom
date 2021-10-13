@@ -1,11 +1,18 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable-next-line import/named */
 import StringType, { __RewireAPI__ as RewireAPI } from './StringType';
+// eslint-disable-next-line import/order
+import { stub } from 'sinon';
 
 describe('StringType', () => {
 	class InvalidParameterError extends Error {}
 
+	class ForeignKeyDbTransformer {
+		transform = stub().returns(['foreignKeyDefinitions']);
+	}
+
 	beforeAll(() => {
+		RewireAPI.__Rewire__('ForeignKeyDbTransformer', ForeignKeyDbTransformer);
 		RewireAPI.__Rewire__('InvalidParameterError', InvalidParameterError);
 	});
 
@@ -107,6 +114,19 @@ describe('StringType', () => {
 
 			test('should typecast if a non-string is passed', () => {
 				expect(stringType.transformToDb(1234)).toBe('1234');
+			});
+		});
+
+		describe('transformForeignKeyDefinitionsToDb', () => {
+			let stringType;
+			beforeAll(() => {
+				stringType = new StringType({ path: '1' });
+			});
+
+			test('should return the foreign key definitions', () => {
+				expect(stringType.transformForeignKeyDefinitionsToDb('foo')).toEqual([
+					'foreignKeyDefinitions',
+				]);
 			});
 		});
 

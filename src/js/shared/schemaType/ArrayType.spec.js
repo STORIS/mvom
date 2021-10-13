@@ -15,6 +15,8 @@ describe('ArrayType', () => {
 
 		transformToDb = stub();
 
+		transformForeignKeyDefinitionsToDb = stub();
+
 		validate = stub();
 
 		definition = {};
@@ -92,6 +94,34 @@ describe('ArrayType', () => {
 			test('should return value returned from setIntoMvData', () => {
 				simpleType.setIntoMvData.returns('foo');
 				expect(arrayType.set([], [])).toBe('foo');
+			});
+		});
+
+		describe('transformForeignKeyDefinitionsToDb', () => {
+			let simpleType;
+			let arrayType;
+			beforeAll(() => {
+				simpleType = new SimpleTypeExtended({});
+				simpleType.transformForeignKeyDefinitionsToDb.withArgs(null).returns([]);
+				simpleType.transformForeignKeyDefinitionsToDb.withArgs('foo').returns([]);
+				simpleType.transformForeignKeyDefinitionsToDb.withArgs('bar').returns(['def']);
+				simpleType.transformForeignKeyDefinitionsToDb.withArgs('baz').returns(['henk']);
+				arrayType = new ArrayType(simpleType);
+			});
+
+			beforeEach(() => {
+				simpleType.transformForeignKeyDefinitionsToDb.resetHistory();
+			});
+
+			test("should return a one level deep array comprised of each element's foreign key definition ", () => {
+				expect(arrayType.transformForeignKeyDefinitionsToDb(['foo', 'bar', 'baz'])).toEqual([
+					'def',
+					'henk',
+				]);
+			});
+
+			test('should return an empty array if a null value is given', () => {
+				expect(arrayType.transformForeignKeyDefinitionsToDb(null)).toEqual([]);
 			});
 		});
 

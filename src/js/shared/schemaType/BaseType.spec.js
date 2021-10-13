@@ -43,6 +43,12 @@ describe('BaseType', () => {
 			});
 		});
 
+		describe('transformForeignKeyDefinitionsToDb', () => {
+			test('should return an empty array', () => {
+				expect(extension.transformForeignKeyDefinitionsToDb()).toEqual([]);
+			});
+		});
+
 		describe('validate', () => {
 			test('should reject with NotImplementedError if called', async () => {
 				await expect(extension.validate()).rejects.toThrow(NotImplementedError);
