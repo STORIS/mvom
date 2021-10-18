@@ -1,16 +1,25 @@
 # CHANGELOG.md
+## 1.0.0-rc.0
+###### _2021-10-18_
+- Node 12 is now minimum version @kthompson23
+- Allow explicit `$and` operator for queries @glenn-p-ryan
+- Improve Query unit tests @glenn-p-ryan
+- Allow schematically defined foreign key validations @kthompson23
+- Allow projection operators to be passed to queries to limit returned data from data server and transformations @mengwu
+- Allow reading binary files as Base64 encoded @mengwu
+- Update dependencies to remove security warnings @shawnmcknight
 
 ## 0.9.4
-###### _2021_06_30_
+###### _2021-06-30_
 - Update all dependencies. @shawnmcknight
 - Format the ISOCalendarDateTime type to have the time component left padded with zeroes.
 
 ## 0.9.3
-###### _2021_05_07_
+###### _2021-05-07_
 - Update production dependencies to remedy high vulnerability security issues. @shawnmcknight
 
 ## 0.9.2
-###### _2020_11_19_
+###### _2020-11-19_
 - Several properties on the `Document` instance were intended to not be enumerable and were not getting configured properly to ensure that.  This change ensures that the `transformDocumentToRecord`, `_transformRecordToDocument`, and `validate` properties are not configurable, not enumerable, and not writable.  Since `Model` inherits from `Document`, this will affect instances of that class as well. @shawnmcknight
 
 ## 0.9.1
