@@ -188,6 +188,12 @@ for attributeCounter = 1 to lastAttribute
   end case
 next attributeCounter
 
+* create emprty projection array
+if udoCreate(UDO_ARRAY, projection) then
+   call error_handler(ERROR_UDO, output)
+   go closeAndReturnFromSub
+end
+
 * write out record
 write record on f.file, recordId on error
   call error_handler(ERROR_RECORD_WRITE, output)
@@ -197,7 +203,7 @@ end
 close f.file on error null
 
 * format the modified record into an object structure
-call format_document(record, recordId, document, errorCode)
+call format_document(record, recordId, projection, document, errorCode)
 if errorCode then
   call error_handler(errorCode, output)
   go returnFromSub

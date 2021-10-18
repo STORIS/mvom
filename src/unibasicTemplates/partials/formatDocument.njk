@@ -1,4 +1,4 @@
-subroutine format_document(record, recordId, document, errorCode)
+subroutine format_document(record, recordId, projection, document, errorCode)
 * format a record into an output document structure
 {% include "./udoConstants.njk" %}
 
@@ -7,6 +7,23 @@ subroutine format_document(record, recordId, document, errorCode)
 {% include "./remove.njk" %}
 
 errorCode = ''
+
+* get projection positions
+projectionPositions = ''
+loop
+  statusCode = UDOArrayGetNextItem(projection, projectionPosition, type)
+  if statusCode eq UDO_ERROR then
+    * reach the end of the array
+    exit
+  end
+  if statusCode ne UDO_SUCCESS then
+    * any other possible error
+    errorCode = ERROR_UDO
+    go returnFromSub
+  end
+  projectionPositions<-1> = projectionPosition
+repeat
+maxProjectionPosition = maximum(projectionPositions)
 
 * create output document object
 if udoCreate(UDO_OBJECT, document) then
@@ -57,6 +74,14 @@ subValueContents = ''
 
 rmvDataRec = record
 rmvDelimChar = ''
+* track the attribute level position
+attributePosition = 0
+
+if udoCreate(UDO_NULL, nullValue) then
+  errorCode = ERROR_UDO
+  go returnFromSub
+end
+
 loop until (rmvDelimChar eq RMV_DELIM_END)
   gosub rmvRemove
 
@@ -66,6 +91,15 @@ loop until (rmvDelimChar eq RMV_DELIM_END)
   begin case
     case (delim eq RMV_DELIM_ATTRIBUTE or delim eq RMV_DELIM_END) and (prevDelim eq RMV_DELIM_ATTRIBUTE or prevDelim eq '')
       * append at the attribute level
+      if maxProjectionPosition > 0 then
+        attributePosition += 1
+        if attributePosition > maxProjectionPosition then
+          exit
+        end else
+          locate attributePosition in projectionPositions, 1 setting nothing else token = ''
+        end
+      end
+
       appendArray = recordContents
       gosub appendToArray
       if errorCode eq ERROR_UDO then
@@ -96,6 +130,19 @@ loop until (rmvDelimChar eq RMV_DELIM_END)
       gosub appendToArray
       if errorCode eq ERROR_UDO then
         go returnFromSub
+      end
+
+      if maxProjectionPosition > 0 then
+         attributePosition += 1
+         if attributePosition > maxProjectionPosition then
+           exit
+         end else
+           locate attributePosition in projectionPositions, 1 setting nothing else
+             * if an error occurs in freeing the memory space for the objects, we will ignore it as there is little else that can be done
+             x = udoFree(valueContents)
+             valueContents = nullValue
+           end
+         end
       end
 
       if udoArrayAppendItem(recordContents, valueContents) then
@@ -154,6 +201,18 @@ loop until (rmvDelimChar eq RMV_DELIM_END)
 
       if delim eq RMV_DELIM_ATTRIBUTE or delim eq RMV_DELIM_END then
         * moving on to a new attribute or finished the record. Append whatever we have
+        if maxProjectionPosition > 0 then
+            attributePosition += 1
+            if attributePosition > maxProjectionPosition then
+               exit
+            end else
+               locate attributePosition in projectionPositions, 1 setting nothing else
+               * if an error occurs in freeing the memory space for the objects, we will ignore it as there is little else that can be done
+                 x = udoFree(valueContents)
+                 valueContents = nullValue
+               end
+            end
+        end
         if udoArrayAppendItem(recordContents, valueContents) then
           errorCode = ERROR_UDO
           go returnFromSub

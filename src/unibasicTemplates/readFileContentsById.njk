@@ -1,0 +1,63 @@
+$basictype 'u'
+subroutine mvom_readFileContentsById(options, output)
+* find and return the file content as Base64 string given a filename and record id for a Directory file
+{% include "./partials/errorConstants.njk" %}
+
+* get the filename from the options
+if udoGetProperty(options, 'filename', filename, type) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go returnFromSub
+end
+
+* get the recordId from the options
+if udoGetProperty(options, 'id', recordId, type) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go returnFromSub
+end
+
+open 'VOC' to f.voc on error
+  call error_handler(ERROR_FILE_OPEN, output)
+  go returnFromSub
+end else
+  call error_handler(ERROR_FILE_OPEN, output)
+  go returnFromSub
+end
+
+* get filePath of the filename in VOC
+readv fileDirectoryPath from f.voc, filename, 2 on error
+  call error_handler(ERROR_FILE_OPEN, output)
+  go closeAndReturnFromSub
+end then
+  filePath = fileDirectoryPath:'/':recordId
+end else
+  call error_handler(ERROR_RECORD_READ, output)
+  go closeAndReturnFromSub
+end
+
+close f.voc on error null
+
+if filePath eq '' then
+  result = ''
+end else
+  stat = encode('Base64A',1,filePath,2,result,1)
+  if stat > 0 then
+    call error_handler(ERROR_ENCODE_FILE, output)
+    go returnFromSub
+  end
+end
+
+* set the result property
+if udoSetProperty(output, 'result', result) then
+  call error_handler(ERROR_UDO, output)
+  go returnFromSub
+end
+
+go returnFromSub;* skip close behavior
+
+closeAndReturnFromSub:
+close f.voc on error null
+
+returnFromSub:
+return; * returning to caller
+
+{% include "./partials/errorHandler.njk" %}

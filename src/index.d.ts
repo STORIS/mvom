@@ -40,13 +40,14 @@ declare namespace mvom {
   class Model extends Document {
     constructor(opts?: { _id?: string, data?: GenericObject, record?: RecordTemplate });
     static deleteById(id: string): Promise<Model|null>;
-    static find(selectionCriteria?: GenericObject, options?: findOptions): Promise<Model[]>;
-    static findAndCount(selectionCriteria?: GenericObject, options?: findOptions): Promise<{
+    static find(selectionCriteria?: GenericObject, options?: FindOptions): Promise<Model[]>;
+    static findAndCount(selectionCriteria?: GenericObject, options?: FindOptions): Promise<{
       documents: Model[],
       count: number,
     }>;
-    static findById(id: string): Promise<Model>;
-    static findByIds(ids: string|string[]): Promise<Model[]>;
+    static findById(id: string, options?: FindByIdOptions): Promise<Model>;
+    static findByIds(ids: string|string[], options?: FindByIdOptions): Promise<Model[]>;
+    static readFileContentsById(id: string): Promise<string>;
     save(): Promise<Model>;
     _id: string | null;
     readonly __v: string | null;
@@ -57,10 +58,15 @@ declare namespace mvom {
     [index: string]: unknown;
   }
 
-  interface findOptions {
-    skip?: number,
-    limit?: number|null,
-    sort?: (string | [string, 1 | -1])[],
+  type Projection = string[];
+  interface FindOptions {
+    skip?: number;
+    limit?: number | null;
+    sort?: (string | [string, 1 | -1])[];
+    projection?: Projection;
+  }
+  interface FindByIdOptions {
+    projection?: Projection;
   }
 
   export class ISOTimeType {

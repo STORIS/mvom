@@ -1,14 +1,15 @@
 {
   "dependencies": {
-    "deleteById": "^0.1.0",
-    "deploy": "^0.1.0",
+    "deleteById": "^1.0.0",
+    "deploy": "^1.0.0",
     "entry": "^0.2.0",
-    "find": "^0.2.2",
-    "findById": "^0.1.0",
-    "findByIds": "^0.1.0",
-    "getServerInfo": "^0.1.0",
-    "save": "^0.2.0",
-    "setup": "^0.1.0",
-    "teardown": "^0.1.0"
+    "find": "^1.0.0",
+    "findById": "^1.0.0",
+    "findByIds": "^1.0.0",
+    "readFileContentsById": "^1.0.0",
+    "getServerInfo": "^1.0.0",
+    "save": "^1.0.0",
+    "setup": "^1.0.0",
+    "teardown": "^1.0.0"
   }
 }

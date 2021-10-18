@@ -3,11 +3,13 @@ import Query from './Query';
 
 describe('Query', () => {
 	const executeDbFeature = jest.fn();
+	const transformPathsToDbPositions = jest.fn();
 	const logger = { debug: jest.fn() };
 	const makeModelFromDbResult = jest.fn();
 	const schema = {
 		dictPaths: { foo: 'FOO', bar: 'BAR', baz: 'BAZ' },
 		paths: { bar: { transformToQuery: (value) => `TRANSFORMED_${value}` } },
+		transformPathsToDbPositions,
 	};
 	const Model = class {
 		static connection = { executeDbFeature, logger };
@@ -22,6 +24,7 @@ describe('Query', () => {
 
 	beforeEach(() => {
 		executeDbFeature.mockResolvedValue(data);
+		transformPathsToDbPositions.mockReturnValue([]);
 		makeModelFromDbResult.mockImplementation((args) => args);
 	});
 
@@ -37,6 +40,7 @@ describe('Query', () => {
 				filename: 'FILE',
 				queryCommand: 'select FILE',
 				skip: 0,
+				projection: [],
 			});
 		});
 
@@ -57,6 +61,7 @@ describe('Query', () => {
 				queryCommand: 'select FILE with FOO = "FOO_VALUE" by FOO',
 				skip: 10,
 				limit: 10,
+				projection: [],
 			});
 		});
 	});
@@ -84,6 +89,7 @@ describe('Query', () => {
 				filename: 'FILE',
 				queryCommand: 'select FILE by FOO',
 				skip: 0,
+				projection: [],
 			});
 		});
 
@@ -100,6 +106,7 @@ describe('Query', () => {
 				filename: 'FILE',
 				queryCommand: 'select FILE by.dsnd FOO',
 				skip: 0,
+				projection: [],
 			});
 		});
 
@@ -119,6 +126,7 @@ describe('Query', () => {
 				filename: 'FILE',
 				queryCommand: 'select FILE by.dsnd FOO by BAR by BAZ',
 				skip: 0,
+				projection: [],
 			});
 		});
 	});
@@ -144,6 +152,7 @@ describe('Query', () => {
 				filename: 'FILE',
 				queryCommand: 'select FILE',
 				skip: 10,
+				projection: [],
 			});
 		});
 	});
@@ -170,6 +179,7 @@ describe('Query', () => {
 				queryCommand: 'select FILE',
 				limit: 10,
 				skip: 0,
+				projection: [],
 			});
 		});
 
@@ -186,6 +196,7 @@ describe('Query', () => {
 				queryCommand: 'select FILE',
 				limit: undefined,
 				skip: 0,
+				projection: [],
 			});
 		});
 	});
@@ -207,6 +218,7 @@ describe('Query', () => {
 				filename: 'FILE',
 				queryCommand: 'select FILE with FOO = "FOO_VALUE"',
 				skip: 0,
+				projection: [],
 			});
 		});
 
@@ -227,6 +239,7 @@ describe('Query', () => {
 					filename: 'FILE',
 					queryCommand: 'select FILE with (FOO = "FOO1_VALUE" or FOO = "FOO2_VALUE")',
 					skip: 0,
+					projection: [],
 				});
 			});
 
@@ -246,6 +259,7 @@ describe('Query', () => {
 					filename: 'FILE',
 					queryCommand: 'select FILE with FOO = "FOO1_VALUE"',
 					skip: 0,
+					projection: [],
 				});
 			});
 
@@ -276,6 +290,7 @@ describe('Query', () => {
 					filename: 'FILE',
 					queryCommand: 'select FILE with BAR = "TRANSFORMED_BAR_VALUE"',
 					skip: 0,
+					projection: [],
 				});
 			});
 
@@ -295,6 +310,7 @@ describe('Query', () => {
 					filename: 'FILE',
 					queryCommand: `select FILE with FOO = 'CONTAINS "DOUBLE" QUOTES"'`,
 					skip: 0,
+					projection: [],
 				});
 			});
 
@@ -314,6 +330,7 @@ describe('Query', () => {
 					filename: 'FILE',
 					queryCommand: `select FILE with FOO = "CONTAINS 'SINGLE' QUOTES"`,
 					skip: 0,
+					projection: [],
 				});
 			});
 
@@ -344,6 +361,7 @@ describe('Query', () => {
 					filename: 'FILE',
 					queryCommand: 'select FILE with FOO = "FOO_VALUE"',
 					skip: 0,
+					projection: [],
 				});
 			});
 
@@ -363,6 +381,7 @@ describe('Query', () => {
 					filename: 'FILE',
 					queryCommand: 'select FILE with FOO > "10"',
 					skip: 0,
+					projection: [],
 				});
 			});
 
@@ -382,6 +401,7 @@ describe('Query', () => {
 					filename: 'FILE',
 					queryCommand: 'select FILE with FOO >= "10"',
 					skip: 0,
+					projection: [],
 				});
 			});
 
@@ -401,6 +421,7 @@ describe('Query', () => {
 					filename: 'FILE',
 					queryCommand: 'select FILE with FOO < "10"',
 					skip: 0,
+					projection: [],
 				});
 			});
 
@@ -420,6 +441,7 @@ describe('Query', () => {
 					filename: 'FILE',
 					queryCommand: 'select FILE with FOO <= "10"',
 					skip: 0,
+					projection: [],
 				});
 			});
 
@@ -439,6 +461,7 @@ describe('Query', () => {
 					filename: 'FILE',
 					queryCommand: 'select FILE with FOO # "BAR_VALUE"',
 					skip: 0,
+					projection: [],
 				});
 			});
 
@@ -458,6 +481,7 @@ describe('Query', () => {
 					filename: 'FILE',
 					queryCommand: 'select FILE with FOO like "...FOO_VALUE..."',
 					skip: 0,
+					projection: [],
 				});
 			});
 
@@ -477,6 +501,7 @@ describe('Query', () => {
 					filename: 'FILE',
 					queryCommand: 'select FILE with FOO like "FOO_VALUE..."',
 					skip: 0,
+					projection: [],
 				});
 			});
 
@@ -496,6 +521,7 @@ describe('Query', () => {
 					filename: 'FILE',
 					queryCommand: 'select FILE with FOO like "...FOO_VALUE"',
 					skip: 0,
+					projection: [],
 				});
 			});
 
@@ -515,6 +541,7 @@ describe('Query', () => {
 					filename: 'FILE',
 					queryCommand: 'select FILE with (FOO = "FOO1_VALUE" or FOO = "FOO2_VALUE")',
 					skip: 0,
+					projection: [],
 				});
 			});
 
@@ -534,6 +561,7 @@ describe('Query', () => {
 					filename: 'FILE',
 					queryCommand: 'select FILE with (FOO # "BAR1_VALUE" and FOO # "BAR2_VALUE")',
 					skip: 0,
+					projection: [],
 				});
 			});
 
@@ -564,6 +592,7 @@ describe('Query', () => {
 					filename: 'FILE',
 					queryCommand: `select FILE with (FOO <= "100" and FOO >= "0" and FOO like "...5...")`,
 					skip: 0,
+					projection: [],
 				});
 			});
 
@@ -583,6 +612,7 @@ describe('Query', () => {
 					filename: 'FILE',
 					queryCommand: `select FILE with (FOO = "FOO_VALUE" and BAR = "TRANSFORMED_BAR_VALUE" and BAZ = "BAZ_VALUE")`,
 					skip: 0,
+					projection: [],
 				});
 			});
 
@@ -603,6 +633,7 @@ describe('Query', () => {
 						filename: 'FILE',
 						queryCommand: `select FILE with (FOO = "FOO_VALUE" and BAZ = "BAZ_VALUE")`,
 						skip: 0,
+						projection: [],
 					});
 				});
 
@@ -622,6 +653,7 @@ describe('Query', () => {
 						filename: 'FILE',
 						queryCommand: `select FILE with FOO = "FOO_VALUE"`,
 						skip: 0,
+						projection: [],
 					});
 				});
 
@@ -643,6 +675,7 @@ describe('Query', () => {
 						filename: 'FILE',
 						queryCommand: `select FILE with ((FOO = "FOO_VALUE" and BAR = "TRANSFORMED_BAR_VALUE") and BAZ = "BAZ_VALUE")`,
 						skip: 0,
+						projection: [],
 					});
 				});
 
@@ -669,6 +702,7 @@ describe('Query', () => {
 						filename: 'FILE',
 						queryCommand: `select FILE with (FOO = "FOO_VALUE" and BAZ = "BAZ_VALUE" and ((FOO like "FOO_VALUE..." and BAZ like "...BAZ_VALUE") and BAR = "TRANSFORMED_BAR_VALUE"))`,
 						skip: 0,
+						projection: [],
 					});
 				});
 
@@ -692,6 +726,7 @@ describe('Query', () => {
 						filename: 'FILE',
 						queryCommand: `select FILE with (BAR = "TRANSFORMED_BAR_VALUE" and BAZ = "BAZ_VALUE" and (FOO = "FOO1_VALUE" or FOO = "FOO2_VALUE"))`,
 						skip: 0,
+						projection: [],
 					});
 				});
 
@@ -717,6 +752,7 @@ describe('Query', () => {
 						filename: 'FILE',
 						queryCommand: `select FILE with ((FOO = "FOO1_VALUE" or FOO = "FOO2_VALUE") and (BAR = "TRANSFORMED_BAR1_VALUE" or BAR = "TRANSFORMED_BAR2_VALUE") and (BAZ = "BAZ1_VALUE" or BAZ = "BAZ2_VALUE"))`,
 						skip: 0,
+						projection: [],
 					});
 				});
 
@@ -758,6 +794,7 @@ describe('Query', () => {
 						filename: 'FILE',
 						queryCommand: `select FILE with (FOO = "FOO1_VALUE" or FOO = "FOO2_VALUE")`,
 						skip: 0,
+						projection: [],
 					});
 				});
 
@@ -777,6 +814,7 @@ describe('Query', () => {
 						filename: 'FILE',
 						queryCommand: `select FILE with FOO = "FOO_VALUE"`,
 						skip: 0,
+						projection: [],
 					});
 				});
 
@@ -798,6 +836,7 @@ describe('Query', () => {
 						filename: 'FILE',
 						queryCommand: `select FILE with ((FOO = "FOO_VALUE" and BAR = "TRANSFORMED_BAR_VALUE") or BAZ = "BAZ_VALUE")`,
 						skip: 0,
+						projection: [],
 					});
 				});
 
@@ -821,6 +860,7 @@ describe('Query', () => {
 						filename: 'FILE',
 						queryCommand: `select FILE with (FOO like "FOO_VALUE..." and BAZ like "BAZ_VALUE..." and ((FOO = "FOO_VALUE" and BAR = "TRANSFORMED_BAR_VALUE") or BAZ = "BAZ_VALUE"))`,
 						skip: 0,
+						projection: [],
 					});
 				});
 

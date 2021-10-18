@@ -103,20 +103,21 @@ class Schema {
 		 */
 		this._definition = definition;
 		/**
-		 * Array of all multivalue data paths represented in the Schema
-		 * @member {Number[]} _mvPaths
-		 * @memberof Schema
-		 * @instance
-		 */
-		this._mvPaths = [];
-		/**
-		 * Array of all subdocument schemas represented in this Schema
-		 * @member {Schema[]} _subdocumentSchemas
+		 * Map of the compiled schema object position paths
+		 * @member {Map<String, Number[]>} _positionPaths
 		 * @memberof Schema
 		 * @instance
 		 * @private
 		 */
-		this._subdocumentSchemas = [];
+		this._positionPaths = new Map();
+		/**
+		 * Map of all subdocument schemas represented in this Schema with parentPath as key
+		 * @member {Map<String,Schema>} _subdocumentSchemas
+		 * @memberof Schema
+		 * @instance
+		 * @private
+		 */
+		this._subdocumentSchemas = new Map();
 		/**
 		 * The name of the property to use for data typing
 		 * @member {string} _typeProperty
@@ -155,12 +156,70 @@ class Schema {
 	 * @returns {Number[]} Array of all multivalue data paths represented in the Schema and any subdocument schemas
 	 */
 	getMvPaths = () =>
-		this._subdocumentSchemas.reduce(
+		Array.from(this._subdocumentSchemas.values()).reduce(
 			(mvPaths, schema) => mvPaths.concat(schema.getMvPaths()),
-			this._mvPaths.slice(),
+			Array.from(this._positionPaths.values()).slice(),
 		);
 
-	/* private instance methods */
+	/**
+	 * Get all positionPaths with path as key and position array as value including children schemas
+	 * e.g. parent field 'foo' has a child schema which has ["bar",[2]], the returned positionPath will be ["foo.bar",[2]].
+	 * @function getPositionPaths
+	 * @memberof Schema
+	 * @instance
+	 * @returns {Map<String, Number[]>} Map of positionPaths represented in the Schema and any subdocument schemas
+	 */
+	getPositionPaths = () => {
+		// merge the positionPaths from subdocumentSchemas with parentPath appended by the childPath recursively
+		return Array.from(this._subdocumentSchemas.entries()).reduce((mvPaths, [parentKey, schema]) => {
+			const childrenPositions = schema.getPositionPaths();
+			childrenPositions.forEach((subPath, subKey) => {
+				mvPaths.set(`${parentKey}.${subKey}`, subPath);
+			});
+			return mvPaths;
+		}, new Map(this._positionPaths));
+	};
+
+	/**
+	 * Transform the paths to positions
+	 * @function transformPathsToDbPositions
+	 * @memberof Schema
+	 * @instance
+	 * @param {String[]} paths - Array of paths
+	 * @returns {Number[]} Array of dbPositions
+	 */
+	transformPathsToDbPositions = (paths) => {
+		if (!Array.isArray(paths) || paths.length === 0) {
+			return [];
+		}
+		const positionPaths = this.getPositionPaths();
+		const positionKeys = Array.from(positionPaths.keys());
+		const positions = paths.reduce((acc, positionPath) => {
+			if (positionPaths.has(positionPath)) {
+				// find the key in position paths
+				// add position
+				const [dbPosition] = positionPaths.get(positionPath);
+				if (!acc.has(dbPosition + 1)) {
+					acc.add(dbPosition + 1);
+				}
+			} else if (!positionPath.includes('.')) {
+				// if the property is a parent key, we will add positions for all children
+				// e.g we only pass property "name" to return all data for name.first, name.last, etc.
+				const matchedPositionPaths = positionKeys.filter(
+					(key) => key.split('.')[0] === positionPath,
+				);
+				matchedPositionPaths.forEach((key) => {
+					// add child position
+					const [dbPosition] = positionPaths.get(key);
+					if (!acc.has(dbPosition + 1)) {
+						acc.add(dbPosition + 1);
+					}
+				});
+			}
+			return acc;
+		}, new Set());
+		return [...positions];
+	};
 
 	/**
 	 * Construct instance member paths
@@ -272,7 +331,7 @@ class Schema {
 	 * @private
 	 * @param {Object} castee - Object to cast to a schemaType
 	 * @param {string[]} keyPath - Key path of property that definition is being cast against
-	 * @modifies {this._mvPaths}
+	 * @modifies {this._positionPaths}
 	 * @modifies {this.dictPaths}
 	 * @returns Instance of schemaType class as defined by definition
 	 * @throws {InvalidParameterError} An invalid parameter was passed to the function
@@ -315,7 +374,7 @@ class Schema {
 
 		// add to mvPath array
 		if (schemaTypeValue.path != null) {
-			this._mvPaths.push(schemaTypeValue.path);
+			this._positionPaths.set(keyPath, schemaTypeValue.path);
 		}
 
 		// update dictPaths
@@ -337,7 +396,7 @@ class Schema {
 	 * @modifies {this._subdocumentSchemas}
 	 */
 	_handleSubDocumentSchemas = (schema, keyPath) => {
-		this._subdocumentSchemas.push(schema);
+		this._subdocumentSchemas.set(keyPath, schema);
 		this._mergeSchemaDictionaries(schema, keyPath);
 	};
 

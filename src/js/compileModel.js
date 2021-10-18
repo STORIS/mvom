@@ -97,6 +97,7 @@ const compileModel = (connection, schema, file) => {
 		 * @param {number} [options.skip = 0] - Skip this number of items in the result set
 		 * @param {number} [options.limit = null] - Limit the result set to this number of items
 		 * @param {Array} [options.sort = []] - Array of field/direction nested arrays defining sort criteria. ex: [[foo, 1], [bar, -1]] where value of 1 indicates ascending and -1 indicates descending
+		 * @param {Array} [options.projection = []] - Array of projection properties
 		 * @returns {Promise.<Model[]>} Array of model instances
 		 * @throws {ConnectionManagerError} (indirect) An error occurred in connection manager communications
 		 * @throws {DbServerError} (indirect) An error occurred on the database server
@@ -118,6 +119,7 @@ const compileModel = (connection, schema, file) => {
 		 * @param {number} [options.skip = 0] - Skip this number of items in the result set
 		 * @param {number} [options.limit = null] - Limit the result set to this number of items
 		 * @param {Array} [options.sort = []] - Array of field/direction nested arrays defining sort criteria. ex: [[foo, 1], [bar, -1]] where value of 1 indicates ascending and -1 indicates descending
+		 * @param {Array} [options.projection = []] - Array of projection properties
 		 * @returns {Promise.<ResultsObject>} Query results object
 		 * @throws {ConnectionManagerError} (indirect) An error occurred in connection manager communications
 		 * @throws {DbServerError} (indirect) An error occurred on the database server
@@ -134,14 +136,18 @@ const compileModel = (connection, schema, file) => {
 		 * @static
 		 * @async
 		 * @param {string} id - Document identifier
+		 * @param {Object} [options = {}]
+		 * @param {Array} [options.projection = []] - Array of projection properties
 		 * @returns {Promise.<Model>} Model instance
 		 * @throws {ConnectionManagerError} (indirect) An error occurred in connection manager communications
 		 * @throws {DbServerError} (indirect) An error occurred on the database server
 		 */
-		static findById = async (id) => {
+		static findById = async (id, options = {}) => {
+			const { projection = [] } = options;
 			const data = await Model.connection.executeDbFeature('findById', {
 				filename: Model.file,
 				id,
+				projection: schema.transformPathsToDbPositions(projection),
 			});
 
 			// if the database returns a result, instantiate a new model with it -- otherwise return null
@@ -155,20 +161,25 @@ const compileModel = (connection, schema, file) => {
 		 * @static
 		 * @async
 		 * @param {string|string[]} ids - Array of document identifiers
+		 * @param {Object} [options = {}]
+		 * @param {Array} [options.projection = []] - Array of projection properties
 		 * @returns {Promise.<Model[]>} Array of model instances
 		 * @throws {InvalidParameterError} An invalid parameter was passed to the function
 		 * @throws {ConnectionManagerError} (indirect) An error occurred in connection manager communications
 		 * @throws {DbServerError} (indirect) An error occurred on the database server
 		 */
-		static findByIds = async (ids) => {
+		static findByIds = async (ids, options = {}) => {
 			if (ids == null) {
 				throw new InvalidParameterError({ parameterName: 'ids' });
 			}
+			const { projection = [] } = options;
+
 			// this will cast ids to an array in the event only a single id is passed in
 			const idsArray = [].concat(ids);
 			const data = await Model.connection.executeDbFeature('findByIds', {
 				filename: Model.file,
 				ids: idsArray,
+				projection: schema.transformPathsToDbPositions(projection),
 			});
 
 			// returns an array of newly instantiated Models
@@ -176,6 +187,25 @@ const compileModel = (connection, schema, file) => {
 			return data.result.map((dbResultItem) =>
 				dbResultItem ? Model.makeModelFromDbResult(dbResultItem) : null,
 			);
+		};
+
+		/**
+		 * Read a DIR file type record directly from file system as Base64 string by its id
+		 * @function readFileContentsById
+		 * @memberof Model
+		 * @static
+		 * @async
+		 * @param {string} id - Document identifier
+		 * @returns {Promise.<String>} Base64 string
+		 */
+		static readFileContentsById = async (id) => {
+			const data = await Model.connection.executeDbFeature('readFileContentsById', {
+				filename: Model.file,
+				id,
+			});
+
+			// return null if database doesn't returns a result
+			return data.result ?? null;
 		};
 
 		/**

@@ -56,6 +56,14 @@ class Query {
 		 * @private
 		 */
 		this._sortCriteria = null;
+		/**
+		 * Specify the projection attribute in result set
+		 * @member {string[]} _projection
+		 * @memberof Query
+		 * @instance
+		 * @private
+		 */
+		this._projection = null;
 
 		this.selection(selectionCriteria);
 		this._setOptions(options);
@@ -95,6 +103,8 @@ class Query {
 		if (this._limit != null) {
 			options.limit = this._limit;
 		}
+
+		options.projection = this._Model.schema.transformPathsToDbPositions(this._projection);
 
 		this._Model.connection.logger.debug(`executing query "${queryCommand}"`);
 		const data = await this._Model.connection.executeDbFeature('find', options);
@@ -165,6 +175,21 @@ class Query {
 	 */
 	sort = (criteria = []) => {
 		this._sortCriteria = this._formatSortCriteria(criteria);
+	};
+
+	/**
+	 * Set the projection
+	 * @function projection
+	 * @memberof Query
+	 * @instance
+	 * @param {projection} [projection = []] - List of attributes
+	 * @modifies {this._projection}
+	 */
+	projection = (projection = []) => {
+		if (!Array.isArray(projection)) {
+			throw new InvalidParameterError({ parameterName: 'options.projection' });
+		}
+		this._projection = projection;
 	};
 
 	/* private instance methods */
@@ -406,10 +431,11 @@ class Query {
 	 * @param {Array} [options.sort = []] - List of field/direction nested arrays defining sort criteria. ex: [[foo, 1], [bar, -1]] where value of 1 indicates ascending and -1 indicates descending
 	 * @throws {InvalidParameterError} (indirect) An invalid parameter was passed to the function
 	 */
-	_setOptions = ({ limit, skip, sort } = {}) => {
+	_setOptions = ({ limit, skip, sort, projection } = {}) => {
 		this.limit(limit);
 		this.skip(skip);
 		this.sort(sort);
+		this.projection(projection);
 	};
 }
 

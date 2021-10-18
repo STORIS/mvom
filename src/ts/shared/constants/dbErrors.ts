@@ -18,6 +18,7 @@ const dbErrors: Record<string, DbError> = {
 	query: { code: 12, message: 'Error in database query' },
 	digestHash: { code: 13, message: 'Error in constructing digest hash' },
 	foreignKeyValidation: { code: 14, message: 'Foreign key validation error' },
+	fileEncodeBase64: { code: 15, message: 'Error in encoding the file as Base64 string' },
 };
 
 export default dbErrors;

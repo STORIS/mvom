@@ -17,6 +17,12 @@ if udoGetProperty(options, 'ids', recordIds, type) then
   go returnFromSub
 end
 
+* get the projections from the options
+if udoGetProperty(options, 'projection', projection, type) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go returnFromSub
+end
+
 recordIdsCount = 0
 begin case
   case type ne UDO_ARRAY
@@ -65,7 +71,7 @@ loop while processCount lt recordIdsCount
     * read the record from the file
     read record from f.file, recordId then
       * format the record into an object structure
-      call format_document(record, recordId, document, errorCode)
+      call format_document(record, recordId, projection, document, errorCode)
       if errorCode then
         * received an error when trying to format document, return empty string for this document
         document = ''

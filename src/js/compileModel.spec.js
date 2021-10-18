@@ -9,6 +9,7 @@ describe('compileModel', () => {
 	let schema;
 
 	const transformRecordToDocument = stub();
+	const transformPathsToDbPositions = stub();
 	const validate = stub();
 	const Document = class {
 		_transformRecordToDocument = transformRecordToDocument;
@@ -45,7 +46,9 @@ describe('compileModel', () => {
 		};
 		RewireAPI.__Rewire__('Query', Query);
 
-		const Schema = class {};
+		const Schema = class {
+			transformPathsToDbPositions = transformPathsToDbPositions;
+		};
 		RewireAPI.__Rewire__('Schema', Schema);
 		schema = new Schema();
 
@@ -54,6 +57,7 @@ describe('compileModel', () => {
 
 	beforeEach(() => {
 		executeDbFeature.reset();
+		transformPathsToDbPositions.reset();
 		queryConstructor.resetHistory();
 		exec.resetHistory();
 		connection.logger.warn.resetHistory();
@@ -119,6 +123,20 @@ describe('compileModel', () => {
 				});
 			});
 
+			describe('readFileContentsById', () => {
+				test('should return the Base64 string', async () => {
+					const result = 'base64string';
+					executeDbFeature.resolves({ result });
+					expect(await Test.readFileContentsById()).toBe(result);
+				});
+
+				test('should return null if no result is returned', async () => {
+					const result = null;
+					executeDbFeature.resolves({ result });
+					expect(await Test.readFileContentsById()).toBeNull();
+				});
+			});
+
 			describe('makeModelFromDbResult', () => {
 				test('should return an instance of the model', () => {
 					expect(Test.makeModelFromDbResult()).toBeInstanceOf(Test);
@@ -170,11 +188,13 @@ describe('compileModel', () => {
 						await Test.findById();
 						expect(Test.makeModelFromDbResult.calledOnce).toBe(true);
 						expect(Test.makeModelFromDbResult.calledWith(result)).toBe(true);
+						expect(transformPathsToDbPositions.calledWith([])).toBe(true);
 					});
 
 					test('should return null if the dbFeature returns empty string (document not found)', async () => {
 						executeDbFeature.resolves({ result: '' });
-						expect(await Test.findById()).toBeNull();
+						expect(await Test.findById(1, { projection: ['projection1'] })).toBeNull();
+						expect(transformPathsToDbPositions.calledWith(['projection1'])).toBe(true);
 					});
 				});
 
@@ -191,15 +211,22 @@ describe('compileModel', () => {
 						expect(Test.makeModelFromDbResult.firstCall.calledWith(result[0])).toBe(true);
 						expect(Test.makeModelFromDbResult.secondCall.calledWith(result[1])).toBe(true);
 						expect(Test.makeModelFromDbResult.thirdCall.calledWith(result[2])).toBe(true);
+						expect(transformPathsToDbPositions.calledWith([])).toBe(true);
 					});
 
 					test('should call findByIds dbFeature with an array even if a single id is passed in', async () => {
 						const result = [{ record: 'foo1', _id: 'bar1', __v: 'baz1' }];
 						executeDbFeature.resolves({ result });
-						await Test.findByIds('id1');
+						transformPathsToDbPositions.returns([1]);
+						await Test.findByIds('id1', { projection: ['projection1'] });
 						expect(
-							executeDbFeature.calledWith('findByIds', { filename: Test.file, ids: ['id1'] }),
+							executeDbFeature.calledWith('findByIds', {
+								filename: Test.file,
+								ids: ['id1'],
+								projection: [1],
+							}),
 						).toBe(true);
+						expect(transformPathsToDbPositions.calledWith(['projection1'])).toBe(true);
 					});
 
 					test('should return an array with null values for each empty string passed back from the dbFeature', async () => {

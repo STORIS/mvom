@@ -56,11 +56,42 @@ describe('Schema', () => {
 			});
 
 			test("should merge subdocument schemas paths with this schema's path", () => {
-				schema._mvPaths = [['foo'], ['bar']];
+				schema._positionPaths = new Map([
+					['fooKey', ['foo']],
+					['barKey', ['bar']],
+				]);
 				subdocumentSchema.getMvPaths.onCall(0).returns([['baz'], ['qux']]);
 				subdocumentSchema.getMvPaths.onCall(1).returns([['corge']]);
-				schema._subdocumentSchemas = [subdocumentSchema, subdocumentSchema];
+				schema._subdocumentSchemas = new Map([
+					['subdocumentSchemaKey1', subdocumentSchema],
+					['subdocumentSchemaKey2', subdocumentSchema],
+				]);
 				expect(schema.getMvPaths()).toEqual([['foo'], ['bar'], ['baz'], ['qux'], ['corge']]);
+			});
+		});
+
+		describe('getPositionPaths', () => {
+			const subdocumentSchema = {
+				getPositionPaths: stub(),
+			};
+			let schema;
+			beforeAll(() => {
+				schema = new Schema({ foo: { path: '1', type: String } });
+			});
+
+			test("should merge subdocument schemas position paths with this schema's position paths", () => {
+				schema._positionPaths = new Map([['foo', [1]]]);
+				subdocumentSchema.getPositionPaths.onCall(0).returns(new Map([['baz', [2]]]));
+				subdocumentSchema.getPositionPaths.onCall(1).returns(new Map([['corge', [3]]]));
+				schema._subdocumentSchemas = new Map([
+					['subdocumentSchemaKey1', subdocumentSchema],
+					['subdocumentSchemaKey2', subdocumentSchema],
+				]);
+				expect(Array.from(schema.getPositionPaths())).toEqual([
+					['foo', [1]],
+					['subdocumentSchemaKey1.baz', [2]],
+					['subdocumentSchemaKey2.corge', [3]],
+				]);
 			});
 		});
 
@@ -271,10 +302,10 @@ describe('Schema', () => {
 				expect(schema._castDefinition.bind(schema, { type: 'foo' })).toThrow();
 			});
 
-			test('should update the mvPaths array with the schemaType path', () => {
+			test('should update the _positionPaths map with the keyPath and schemaType path', () => {
 				_isDataDefinition.returns(true);
-				schema._castDefinition({ type: String, path: '1' });
-				expect(schema._mvPaths).toEqual(['foo']);
+				schema._castDefinition({ type: String, path: '1' }, 'keyPath');
+				expect(schema._positionPaths.get('keyPath')).toEqual('foo');
 			});
 
 			test('should update the dictPaths object with the schemaType dictionary', () => {
@@ -292,12 +323,12 @@ describe('Schema', () => {
 			});
 
 			beforeEach(() => {
-				schema._subdocumentSchemas = [];
+				schema._subdocumentSchemas = new Map();
 			});
 
 			test('should add passed schema to _subdocumentSchemas', () => {
-				schema._handleSubDocumentSchemas('foo');
-				expect(schema._subdocumentSchemas).toEqual(['foo']);
+				schema._handleSubDocumentSchemas('foo', 'keyPath');
+				expect(schema._subdocumentSchemas.get('keyPath')).toEqual('foo');
 			});
 
 			test('should call _mergeSchemaDictionaries with the passed parameters', () => {
@@ -348,6 +379,68 @@ describe('Schema', () => {
 					'garply.quux': 'corge',
 					'garply.uier': 'grault',
 				});
+			});
+		});
+
+		describe('transformPathsToDbPositions', () => {
+			let schema;
+			beforeEach(() => {
+				schema = new Schema({
+					foo: { path: '1', type: String },
+					bar: {
+						bar1: { path: '2.1', type: String },
+						bar2: { path: '2.2', type: String },
+					},
+				});
+			});
+
+			test('should return empty positions array when paths array is empty', () => {
+				expect(schema.transformPathsToDbPositions([])).toEqual([]);
+			});
+
+			test('should transform the paths to positions', () => {
+				const properties = ['foo', 'bar'];
+				expect(schema.transformPathsToDbPositions(properties)).toEqual([1, 2]);
+			});
+
+			test('should transform the paths to positions for nested schema', () => {
+				schema = new Schema({
+					foo: new Schema({
+						bar: { path: '1', type: String },
+					}),
+				});
+				const properties = ['foo.bar'];
+				expect(schema.transformPathsToDbPositions(properties)).toEqual([1]);
+			});
+
+			test('should transform the paths to positions for DocumentArray schemaType if an array of Schema is passed', () => {
+				schema = new Schema({
+					foo: [
+						new Schema({
+							bar: { path: '1', type: String },
+						}),
+					],
+				});
+				const properties = ['foo.bar'];
+				expect(schema.transformPathsToDbPositions(properties)).toEqual([1]);
+			});
+
+			test('should transform the paths to positions for NestedArrayType schemaType', () => {
+				schema = new Schema({
+					foo: [[{ path: '1', type: String }]],
+				});
+				const properties = ['foo'];
+				expect(schema.transformPathsToDbPositions(properties)).toEqual([1]);
+			});
+
+			test('should skip the path if no keys are found in positionPaths', () => {
+				const properties = ['foo', 'bar3.'];
+				expect(schema.transformPathsToDbPositions(properties)).toEqual([1]);
+			});
+
+			test('should skip the transformation if path is not an array', () => {
+				const properties = 'foo';
+				expect(schema.transformPathsToDbPositions(properties)).toEqual([]);
 			});
 		});
 	});
