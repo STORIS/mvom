@@ -1,4 +1,8 @@
 # CHANGELOG.md
+## 1.0.0-rc.1
+###### _2021-10-19_
+- Fix projection error on schemaless models @mengwu
+
 ## 1.0.0-rc.0
 ###### _2021-10-18_
 - Node 12 is now minimum version @kthompson23
