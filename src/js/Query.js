@@ -104,7 +104,7 @@ class Query {
 			options.limit = this._limit;
 		}
 
-		options.projection = this._Model.schema.transformPathsToDbPositions(this._projection);
+		options.projection = this._Model.schema?.transformPathsToDbPositions(this._projection) ?? [];
 
 		this._Model.connection.logger.debug(`executing query "${queryCommand}"`);
 		const data = await this._Model.connection.executeDbFeature('find', options);

@@ -241,6 +241,46 @@ describe('compileModel', () => {
 					});
 				});
 			});
+
+			describe('schemaless file', () => {
+				let SchemaLessTest;
+				beforeEach(() => {
+					SchemaLessTest = compileModel(connection, null, 'foo');
+					stub(SchemaLessTest, 'makeModelFromDbResult');
+				});
+
+				describe('findByIds', () => {
+					test('should skip transformPathsToDbPositions', async () => {
+						const result = [{ record: ['foo1'], _id: 'bar1', __v: 'baz1' }];
+						executeDbFeature.resolves({ result });
+						await SchemaLessTest.findByIds('id1', { projection: ['projection1'] });
+						expect(
+							executeDbFeature.calledWith('findByIds', {
+								filename: Test.file,
+								ids: ['id1'],
+								projection: [],
+							}),
+						).toBe(true);
+						expect(transformPathsToDbPositions.callCount).toBe(0);
+					});
+				});
+
+				describe('findById', () => {
+					test('should skip transformPathsToDbPositions', async () => {
+						const result = { record: ['foo1'], _id: 'bar1', __v: 'baz1' };
+						executeDbFeature.resolves({ result });
+						await SchemaLessTest.findById('id1', { projection: ['projection1'] });
+						expect(
+							executeDbFeature.calledWith('findById', {
+								filename: Test.file,
+								id: 'id1',
+								projection: [],
+							}),
+						).toBe(true);
+						expect(transformPathsToDbPositions.callCount).toBe(0);
+					});
+				});
+			});
 		});
 
 		describe('constructor', () => {

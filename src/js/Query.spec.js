@@ -28,6 +28,13 @@ describe('Query', () => {
 		makeModelFromDbResult.mockImplementation((args) => args);
 	});
 
+	test('should throw InvalidParameterError when the provided projection is not array', async () => {
+		const selection = { foo: 'FOO_VALUE' };
+		const options = { sort: ['foo'], skip: 10, limit: 10, projection: 'sa' };
+		expect(() => new Query(Model, selection, options)).toThrow(InvalidParameterError);
+		expect(logger.debug).not.toHaveBeenCalled();
+		expect(executeDbFeature).not.toHaveBeenCalled();
+	});
 	describe('exec', () => {
 		test('should not apply any selection, sort, limit, or skip criteria provided none', async () => {
 			const query = new Query(Model);
@@ -61,6 +68,22 @@ describe('Query', () => {
 				queryCommand: 'select FILE with FOO = "FOO_VALUE" by FOO',
 				skip: 10,
 				limit: 10,
+				projection: [],
+			});
+		});
+
+		test('should skip projection when schema file is null', async () => {
+			const testMode = { ...Model, schema: null };
+			const query = new Query(testMode);
+
+			expect(await query.exec()).toEqual({ count: data.count, documents: data.documents });
+			expect(logger.debug).toHaveBeenCalledTimes(1);
+			expect(logger.debug).toHaveBeenNthCalledWith(1, 'executing query "select FILE"');
+			expect(executeDbFeature).toHaveBeenCalledTimes(1);
+			expect(executeDbFeature).toHaveBeenNthCalledWith(1, 'find', {
+				filename: 'FILE',
+				queryCommand: 'select FILE',
+				skip: 0,
 				projection: [],
 			});
 		});

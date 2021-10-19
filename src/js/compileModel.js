@@ -147,7 +147,7 @@ const compileModel = (connection, schema, file) => {
 			const data = await Model.connection.executeDbFeature('findById', {
 				filename: Model.file,
 				id,
-				projection: schema.transformPathsToDbPositions(projection),
+				projection: Model.schema?.transformPathsToDbPositions(projection) ?? [],
 			});
 
 			// if the database returns a result, instantiate a new model with it -- otherwise return null
@@ -179,7 +179,7 @@ const compileModel = (connection, schema, file) => {
 			const data = await Model.connection.executeDbFeature('findByIds', {
 				filename: Model.file,
 				ids: idsArray,
-				projection: schema.transformPathsToDbPositions(projection),
+				projection: Model.schema?.transformPathsToDbPositions(projection) ?? [],
 			});
 
 			// returns an array of newly instantiated Models
