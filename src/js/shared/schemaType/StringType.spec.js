@@ -1,8 +1,5 @@
-/* eslint-disable no-underscore-dangle */
-/* eslint-disable-next-line import/named */
-import StringType, { __RewireAPI__ as RewireAPI } from './StringType';
-// eslint-disable-next-line import/order
 import { stub } from 'sinon';
+import StringType, { __RewireAPI__ as RewireAPI } from './StringType';
 
 describe('StringType', () => {
 	class InvalidParameterError extends Error {}
@@ -86,12 +83,12 @@ describe('StringType', () => {
 			});
 
 			describe('enum', () => {
-				it('should return empty string if enum contains empty string', () => {
+				test('should return empty string if enum contains empty string', () => {
 					const stringType = new StringType({ path: '1', enum: ['', 'foo', 'bar'] });
 					expect(stringType.transformFromDb(null)).toBe('');
 				});
 
-				it('should return null if enum does not contain empty string', () => {
+				test('should return null if enum does not contain empty string', () => {
 					const stringType = new StringType({ path: '1', enum: ['foo', 'bar'] });
 					expect(stringType.transformFromDb(null)).toBeNull();
 				});

@@ -1,6 +1,4 @@
-/* eslint-disable no-underscore-dangle */
 import { stub } from 'sinon';
-/* eslint-disable-next-line import/named */
 import ISOTimeType, { __RewireAPI__ as RewireAPI } from './ISOTimeType';
 
 describe('ISOTimeType', () => {

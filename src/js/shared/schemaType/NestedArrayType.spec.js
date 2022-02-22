@@ -1,12 +1,10 @@
-/* eslint-disable no-underscore-dangle */
 import { castArray } from 'lodash';
 import { spy, stub } from 'sinon';
-import SimpleType from './SimpleType';
-/* eslint-disable-next-line import/named */
 import NestedArrayType, { __RewireAPI__ as RewireAPI } from './NestedArrayType';
+import SimpleType from './SimpleType';
 
 describe('NestedArrayType', () => {
-	const SimpleTypeExtended = class extends SimpleType {
+	class SimpleTypeExtended extends SimpleType {
 		getFromMvData = stub();
 
 		setIntoMvData = stub();
@@ -20,7 +18,7 @@ describe('NestedArrayType', () => {
 		validate = stub();
 
 		definition = {};
-	};
+	}
 
 	describe('instance methods', () => {
 		describe('get', () => {
@@ -51,7 +49,7 @@ describe('NestedArrayType', () => {
 				expect(nestedArrayType.get()).toEqual([]);
 			});
 
-			test('should return a transformed nested array when given a primitive value ', () => {
+			test('should return a transformed nested array when given a primitive value', () => {
 				simpleType.getFromMvData.returns('foo');
 				expect(nestedArrayType.get()).toEqual([['def']]);
 			});

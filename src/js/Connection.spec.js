@@ -1,15 +1,13 @@
-/* eslint-disable no-underscore-dangle */
 import { stub, useFakeTimers } from 'sinon';
 import {
 	dbErrors,
-	mvEpoch,
 	ISOCalendarDateFormat,
 	ISOCalendarDateTimeFormat,
 	ISOTimeFormat,
+	mvEpoch,
 } from '#shared/constants';
 import { mockLogger } from '#test/helpers';
-/* eslint-disable-next-line import/named */
-import Connection, { ConnectionStatus, __RewireAPI__ as RewireAPI } from './Connection';
+import Connection, { CONNECTION_STATUS, __RewireAPI__ as RewireAPI } from './Connection';
 
 describe('Connection', () => {
 	class ConnectionManagerError extends Error {}
@@ -60,7 +58,7 @@ describe('Connection', () => {
 			});
 
 			test('should return the result of fs.readFile()', async () => {
-				expect(await Connection.getUnibasicSource('baz')).toEqual('foo');
+				expect(await Connection.getUnibasicSource('baz')).toBe('foo');
 			});
 		});
 
@@ -128,7 +126,7 @@ describe('Connection', () => {
 			).toMatchObject({
 				_endpoint: 'foo/bar/subroutine/entry',
 				logger: mockLogger,
-				status: ConnectionStatus.DISCONNECTED,
+				status: CONNECTION_STATUS.DISCONNECTED,
 				_cacheMaxAge: 'baz',
 				_timeout: 'qux',
 			});
@@ -170,7 +168,7 @@ describe('Connection', () => {
 			test('should change state to CONNECTED if nothing invalid is found', async () => {
 				connection._serverFeatureSet = { invalidFeatures: [] };
 				await connection.open();
-				expect(connection.status).toBe(ConnectionStatus.CONNECTED);
+				expect(connection.status).toBe(CONNECTION_STATUS.CONNECTED);
 			});
 
 			test('should reject if something invalid is found', async () => {
@@ -186,7 +184,7 @@ describe('Connection', () => {
 				} catch (err) {
 					// ignore
 				}
-				expect(connection.status).toBe(ConnectionStatus.DISCONNECTED);
+				expect(connection.status).toBe(CONNECTION_STATUS.DISCONNECTED);
 			});
 		});
 
@@ -433,7 +431,7 @@ describe('Connection', () => {
 			});
 
 			beforeEach(() => {
-				connection.status = ConnectionStatus.DISCONNECTED;
+				connection.status = CONNECTION_STATUS.DISCONNECTED;
 				compileModel.resetHistory();
 			});
 
@@ -448,12 +446,12 @@ describe('Connection', () => {
 			});
 
 			test('should return the result from compileModel', () => {
-				connection.status = ConnectionStatus.CONNECTED;
+				connection.status = CONNECTION_STATUS.CONNECTED;
 				expect(connection.model()).toBe('compileModelResult');
 			});
 
 			test('should call compileModel with the expected parameters', () => {
-				connection.status = ConnectionStatus.CONNECTED;
+				connection.status = CONNECTION_STATUS.CONNECTED;
 				connection.model('foo', 'bar');
 				expect(compileModel.calledWith(connection, 'foo', 'bar')).toBe(true);
 			});
@@ -500,7 +498,7 @@ describe('Connection', () => {
 
 			test('should return the data.output property', async () => {
 				post.resolves({ data: { output: 'bar' } });
-				expect(await connection._executeDb({ action: 'foo' })).toEqual('bar');
+				expect(await connection._executeDb({ action: 'foo' })).toBe('bar');
 			});
 
 			describe('request parameters', () => {

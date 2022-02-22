@@ -39,7 +39,7 @@ const compileModel = (connection, schema, file) => {
 		/* static properties */
 
 		/**
-		 * Connection instance which constructed this model defininition
+		 * Connection instance which constructed this model definition
 		 * @member {Connection} connection
 		 * @memberof Model
 		 * @static
@@ -61,6 +61,66 @@ const compileModel = (connection, schema, file) => {
 		 * @static
 		 */
 		static schema = schema;
+
+		constructor({ _id = null, __v = null, data = {}, record } = {}) {
+			super(Model.schema, { data, record });
+
+			Object.defineProperties(this, {
+				/**
+				 * Public id of model instance
+				 * @member {string} _id
+				 * @memberof Model
+				 * @instance
+				 * @public
+				 */
+				_id: {
+					enumerable: true,
+					get: () => this.__id,
+					set: (value) => {
+						if (this.__id != null) {
+							throw new Error('_id value cannot be changed once set');
+						}
+						this.__id = value;
+					},
+				},
+				/**
+				 * Private id of model instance
+				 * @member {string} __id
+				 * @memberof Model
+				 * @instance
+				 * @private
+				 */
+				__id: {
+					value: _id,
+					writable: true,
+				},
+				/**
+				 * Version hash of model instance
+				 * @member {uuid} __v
+				 * @memberof Model
+				 * @instance
+				 * @public
+				 */
+				__v: {
+					value: __v,
+					enumerable: true,
+				},
+				save: {
+					configurable: false,
+					enumerable: false,
+					writable: false,
+				},
+			});
+
+			Model.connection.logger.debug(`creating new instance of model for file ${Model.file}`);
+
+			this.transformationErrors.forEach((error) => {
+				// errors occurred while transforming data from multivalue format - log them
+				Model.connection.logger.warn(
+					`error transforming data -- file: ${Model.file}; _id: ${this._id}; class: ${error.transformClass}; value: ${error.transformValue}`,
+				);
+			});
+		}
 
 		/* static methods */
 
@@ -223,66 +283,6 @@ const compileModel = (connection, schema, file) => {
 			const model = new Model({ _id, __v, record });
 			return model;
 		};
-
-		constructor({ _id = null, __v = null, data = {}, record } = {}) {
-			super(Model.schema, { data, record });
-
-			Object.defineProperties(this, {
-				/**
-				 * Public id of model instance
-				 * @member {string} _id
-				 * @memberof Model
-				 * @instance
-				 * @public
-				 */
-				_id: {
-					enumerable: true,
-					get: () => this.__id,
-					set: (value) => {
-						if (this.__id != null) {
-							throw new Error('_id value cannot be changed once set');
-						}
-						this.__id = value;
-					},
-				},
-				/**
-				 * Private id of model instance
-				 * @member {string} __id
-				 * @memberof Model
-				 * @instance
-				 * @private
-				 */
-				__id: {
-					value: _id,
-					writable: true,
-				},
-				/**
-				 * Version hash of model instance
-				 * @member {uuid} __v
-				 * @memberof Model
-				 * @instance
-				 * @public
-				 */
-				__v: {
-					value: __v,
-					enumerable: true,
-				},
-				save: {
-					configurable: false,
-					enumerable: false,
-					writable: false,
-				},
-			});
-
-			Model.connection.logger.debug(`creating new instance of model for file ${Model.file}`);
-
-			this.transformationErrors.forEach((error) => {
-				// errors occurred while transforming data from multivalue format - log them
-				Model.connection.logger.warn(
-					`error transforming data -- file: ${Model.file}; _id: ${this._id}; class: ${error.transformClass}; value: ${error.transformValue}`,
-				);
-			});
-		}
 
 		/**
 		 * Save a document to the database

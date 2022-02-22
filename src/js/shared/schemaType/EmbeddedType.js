@@ -1,6 +1,6 @@
 import { cloneDeep, isPlainObject, set as setIn } from 'lodash';
-import ComplexType from './ComplexType';
 import Document from '../../Document';
+import ComplexType from './ComplexType';
 
 /**
  * An Embedded Schema Type

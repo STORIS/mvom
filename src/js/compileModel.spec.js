@@ -1,7 +1,5 @@
-/* eslint-disable no-underscore-dangle */
 import { stub } from 'sinon';
 import { mockLogger } from '#test/helpers';
-/* eslint-disable-next-line import/named */
 import compileModel, { __RewireAPI__ as RewireAPI } from './compileModel';
 
 describe('compileModel', () => {
@@ -11,7 +9,7 @@ describe('compileModel', () => {
 	const transformRecordToDocument = stub();
 	const transformPathsToDbPositions = stub();
 	const validate = stub();
-	const Document = class {
+	class Document {
 		_transformRecordToDocument = transformRecordToDocument;
 
 		validate = validate;
@@ -20,7 +18,7 @@ describe('compileModel', () => {
 			{ transformClass: 'class1', transformValue: 'value1' },
 			{ transformClass: 'class2', transformValue: 'value2' },
 		];
-	};
+	}
 	const executeDbFeature = stub();
 	const queryConstructor = stub();
 	const exec = stub();
@@ -28,7 +26,7 @@ describe('compileModel', () => {
 	class DataValidationError extends Error {}
 	class InvalidParameterError extends Error {}
 	beforeAll(() => {
-		const Connection = class {};
+		class Connection {}
 		RewireAPI.__Rewire__('Connection', Connection);
 		connection = new Connection();
 		connection.logger = mockLogger;
@@ -37,18 +35,18 @@ describe('compileModel', () => {
 		RewireAPI.__Rewire__('Document', Document);
 		RewireAPI.__Rewire__('InvalidParameterError', InvalidParameterError);
 
-		const Query = class {
+		class Query {
+			exec = exec;
+
 			constructor(Model, selectionCriteria, options) {
 				queryConstructor(Model, selectionCriteria, options);
 			}
-
-			exec = exec;
-		};
+		}
 		RewireAPI.__Rewire__('Query', Query);
 
-		const Schema = class {
+		class Schema {
 			transformPathsToDbPositions = transformPathsToDbPositions;
-		};
+		}
 		RewireAPI.__Rewire__('Schema', Schema);
 		schema = new Schema();
 
@@ -88,175 +86,177 @@ describe('compileModel', () => {
 
 	describe('Model class', () => {
 		describe('static methods', () => {
-			let Test;
-			beforeAll(() => {
-				Test = compileModel(connection, schema, 'foo');
-			});
-
-			describe('find', () => {
-				beforeEach(() => {
-					exec.resolves({ count: 5, documents: ['foo', 'bar'] });
-				});
-
-				test('should call the query constructor with the passed parameters', async () => {
-					await Test.find('foo', 'bar');
-					expect(queryConstructor.calledWith(Test, 'foo', 'bar')).toBe(true);
-				});
-
-				test('should return the results of the execution of the query', async () => {
-					expect(await Test.find()).toEqual(['foo', 'bar']);
-				});
-			});
-
-			describe('findAndCount', () => {
-				beforeEach(() => {
-					exec.resolves({ count: 5, documents: ['foo', 'bar'] });
-				});
-
-				test('should call the query constructor with the passed parameters', async () => {
-					await Test.findAndCount('foo', 'bar');
-					expect(queryConstructor.calledWith(Test, 'foo', 'bar')).toBe(true);
-				});
-
-				test('should return the results of the execution of the query', async () => {
-					expect(await Test.findAndCount()).toEqual({ count: 5, documents: ['foo', 'bar'] });
-				});
-			});
-
-			describe('readFileContentsById', () => {
-				test('should return the Base64 string', async () => {
-					const result = 'base64string';
-					executeDbFeature.resolves({ result });
-					expect(await Test.readFileContentsById()).toBe(result);
-				});
-
-				test('should return null if no result is returned', async () => {
-					const result = null;
-					executeDbFeature.resolves({ result });
-					expect(await Test.readFileContentsById()).toBeNull();
-				});
-			});
-
-			describe('makeModelFromDbResult', () => {
-				test('should return an instance of the model', () => {
-					expect(Test.makeModelFromDbResult()).toBeInstanceOf(Test);
-				});
-
-				test('should return an instance of the model with the passed id and version values', async () => {
-					expect(
-						await Test.makeModelFromDbResult({ record: 'foo', _id: 'bar', __v: 'baz' }),
-					).toMatchObject({
-						_id: 'bar',
-						__id: 'bar',
-						__v: 'baz',
-					});
-				});
-			});
-
-			describe('calls makeModelFromDbResult', () => {
+			describe('file with schema', () => {
+				let Model;
 				beforeAll(() => {
-					stub(Test, 'makeModelFromDbResult');
+					Model = compileModel(connection, schema, 'foo');
 				});
 
-				afterAll(() => {
-					Test.makeModelFromDbResult.restore();
+				describe('find', () => {
+					beforeEach(() => {
+						exec.resolves({ count: 5, documents: ['foo', 'bar'] });
+					});
+
+					test('should call the query constructor with the passed parameters', async () => {
+						await Model.find('foo', 'bar');
+						expect(queryConstructor.calledWith(Model, 'foo', 'bar')).toBe(true);
+					});
+
+					test('should return the results of the execution of the query', async () => {
+						expect(await Model.find()).toEqual(['foo', 'bar']);
+					});
 				});
 
-				beforeEach(() => {
-					Test.makeModelFromDbResult.resetHistory();
+				describe('findAndCount', () => {
+					beforeEach(() => {
+						exec.resolves({ count: 5, documents: ['foo', 'bar'] });
+					});
+
+					test('should call the query constructor with the passed parameters', async () => {
+						await Model.findAndCount('foo', 'bar');
+						expect(queryConstructor.calledWith(Model, 'foo', 'bar')).toBe(true);
+					});
+
+					test('should return the results of the execution of the query', async () => {
+						expect(await Model.findAndCount()).toEqual({ count: 5, documents: ['foo', 'bar'] });
+					});
 				});
 
-				describe('deleteById', () => {
-					test('should call makeModelFromDbResult', async () => {
-						const result = { record: 'foo', _id: 'bar', __v: 'baz' };
+				describe('readFileContentsById', () => {
+					test('should return the Base64 string', async () => {
+						const result = 'base64string';
 						executeDbFeature.resolves({ result });
-						await Test.deleteById();
-						expect(Test.makeModelFromDbResult.calledOnce).toBe(true);
-						expect(Test.makeModelFromDbResult.calledWith(result)).toBe(true);
+						expect(await Model.readFileContentsById()).toBe(result);
 					});
 
-					test('should return null if dbFeature resolves with null', async () => {
-						executeDbFeature.resolves({ result: null });
-						expect(await Test.deleteById()).toBeNull();
+					test('should return null if no result is returned', async () => {
+						const result = null;
+						executeDbFeature.resolves({ result });
+						expect(await Model.readFileContentsById()).toBeNull();
 					});
 				});
 
-				describe('findById', () => {
-					test('should call makeModelFromDbResult', async () => {
-						const result = { record: 'foo', _id: 'bar', __v: 'baz' };
-						executeDbFeature.resolves({ result });
-						await Test.findById();
-						expect(Test.makeModelFromDbResult.calledOnce).toBe(true);
-						expect(Test.makeModelFromDbResult.calledWith(result)).toBe(true);
-						expect(transformPathsToDbPositions.calledWith([])).toBe(true);
+				describe('makeModelFromDbResult', () => {
+					test('should return an instance of the model', () => {
+						expect(Model.makeModelFromDbResult()).toBeInstanceOf(Model);
 					});
 
-					test('should return null if the dbFeature returns empty string (document not found)', async () => {
-						executeDbFeature.resolves({ result: '' });
-						expect(await Test.findById(1, { projection: ['projection1'] })).toBeNull();
-						expect(transformPathsToDbPositions.calledWith(['projection1'])).toBe(true);
-					});
-				});
-
-				describe('findByIds', () => {
-					test('should call makeModelFromDbResult for each item in the result array', async () => {
-						const result = [
-							{ record: 'foo1', _id: 'bar1', __v: 'baz1' },
-							{ record: 'foo2', _id: 'bar2', __v: 'baz2' },
-							{ record: 'foo3', _id: 'bar3', __v: 'baz3' },
-						];
-						executeDbFeature.resolves({ result });
-						await Test.findByIds(['id1', 'id2', 'id3']);
-						expect(Test.makeModelFromDbResult.calledThrice).toBe(true);
-						expect(Test.makeModelFromDbResult.firstCall.calledWith(result[0])).toBe(true);
-						expect(Test.makeModelFromDbResult.secondCall.calledWith(result[1])).toBe(true);
-						expect(Test.makeModelFromDbResult.thirdCall.calledWith(result[2])).toBe(true);
-						expect(transformPathsToDbPositions.calledWith([])).toBe(true);
-					});
-
-					test('should call findByIds dbFeature with an array even if a single id is passed in', async () => {
-						const result = [{ record: 'foo1', _id: 'bar1', __v: 'baz1' }];
-						executeDbFeature.resolves({ result });
-						transformPathsToDbPositions.returns([1]);
-						await Test.findByIds('id1', { projection: ['projection1'] });
+					test('should return an instance of the model with the passed id and version values', async () => {
 						expect(
-							executeDbFeature.calledWith('findByIds', {
-								filename: Test.file,
-								ids: ['id1'],
-								projection: [1],
-							}),
-						).toBe(true);
-						expect(transformPathsToDbPositions.calledWith(['projection1'])).toBe(true);
+							await Model.makeModelFromDbResult({ record: 'foo', _id: 'bar', __v: 'baz' }),
+						).toMatchObject({
+							_id: 'bar',
+							__id: 'bar',
+							__v: 'baz',
+						});
+					});
+				});
+
+				describe('calls makeModelFromDbResult', () => {
+					beforeAll(() => {
+						stub(Model, 'makeModelFromDbResult');
 					});
 
-					test('should return an array with null values for each empty string passed back from the dbFeature', async () => {
-						const expectedResult = [null, null, null];
-						const dbResult = ['', '', ''];
-						executeDbFeature.resolves({ result: dbResult });
-						expect(await Test.findByIds(['id1', {}, []])).toEqual(expectedResult);
+					afterAll(() => {
+						Model.makeModelFromDbResult.restore();
 					});
 
-					test('should throw an InvalidParameterError if no ids are passed in', async () => {
-						await expect(Test.findByIds()).rejects.toThrow(InvalidParameterError);
+					beforeEach(() => {
+						Model.makeModelFromDbResult.resetHistory();
+					});
+
+					describe('deleteById', () => {
+						test('should call makeModelFromDbResult', async () => {
+							const result = { record: 'foo', _id: 'bar', __v: 'baz' };
+							executeDbFeature.resolves({ result });
+							await Model.deleteById();
+							expect(Model.makeModelFromDbResult.calledOnce).toBe(true);
+							expect(Model.makeModelFromDbResult.calledWith(result)).toBe(true);
+						});
+
+						test('should return null if dbFeature resolves with null', async () => {
+							executeDbFeature.resolves({ result: null });
+							expect(await Model.deleteById()).toBeNull();
+						});
+					});
+
+					describe('findById', () => {
+						test('should call makeModelFromDbResult', async () => {
+							const result = { record: 'foo', _id: 'bar', __v: 'baz' };
+							executeDbFeature.resolves({ result });
+							await Model.findById();
+							expect(Model.makeModelFromDbResult.calledOnce).toBe(true);
+							expect(Model.makeModelFromDbResult.calledWith(result)).toBe(true);
+							expect(transformPathsToDbPositions.calledWith([])).toBe(true);
+						});
+
+						test('should return null if the dbFeature returns empty string (document not found)', async () => {
+							executeDbFeature.resolves({ result: '' });
+							expect(await Model.findById(1, { projection: ['projection1'] })).toBeNull();
+							expect(transformPathsToDbPositions.calledWith(['projection1'])).toBe(true);
+						});
+					});
+
+					describe('findByIds', () => {
+						test('should call makeModelFromDbResult for each item in the result array', async () => {
+							const result = [
+								{ record: 'foo1', _id: 'bar1', __v: 'baz1' },
+								{ record: 'foo2', _id: 'bar2', __v: 'baz2' },
+								{ record: 'foo3', _id: 'bar3', __v: 'baz3' },
+							];
+							executeDbFeature.resolves({ result });
+							await Model.findByIds(['id1', 'id2', 'id3']);
+							expect(Model.makeModelFromDbResult.calledThrice).toBe(true);
+							expect(Model.makeModelFromDbResult.firstCall.calledWith(result[0])).toBe(true);
+							expect(Model.makeModelFromDbResult.secondCall.calledWith(result[1])).toBe(true);
+							expect(Model.makeModelFromDbResult.thirdCall.calledWith(result[2])).toBe(true);
+							expect(transformPathsToDbPositions.calledWith([])).toBe(true);
+						});
+
+						test('should call findByIds dbFeature with an array even if a single id is passed in', async () => {
+							const result = [{ record: 'foo1', _id: 'bar1', __v: 'baz1' }];
+							executeDbFeature.resolves({ result });
+							transformPathsToDbPositions.returns([1]);
+							await Model.findByIds('id1', { projection: ['projection1'] });
+							expect(
+								executeDbFeature.calledWith('findByIds', {
+									filename: Model.file,
+									ids: ['id1'],
+									projection: [1],
+								}),
+							).toBe(true);
+							expect(transformPathsToDbPositions.calledWith(['projection1'])).toBe(true);
+						});
+
+						test('should return an array with null values for each empty string passed back from the dbFeature', async () => {
+							const expectedResult = [null, null, null];
+							const dbResult = ['', '', ''];
+							executeDbFeature.resolves({ result: dbResult });
+							expect(await Model.findByIds(['id1', {}, []])).toEqual(expectedResult);
+						});
+
+						test('should throw an InvalidParameterError if no ids are passed in', async () => {
+							await expect(Model.findByIds()).rejects.toThrow(InvalidParameterError);
+						});
 					});
 				});
 			});
 
 			describe('schemaless file', () => {
-				let SchemaLessTest;
+				let Model;
 				beforeEach(() => {
-					SchemaLessTest = compileModel(connection, null, 'foo');
-					stub(SchemaLessTest, 'makeModelFromDbResult');
+					Model = compileModel(connection, null, 'foo');
+					stub(Model, 'makeModelFromDbResult');
 				});
 
 				describe('findByIds', () => {
 					test('should skip transformPathsToDbPositions', async () => {
 						const result = [{ record: ['foo1'], _id: 'bar1', __v: 'baz1' }];
 						executeDbFeature.resolves({ result });
-						await SchemaLessTest.findByIds('id1', { projection: ['projection1'] });
+						await Model.findByIds('id1', { projection: ['projection1'] });
 						expect(
 							executeDbFeature.calledWith('findByIds', {
-								filename: Test.file,
+								filename: Model.file,
 								ids: ['id1'],
 								projection: [],
 							}),
@@ -269,10 +269,10 @@ describe('compileModel', () => {
 					test('should skip transformPathsToDbPositions', async () => {
 						const result = { record: ['foo1'], _id: 'bar1', __v: 'baz1' };
 						executeDbFeature.resolves({ result });
-						await SchemaLessTest.findById('id1', { projection: ['projection1'] });
+						await Model.findById('id1', { projection: ['projection1'] });
 						expect(
 							executeDbFeature.calledWith('findById', {
-								filename: Test.file,
+								filename: Model.file,
 								id: 'id1',
 								projection: [],
 							}),
@@ -285,13 +285,13 @@ describe('compileModel', () => {
 
 		describe('constructor', () => {
 			test('should instantiate a new instance of the class', () => {
-				const Test = compileModel(connection, schema, 'foo');
-				expect(new Test()).toBeInstanceOf(Test);
+				const Model = compileModel(connection, schema, 'foo');
+				expect(new Model()).toBeInstanceOf(Model);
 			});
 
 			test('should set the expected instance properties', async () => {
-				const Test = compileModel(connection, schema, 'foo');
-				expect(new Test({ _id: 'bar', __v: 'baz' })).toMatchObject({
+				const Model = compileModel(connection, schema, 'foo');
+				expect(new Model({ _id: 'bar', __v: 'baz' })).toMatchObject({
 					_id: 'bar',
 					__id: 'bar',
 					__v: 'baz',
@@ -299,36 +299,35 @@ describe('compileModel', () => {
 			});
 
 			test('should call the warn logger once for each transformation error added by the Document constructor', () => {
-				const Test = compileModel(connection, schema, 'foo');
-				// eslint-disable-next-line no-unused-vars
-				const test = new Test();
+				const Model = compileModel(connection, schema, 'foo');
+				new Model();
 				expect(connection.logger.warn.calledTwice).toBe(true);
 			});
 		});
 
 		describe('instance methods', () => {
 			const filename = 'filename-value';
-			let Test;
+			let Model;
 			beforeAll(() => {
-				Test = compileModel(connection, schema, filename);
+				Model = compileModel(connection, schema, filename);
 			});
 
 			describe('save', () => {
 				test('should throw an error if an _id has not been added to the instance', async () => {
-					const test = new Test();
+					const test = new Model();
 					await expect(test.save()).rejects.toThrow();
 				});
 
 				test('should throw DataValidationError if validate resolves with errors', async () => {
 					validate.resolves({ foo: 'bar' });
-					const test = new Test({ _id: 'foo' });
+					const test = new Model({ _id: 'foo' });
 					await expect(test.save()).rejects.toThrow(DataValidationError);
 				});
 
 				test('should instantiate a new model instance with the results of the dbFeature execution', async () => {
 					validate.resolves({});
 					executeDbFeature.resolves({ result: { record: [], _id: 'bar', __v: 'baz' } });
-					const test = new Test({ _id: 'foo' });
+					const test = new Model({ _id: 'foo' });
 					test.transformDocumentToRecord = stub();
 					test.buildForeignKeyDefinitions = stub();
 					expect(await test.save()).toMatchObject({ _id: 'bar', __id: 'bar', __v: 'baz' });
@@ -340,38 +339,34 @@ describe('compileModel', () => {
 					error.other = { foo: 'bar' };
 					executeDbFeature.rejects(error);
 					const _id = '_id-value';
-					const test = new Test({ _id });
+					const test = new Model({ _id });
 					test.transformDocumentToRecord = stub();
 					test.buildForeignKeyDefinitions = stub();
-					try {
-						await test.save();
-						expect(false).toBe(true); // if save() doesn't reject then that is a failed test
-					} catch (err) {
-						const expected = {
-							other: {
-								foo: 'bar',
-								filename,
-								_id,
-							},
-						};
 
-						expect(err).toMatchObject(expected);
-					}
+					const expected = {
+						other: {
+							foo: 'bar',
+							filename,
+							_id,
+						},
+					};
+
+					await expect(test.save()).rejects.toThrow(expect.objectContaining(expected));
 				});
 			});
 		});
 
 		describe('instance setters', () => {
 			test('should set the hidden __id property', () => {
-				const Test = compileModel(connection, schema, 'foo');
-				const test = new Test();
+				const Model = compileModel(connection, schema, 'foo');
+				const test = new Model();
 				test._id = 'foo';
 				expect(test.__id).toBe('foo');
 			});
 
 			test('should disallow mutating the hidden __id property once set', () => {
-				const Test = compileModel(connection, schema, 'foo');
-				const test = new Test();
+				const Model = compileModel(connection, schema, 'foo');
+				const test = new Model();
 				test._id = 'foo';
 				expect(() => {
 					test._id = 'bar';

@@ -1,14 +1,12 @@
-/* eslint-disable no-underscore-dangle */
 import { stub } from 'sinon';
-/* eslint-disable-next-line import/named */
 import BasePrimitiveArrayType, { __RewireAPI__ as RewireAPI } from './BasePrimitiveArrayType';
 
 describe('BasePrimitiveArrayType', () => {
-	const SimpleType = class {
+	class SimpleType {
 		transformToQuery = stub();
 
 		definition = {};
-	};
+	}
 
 	class DisallowDirectError extends Error {}
 	class InvalidParameterError extends Error {}
@@ -45,7 +43,7 @@ describe('BasePrimitiveArrayType', () => {
 		describe('cast', () => {
 			let extension;
 			beforeAll(() => {
-				const Extension = class extends BasePrimitiveArrayType {};
+				class Extension extends BasePrimitiveArrayType {}
 				extension = new Extension(new SimpleType());
 			});
 
@@ -65,7 +63,7 @@ describe('BasePrimitiveArrayType', () => {
 		describe('get', () => {
 			let extension;
 			beforeAll(() => {
-				const Extension = class extends BasePrimitiveArrayType {};
+				class Extension extends BasePrimitiveArrayType {}
 				extension = new Extension(new SimpleType());
 			});
 
@@ -77,7 +75,7 @@ describe('BasePrimitiveArrayType', () => {
 		describe('set', () => {
 			let extension;
 			beforeAll(() => {
-				const Extension = class extends BasePrimitiveArrayType {};
+				class Extension extends BasePrimitiveArrayType {}
 				extension = new Extension(new SimpleType());
 			});
 
@@ -90,7 +88,7 @@ describe('BasePrimitiveArrayType', () => {
 			let extension;
 			let simpleType;
 			beforeAll(() => {
-				const Extension = class extends BasePrimitiveArrayType {};
+				class Extension extends BasePrimitiveArrayType {}
 				simpleType = new SimpleType();
 				extension = new Extension(simpleType);
 			});
@@ -113,7 +111,7 @@ describe('BasePrimitiveArrayType', () => {
 		describe('validate', () => {
 			let extension;
 			beforeAll(() => {
-				const Extension = class extends BasePrimitiveArrayType {};
+				class Extension extends BasePrimitiveArrayType {}
 				extension = new Extension(new SimpleType());
 			});
 

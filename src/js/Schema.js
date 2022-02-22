@@ -1,8 +1,6 @@
 import { isObject, isPlainObject } from 'lodash';
-import * as schemaType from '#sharedjs/schemaType';
 import { InvalidParameterError } from '#shared/errors';
-
-const {
+import {
 	ArrayType,
 	BooleanType,
 	DocumentArrayType,
@@ -13,7 +11,7 @@ const {
 	NestedArrayType,
 	NumberType,
 	StringType,
-} = schemaType;
+} from '#sharedjs/schemaType';
 
 /**
  * A schema object
@@ -169,16 +167,15 @@ class Schema {
 	 * @instance
 	 * @returns {Map<String, Number[]>} Map of positionPaths represented in the Schema and any subdocument schemas
 	 */
-	getPositionPaths = () => {
+	getPositionPaths = () =>
 		// merge the positionPaths from subdocumentSchemas with parentPath appended by the childPath recursively
-		return Array.from(this._subdocumentSchemas.entries()).reduce((mvPaths, [parentKey, schema]) => {
+		Array.from(this._subdocumentSchemas.entries()).reduce((mvPaths, [parentKey, schema]) => {
 			const childrenPositions = schema.getPositionPaths();
 			childrenPositions.forEach((subPath, subKey) => {
 				mvPaths.set(`${parentKey}.${subKey}`, subPath);
 			});
 			return mvPaths;
 		}, new Map(this._positionPaths));
-	};
 
 	/**
 	 * Transform the paths to positions

@@ -15,36 +15,6 @@ import SimpleType from './SimpleType';
  * @throws {InvalidParameterError} An invalid parameter was passed to the function
  */
 class StringType extends SimpleType {
-	/**
-	 * Create validation object for enum validation
-	 * @function handleEnumValidation
-	 * @memberof StringType
-	 * @static
-	 * @private
-	 * @param {Function|AsyncFunction} defaultValidator - Enum validation function to use
-	 * @returns {ValidationObject} Object containing validation function and failure message
-	 */
-	static handleEnumValidation = (defaultValidator) => {
-		const message = 'Value not present in list of allowed values';
-
-		return { validator: defaultValidator, message };
-	};
-
-	/**
-	 * Create validation object for match validation
-	 * @function matchValidation
-	 * @memberof StringType
-	 * @static
-	 * @private
-	 * @param {Function|AsyncFunction} defaultValidator - Match validation function to use
-	 * @returns {ValidationObject} Object containing validation function and failure message
-	 */
-	static matchValidation = (defaultValidator) => {
-		const message = 'Value does not match pattern';
-
-		return { validator: defaultValidator, message };
-	};
-
 	constructor(definition, options) {
 		if (definition.path == null) {
 			throw new InvalidParameterError({ parameterName: 'definition.path' });
@@ -89,6 +59,36 @@ class StringType extends SimpleType {
 		this._validators.unshift(StringType.matchValidation(this._validateMatch));
 		this._validators.unshift(StringType.handleEnumValidation(this._validateEnum));
 	}
+
+	/**
+	 * Create validation object for enum validation
+	 * @function handleEnumValidation
+	 * @memberof StringType
+	 * @static
+	 * @private
+	 * @param {Function|AsyncFunction} defaultValidator - Enum validation function to use
+	 * @returns {ValidationObject} Object containing validation function and failure message
+	 */
+	static handleEnumValidation = (defaultValidator) => {
+		const message = 'Value not present in list of allowed values';
+
+		return { validator: defaultValidator, message };
+	};
+
+	/**
+	 * Create validation object for match validation
+	 * @function matchValidation
+	 * @memberof StringType
+	 * @static
+	 * @private
+	 * @param {Function|AsyncFunction} defaultValidator - Match validation function to use
+	 * @returns {ValidationObject} Object containing validation function and failure message
+	 */
+	static matchValidation = (defaultValidator) => {
+		const message = 'Value does not match pattern';
+
+		return { validator: defaultValidator, message };
+	};
 
 	/**
 	 * Transform mv string to js string

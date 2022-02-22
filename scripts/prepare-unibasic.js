@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
+import path from 'path';
 import fs from 'fs-extra';
 import nunjucks from 'nunjucks';
-import path from 'path';
 import { dbErrors } from '#shared/constants';
 
 const inputDir = path.join(process.cwd(), 'src', 'unibasicTemplates');

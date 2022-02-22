@@ -1,4 +1,3 @@
-/* eslint-disable-next-line import/named */
 import BaseType, { __RewireAPI__ as RewireAPI } from './BaseType';
 
 describe('BaseType', () => {

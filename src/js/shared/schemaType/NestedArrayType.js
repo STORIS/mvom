@@ -54,12 +54,11 @@ class NestedArrayType extends BasePrimitiveArrayType {
 	 * @param {Array.<Array.<*>>} value - Nested foreign key values which will be checked against the foreign file
 	 * @returns {*[]} Array of foreign key definitions
 	 */
-	transformForeignKeyDefinitionsToDb = (value) => {
-		return castArray(value)
+	transformForeignKeyDefinitionsToDb = (value) =>
+		castArray(value)
 			.flat(Infinity)
 			.map((nestedValue) => this._valueSchemaType.transformForeignKeyDefinitionsToDb(nestedValue))
 			.flat();
-	};
 
 	/**
 	 * Validate the nested array

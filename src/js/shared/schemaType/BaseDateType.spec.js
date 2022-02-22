@@ -1,6 +1,4 @@
-/* eslint-disable no-underscore-dangle */
 import { stub } from 'sinon';
-/* eslint-disable-next-line import/named */
 import BaseDateType, { __RewireAPI__ as RewireAPI } from './BaseDateType';
 
 describe('BaseDateType', () => {
@@ -23,7 +21,7 @@ describe('BaseDateType', () => {
 		describe('transformToQuery', () => {
 			let extension;
 			beforeAll(() => {
-				const Extension = class extends BaseDateType {};
+				class Extension extends BaseDateType {}
 				extension = new Extension({});
 				stub(extension, 'transformToDb');
 				extension.transformToDb.returnsArg(0);

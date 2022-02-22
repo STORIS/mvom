@@ -2,7 +2,7 @@ import ComplexType from './ComplexType';
 
 describe('ComplexType', () => {
 	describe('constructor', () => {
-		const Extension = class extends ComplexType {};
+		class Extension extends ComplexType {}
 
 		test('should not be able to instantiate directly', () => {
 			expect(() => new ComplexType()).toThrow();

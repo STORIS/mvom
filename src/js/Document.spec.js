@@ -1,6 +1,4 @@
-/* eslint-disable no-underscore-dangle */
 import { stub } from 'sinon';
-/* eslint-disable-next-line import/named */
 import Document, { __RewireAPI__ as RewireAPI } from './Document';
 import Schema from './Schema';
 
@@ -18,9 +16,9 @@ describe('Document', () => {
 	});
 
 	describe('constructor', () => {
-		const SchemaRewire = class {
+		class SchemaRewire {
 			paths = {};
-		};
+		}
 		beforeAll(() => {
 			RewireAPI.__Rewire__('Schema', SchemaRewire);
 		});
@@ -98,7 +96,7 @@ describe('Document', () => {
 		describe('transformDocumentToRecord', () => {
 			const get = stub();
 			const set = stub();
-			const SchemaRewire = class {
+			class SchemaRewire {
 				paths = {
 					foo: {
 						get,
@@ -109,7 +107,7 @@ describe('Document', () => {
 						set,
 					},
 				};
-			};
+			}
 			let document;
 
 			beforeAll(() => {
@@ -161,7 +159,7 @@ describe('Document', () => {
 			const cast = stub();
 			const get = stub();
 			const validate = stub();
-			const SchemaRewire = class {
+			class SchemaRewire {
 				paths = {
 					foo: {
 						cast,
@@ -174,7 +172,7 @@ describe('Document', () => {
 						validate,
 					},
 				};
-			};
+			}
 			let document;
 
 			beforeAll(() => {
@@ -236,7 +234,7 @@ describe('Document', () => {
 				});
 
 				describe('idMatch', () => {
-					const SchemaWithIdMatch = class {
+					class SchemaWithIdMatch {
 						paths = {
 							foo: {
 								cast,
@@ -251,7 +249,7 @@ describe('Document', () => {
 						};
 
 						idMatch = /\w+\*+\w/;
-					};
+					}
 					let newDocument;
 
 					beforeAll(() => {
@@ -301,7 +299,7 @@ describe('Document', () => {
 			describe('stubbed tests', () => {
 				const get = stub();
 				const setIn = stub();
-				const SchemaRewire = class {
+				class SchemaRewire {
 					paths = {
 						foo: {
 							get,
@@ -310,7 +308,7 @@ describe('Document', () => {
 							get,
 						},
 					};
-				};
+				}
 				let document;
 
 				beforeAll(() => {
@@ -375,7 +373,7 @@ describe('Document', () => {
 				test('should push two instances of TransformDataError on to transformationErrors instance property if get throws with TransformDataError', () => {
 					get.throws(new TransformDataError());
 					document._transformRecordToDocument([]);
-					expect(document.transformationErrors.length).toBe(2);
+					expect(document.transformationErrors).toHaveLength(2);
 					expect(document.transformationErrors[0]).toBeInstanceOf(TransformDataError);
 					expect(document.transformationErrors[1]).toBeInstanceOf(TransformDataError);
 				});

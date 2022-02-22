@@ -35,7 +35,7 @@ describe('ISOCalendarDateTimeType', () => {
 			});
 
 			test('should return a interpolated string of the results from the Date and Time classes', () => {
-				expect(isoCalendarDateTimeType.transformFromDb('19534.43200000')).toEqual(
+				expect(isoCalendarDateTimeType.transformFromDb('19534.43200000')).toBe(
 					'2021-06-23T12:00:00.000',
 				);
 			});
@@ -89,7 +89,6 @@ describe('ISOCalendarDateTimeType', () => {
 		describe('_validateType', () => {
 			const isoCalendarDateTimeType = new ISOCalendarDateTimeType({ path: '1' });
 
-			/* eslint-disable no-underscore-dangle */
 			test('should resolve as true if value is undefined', async () => {
 				expect(await isoCalendarDateTimeType._validateType()).toBe(true);
 			});
@@ -136,7 +135,6 @@ describe('ISOCalendarDateTimeType', () => {
 					expect(await isoCalendarDateTimeType._validateType('fooTbar')).toBe(true);
 				});
 			});
-			/* eslint-enable no-underscore-dangle */
 		});
 	});
 });

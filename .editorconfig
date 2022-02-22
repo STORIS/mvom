@@ -17,6 +17,6 @@ insert_final_newline = true
 [*.md]
 trim_trailing_whitespace = false
 
-[*.{js,jsx,css,html}]
+[*.{cjs,mjs,js,jsx,ts,d.ts,css,html]
 indent_style = tab
 indent_size = unset

@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "allowJs": true
+  },
+  "extends": "./tsconfig.json",
+  "include": [
+    "src/**/*", // source folder
+    "scripts/**/*", // scripts folder
+    "test/**/*", // test helpers
+    "./.*.cjs", // root commonjs files
+    "./.*.mjs", // root esm files
+    "./*.js", // root javascript files
+    "./.*.js", // root javascript config files
+    "__mocks__/**/*" // jest mocks
+  ]
+}

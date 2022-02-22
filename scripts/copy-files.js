@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
-import fs from 'fs-extra';
 import path from 'path';
+import fs from 'fs-extra';
 import packageData from '../package.json';
 
 const getBuildPath = (file) => path.join(process.cwd(), 'dist', path.basename(file));

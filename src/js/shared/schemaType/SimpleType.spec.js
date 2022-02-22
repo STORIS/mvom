@@ -1,6 +1,4 @@
-/* eslint-disable no-underscore-dangle */
 import { stub } from 'sinon';
-/* eslint-disable-next-line import/named */
 import SimpleType, { __RewireAPI__ as RewireAPI } from './SimpleType';
 
 describe('SimpleType', () => {
@@ -51,7 +49,7 @@ describe('SimpleType', () => {
 			const getFromMvData = stub();
 			const transformFromDb = stub();
 			beforeAll(() => {
-				const Extension = class extends SimpleType {};
+				class Extension extends SimpleType {}
 				extension = new Extension({});
 				extension.getFromMvData = getFromMvData;
 				extension.transformFromDb = transformFromDb;
@@ -71,24 +69,24 @@ describe('SimpleType', () => {
 
 		describe('getFromMvData', () => {
 			let extension;
-			const encrypt = stub();
-			const decrypt = stub().returnsArg(0);
+			const encrypt = jest.fn();
+			const decrypt = jest.fn();
 
 			beforeAll(() => {
-				const Extension = class extends SimpleType {};
+				class Extension extends SimpleType {}
 				extension = new Extension({});
 			});
 
 			beforeEach(() => {
+				decrypt.mockImplementation((...args) => args[0]);
 				extension.path = null;
-				decrypt.resetHistory();
 			});
 
 			test("should call getFromMvArray with the passed record and the instance's path", () => {
 				extension.path = [1];
 				extension.getFromMvData(['foo']);
-				expect(getFromMvArray.args[0][0]).toEqual(['foo']);
-				expect(getFromMvArray.args[0][1]).toEqual([1]);
+				expect(getFromMvArray.args[0][0]).toEqual([1]);
+				expect(getFromMvArray.args[0][1]).toEqual(['foo']);
 			});
 
 			test('should return the value returned from getFromMvArray', () => {
@@ -97,19 +95,19 @@ describe('SimpleType', () => {
 			});
 
 			test('should not decrypt the value if the field is not marked as encrypted', () => {
-				const Extension = class extends SimpleType {};
+				class Extension extends SimpleType {}
 				extension = new Extension({ encrypted: false }, { encrypt, decrypt });
 				getFromMvArray.returns('foo');
 				expect(extension.getFromMvData()).toBe('foo');
-				expect(decrypt.notCalled);
+				expect(decrypt).not.toHaveBeenCalled();
 			});
 
 			test('should decrypt the value if the field is marked as encrypted', () => {
-				const Extension = class extends SimpleType {};
+				class Extension extends SimpleType {}
 				extension = new Extension({ encrypted: true }, { encrypt, decrypt });
 				getFromMvArray.returns('foo');
 				expect(extension.getFromMvData()).toBe('foo');
-				expect(decrypt.calledWith('foo'));
+				expect(decrypt).toHaveBeenCalledWith('foo');
 			});
 		});
 
@@ -118,7 +116,7 @@ describe('SimpleType', () => {
 			const setIntoMvData = stub();
 			const transformToDb = stub();
 			beforeAll(() => {
-				const Extension = class extends SimpleType {};
+				class Extension extends SimpleType {}
 				extension = new Extension({});
 				extension.setIntoMvData = setIntoMvData;
 				extension.transformToDb = transformToDb;
@@ -149,16 +147,16 @@ describe('SimpleType', () => {
 
 		describe('setIntoMvData', () => {
 			let extension;
-			const encrypt = stub().returnsArg(0);
-			const decrypt = stub();
+			const encrypt = jest.fn();
+			const decrypt = jest.fn();
 
 			beforeAll(() => {
-				const Extension = class extends SimpleType {};
+				class Extension extends SimpleType {}
 				extension = new Extension({});
 			});
 
 			beforeEach(() => {
-				encrypt.resetHistory();
+				encrypt.mockImplementation((...args) => args[0]);
 			});
 
 			test('should return unchanged array if instance path is null', () => {
@@ -166,12 +164,12 @@ describe('SimpleType', () => {
 				expect(extension.setIntoMvData(['foo', 'bar'])).toEqual(['foo', 'bar']);
 			});
 
-			test('should set the value at the array position specifed by the path', () => {
+			test('should set the value at the array position specified by the path', () => {
 				extension.path = [2];
 				expect(extension.setIntoMvData(['foo', 'bar'], 'baz')).toEqual(['foo', 'bar', 'baz']);
 			});
 
-			test('should set the value at the nested array position specifed by the path', () => {
+			test('should set the value at the nested array position specified by the path', () => {
 				extension.path = [2, 1];
 				expect(extension.setIntoMvData(['foo', 'bar'], 'baz')).toEqual([
 					'foo',
@@ -180,7 +178,7 @@ describe('SimpleType', () => {
 				]);
 			});
 
-			test('should set the value at the deeply nested array position specifed by the path', () => {
+			test('should set the value at the deeply nested array position specified by the path', () => {
 				extension.path = [2, 1, 1];
 				expect(extension.setIntoMvData(['foo', 'bar'], 'baz')).toEqual([
 					'foo',
@@ -190,26 +188,26 @@ describe('SimpleType', () => {
 			});
 
 			test('should not encrypt the value if the field is not marked as encrypted', () => {
-				const Extension = class extends SimpleType {};
+				class Extension extends SimpleType {}
 				extension = new Extension({ encrypted: false }, { encrypt, decrypt });
 				extension.path = [2];
 				expect(extension.setIntoMvData(['foo', 'bar'], 'baz')).toEqual(['foo', 'bar', 'baz']);
-				expect(encrypt.notCalled);
+				expect(encrypt).not.toHaveBeenCalled();
 			});
 
 			test('should encrypt the value if the field is marked as encrypted', () => {
-				const Extension = class extends SimpleType {};
+				class Extension extends SimpleType {}
 				extension = new Extension({ encrypted: true }, { encrypt, decrypt });
 				extension.path = [2];
 				expect(extension.setIntoMvData(['foo', 'bar'], 'baz')).toEqual(['foo', 'bar', 'baz']);
-				expect(encrypt.calledWith('baz'));
+				expect(encrypt).toHaveBeenCalledWith('baz');
 			});
 		});
 
 		describe('transformFromDb', () => {
 			let extension;
 			beforeAll(() => {
-				const Extension = class extends SimpleType {};
+				class Extension extends SimpleType {}
 				extension = new Extension({});
 			});
 
@@ -221,7 +219,7 @@ describe('SimpleType', () => {
 		describe('transformToDb', () => {
 			let extension;
 			beforeAll(() => {
-				const Extension = class extends SimpleType {};
+				class Extension extends SimpleType {}
 				extension = new Extension({});
 			});
 
@@ -233,7 +231,7 @@ describe('SimpleType', () => {
 		describe('transformToQuery', () => {
 			let extension;
 			beforeAll(() => {
-				const Extension = class extends SimpleType {};
+				class Extension extends SimpleType {}
 				extension = new Extension({});
 			});
 
@@ -247,7 +245,7 @@ describe('SimpleType', () => {
 			const fooValidator = stub();
 			const barValidator = stub();
 			beforeAll(() => {
-				const Extension = class extends SimpleType {};
+				class Extension extends SimpleType {}
 				extension = new Extension({});
 				extension._validators.push({ validator: fooValidator, message: 'foo' });
 				extension._validators.push({ validator: barValidator, message: 'bar' });
@@ -291,7 +289,7 @@ describe('SimpleType', () => {
 		describe('_normalizeMvPath', () => {
 			let extension;
 			beforeAll(() => {
-				const Extension = class extends SimpleType {};
+				class Extension extends SimpleType {}
 				extension = new Extension({});
 			});
 
@@ -301,7 +299,7 @@ describe('SimpleType', () => {
 
 			test('should set path to null if path is not provided', () => {
 				extension._normalizeMvPath();
-				expect(extension.path).toEqual(null);
+				expect(extension.path).toBeNull();
 			});
 
 			test('should throw an error if an integer-like string is not provided', () => {
@@ -326,7 +324,7 @@ describe('SimpleType', () => {
 		describe('_validateRequired', () => {
 			let extension;
 			beforeAll(() => {
-				const Extension = class extends SimpleType {};
+				class Extension extends SimpleType {}
 				extension = new Extension({});
 			});
 

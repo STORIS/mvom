@@ -1,4 +1,4 @@
-import { ValidationFunction, Validator } from '#shared/types';
+import type { ValidationFunction, Validator } from '#shared/types';
 
 /**
  * Create Validator for type validation

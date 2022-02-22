@@ -1,101 +1,130 @@
+const { rules: baseRules } = require('@storis/eslint-config/nodejs');
+
+const baseNamingRules = baseRules['@typescript-eslint/naming-convention'].slice(1);
+
 module.exports = {
-	extends: ['airbnb-base'],
-	env: { es6: true, node: true, jest: true },
-	globals: {
-		__rewire_reset_all__: false,
-	},
+	extends: ['@storis/eslint-config/nodejs'],
+
+	parserOptions: { tsconfigRootDir: __dirname, project: './tsconfig.eslint.json' },
+
+	settings: { 'import/resolver': { 'babel-module': { extensions: ['.js', '.ts'] } } },
+
+	globals: { __rewire_reset_all__: false },
+
 	rules: {
-		// allow class methods which do not use this
-		'class-methods-use-this': ['off'],
-		// disable import extensions for ts and js files
-		'import/extensions': [
+		// set up naming convention rules
+		'@typescript-eslint/naming-convention': [
 			'error',
-			'ignorePackages',
+			// allow parameters and variables to be named "Model"
 			{
-				ts: 'never',
-				js: 'never',
+				selector: ['parameter', 'variable'],
+				filter: { regex: '^Model$', match: true },
+				format: ['PascalCase'],
 			},
+			...baseNamingRules,
 		],
 	},
-	settings: { 'import/resolver': { 'babel-module': {} } },
+
 	overrides: [
 		{
-			files: ['**/*.ts'],
-			parser: '@typescript-eslint/parser',
-			parserOptions: { project: './tsconfig.json' },
-			extends: [
-				'plugin:@typescript-eslint/recommended',
-				'plugin:import/typescript',
-				'plugin:prettier/recommended',
-			],
-			plugins: ['@typescript-eslint'],
+			files: ['**/*.js'],
 			rules: {
-				// turn off eslint camelcase rule (handled by naming-convention)
-				camelcase: 'off',
-				// make naming convention rule consistent with airbnb camelcase
+				// set up naming convention rules
 				'@typescript-eslint/naming-convention': [
 					'error',
-					// camelCase for everything not otherwise indicated
-					{ selector: 'default', format: ['camelCase'] },
-					// allow known default exclusions
-					{ selector: 'default', filter: { regex: '^(_id|__v|_raw)$', match: true }, format: null },
-					// allow variables to be camelCase or UPPER_CASE
-					{ selector: 'variable', format: ['camelCase', 'UPPER_CASE'] },
-					// allow known variable exclusions
+					// allow parameters and variables to be named "Model"
 					{
-						selector: 'variable',
-						filter: { regex: '^(_id|__v|_raw)$', match: true },
-						format: null,
-					},
-					// do not enforce format on property names
-					{ selector: 'property', format: null },
-					// PascalCase for classes and TypeScript keywords
-					{
-						selector: ['typeLike'],
+						selector: ['parameter', 'variable'],
+						filter: { regex: '^Model$', match: true },
 						format: ['PascalCase'],
 					},
-					// allow trailing ASC and DESC on enumerations
+					// allow class methods to lead with underscores
+					{ selector: 'classMethod', format: ['camelCase'], leadingUnderscore: 'allow' },
+					...baseNamingRules,
+				],
+			},
+		},
+
+		{
+			files: ['**/*.spec.js'],
+			rules: {
+				// allow tests to create multiple classes
+				'max-classes-per-file': 'off',
+
+				// allow side effect constructors
+				'no-new': 'off',
+
+				// allow import with CommonJS export
+				'import/no-import-module-exports': 'off',
+
+				// allow dev dependencies
+				'import/no-extraneous-dependencies': [
+					'error',
+					{ devDependencies: true, optionalDependencies: false, peerDependencies: false },
+				],
+
+				// allow explicit any in tests
+				'@typescript-eslint/no-explicit-any': 'off',
+
+				// allow non-null-assertions
+				'@typescript-eslint/no-non-null-assertion': 'off',
+
+				// disallow use of "it" for test blocks
+				'jest/consistent-test-it': ['error', { fn: 'test', withinDescribe: 'test' }],
+
+				// ensure all tests contain an assertion
+				'jest/expect-expect': 'error',
+
+				// no commented out tests
+				'jest/no-commented-out-tests': 'error',
+
+				// no duplicate test hooks
+				'jest/no-duplicate-hooks': 'error',
+
+				// valid titles
+				'jest/valid-title': 'error',
+
+				// no if conditionals in tests
+				'jest/no-if': 'error',
+
+				// expect statements in test blocks
+				'jest/no-standalone-expect': 'error',
+
+				// disallow returning from test
+				'jest/no-test-return-statement': 'error',
+
+				// disallow truthy and falsy in tests
+				'jest/no-restricted-matchers': ['error', { toBeFalsy: null, toBeTruthy: null }],
+
+				// prefer called with
+				'jest/prefer-called-with': 'error',
+
+				// allow empty arrow functions
+				'@typescript-eslint/no-empty-function': ['error', { allow: ['arrowFunctions'] }],
+
+				'@typescript-eslint/naming-convention': [
+					'error',
+					// allow parameters and variables to be named "Model"
 					{
-						selector: 'enumMember',
-						filter: { regex: '^.*?_(ASC|DESC)$', match: true },
-						format: null,
+						selector: ['parameter', 'variable'],
+						filter: { regex: '^Model$', match: true },
+						format: ['PascalCase'],
 					},
+					// allow variables to be camelCase or UPPER_CASE and have leading underscore
+					{ selector: 'variable', format: ['camelCase', 'UPPER_CASE'], leadingUnderscore: 'allow' },
+					...baseNamingRules,
 				],
-				// make ts no-unused-vars rule line up with airbnb variant
-				'@typescript-eslint/no-unused-vars': [
-					'error',
-					{ vars: 'all', args: 'after-used', ignoreRestSiblings: true },
-				],
-				// enforce consistent order of class members
-				'@typescript-eslint/member-ordering': 'error',
-				// ensure consistent array typings
-				'@typescript-eslint/array-type': 'error',
-				// force explicit member accessibility modifiers
-				'@typescript-eslint/explicit-member-accessibility': 'error',
-				// disallow parameter properties in favor of explicit class declarations
-				'@typescript-eslint/no-parameter-properties': 'error',
 			},
 		},
+
 		{
-			files: ['**/*.js'],
-			parser: '@babel/eslint-parser',
-			extends: ['plugin:prettier/recommended'],
+			files: ['./.*.js', './*.js'],
 			rules: {
-				// allow _id, __v, and use of rewire
-				'no-underscore-dangle': [
-					'error',
-					{ allow: ['_id', '__v', '__Rewire__', '__ResetDependency__'], allowAfterThis: true },
-				],
+				// allow requires in config files
+				'@typescript-eslint/no-var-requires': 'off',
 			},
 		},
-		{
-			files: ['**/index.*'],
-			rules: {
-				// in index files, always use named exports
-				'import/prefer-default-export': 'off',
-				'import/no-default-export': 'error',
-			},
-		},
+
 		{
 			files: ['**/scripts/**'],
 			rules: {
@@ -104,24 +133,6 @@ module.exports = {
 					'error',
 					{ devDependencies: true, optionalDependencies: false, peerDependencies: false },
 				],
-			},
-		},
-		{
-			files: ['**/test/**', '**/*.test.ts', '**/*.spec.js'],
-			rules: {
-				// allow explicit any in tests
-				'@typescript-eslint/no-explicit-any': 'off',
-				// allow dev dependencies
-				'import/no-extraneous-dependencies': [
-					'error',
-					{ devDependencies: true, optionalDependencies: false, peerDependencies: false },
-				],
-				// allow non-null-assertions
-				'@typescript-eslint/no-non-null-assertion': 'off',
-				// allow ts-ignore in tests
-				'@typescript-eslint/ban-ts-ignore': 'off',
-				// allow tests to create multiple classes
-				'max-classes-per-file': 'off',
 			},
 		},
 	],

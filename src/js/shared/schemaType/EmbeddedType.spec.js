@@ -1,10 +1,8 @@
-/* eslint-disable no-underscore-dangle */
 import { stub } from 'sinon';
-/* eslint-disable-next-line import/named */
 import EmbeddedType, { __RewireAPI__ as RewireAPI } from './EmbeddedType';
 
 describe('EmbeddedType', () => {
-	const Schema = class {};
+	class Schema {}
 	beforeAll(() => {
 		RewireAPI.__Rewire__('Schema', Schema);
 	});
@@ -22,16 +20,16 @@ describe('EmbeddedType', () => {
 
 	describe('instance methods', () => {
 		const transformRecordToDocument = stub();
-		const Document = class {
+		class Document {
+			_transformRecordToDocument = transformRecordToDocument;
+
 			constructor(schema, { data, isSubdocument, record }) {
 				this._schema = schema;
 				this.data = data;
 				this._record = record;
 				this.isSubdocument = isSubdocument;
 			}
-
-			_transformRecordToDocument = transformRecordToDocument;
-		};
+		}
 		let embeddedType;
 		beforeAll(() => {
 			RewireAPI.__Rewire__('Document', Document);

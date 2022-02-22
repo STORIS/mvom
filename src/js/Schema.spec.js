@@ -1,6 +1,4 @@
-/* eslint-disable no-underscore-dangle */
 import { stub } from 'sinon';
-/* eslint-disable-next-line import/named */
 import Schema, { __RewireAPI__ as RewireAPI } from './Schema';
 
 describe('Schema', () => {
@@ -305,7 +303,7 @@ describe('Schema', () => {
 			test('should update the _positionPaths map with the keyPath and schemaType path', () => {
 				_isDataDefinition.returns(true);
 				schema._castDefinition({ type: String, path: '1' }, 'keyPath');
-				expect(schema._positionPaths.get('keyPath')).toEqual('foo');
+				expect(schema._positionPaths.get('keyPath')).toBe('foo');
 			});
 
 			test('should update the dictPaths object with the schemaType dictionary', () => {
@@ -328,7 +326,7 @@ describe('Schema', () => {
 
 			test('should add passed schema to _subdocumentSchemas', () => {
 				schema._handleSubDocumentSchemas('foo', 'keyPath');
-				expect(schema._subdocumentSchemas.get('keyPath')).toEqual('foo');
+				expect(schema._subdocumentSchemas.get('keyPath')).toBe('foo');
 			});
 
 			test('should call _mergeSchemaDictionaries with the passed parameters', () => {

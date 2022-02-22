@@ -1,12 +1,10 @@
-/* eslint-disable no-underscore-dangle */
 import { stub } from 'sinon';
-/* eslint-disable-next-line import/named */
 import DocumentArrayType, { __RewireAPI__ as RewireAPI } from './DocumentArrayType';
 
 describe('DocumentArrayType', () => {
-	const Schema = class {
+	class Schema {
 		getMvPaths = stub().returns([[0], [1], [2, 0]]);
-	};
+	}
 	beforeAll(() => {
 		RewireAPI.__Rewire__('Schema', Schema);
 	});
@@ -24,16 +22,16 @@ describe('DocumentArrayType', () => {
 
 	describe('instance methods', () => {
 		const transformRecordToDocument = stub();
-		const Document = class {
+		class Document {
+			_transformRecordToDocument = transformRecordToDocument;
+
 			constructor(schema, { data, isSubdocument, record }) {
 				this._schema = schema;
 				this.data = data;
 				this._record = record;
 				this.isSubdocument = isSubdocument;
 			}
-
-			_transformRecordToDocument = transformRecordToDocument;
-		};
+		}
 		let documentArrayType;
 
 		beforeAll(() => {
@@ -68,7 +66,7 @@ describe('DocumentArrayType', () => {
 				test('should return an array of length 1', () => {
 					const subdocArray = documentArrayType.cast(value);
 					expect(Array.isArray(subdocArray)).toBe(true);
-					expect(subdocArray.length).toBe(1);
+					expect(subdocArray).toHaveLength(1);
 				});
 
 				test('should pass the data type to the document constructor', () => {
@@ -93,7 +91,7 @@ describe('DocumentArrayType', () => {
 				test('should return an array of same length as passed array', () => {
 					const subdocArray = documentArrayType.cast(value);
 					expect(Array.isArray(subdocArray)).toBe(true);
-					expect(subdocArray.length).toBe(value.length);
+					expect(subdocArray).toHaveLength(value.length);
 				});
 
 				test('should pass the data type to the document constructor', () => {
@@ -121,7 +119,7 @@ describe('DocumentArrayType', () => {
 				test('should return an array of length 1', () => {
 					const subdocArray = documentArrayType.cast(value);
 					expect(Array.isArray(subdocArray)).toBe(true);
-					expect(subdocArray.length).toBe(1);
+					expect(subdocArray).toHaveLength(1);
 				});
 
 				test('should pass an empty object to the document constructor', () => {
@@ -146,9 +144,9 @@ describe('DocumentArrayType', () => {
 		});
 
 		describe('set', () => {
-			const SetSchema = class {
+			class SetSchema {
 				getMvPaths = stub().returns([[0], [1]]);
-			};
+			}
 			const setDocumentArrayType = new DocumentArrayType(new SetSchema());
 
 			test('should clear out the document array if an empty array is passed in', () => {

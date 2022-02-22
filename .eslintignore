@@ -5,8 +5,6 @@ node_modules
 dist
 # test coverage
 coverage
-# documentation
-docs
 
 ### files
 # typescript declaration files
@@ -15,3 +13,5 @@ docs
 ### file include overrides
 # root configuration files (e.g. .eslintrc.js)
 !.*.js
+!.*.cjs
+!.*.mjs

@@ -1,12 +1,10 @@
-/* eslint-disable no-underscore-dangle */
 import { castArray } from 'lodash';
 import { spy, stub } from 'sinon';
-import SimpleType from './SimpleType';
-/* eslint-disable-next-line import/named */
 import ArrayType, { __RewireAPI__ as RewireAPI } from './ArrayType';
+import SimpleType from './SimpleType';
 
 describe('ArrayType', () => {
-	const SimpleTypeExtended = class extends SimpleType {
+	class SimpleTypeExtended extends SimpleType {
 		getFromMvData = stub();
 
 		setIntoMvData = stub();
@@ -20,7 +18,7 @@ describe('ArrayType', () => {
 		validate = stub();
 
 		definition = {};
-	};
+	}
 
 	describe('instance methods', () => {
 		describe('get', () => {
@@ -49,7 +47,7 @@ describe('ArrayType', () => {
 				expect(arrayType.get()).toEqual([]);
 			});
 
-			test('should return a transformed array when given a primitive value ', () => {
+			test('should return a transformed array when given a primitive value', () => {
 				simpleType.getFromMvData.returns('foo');
 				expect(arrayType.get()).toEqual(['def']);
 			});
@@ -113,7 +111,7 @@ describe('ArrayType', () => {
 				simpleType.transformForeignKeyDefinitionsToDb.resetHistory();
 			});
 
-			test("should return a one level deep array comprised of each element's foreign key definition ", () => {
+			test("should return a one level deep array comprised of each element's foreign key definition", () => {
 				expect(arrayType.transformForeignKeyDefinitionsToDb(['foo', 'bar', 'baz'])).toEqual([
 					'def',
 					'henk',

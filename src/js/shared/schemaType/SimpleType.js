@@ -45,7 +45,7 @@ class SimpleType extends BaseType {
 		}
 
 		/**
-		 * Data definition which this schema type was cosntructed from
+		 * Data definition which this schema type was constructed from
 		 * @member {Object} definition
 		 * @memberof SimpleType
 		 * @instance
@@ -124,7 +124,7 @@ class SimpleType extends BaseType {
 	 * @returns {*} Value of data at specified location
 	 */
 	getFromMvData = (record) => {
-		const value = getFromMvArray(record, this.path);
+		const value = getFromMvArray(this.path, record);
 		return this._encrypted ? this._decrypt(value) : value;
 	};
 

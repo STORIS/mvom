@@ -1,4 +1,4 @@
-import { SchemaValidator, ValidationFunction, Validator } from '#shared/types';
+import type { SchemaValidator, ValidationFunction, Validator } from '#shared/types';
 
 /**
  * Create Validator for required validation

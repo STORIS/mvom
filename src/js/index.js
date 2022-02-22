@@ -21,6 +21,5 @@ const mvom = {
 	createConnection,
 };
 
-/* eslint-disable-next-line import/no-default-export */
 export default mvom;
 export { Document, Errors, Schema, createConnection };

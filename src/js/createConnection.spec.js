@@ -1,13 +1,12 @@
 import { stub } from 'sinon';
-/* eslint-disable-next-line import/named */
 import createConnection, { __RewireAPI__ as RewireAPI } from './createConnection';
 
 describe('createConnection', () => {
-	const Connection = stub();
+	const connection = stub();
 	const dummyLogger = stub();
 
 	beforeAll(() => {
-		RewireAPI.__Rewire__('Connection', Connection);
+		RewireAPI.__Rewire__('Connection', connection);
 		RewireAPI.__Rewire__('dummyLogger', dummyLogger);
 	});
 
@@ -17,13 +16,13 @@ describe('createConnection', () => {
 	});
 
 	beforeEach(() => {
-		Connection.resetHistory();
+		connection.resetHistory();
 	});
 
 	test('should return an instance of Connection object', () => {
-		expect(createConnection('foo', 'bar')).toBeInstanceOf(Connection);
+		expect(createConnection('foo', 'bar')).toBeInstanceOf(connection);
 		expect(
-			Connection.calledWith({
+			connection.calledWith({
 				connectionManagerUri: 'foo',
 				account: 'bar',
 				logger: dummyLogger,
@@ -38,21 +37,21 @@ describe('createConnection', () => {
 			const logger = 'logger-value';
 			createConnection('foo', 'bar', { logger });
 
-			expect(Connection.args[0][0].logger).toBe(logger);
+			expect(connection.args[0][0].logger).toBe(logger);
 		});
 
 		test('should allow the cacheMaxAge to be overridden', () => {
 			const cacheMaxAge = 1337;
 			createConnection('foo', 'bar', { cacheMaxAge });
 
-			expect(Connection.args[0][0].cacheMaxAge).toBe(cacheMaxAge);
+			expect(connection.args[0][0].cacheMaxAge).toBe(cacheMaxAge);
 		});
 
 		test('should allow the timeout to be overridden', () => {
 			const timeout = 1337;
 			createConnection('foo', 'bar', { timeout });
 
-			expect(Connection.args[0][0].timeout).toBe(timeout);
+			expect(connection.args[0][0].timeout).toBe(timeout);
 		});
 	});
 

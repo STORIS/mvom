@@ -1,6 +1,4 @@
-/* eslint-disable no-underscore-dangle */
 import { stub } from 'sinon';
-/* eslint-disable-next-line import/named */
 import ISOCalendarDate, { __RewireAPI__ as RewireAPI } from './ISOCalendarDateType';
 
 describe('ISOCalendarDate', () => {

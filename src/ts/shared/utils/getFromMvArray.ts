@@ -4,7 +4,7 @@ import { castArray } from 'lodash';
  * Get data from a multivalue array at a given path
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const getFromMvArray = (record: any[] = [], path: number[]): any => {
+const getFromMvArray = (path: number[], record: any[] = []): any => {
 	if (record[path[0]] == null || (path.length === 3 && record[path[0]][path[1]] == null)) {
 		// if the entire contents of the record at the base path is null then we must treat this as a special case:
 		// - returning undefined won't alter the behavior of simple data types (e.g. string, Boolean) since the undefined

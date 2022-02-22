@@ -1,0 +1,26 @@
+{
+  "words": [
+    "bar",
+    "baz",
+    "corge",
+    "def",
+    "foo",
+    "fred",
+    "garply",
+    "grault",
+    "henk",
+    "mos",
+    "multivalue",
+    "plugh",
+    "quux",
+    "qux",
+    "storis",
+    "subdocument",
+    "subdocuments",
+    "thud",
+    "uier",
+    "waldo",
+    "xyzzy"
+  ],
+  "enableFiletypes": ["!json"]
+}

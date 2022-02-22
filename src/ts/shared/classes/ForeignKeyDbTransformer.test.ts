@@ -1,8 +1,8 @@
 import ForeignKeyDbTransformer from './ForeignKeyDbTransformer';
 import type {
-	ForeignKeyDefinition,
 	CompoundForeignKeyDefinition,
 	ForeignKeyDbDefinition,
+	ForeignKeyDefinition,
 } from './ForeignKeyDbTransformer';
 
 describe('transform', () => {
