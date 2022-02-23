@@ -28,8 +28,8 @@ class ForeignKeyDbTransformer {
 	}
 
 	/** Transform schema foreign key definitions to the format required by the db server */
-	public transform = (value: string | null): ForeignKeyDbDefinition[] => {
-		if (value == null || this.foreignKeyDefinition == null) {
+	public transform = (value: unknown | null): ForeignKeyDbDefinition[] => {
+		if (typeof value !== 'string' || this.foreignKeyDefinition == null) {
 			return [];
 		}
 
