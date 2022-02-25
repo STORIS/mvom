@@ -12,7 +12,7 @@ abstract class BaseType {
 	}
 
 	/** Cast to complex data type (when applicable) */
-	protected cast<T>(value: T): T {
+	protected cast(value: unknown): unknown {
 		return value;
 	}
 
