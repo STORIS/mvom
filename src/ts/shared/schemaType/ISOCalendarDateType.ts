@@ -8,7 +8,7 @@ import type { ScalarTypeConstructorOptions } from './ScalarType';
 
 /** ISOCalendarDate Schema Type */
 class ISOCalendarDateType extends BaseDateType {
-	public constructor(definition: GenericObject, options: ScalarTypeConstructorOptions) {
+	public constructor(definition: GenericObject, options: ScalarTypeConstructorOptions = {}) {
 		super(definition, options);
 
 		// add validators for this type
