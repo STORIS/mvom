@@ -27,7 +27,7 @@ abstract class BaseSchemaType {
 	public abstract get(record: unknown[]): unknown;
 
 	/** Set value into mv data */
-	public abstract set(record: unknown[], value: unknown): unknown;
+	public abstract set(record: unknown[], value: unknown): unknown[];
 
 	/** Validate value */
 	public abstract validate(value: unknown, document: GenericObject): Promise<string[]>;

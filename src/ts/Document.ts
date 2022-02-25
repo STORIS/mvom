@@ -16,9 +16,19 @@ export interface DocumentConstructorOptions {
 	record?: unknown[];
 }
 
+export interface BuildForeignKeyDefinitionsResult {
+	filename: string;
+	entityName: string;
+	entityIds: string[];
+}
+
 /** A document object */
 class Document {
+	[key: string]: unknown;
+
 	public _id?: string;
+
+	public _raw?: unknown[];
 
 	/** Schema instance which defined this document */
 	private readonly schema: Schema;
@@ -76,11 +86,7 @@ class Document {
 	}
 
 	/** Build a list of foreign key definitions to be used by the database for foreign key validation */
-	public buildForeignKeyDefinitions(): {
-		filename: string;
-		entityName: string;
-		entityIds: string[];
-	}[] {
+	public buildForeignKeyDefinitions(): BuildForeignKeyDefinitionsResult[] {
 		if (this.schema === null) {
 			return [];
 		}
@@ -117,16 +123,17 @@ class Document {
 			});
 		}
 
-		return Array.from(definitionMap).reduce<
-			{ filename: string; entityName: string; entityIds: string[] }[]
-		>((acc, [key, value]) => {
-			const keyParts = key.split(separator);
-			const filename = keyParts[0];
-			// Just incase the entity name included a comma, rejoin
-			const entityName = keyParts.slice(1).join(separator);
-			acc.push({ filename, entityName, entityIds: Array.from(value) });
-			return acc;
-		}, []);
+		return Array.from(definitionMap).reduce<BuildForeignKeyDefinitionsResult[]>(
+			(acc, [key, value]) => {
+				const keyParts = key.split(separator);
+				const filename = keyParts[0];
+				// Just incase the entity name included a comma, rejoin
+				const entityName = keyParts.slice(1).join(separator);
+				acc.push({ filename, entityName, entityIds: Array.from(value) });
+				return acc;
+			},
+			[],
+		);
 	}
 
 	/** Validate document for errors */
@@ -139,7 +146,7 @@ class Document {
 			}
 			await Promise.all(
 				Object.entries(this.schema.paths).map(async ([keyPath, schemaType]) => {
-					let value = getIn(this, keyPath, null);
+					let value: unknown = getIn(this, keyPath, null);
 					// cast to complex data type if necessary
 					try {
 						value = schemaType.cast(value);

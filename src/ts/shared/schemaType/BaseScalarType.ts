@@ -88,7 +88,7 @@ abstract class BaseScalarType extends BaseSchemaType {
 	};
 
 	/** Transform into multivalue format and set specified value into mv record */
-	public set = (originalRecord: unknown[], value: unknown): unknown =>
+	public set = (originalRecord: unknown[], value: unknown): unknown[] =>
 		this.setIntoMvData(originalRecord, this.transformToDb(value));
 
 	/** Transform query constants to the format schema */
