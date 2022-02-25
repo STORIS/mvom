@@ -1,17 +1,26 @@
 import moment from 'moment';
 import { ISOTimeFormat } from '#shared/constants';
 import { TransformDataError } from '#shared/errors';
-import type { GenericObject } from '#shared/types';
 import { handleTypeValidation } from '#shared/utils';
 import BaseDateType from './BaseDateType';
+import type { ScalarTypeConstructorOptions } from './BaseScalarType';
+import type { SchemaTypeDefinitionBase } from './BaseSchemaType';
+
+export interface SchemaTypeDefinitionISOTime extends SchemaTypeDefinitionBase {
+	type: 'ISOTime';
+	dbFormat?: 's' | 'ms';
+}
 
 /** ISOTime Schema Type */
 class ISOTimeType extends BaseDateType {
 	/** Database time format is in milliseconds */
 	private isDbInMs: boolean;
 
-	public constructor(definition: GenericObject) {
-		super(definition);
+	public constructor(
+		definition: SchemaTypeDefinitionISOTime,
+		options: ScalarTypeConstructorOptions = {},
+	) {
+		super(definition, options);
 		const { dbFormat = 's' } = definition;
 		this.isDbInMs = dbFormat === 'ms';
 

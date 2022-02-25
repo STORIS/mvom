@@ -2,22 +2,36 @@ import { cloneDeep, set as setIn, toPath } from 'lodash';
 import { InvalidParameterError } from '#shared/errors';
 import type { DecryptFunc, EncryptFunc, GenericObject, SchemaValidator } from '#shared/types';
 import { getFromMvArray, handleRequiredValidation } from '#shared/utils';
-import BaseType from './BaseType';
+import BaseSchemaType from './BaseSchemaType';
+import type { SchemaTypeDefinitionBoolean } from './BooleanType';
+import type { SchemaTypeDefinitionISOCalendarDateTime } from './ISOCalendarDateTimeType';
+import type { SchemaTypeDefinitionISOCalendarDate } from './ISOCalendarDateType';
+import type { SchemaTypeDefinitionISOTime } from './ISOTimeType';
+import type { SchemaTypeDefinitionNumber } from './NumberType';
+import type { SchemaTypeDefinitionString } from './StringType';
 
 export interface ScalarTypeConstructorOptions {
-	encrypt?: EncryptFunc<unknown>;
-	decrypt?: DecryptFunc<unknown>;
+	encrypt?: EncryptFunc;
+	decrypt?: DecryptFunc;
 }
+
+export type SchemaTypeDefinitionScalar =
+	| SchemaTypeDefinitionBoolean
+	| SchemaTypeDefinitionISOCalendarDateTime
+	| SchemaTypeDefinitionISOCalendarDate
+	| SchemaTypeDefinitionISOTime
+	| SchemaTypeDefinitionNumber
+	| SchemaTypeDefinitionString;
 
 const ISVALID_SYMBOL = Symbol('Is Valid');
 
 /** Abstract Scalar Schema Type */
-abstract class BaseScalarType extends BaseType {
+abstract class BaseScalarType extends BaseSchemaType {
 	/** Data definition which this schema type was constructed from */
-	public definition: GenericObject;
+	public definition: SchemaTypeDefinitionScalar;
 
 	/** 0-indexed Array path */
-	public path: number[] | null;
+	public path: number[];
 
 	/** Multivalue dictionary id */
 	public dictionary: string | null;
@@ -29,18 +43,18 @@ abstract class BaseScalarType extends BaseType {
 	private encrypted: boolean;
 
 	/** Encrypt function to call on sensitive data before writing to the database */
-	private encrypt?: EncryptFunc<unknown>;
+	private encrypt?: EncryptFunc;
 
 	/** Decrypt function to call on sensitive data encrypted in the database */
-	private decrypt?: DecryptFunc<unknown>;
+	private decrypt?: DecryptFunc;
 
 	protected constructor(
-		definition: GenericObject = {},
+		definition: SchemaTypeDefinitionScalar,
 		{ encrypt, decrypt }: ScalarTypeConstructorOptions = {},
 	) {
 		super();
 
-		const { dictionary = null, path = null, required = false, encrypted = false } = definition;
+		const { path, dictionary = null, required = false, encrypted = false } = definition;
 
 		if (encrypted) {
 			if (typeof encrypt !== 'function') {
@@ -131,12 +145,8 @@ abstract class BaseScalarType extends BaseType {
 	 * Convert a 1-index string array path definition (e.g. '1.1.1') to a 0-index array path definition (e.g. [0, 0, 0])
 	 * @throws {@link InvalidParameterError} Path definition must be a string of integers split by periods
 	 */
-	private normalizeMvPath = (path: string): number[] | null => {
-		if (path == null) {
-			return null;
-		}
-
-		return toPath(path).map((val) => {
+	private normalizeMvPath = (path: string | number): number[] =>
+		toPath(path).map((val) => {
 			const numVal = +val;
 			if (!Number.isInteger(numVal) || numVal < 1) {
 				throw new InvalidParameterError({
@@ -146,7 +156,6 @@ abstract class BaseScalarType extends BaseType {
 			}
 			return numVal - 1;
 		});
-	};
 
 	/** Transform from mv data to externally formatted data */
 	public abstract transformFromDb(value: unknown): unknown;

@@ -22,7 +22,7 @@ class ForeignKeyDbTransformer {
 	private foreignKeyDefinition: ForeignKeyDefinition | CompoundForeignKeyDefinition | null;
 
 	public constructor(
-		foreignKeyDefinition: ForeignKeyDefinition | CompoundForeignKeyDefinition | null,
+		foreignKeyDefinition: ForeignKeyDefinition | CompoundForeignKeyDefinition | null = null,
 	) {
 		this.foreignKeyDefinition = foreignKeyDefinition;
 	}

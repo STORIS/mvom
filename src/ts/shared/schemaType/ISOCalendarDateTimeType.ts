@@ -2,16 +2,26 @@ import { TransformDataError } from '#shared/errors';
 import type { GenericObject } from '#shared/types';
 import { handleTypeValidation } from '#shared/utils';
 import BaseDateType from './BaseDateType';
+import type { ScalarTypeConstructorOptions } from './BaseScalarType';
+import type { SchemaTypeDefinitionBase } from './BaseSchemaType';
 import ISOCalendarDateType from './ISOCalendarDateType';
 import ISOTimeType from './ISOTimeType';
+
+export interface SchemaTypeDefinitionISOCalendarDateTime extends SchemaTypeDefinitionBase {
+	type: 'ISOCalendarDateTime';
+	dbFormat?: 's' | 'ms';
+}
 
 /** An ISOCalendarDateTime Schema Type */
 class ISOCalendarDateTimeType extends BaseDateType {
 	/** Format of database time storage ('s' or 'ms') */
 	private dbFormat: 's' | 'ms';
 
-	public constructor(definition: GenericObject) {
-		super(definition);
+	public constructor(
+		definition: SchemaTypeDefinitionISOCalendarDateTime,
+		options: ScalarTypeConstructorOptions = {},
+	) {
+		super(definition, options);
 
 		const { dbFormat = 'ms' } = definition;
 		this.dbFormat = dbFormat;

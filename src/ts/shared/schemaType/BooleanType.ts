@@ -1,9 +1,21 @@
+import type { ScalarTypeConstructorOptions } from './BaseScalarType';
 import BaseScalarType from './BaseScalarType';
+import type { SchemaTypeDefinitionBase } from './BaseSchemaType';
+
+export interface SchemaTypeDefinitionBoolean extends SchemaTypeDefinitionBase {
+	type: 'boolean';
+}
 
 /** Boolean Schema Type */
 class BooleanType extends BaseScalarType {
-	/** Transform mv style data to Boolean */
+	public constructor(
+		definition: SchemaTypeDefinitionBoolean,
+		options: ScalarTypeConstructorOptions = {},
+	) {
+		super(definition, options);
+	}
 
+	/** Transform mv style data to Boolean */
 	public transformFromDb(value: unknown): boolean {
 		// this logic is intentionally trying to mimic the Boolean rules of the UniBasic interpreter
 		return value != null && value !== '0' && value !== 0;

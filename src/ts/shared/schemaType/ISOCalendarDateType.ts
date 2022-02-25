@@ -1,14 +1,21 @@
 import moment from 'moment';
 import { ISOCalendarDateFormat, mvEpoch } from '#shared/constants';
 import { TransformDataError } from '#shared/errors';
-import type { GenericObject } from '#shared/types';
 import { handleTypeValidation } from '#shared/utils';
 import BaseDateType from './BaseDateType';
 import type { ScalarTypeConstructorOptions } from './BaseScalarType';
+import type { SchemaTypeDefinitionBase } from './BaseSchemaType';
+
+export interface SchemaTypeDefinitionISOCalendarDate extends SchemaTypeDefinitionBase {
+	type: 'ISOCalendarDate';
+}
 
 /** ISOCalendarDate Schema Type */
 class ISOCalendarDateType extends BaseDateType {
-	public constructor(definition: GenericObject, options: ScalarTypeConstructorOptions = {}) {
+	public constructor(
+		definition: SchemaTypeDefinitionISOCalendarDate,
+		options: ScalarTypeConstructorOptions = {},
+	) {
 		super(definition, options);
 
 		// add validators for this type

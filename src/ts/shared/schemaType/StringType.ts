@@ -1,9 +1,21 @@
 import { ForeignKeyDbTransformer } from '#shared/classes';
 import type { ForeignKeyDbDefinition } from '#shared/classes/ForeignKeyDbTransformer';
-import { InvalidParameterError } from '#shared/errors';
-import type { GenericObject, ValidationFunction, Validator } from '#shared/types';
+import type {
+	SchemaCompoundForeignKeyDefinition,
+	SchemaForeignKeyDefinition,
+	ValidationFunction,
+	Validator,
+} from '#shared/types';
 import type { ScalarTypeConstructorOptions } from './BaseScalarType';
 import BaseScalarType from './BaseScalarType';
+import type { SchemaTypeDefinitionBase } from './BaseSchemaType';
+
+export interface SchemaTypeDefinitionString extends SchemaTypeDefinitionBase {
+	type: 'string';
+	enum?: string[];
+	match?: RegExp;
+	foreignKey?: SchemaForeignKeyDefinition | SchemaCompoundForeignKeyDefinition;
+}
 
 /** String Schema Type */
 class StringType extends BaseScalarType {
@@ -16,18 +28,11 @@ class StringType extends BaseScalarType {
 	/* Transform schema foreign key definitions to the db format */
 	private foreignKeyDbTransformer: ForeignKeyDbTransformer;
 
-	public constructor(definition: GenericObject, options: ScalarTypeConstructorOptions) {
+	public constructor(
+		definition: SchemaTypeDefinitionString,
+		options: ScalarTypeConstructorOptions = {},
+	) {
 		super(definition, options);
-
-		if (definition.path == null) {
-			throw new InvalidParameterError({ parameterName: 'definition.path' });
-		}
-		if (definition.enum != null && !Array.isArray(definition.enum)) {
-			throw new InvalidParameterError({ parameterName: 'definition.enum' });
-		}
-		if (definition.match != null && !(definition.match instanceof RegExp)) {
-			throw new InvalidParameterError({ parameterName: 'definition.match' });
-		}
 
 		this.enum = definition.enum ?? null;
 		this.match = definition.match ?? null;

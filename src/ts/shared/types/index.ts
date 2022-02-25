@@ -13,12 +13,26 @@ export interface Validator {
 	message: string;
 }
 
-export type DecryptFunc<TOutput> = {
-	(data: string | null): TOutput | null;
-	(data: (string | null)[]): (TOutput | null)[];
+export type DecryptFunc = {
+	(data: string | null): unknown | null;
+	(data: (string | null)[]): (unknown | null)[];
 };
 
-export type EncryptFunc<TInput> = {
-	(data: TInput | null): string | null;
-	(data: (TInput | null)[]): (string | null)[];
+export type EncryptFunc = {
+	(data: unknown | null): string | null;
+	(data: (unknown | null)[]): (string | null)[];
+};
+
+export interface SchemaForeignKeyDefinition {
+	file: string | string[];
+	keysToIgnore?: string[];
+	entityName: string;
+}
+
+interface PositionForeignKeyDefinition {
+	[key: number]: SchemaForeignKeyDefinition;
+}
+
+export type SchemaCompoundForeignKeyDefinition = PositionForeignKeyDefinition & {
+	splitCharacter: string;
 };

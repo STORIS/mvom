@@ -1,7 +1,13 @@
 import { InvalidParameterError, TransformDataError } from '#shared/errors';
-import type { GenericObject } from '#shared/types';
 import { handleTypeValidation } from '#shared/utils';
+import type { ScalarTypeConstructorOptions } from './BaseScalarType';
 import BaseScalarType from './BaseScalarType';
+import type { SchemaTypeDefinitionBase } from './BaseSchemaType';
+
+export interface SchemaTypeDefinitionNumber extends SchemaTypeDefinitionBase {
+	type: 'number';
+	dbDecimals?: number;
+}
 
 /**
  * Number Schema Type
@@ -11,12 +17,12 @@ class NumberType extends BaseScalarType {
 	/** Number of implied decimals in database storage */
 	private dbDecimals: number;
 
-	public constructor(definition: GenericObject) {
-		super(definition);
+	public constructor(
+		definition: SchemaTypeDefinitionNumber,
+		options: ScalarTypeConstructorOptions = {},
+	) {
+		super(definition, options);
 
-		if (definition.path == null) {
-			throw new InvalidParameterError({ parameterName: 'definition.path' });
-		}
 		const { dbDecimals = 0 } = definition;
 
 		if (!Number.isInteger(dbDecimals)) {
