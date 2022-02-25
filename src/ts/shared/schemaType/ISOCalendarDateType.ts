@@ -34,11 +34,23 @@ class ISOCalendarDateType extends BaseDateType {
 		return moment(mvEpoch).add(castValue, 'days').format(ISOCalendarDateFormat);
 	}
 
-	/** Transform ISO 8601 approved date format (yyyy-mm-dd) to mv date data */
+	/**
+	 * Transform ISO 8601 approved date format (yyyy-mm-dd) to mv date data
+	 * @throws {@link TransformDataError} Value could not be transformed to database format
+	 */
 	public transformToDb(value: unknown): string | null {
-		return value == null || typeof value !== 'string'
-			? null
-			: String(moment(value).diff(moment(mvEpoch), 'days'));
+		if (value == null) {
+			return null;
+		}
+
+		if (typeof value !== 'string') {
+			throw new TransformDataError({
+				transformClass: this.constructor.name,
+				transformValue: value,
+			});
+		}
+
+		return String(moment(value).diff(moment(mvEpoch), 'days'));
 	}
 
 	/** ISOCalendarDateType data type validator */
