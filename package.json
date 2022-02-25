@@ -24,6 +24,7 @@
     "style:fix": "npm-run-all prettier:fix lint:fix",
     "test": "npm-run-all --parallel typecheck prettier lint && npm run test:coverage:summary",
     "test:unit": "jest",
+    "test:ci": "node --expose-gc --no-compilation-cache --max-old-space-size=512 ./node_modules/jest/bin/jest --ci --maxWorkers=4 --reporters=default --collectCoverage --coverageReporters text-summary",
     "test:coverage": "jest --collectCoverage --coverageReporters text",
     "test:coverage:html": "jest --collectCoverage --coverageReporters html",
     "test:coverage:summary": "jest --collectCoverage --coverageReporters text-summary",
