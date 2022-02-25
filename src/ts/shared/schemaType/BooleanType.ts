@@ -1,7 +1,7 @@
-import ScalarType from './ScalarType';
+import BaseScalarType from './BaseScalarType';
 
 /** Boolean Schema Type */
-class BooleanType extends ScalarType {
+class BooleanType extends BaseScalarType {
 	/** Transform mv style data to Boolean */
 
 	public transformFromDb(value: unknown): boolean {

@@ -2,11 +2,11 @@ import { ForeignKeyDbTransformer } from '#shared/classes';
 import type { ForeignKeyDbDefinition } from '#shared/classes/ForeignKeyDbTransformer';
 import { InvalidParameterError } from '#shared/errors';
 import type { GenericObject, ValidationFunction, Validator } from '#shared/types';
-import type { ScalarTypeConstructorOptions } from './ScalarType';
-import ScalarType from './ScalarType';
+import type { ScalarTypeConstructorOptions } from './BaseScalarType';
+import BaseScalarType from './BaseScalarType';
 
 /** String Schema Type */
-class StringType extends ScalarType {
+class StringType extends BaseScalarType {
 	/** Array of allowed enumerations */
 	private enum: string[] | null;
 

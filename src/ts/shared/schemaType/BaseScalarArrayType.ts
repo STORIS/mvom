@@ -1,13 +1,13 @@
 import { ensureArray } from '#shared/utils';
+import type BaseScalarType from './BaseScalarType';
 import BaseType from './BaseType';
-import type ScalarType from './ScalarType';
 
 /** Abstract Base Type for all scalar arrays */
 abstract class BaseScalarArrayType extends BaseType {
 	/** A schemaType representing the type of the array's contents */
-	protected valueSchemaType: ScalarType;
+	protected valueSchemaType: BaseScalarType;
 
-	protected constructor(valueSchemaType: ScalarType) {
+	protected constructor(valueSchemaType: BaseScalarType) {
 		super();
 		this.valueSchemaType = valueSchemaType;
 	}

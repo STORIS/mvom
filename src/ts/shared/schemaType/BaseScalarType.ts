@@ -12,7 +12,7 @@ export interface ScalarTypeConstructorOptions {
 const ISVALID_SYMBOL = Symbol('Is Valid');
 
 /** Abstract Scalar Schema Type */
-abstract class ScalarType extends BaseType {
+abstract class BaseScalarType extends BaseType {
 	/** Data definition which this schema type was constructed from */
 	public definition: GenericObject;
 
@@ -155,4 +155,4 @@ abstract class ScalarType extends BaseType {
 	public abstract transformToDb(value: unknown): unknown;
 }
 
-export default ScalarType;
+export default BaseScalarType;

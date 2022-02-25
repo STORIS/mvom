@@ -4,7 +4,7 @@ import { TransformDataError } from '#shared/errors';
 import type { GenericObject } from '#shared/types';
 import { handleTypeValidation } from '#shared/utils';
 import BaseDateType from './BaseDateType';
-import type { ScalarTypeConstructorOptions } from './ScalarType';
+import type { ScalarTypeConstructorOptions } from './BaseScalarType';
 
 /** ISOCalendarDate Schema Type */
 class ISOCalendarDateType extends BaseDateType {

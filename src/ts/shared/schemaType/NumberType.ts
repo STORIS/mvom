@@ -1,13 +1,13 @@
 import { InvalidParameterError, TransformDataError } from '#shared/errors';
 import type { GenericObject } from '#shared/types';
 import { handleTypeValidation } from '#shared/utils';
-import ScalarType from './ScalarType';
+import BaseScalarType from './BaseScalarType';
 
 /**
  * Number Schema Type
  * @throws {@link InvalidParameterError} An invalid parameter was passed to the function
  */
-class NumberType extends ScalarType {
+class NumberType extends BaseScalarType {
 	/** Number of implied decimals in database storage */
 	private dbDecimals: number;
 
