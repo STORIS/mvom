@@ -1,4 +1,4 @@
-import { cloneDeep, compact, set as setIn, toPath } from 'lodash';
+import { cloneDeep, set as setIn, toPath } from 'lodash';
 import { InvalidParameterError } from '#shared/errors';
 import type { DecryptFunc, EncryptFunc, GenericObject, SchemaValidator } from '#shared/types';
 import { getFromMvArray, handleRequiredValidation } from '#shared/utils';
@@ -8,6 +8,8 @@ export interface ScalarTypeConstructorOptions {
 	encrypt?: EncryptFunc<unknown>;
 	decrypt?: DecryptFunc<unknown>;
 }
+
+const ISVALID_SYMBOL = Symbol('Is Valid');
 
 /** Abstract Scalar Schema Type */
 abstract class ScalarType extends BaseType {
@@ -83,19 +85,23 @@ abstract class ScalarType extends BaseType {
 	/** Validate the scalar type */
 	public async validate(value: unknown, document: GenericObject): Promise<string[]> {
 		// combining all the validation into one array of promise.all
-		// - a validator will return false or the appropriate error message
-		// - compact the array of resolved promises to remove any falsy values
-		return compact(
+		// - a validator will return a placeholder symbol or the appropriate error message
+		// - filter out the placeholder symbols to only return the error messages
+
+		return (
 			await Promise.all(
 				this.validators
 					.concat(handleRequiredValidation(this.required, this.validateRequired))
-					.map(async ({ validator, message }) => !(await validator(value, document)) && message),
-			),
-		);
+					.map(async ({ validator, message }) => {
+						const isValid = await validator(value, document);
+						return isValid ? ISVALID_SYMBOL : message;
+					}),
+			)
+		).filter((val): val is string => val !== ISVALID_SYMBOL);
 	}
 
 	/** Get data from the specified keypath */
-	protected getFromMvData = (record: unknown[]): unknown => {
+	public getFromMvData = (record: unknown[]): unknown => {
 		if (this.path == null) {
 			return null;
 		}
@@ -106,7 +112,7 @@ abstract class ScalarType extends BaseType {
 	};
 
 	/** Set specified value into mv record */
-	protected setIntoMvData = (originalRecord: unknown[], setValue: unknown): unknown[] => {
+	public setIntoMvData = (originalRecord: unknown[], setValue: unknown): unknown[] => {
 		if (this.path == null) {
 			return originalRecord;
 		}
@@ -143,10 +149,10 @@ abstract class ScalarType extends BaseType {
 	};
 
 	/** Transform from mv data to externally formatted data */
-	protected abstract transformFromDb(value: unknown): unknown;
+	public abstract transformFromDb(value: unknown): unknown;
 
 	/** Transform from externally formatted data to mv data */
-	protected abstract transformToDb(value: unknown): unknown;
+	public abstract transformToDb(value: unknown): unknown;
 }
 
 export default ScalarType;

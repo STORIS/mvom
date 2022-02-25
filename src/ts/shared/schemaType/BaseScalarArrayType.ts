@@ -5,7 +5,7 @@ import type ScalarType from './ScalarType';
 /** Abstract Base Type for all scalar arrays */
 abstract class BaseScalarArrayType extends BaseType {
 	/** A schemaType representing the type of the array's contents */
-	private valueSchemaType: ScalarType;
+	protected valueSchemaType: ScalarType;
 
 	protected constructor(valueSchemaType: ScalarType) {
 		super();
