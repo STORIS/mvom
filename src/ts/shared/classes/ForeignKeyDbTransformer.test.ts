@@ -34,7 +34,7 @@ describe('transform', () => {
 			const expected: ForeignKeyDbDefinition[] = [
 				{
 					filename: 'file',
-					entityIds: entityId,
+					entityId,
 					entityName: 'entityName',
 				},
 			];
@@ -64,7 +64,7 @@ describe('transform', () => {
 			const expected: ForeignKeyDbDefinition[] = [
 				{
 					filename: 'file',
-					entityIds: entityId,
+					entityId,
 					entityName: 'entityName',
 				},
 			];
@@ -100,7 +100,7 @@ describe('transform', () => {
 			const expected: ForeignKeyDbDefinition[] = [
 				{
 					filename: 'file',
-					entityIds: 'entityId',
+					entityId: 'entityId',
 					entityName: 'entityName',
 				},
 			];
@@ -119,7 +119,7 @@ describe('transform', () => {
 			const expected: ForeignKeyDbDefinition[] = [
 				{
 					filename: 'file',
-					entityIds: entityId,
+					entityId,
 					entityName: 'entityName',
 				},
 			];
@@ -153,7 +153,7 @@ describe('transform', () => {
 			const expected: ForeignKeyDbDefinition[] = [
 				{
 					filename: 'file',
-					entityIds: 'entityId',
+					entityId: 'entityId',
 					entityName: 'entityName',
 				},
 			];
@@ -179,12 +179,12 @@ describe('transform', () => {
 			const expected: ForeignKeyDbDefinition[] = [
 				{
 					filename: 'file0',
-					entityIds: 'entityId0',
+					entityId: 'entityId0',
 					entityName: 'entityName0',
 				},
 				{
 					filename: 'file2',
-					entityIds: 'entityId2',
+					entityId: 'entityId2',
 					entityName: 'entityName2',
 				},
 			];
@@ -215,12 +215,12 @@ describe('transform', () => {
 			const expected: ForeignKeyDbDefinition[] = [
 				{
 					filename: 'file0',
-					entityIds: 'entityId0',
+					entityId: 'entityId0',
 					entityName: 'entityName0',
 				},
 				{
 					filename: 'file2',
-					entityIds: 'entityId2',
+					entityId: 'entityId2',
 					entityName: 'entityName2',
 				},
 			];

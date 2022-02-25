@@ -19,7 +19,7 @@ abstract class BaseSchemaType {
 	}
 
 	/** Cast to complex data type (when applicable) */
-	protected cast(value: unknown): unknown {
+	public cast(value: unknown): unknown {
 		return value;
 	}
 

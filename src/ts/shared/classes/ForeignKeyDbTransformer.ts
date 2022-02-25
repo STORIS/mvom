@@ -14,7 +14,7 @@ export type CompoundForeignKeyDefinition = PositionForeignKeyDefinition & {
 
 export interface ForeignKeyDbDefinition {
 	filename: string | string[];
-	entityIds: string | string[];
+	entityId: string;
 	entityName: string;
 }
 
@@ -52,7 +52,7 @@ class ForeignKeyDbTransformer {
 					return acc;
 				}
 
-				acc.push({ filename: file, entityIds: entityId, entityName });
+				acc.push({ filename: file, entityId, entityName });
 
 				return acc;
 			}, []);
@@ -67,7 +67,7 @@ class ForeignKeyDbTransformer {
 		return [
 			{
 				filename: file,
-				entityIds: value,
+				entityId: value,
 				entityName,
 			},
 		];
