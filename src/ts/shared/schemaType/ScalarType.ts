@@ -65,17 +65,7 @@ abstract class ScalarType extends BaseType {
 		this.decrypt = decrypt;
 	}
 
-	/* public instance methods */
-
-	/**
-	 * Get value from mv data
-	 * @function get
-	 * @memberof SimpleType
-	 * @instance
-	 * @param {*[]} record - Data to get value from
-	 * @returns {*} Formatted data value
-	 * @throws {TransformDataError} (indirect) Database value could not be transformed to external format
-	 */
+	/** Get value from mv data */
 	public get = (record: unknown[]): unknown => {
 		const value = this.getFromMvData(record);
 		return this.transformFromDb(value);
@@ -133,7 +123,7 @@ abstract class ScalarType extends BaseType {
 
 	/**
 	 * Convert a 1-index string array path definition (e.g. '1.1.1') to a 0-index array path definition (e.g. [0, 0, 0])
-	 * @throws {InvalidParameterError} Path definition must be a string of integers split by periods
+	 * @throws {@link InvalidParameterError} Path definition must be a string of integers split by periods
 	 */
 	private normalizeMvPath = (path: string): number[] | null => {
 		if (path == null) {
