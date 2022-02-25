@@ -3,7 +3,7 @@ const ensureArray = <T>(value?: T | readonly T[]): T[] => {
 		return [...value];
 	}
 
-	if (value == null) {
+	if (typeof value === 'undefined') {
 		return [];
 	}
 
