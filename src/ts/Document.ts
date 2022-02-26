@@ -1,7 +1,7 @@
 import { assignIn, cloneDeep, get as getIn, set as setIn } from 'lodash';
 import { ForeignKeyDbTransformer } from '#shared/classes';
 import { InvalidParameterError, TransformDataError } from '#shared/errors';
-import type { GenericObject } from '#shared/types';
+import type { GenericObject, MvRecord } from '#shared/types';
 import type Schema from './Schema';
 
 const DEFAULT_PROPERTY_DESCRIPTOR: PropertyDescriptor = {
@@ -13,7 +13,7 @@ const DEFAULT_PROPERTY_DESCRIPTOR: PropertyDescriptor = {
 export interface DocumentConstructorOptions {
 	data?: GenericObject;
 	isSubdocument?: boolean;
-	record?: unknown[];
+	record?: MvRecord;
 }
 
 export interface BuildForeignKeyDefinitionsResult {
@@ -28,13 +28,13 @@ class Document {
 
 	public _id?: string;
 
-	public _raw?: unknown[];
+	public _raw?: MvRecord;
 
 	/** Schema instance which defined this document */
 	private readonly schema: Schema;
 
 	/** Record array of multivalue data */
-	private record: unknown[];
+	private record: MvRecord;
 
 	/** Indicates whether this document is a subdocument of a composing parent */
 	private readonly isSubdocument: boolean;
@@ -73,7 +73,7 @@ class Document {
 	}
 
 	/** Transform document structure to multivalue array structure */
-	public transformDocumentToRecord(): unknown[] {
+	public transformDocumentToRecord(): MvRecord {
 		return this.schema === null
 			? getIn(this, '_raw', [])
 			: Object.entries(this.schema.paths).reduce(
@@ -167,7 +167,7 @@ class Document {
 	}
 
 	/** Apply schema structure using record to document instance */
-	private transformRecordToDocument = (record: unknown[]) => {
+	private transformRecordToDocument = (record: MvRecord) => {
 		if (!Array.isArray(record)) {
 			throw new InvalidParameterError({ parameterName: 'record' });
 		}

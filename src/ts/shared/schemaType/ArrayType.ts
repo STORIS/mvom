@@ -1,5 +1,5 @@
 import type { ForeignKeyDbDefinition } from '#shared/classes/ForeignKeyDbTransformer';
-import type { GenericObject } from '#shared/types';
+import type { GenericObject, MvRecord } from '#shared/types';
 import { ensureArray } from '#shared/utils';
 import BaseScalarArrayType from './BaseScalarArrayType';
 
@@ -8,14 +8,14 @@ const ISVALID_SYMBOL = Symbol('Is Valid');
 /** Scalar Array Schema Type */
 class ArrayType extends BaseScalarArrayType {
 	/** Get value from mv data */
-	public get(record: unknown[]): unknown[] {
+	public get(record: MvRecord): unknown[] {
 		const value = this.valueSchemaType.getFromMvData(record);
 
 		return ensureArray(value).map((itemValue) => this.valueSchemaType.transformFromDb(itemValue));
 	}
 
 	/** Set specified array value into mv record */
-	public set(originalRecord: unknown[], setValue: unknown): unknown[] {
+	public set(originalRecord: MvRecord, setValue: unknown): MvRecord {
 		return this.valueSchemaType.setIntoMvData(
 			originalRecord,
 			ensureArray(setValue).map((value) => this.valueSchemaType.transformToDb(value)),

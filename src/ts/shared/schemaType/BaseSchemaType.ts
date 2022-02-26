@@ -1,5 +1,5 @@
 import type { ForeignKeyDbDefinition } from '#shared/classes/ForeignKeyDbTransformer';
-import type { GenericObject, Validator } from '#shared/types';
+import type { GenericObject, MvRecord, Validator } from '#shared/types';
 
 export interface SchemaTypeDefinitionBase {
 	path: string | number;
@@ -24,10 +24,10 @@ abstract class BaseSchemaType {
 	}
 
 	/** Get value from mv data */
-	public abstract get(record: unknown[]): unknown;
+	public abstract get(record: MvRecord): unknown;
 
 	/** Set value into mv data */
-	public abstract set(record: unknown[], value: unknown): unknown[];
+	public abstract set(record: MvRecord, value: unknown): MvRecord;
 
 	/** Validate value */
 	public abstract validate(value: unknown, document: GenericObject): Promise<string[]>;

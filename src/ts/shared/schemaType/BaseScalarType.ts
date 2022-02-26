@@ -1,6 +1,12 @@
 import { cloneDeep, set as setIn, toPath } from 'lodash';
 import { InvalidParameterError } from '#shared/errors';
-import type { DecryptFunc, EncryptFunc, GenericObject, SchemaValidator } from '#shared/types';
+import type {
+	DecryptFunc,
+	EncryptFunc,
+	GenericObject,
+	MvRecord,
+	SchemaValidator,
+} from '#shared/types';
 import { getFromMvArray, handleRequiredValidation } from '#shared/utils';
 import BaseSchemaType from './BaseSchemaType';
 import type { SchemaTypeDefinitionBoolean } from './BooleanType';
@@ -82,13 +88,13 @@ abstract class BaseScalarType extends BaseSchemaType {
 	}
 
 	/** Get value from mv data */
-	public get = (record: unknown[]): unknown => {
+	public get = (record: MvRecord): unknown => {
 		const value = this.getFromMvData(record);
 		return this.transformFromDb(value);
 	};
 
 	/** Transform into multivalue format and set specified value into mv record */
-	public set = (originalRecord: unknown[], value: unknown): unknown[] =>
+	public set = (originalRecord: MvRecord, value: unknown): MvRecord =>
 		this.setIntoMvData(originalRecord, this.transformToDb(value));
 
 	/** Transform query constants to the format schema */
@@ -115,7 +121,7 @@ abstract class BaseScalarType extends BaseSchemaType {
 	}
 
 	/** Get data from the specified keypath */
-	public getFromMvData = (record: unknown[]): unknown => {
+	public getFromMvData = (record: MvRecord): unknown => {
 		if (this.path == null) {
 			return null;
 		}
@@ -126,7 +132,7 @@ abstract class BaseScalarType extends BaseSchemaType {
 	};
 
 	/** Set specified value into mv record */
-	public setIntoMvData = (originalRecord: unknown[], setValue: unknown): unknown[] => {
+	public setIntoMvData = (originalRecord: MvRecord, setValue: unknown): MvRecord => {
 		if (this.path == null) {
 			return originalRecord;
 		}
