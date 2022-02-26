@@ -16,8 +16,6 @@ class DocumentArrayType extends BaseSchemaType {
 		this.valueSchema = valueSchema;
 	}
 
-	/* public instance methods */
-
 	/**
 	 * Cast to array of documents
 	 * @throws {@link TypeError} Throws if a non-null/non-object is passed
@@ -78,19 +76,19 @@ class DocumentArrayType extends BaseSchemaType {
 		).flat(2);
 	}
 
-	/**
-	 * Create an array of foreign key definitions that will be validated before save
-	 * @function transformForeignKeyDefinitionsToDb
-	 * @memberof BaseType
-	 * @abstract
-	 * @instance
-	 * @param {Document[]} documentList - Array of documents to build foreign key validation definitions for
-	 * @returns {*[]} Array of foreign key definitions
-	 */
+	/** Create an array of foreign key definitions that will be validated before save */
 	public override transformForeignKeyDefinitionsToDb(
 		documentList: Document[],
 	): ForeignKeyDbDefinition[] {
-		return documentList.map((document) => document.buildForeignKeyDefinitions()).flat();
+		return documentList
+			.map((document) => {
+				const documentForeignKeyDefinitions = document.buildForeignKeyDefinitions();
+
+				return documentForeignKeyDefinitions.map(({ filename, entityName, entityIds }) =>
+					entityIds.map((entityId) => ({ filename, entityName, entityId })),
+				);
+			})
+			.flat(2);
 	}
 
 	/** Generate subdocument instances */
