@@ -128,38 +128,6 @@ describe('transformToDb', () => {
 });
 
 describe('validations', () => {
-	describe('type validations', () => {
-		test('should return error message if value is not a number', async () => {
-			const definition: SchemaTypeDefinitionNumber = {
-				type: 'number',
-				path: '2',
-				dbDecimals: 2,
-			};
-			const numberType = new NumberType(definition);
-
-			const value = 'foo';
-			const document = {};
-
-			expect(await numberType.validate(value, document)).toEqual([
-				'Property cannot be cast into the defined type',
-			]);
-		});
-
-		test('should not return error message if value is a number', async () => {
-			const definition: SchemaTypeDefinitionNumber = {
-				type: 'number',
-				path: '2',
-				dbDecimals: 2,
-			};
-			const numberType = new NumberType(definition);
-
-			const value = 1234;
-			const document = {};
-
-			expect(await numberType.validate(value, document)).toEqual([]);
-		});
-	});
-
 	describe('required validations', () => {
 		test('should return error message if required is true and value is null', async () => {
 			const definition: SchemaTypeDefinitionNumber = {
@@ -198,6 +166,38 @@ describe('validations', () => {
 			const numberType = new NumberType(definition);
 
 			const value = null;
+			const document = {};
+
+			expect(await numberType.validate(value, document)).toEqual([]);
+		});
+	});
+
+	describe('type validations', () => {
+		test('should return error message if value is not a number', async () => {
+			const definition: SchemaTypeDefinitionNumber = {
+				type: 'number',
+				path: '2',
+				dbDecimals: 2,
+			};
+			const numberType = new NumberType(definition);
+
+			const value = 'foo';
+			const document = {};
+
+			expect(await numberType.validate(value, document)).toEqual([
+				'Property cannot be cast into the defined type',
+			]);
+		});
+
+		test('should not return error message if value is a number', async () => {
+			const definition: SchemaTypeDefinitionNumber = {
+				type: 'number',
+				path: '2',
+				dbDecimals: 2,
+			};
+			const numberType = new NumberType(definition);
+
+			const value = 1234;
 			const document = {};
 
 			expect(await numberType.validate(value, document)).toEqual([]);
