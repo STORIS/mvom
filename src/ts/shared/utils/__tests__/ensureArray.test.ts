@@ -12,10 +12,6 @@ test('should return an empty array if undefined value passed', () => {
 	expect(ensureArray(undefined)).toEqual([]);
 });
 
-test('should return an empty array if null value passed', () => {
-	expect(ensureArray(null)).toEqual([]);
-});
-
 test('should return an array of the parameter if a non-array value is passed', () => {
 	expect(ensureArray('foo')).toEqual(['foo']);
 });
