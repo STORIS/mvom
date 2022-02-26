@@ -5,7 +5,7 @@ const defaultValidator = (): false => false;
 test('should return validator function which evaluates to true and empty message if required is false', (): void => {
 	const { validator, message } = handleRequiredValidation(false, defaultValidator);
 	expect(validator).toBeInstanceOf(Function);
-	expect(validator()).toBe(true);
+	expect(validator(null, { foo: null })).toBe(true);
 	expect(message).toBe('');
 });
 
