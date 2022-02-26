@@ -1,7 +1,7 @@
 import * as Errors from '#shared/errors';
+import Document from '../ts/Document';
+import Schema from '../ts/Schema';
 import createConnection from './createConnection';
-import Document from './Document';
-import Schema from './Schema';
 
 /**
  * Main mvom module
