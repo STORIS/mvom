@@ -42,19 +42,7 @@ export interface SchemaConstructorOptions {
 	decrypt?: DecryptFunc;
 }
 
-/**
- * A schema object
- * @param {Object} definition - A schema definition object
- * @param {Object} [options = {}]
- * @param {string} [options.typeProperty = "type"] The name of the property to use for data typing
- * @param {Object} [options.dictionaries = {}] Additional dictionaries for use in query (key/value paired)
- * @param {RegExp} [options.idMatch] Regular expression to validate the record id against
- * @param {Object} [options.idForeignKey] Foreign key definition for the record id
- * @param {Function} [options.encrypt] Encryption function to use to encrypt sensitive fields
- * @param {Function} [options.decrypt] Decryption function to use to decrypt sensitive fields
- * @example const example = new Schema({ propertyA: [{ property1: { path: '1'} }] })
- * @throws {InvalidParameterError} An invalid parameter was passed to the function
- */
+/** Schema constructor */
 class Schema {
 	/** Key/value pairs of schema object path structure and associated multivalue dictionary ids */
 	public dictPaths: Record<string, string>;
@@ -193,7 +181,7 @@ class Schema {
 
 	/**
 	 * Cast an array to a schemaType
-	 * @throws {InvalidParameterError} An invalid parameter was passed to the function
+	 * @throws {@link InvalidParameterError} An invalid parameter was passed to the function
 	 */
 	private castArray = (
 		castee: SchemaTypeDefinitionArray,
@@ -248,7 +236,7 @@ class Schema {
 
 	/**
 	 * Cast a scalar definition to a scalar schemaType
-	 * @throws {InvalidParameterError} An invalid parameter was passed to the function
+	 * @throws {@link InvalidParameterError} An invalid parameter was passed to the function
 	 */
 	private castScalar = (castee: SchemaTypeDefinitionScalar, keyPath: string) => {
 		const options = { encrypt: this.encrypt, decrypt: this.decrypt };
