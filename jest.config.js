@@ -2,6 +2,7 @@ module.exports = {
 	testEnvironment: 'node',
 	resetMocks: true, // clear history and reset behavior of mocks between each test
 	restoreMocks: true, // restore initial behavior of mocked functions
+	testPathIgnorePatterns: ['/node_modules/', '/dist/'], // ignore dist folder
 	collectCoverageFrom: [
 		'**/*.ts', // test typescript files
 		'src/js/**/*.js', // test unconverted source javascript files

@@ -123,10 +123,6 @@ abstract class BaseScalarType extends BaseSchemaType {
 
 	/** Get data from the specified keypath */
 	public getFromMvData(record: MvRecord): unknown {
-		if (this.path == null) {
-			return null;
-		}
-
 		const value = getFromMvArray(this.path, record);
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		return this.encrypted ? this.decrypt!(value) : value;
@@ -134,10 +130,6 @@ abstract class BaseScalarType extends BaseSchemaType {
 
 	/** Set specified value into mv record */
 	public setIntoMvData(originalRecord: MvRecord, setValue: unknown): MvRecord {
-		if (this.path == null) {
-			return originalRecord;
-		}
-
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		const encryptedSetValue = this.encrypted ? this.encrypt!(setValue) : setValue;
 		return setIn(cloneDeep(originalRecord), this.path, encryptedSetValue);

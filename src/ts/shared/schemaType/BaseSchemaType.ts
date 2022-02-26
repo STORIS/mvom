@@ -2,7 +2,7 @@ import type { ForeignKeyDbDefinition } from '#shared/classes/ForeignKeyDbTransfo
 import type { GenericObject, MvRecord, Validator } from '#shared/types';
 
 export interface SchemaTypeDefinitionBase {
-	path: string | number;
+	path: `${number}` | `${number}.${number}` | `${number}.${number}.${number}` | number;
 	dictionary?: string;
 	required?: boolean;
 	encrypted?: boolean;
