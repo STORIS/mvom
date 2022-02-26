@@ -128,61 +128,79 @@ describe('transformToDb', () => {
 });
 
 describe('validations', () => {
-	test('should return error message if value is not a number', async () => {
-		const definition: SchemaTypeDefinitionNumber = {
-			type: 'number',
-			path: '2',
-			dbDecimals: 2,
-		};
-		const numberType = new NumberType(definition);
+	describe('type validations', () => {
+		test('should return error message if value is not a number', async () => {
+			const definition: SchemaTypeDefinitionNumber = {
+				type: 'number',
+				path: '2',
+				dbDecimals: 2,
+			};
+			const numberType = new NumberType(definition);
 
-		const value = 'foo';
-		const document = {};
+			const value = 'foo';
+			const document = {};
 
-		expect(await numberType.validate(value, document)).toEqual([
-			'Property cannot be cast into the defined type',
-		]);
+			expect(await numberType.validate(value, document)).toEqual([
+				'Property cannot be cast into the defined type',
+			]);
+		});
+
+		test('should not return error message if value is a number', async () => {
+			const definition: SchemaTypeDefinitionNumber = {
+				type: 'number',
+				path: '2',
+				dbDecimals: 2,
+			};
+			const numberType = new NumberType(definition);
+
+			const value = 1234;
+			const document = {};
+
+			expect(await numberType.validate(value, document)).toEqual([]);
+		});
 	});
 
-	test('should return error message if required is true and value is null', async () => {
-		const definition: SchemaTypeDefinitionNumber = {
-			type: 'number',
-			path: '2',
-			required: true,
-		};
-		const numberType = new NumberType(definition);
+	describe('required validations', () => {
+		test('should return error message if required is true and value is null', async () => {
+			const definition: SchemaTypeDefinitionNumber = {
+				type: 'number',
+				path: '2',
+				required: true,
+			};
+			const numberType = new NumberType(definition);
 
-		const value = null;
-		const document = {};
+			const value = null;
+			const document = {};
 
-		expect(await numberType.validate(value, document)).toEqual(['Property is required']);
-	});
+			expect(await numberType.validate(value, document)).toEqual(['Property is required']);
+		});
 
-	test('should not return error message if required is true and value is populated with a number', async () => {
-		const definition: SchemaTypeDefinitionNumber = {
-			type: 'number',
-			path: '2',
-			required: true,
-		};
-		const numberType = new NumberType(definition);
+		test('should not return error message if required is true and value is populated with a number', async () => {
+			const definition: SchemaTypeDefinitionNumber = {
+				type: 'number',
+				path: '2',
+				required: true,
+			};
+			const numberType = new NumberType(definition);
 
-		const value = 1234;
-		const document = {};
+			const value = 1234;
+			const document = {};
 
-		expect(await numberType.validate(value, document)).toEqual([]);
-	});
+			expect(await numberType.validate(value, document)).toEqual([]);
+		});
 
-	test('should not return error message if required is false and value is null', async () => {
-		const definition: SchemaTypeDefinitionNumber = {
-			type: 'number',
-			path: '2',
-			required: false,
-		};
-		const numberType = new NumberType(definition);
+		test('should not return error message if required is false and value is null', async () => {
+			const definition: SchemaTypeDefinitionNumber = {
+				type: 'number',
+				path: '2',
+				required: false,
+			};
+			const numberType = new NumberType(definition);
 
-		const value = null;
-		const document = {};
+			const value = null;
+			const document = {};
 
-		expect(await numberType.validate(value, document)).toEqual([]);
+			expect(await numberType.validate(value, document)).toEqual([]);
+		});
 	});
 });
