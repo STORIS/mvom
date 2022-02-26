@@ -1,4 +1,5 @@
 import { InvalidParameterError } from '#shared/errors';
+import type { BaseSchemaType, SchemaTypeDefinitionScalar } from '#shared/schemaType';
 import {
 	ArrayType,
 	BooleanType,
@@ -11,8 +12,6 @@ import {
 	NumberType,
 	StringType,
 } from '#shared/schemaType';
-import type { SchemaTypeDefinitionScalar } from '#shared/schemaType/BaseScalarType';
-import type BaseSchemaType from '#shared/schemaType/BaseSchemaType';
 import type {
 	DecryptFunc,
 	EncryptFunc,
@@ -196,7 +195,10 @@ class Schema {
 	 * Cast an array to a schemaType
 	 * @throws {InvalidParameterError} An invalid parameter was passed to the function
 	 */
-	private castArray = (castee: SchemaTypeDefinitionArray, keyPath: string) => {
+	private castArray = (
+		castee: SchemaTypeDefinitionArray,
+		keyPath: string,
+	): ArrayType | NestedArrayType | DocumentArrayType => {
 		if (castee.length !== 1) {
 			// a schema array definition must contain exactly one value of language-type object (which includes arrays)
 			throw new InvalidParameterError({
@@ -217,6 +219,13 @@ class Schema {
 			}
 
 			const [nestedArrayValue] = arrayValue;
+			if (!this.isScalarDefinition(nestedArrayValue)) {
+				throw new InvalidParameterError({
+					message: 'nested array value of schema type definition must be a scalar',
+					parameterName: 'castee',
+				});
+			}
+
 			return new NestedArrayType(this.castScalar(nestedArrayValue, keyPath));
 		}
 

@@ -2,13 +2,18 @@ import type { ForeignKeyDbDefinition } from '#shared/classes/ForeignKeyDbTransfo
 import type { GenericObject, MvRecord } from '#shared/types';
 import { ensureArray } from '#shared/utils';
 import BaseScalarArrayType from './BaseScalarArrayType';
+import type BaseScalarType from './BaseScalarType';
 
 const ISVALID_SYMBOL = Symbol('Is Valid');
 
 /** Nested Scalar Array Schema Type */
 class NestedArrayType extends BaseScalarArrayType {
+	public constructor(valueSchemaType: BaseScalarType) {
+		super(valueSchemaType);
+	}
+
 	/** Get value from mv data */
-	public get = (record: MvRecord): unknown[][] => {
+	public get(record: MvRecord): unknown[][] {
 		const value = this.valueSchemaType.getFromMvData(record);
 
 		return ensureArray(value).map((itemValue) =>
@@ -16,26 +21,28 @@ class NestedArrayType extends BaseScalarArrayType {
 				this.valueSchemaType.transformFromDb(nestedValue),
 			),
 		);
-	};
+	}
 
 	/** Set specified nested array value into mv record */
-	public set = (originalRecord: MvRecord, setValue: unknown): MvRecord =>
-		this.valueSchemaType.setIntoMvData(
+	public set(originalRecord: MvRecord, setValue: unknown): MvRecord {
+		return this.valueSchemaType.setIntoMvData(
 			originalRecord,
 			ensureArray(setValue).map((value) =>
 				ensureArray(value).map((nestedValue) => this.valueSchemaType.transformToDb(nestedValue)),
 			),
 		);
+	}
 
 	/** Create an array of foreign key definitions that will be validated before save */
-	public override transformForeignKeyDefinitionsToDb = (value: unknown): ForeignKeyDbDefinition[] =>
-		ensureArray(value)
+	public override transformForeignKeyDefinitionsToDb(value: unknown): ForeignKeyDbDefinition[] {
+		return ensureArray(value)
 			.flat(Infinity)
 			.map((nestedValue) => this.valueSchemaType.transformForeignKeyDefinitionsToDb(nestedValue))
 			.flat();
+	}
 
 	/** Validate the nested array */
-	public validate = async (value: unknown, document: GenericObject): Promise<string[]> => {
+	public async validate(value: unknown, document: GenericObject): Promise<string[]> {
 		const castValue = ensureArray(value);
 
 		// combining all the validation into one array of promise.all
@@ -62,7 +69,7 @@ class NestedArrayType extends BaseScalarArrayType {
 		)
 			.flat(2)
 			.filter((val): val is string => val !== ISVALID_SYMBOL);
-	};
+	}
 }
 
 export default NestedArrayType;

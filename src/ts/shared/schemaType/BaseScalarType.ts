@@ -88,14 +88,15 @@ abstract class BaseScalarType extends BaseSchemaType {
 	}
 
 	/** Get value from mv data */
-	public get = (record: MvRecord): unknown => {
+	public get(record: MvRecord): unknown {
 		const value = this.getFromMvData(record);
 		return this.transformFromDb(value);
-	};
+	}
 
 	/** Transform into multivalue format and set specified value into mv record */
-	public set = (originalRecord: MvRecord, value: unknown): MvRecord =>
-		this.setIntoMvData(originalRecord, this.transformToDb(value));
+	public set(originalRecord: MvRecord, value: unknown): MvRecord {
+		return this.setIntoMvData(originalRecord, this.transformToDb(value));
+	}
 
 	/** Transform query constants to the format schema */
 	public transformToQuery(value: unknown): unknown {
@@ -121,7 +122,7 @@ abstract class BaseScalarType extends BaseSchemaType {
 	}
 
 	/** Get data from the specified keypath */
-	public getFromMvData = (record: MvRecord): unknown => {
+	public getFromMvData(record: MvRecord): unknown {
 		if (this.path == null) {
 			return null;
 		}
@@ -129,10 +130,10 @@ abstract class BaseScalarType extends BaseSchemaType {
 		const value = getFromMvArray(this.path, record);
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		return this.encrypted ? this.decrypt!(value) : value;
-	};
+	}
 
 	/** Set specified value into mv record */
-	public setIntoMvData = (originalRecord: MvRecord, setValue: unknown): MvRecord => {
+	public setIntoMvData(originalRecord: MvRecord, setValue: unknown): MvRecord {
 		if (this.path == null) {
 			return originalRecord;
 		}
@@ -140,7 +141,7 @@ abstract class BaseScalarType extends BaseSchemaType {
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		const encryptedSetValue = this.encrypted ? this.encrypt!(setValue) : setValue;
 		return setIn(cloneDeep(originalRecord), this.path, encryptedSetValue);
-	};
+	}
 
 	/** Required validator */
 	protected async validateRequired(value: unknown): Promise<boolean> {
@@ -151,8 +152,8 @@ abstract class BaseScalarType extends BaseSchemaType {
 	 * Convert a 1-index string array path definition (e.g. '1.1.1') to a 0-index array path definition (e.g. [0, 0, 0])
 	 * @throws {@link InvalidParameterError} Path definition must be a string of integers split by periods
 	 */
-	private normalizeMvPath = (path: string | number): number[] =>
-		toPath(path).map((val) => {
+	private normalizeMvPath(path: string | number): number[] {
+		return toPath(path).map((val) => {
 			const numVal = +val;
 			if (!Number.isInteger(numVal) || numVal < 1) {
 				throw new InvalidParameterError({
@@ -162,6 +163,7 @@ abstract class BaseScalarType extends BaseSchemaType {
 			}
 			return numVal - 1;
 		});
+	}
 
 	/** Transform from mv data to externally formatted data */
 	public abstract transformFromDb(value: unknown): unknown;

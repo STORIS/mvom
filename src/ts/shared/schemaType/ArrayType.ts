@@ -2,11 +2,16 @@ import type { ForeignKeyDbDefinition } from '#shared/classes/ForeignKeyDbTransfo
 import type { GenericObject, MvRecord } from '#shared/types';
 import { ensureArray } from '#shared/utils';
 import BaseScalarArrayType from './BaseScalarArrayType';
+import type BaseScalarType from './BaseScalarType';
 
 const ISVALID_SYMBOL = Symbol('Is Valid');
 
 /** Scalar Array Schema Type */
 class ArrayType extends BaseScalarArrayType {
+	public constructor(valueSchemaType: BaseScalarType) {
+		super(valueSchemaType);
+	}
+
 	/** Get value from mv data */
 	public get(record: MvRecord): unknown[] {
 		const value = this.valueSchemaType.getFromMvData(record);
@@ -23,13 +28,14 @@ class ArrayType extends BaseScalarArrayType {
 	}
 
 	/** Create an array of foreign key definitions that will be validated before save */
-	public override transformForeignKeyDefinitionsToDb = (value: unknown): ForeignKeyDbDefinition[] =>
-		ensureArray(value)
+	public override transformForeignKeyDefinitionsToDb(value: unknown): ForeignKeyDbDefinition[] {
+		return ensureArray(value)
 			.map((itemValue) => this.valueSchemaType.transformForeignKeyDefinitionsToDb(itemValue))
 			.flat();
+	}
 
 	/** Validate the array */
-	public validate = async (value: unknown, document: GenericObject): Promise<string[]> => {
+	public async validate(value: unknown, document: GenericObject): Promise<string[]> {
 		const castValue = ensureArray(value);
 
 		// combining all the validation into one array of promise.all
@@ -53,7 +59,7 @@ class ArrayType extends BaseScalarArrayType {
 		)
 			.flat(2)
 			.filter((val): val is string => val !== ISVALID_SYMBOL);
-	};
+	}
 }
 
 export default ArrayType;
