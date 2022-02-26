@@ -57,21 +57,6 @@ export interface SchemaConstructorOptions {
  * @throws {InvalidParameterError} An invalid parameter was passed to the function
  */
 class Schema {
-	/**
-	 * Additional schema types
-	 * @member {Object} Types
-	 * @memberof Schema
-	 * @property {ISOCalendarDateTimeType} ISOCalendarDateTime - Class definition for ISO 8601 String representation of calendar date and time
-	 * @property {ISOCalendarDateType} ISOCalendarDate - Class definition for ISO 8601 String representation of calendar date
-	 * @property {ISOTimeType} ISOTime - Class definition for ISO 8601 String representation of time
-	 * @static
-	 */
-	public static Types = {
-		ISOCalendarDateTime: ISOCalendarDateTimeType,
-		ISOCalendarDate: ISOCalendarDateType,
-		ISOTime: ISOTimeType,
-	};
-
 	/** Key/value pairs of schema object path structure and associated multivalue dictionary ids */
 	public dictPaths: Record<string, string>;
 
@@ -125,14 +110,7 @@ class Schema {
 		);
 	}
 
-	/**
-	 * Transform the paths to positions
-	 * @function transformPathsToDbPositions
-	 * @memberof Schema
-	 * @instance
-	 * @param {String[]} paths - Array of paths
-	 * @returns {Number[]} Array of dbPositions
-	 */
+	/** Transform the paths to positions */
 	public transformPathsToDbPositions = (paths: string[]): number[] => {
 		if (!Array.isArray(paths) || paths.length === 0) {
 			return [];
