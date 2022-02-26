@@ -14,8 +14,14 @@ export interface SchemaTypeDefinitionISOCalendarDateTime extends SchemaTypeDefin
 
 /** An ISOCalendarDateTime Schema Type */
 class ISOCalendarDateTimeType extends BaseDateType {
-	/** Format of database time storage ('s' or 'ms') */
-	private dbFormat: 's' | 'ms';
+	/** Database time format is in milliseconds */
+	private isDbInMs: boolean;
+
+	/** ISOCalendarDateType instance to use for transformations and validations of the date part of the DateTime */
+	private isoCalendarDateType: ISOCalendarDateType;
+
+	/** ISOTimeType instance to use for transformations and validations of the time part of the DateTime */
+	private isoTimeType: ISOTimeType;
 
 	public constructor(
 		definition: SchemaTypeDefinitionISOCalendarDateTime,
@@ -24,7 +30,13 @@ class ISOCalendarDateTimeType extends BaseDateType {
 		super(definition, options);
 
 		const { dbFormat = 'ms' } = definition;
-		this.dbFormat = dbFormat;
+		this.isDbInMs = dbFormat === 'ms';
+
+		this.isoCalendarDateType = new ISOCalendarDateType(
+			{ ...definition, type: 'ISOCalendarDate' },
+			options,
+		);
+		this.isoTimeType = new ISOTimeType({ ...definition, type: 'ISOTime' }, options);
 
 		// add validators for this type
 		this.validators.unshift(handleTypeValidation(this.validateType));
@@ -37,8 +49,8 @@ class ISOCalendarDateTimeType extends BaseDateType {
 		}
 		const valueParts = String(value).split('.');
 
-		const datePart = new ISOCalendarDateType({}).transformFromDb(+valueParts[0]);
-		const timePart = new ISOTimeType({ dbFormat: this.dbFormat }).transformFromDb(+valueParts[1]);
+		const datePart = this.isoCalendarDateType.transformFromDb(+valueParts[0]);
+		const timePart = this.isoTimeType.transformFromDb(+valueParts[1]);
 
 		return `${datePart}T${timePart}`;
 	}
@@ -60,14 +72,10 @@ class ISOCalendarDateTimeType extends BaseDateType {
 		}
 
 		const [datePart, timePart] = value.split('T');
-		const padLength = this.dbFormat === 'ms' ? 8 : 5;
+		const padLength = this.isDbInMs ? 8 : 5;
 
-		const transformedDatePart = new ISOCalendarDateType({}).transformToDb(datePart);
-		const transformedTimePart = new ISOTimeType({
-			dbFormat: this.dbFormat,
-		})
-			.transformToDb(timePart)
-			?.padStart(padLength, '0');
+		const transformedDatePart = this.isoCalendarDateType.transformToDb(datePart);
+		const transformedTimePart = this.isoTimeType.transformToDb(timePart)?.padStart(padLength, '0');
 
 		if (transformedDatePart == null || transformedTimePart == null) {
 			throw new TransformDataError({
@@ -99,8 +107,8 @@ class ISOCalendarDateTimeType extends BaseDateType {
 
 		const partsValidations = (
 			await Promise.all([
-				new ISOCalendarDateType({}).validate(datePart, document),
-				new ISOTimeType({ dbFormat: this.dbFormat }).validate(timePart, document),
+				this.isoCalendarDateType.validate(datePart, document),
+				this.isoTimeType.validate(timePart, document),
 			])
 		).flat();
 
