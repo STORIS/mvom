@@ -157,7 +157,7 @@ describe('validations', () => {
 			expect(await isoTimeType.validate(value, document)).toContain('Property is required');
 		});
 
-		test('should not return error message if required is true and value is populated with a number', async () => {
+		test('should not return error message if required is true and value is populated with a time', async () => {
 			const definition: SchemaTypeDefinitionISOTime = {
 				type: 'ISOTime',
 				path: '2',
