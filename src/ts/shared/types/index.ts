@@ -31,10 +31,7 @@ export interface SchemaForeignKeyDefinition {
 	entityName: string;
 }
 
-interface PositionForeignKeyDefinition {
+export interface SchemaCompoundForeignKeyDefinition {
 	[key: number]: SchemaForeignKeyDefinition;
-}
-
-export type SchemaCompoundForeignKeyDefinition = PositionForeignKeyDefinition & {
 	splitCharacter: string;
-};
+}
