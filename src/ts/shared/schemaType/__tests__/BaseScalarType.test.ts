@@ -201,7 +201,7 @@ describe('validate', () => {
 		const value = null;
 		const document = {};
 
-		expect(await testSubclass.validate(value, document)).toEqual(['Property is required']);
+		expect(await testSubclass.validate(value, document)).toContain('Property is required');
 	});
 
 	test('should not return error message if required is true and value is populated', async () => {
@@ -216,7 +216,7 @@ describe('validate', () => {
 		const value = 'foo';
 		const document = {};
 
-		expect(await testSubclass.validate(value, document)).toEqual([]);
+		expect(await testSubclass.validate(value, document)).not.toContain('Property is required');
 	});
 
 	test('should not return error message if required is false and value is null', async () => {
@@ -231,7 +231,7 @@ describe('validate', () => {
 		const value = null;
 		const document = {};
 
-		expect(await testSubclass.validate(value, document)).toEqual([]);
+		expect(await testSubclass.validate(value, document)).not.toContain('Property is required');
 	});
 });
 
