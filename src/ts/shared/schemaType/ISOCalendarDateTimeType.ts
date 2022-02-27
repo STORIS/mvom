@@ -104,7 +104,7 @@ class ISOCalendarDateTimeType extends BaseDateType {
 			])
 		).flat();
 
-		return partsValidations.length > 0;
+		return partsValidations.length === 0;
 	};
 }
 
