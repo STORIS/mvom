@@ -61,7 +61,7 @@ class ISOCalendarDateType extends BaseDateType {
 	}
 
 	/** ISOCalendarDateType data type validator */
-	private async validateType(value: unknown): Promise<boolean> {
+	private validateType = async (value: unknown): Promise<boolean> => {
 		if (value == null) {
 			return Promise.resolve(true);
 		}
@@ -71,7 +71,7 @@ class ISOCalendarDateType extends BaseDateType {
 		}
 
 		return Promise.resolve(moment(value, ISOCalendarDateFormat).isValid());
-	}
+	};
 }
 
 export default ISOCalendarDateType;

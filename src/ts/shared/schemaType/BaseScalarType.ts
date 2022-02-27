@@ -136,9 +136,7 @@ abstract class BaseScalarType extends BaseSchemaType {
 	}
 
 	/** Required validator */
-	protected async validateRequired(value: unknown): Promise<boolean> {
-		return Promise.resolve(value != null);
-	}
+	protected validateRequired = (value: unknown): Promise<boolean> => Promise.resolve(value != null);
 
 	/**
 	 * Convert a 1-index string array path definition (e.g. '1.1.1') to a 0-index array path definition (e.g. [0, 0, 0])

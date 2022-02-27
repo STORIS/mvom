@@ -39,7 +39,7 @@ class StringType extends BaseScalarType {
 		this.foreignKeyDbTransformer = new ForeignKeyDbTransformer(definition.foreignKey);
 
 		// add validators for this type
-		this.validators.unshift(StringType.matchValidation(this.validateMatch));
+		this.validators.unshift(StringType.handleMatchValidation(this.validateMatch));
 		this.validators.unshift(StringType.handleEnumValidation(this.validateEnum));
 	}
 
@@ -51,7 +51,7 @@ class StringType extends BaseScalarType {
 	}
 
 	/** Create validation object for match validation */
-	private static matchValidation(defaultValidator: ValidationFunction): Validator {
+	private static handleMatchValidation(defaultValidator: ValidationFunction): Validator {
 		const message = 'Value does not match pattern';
 
 		return { validator: defaultValidator, message };
@@ -62,7 +62,7 @@ class StringType extends BaseScalarType {
 		if (value == null) {
 			// if this property has an enumeration constraint and one of those constraints is empty string then return empty string;
 			// otherwise return null
-			return this.enum !== null && this.enum.includes('') ? '' : null;
+			return this.enum != null && this.enum.includes('') ? '' : null;
 		}
 
 		return String(value);
@@ -79,23 +79,20 @@ class StringType extends BaseScalarType {
 	}
 
 	/** String required validator */
-	protected override async validateRequired(value: unknown): Promise<boolean> {
-		return Promise.resolve(value != null && value !== '');
-	}
+	protected override validateRequired = async (value: unknown): Promise<boolean> =>
+		Promise.resolve(value != null && value !== '');
 
 	/** Enum validator */
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	private async validateEnum(value: any): Promise<boolean> {
+	private validateEnum = async (value: any): Promise<boolean> =>
 		// skip validation on nullish values because a required validation error, if applicable, is more helpful
-		return Promise.resolve(value == null || this.enum == null || this.enum.includes(value));
-	}
+		Promise.resolve(value == null || this.enum == null || this.enum.includes(value));
 
 	/** Match validator */
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	private async validateMatch(value: any): Promise<boolean> {
+	private validateMatch = async (value: any): Promise<boolean> =>
 		// skip validation on nullish values because a required validation error, if applicable, is more helpful
-		return Promise.resolve(value == null || this.match == null || this.match.test(value));
-	}
+		Promise.resolve(value == null || this.match == null || this.match.test(value));
 }
 
 export default StringType;

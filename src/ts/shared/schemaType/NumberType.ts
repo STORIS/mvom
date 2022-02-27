@@ -60,9 +60,8 @@ class NumberType extends BaseScalarType {
 	}
 
 	/** NumberType data type validator */
-	private async validateType(value: unknown): Promise<boolean> {
-		return Promise.resolve(value == null || Number.isFinite(Number(value)));
-	}
+	private validateType = async (value: unknown): Promise<boolean> =>
+		Promise.resolve(value == null || Number.isFinite(Number(value)));
 }
 
 export default NumberType;

@@ -88,7 +88,7 @@ class ISOCalendarDateTimeType extends BaseDateType {
 	}
 
 	/** ISOCalendarDateTime data type validator */
-	private async validateType(value: unknown, document: GenericObject): Promise<boolean> {
+	private validateType = async (value: unknown, document: GenericObject): Promise<boolean> => {
 		if (value == null) {
 			return true;
 		}
@@ -113,7 +113,7 @@ class ISOCalendarDateTimeType extends BaseDateType {
 		).flat();
 
 		return partsValidations.length > 0;
-	}
+	};
 }
 
 export default ISOCalendarDateTimeType;
