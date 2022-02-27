@@ -54,7 +54,7 @@ class ISOCalendarDateType extends BaseDateType {
 			return null;
 		}
 
-		if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+		if (typeof value !== 'string') {
 			throw new TransformDataError({
 				transformClass: this.constructor.name,
 				transformValue: value,

@@ -75,7 +75,7 @@ class ISOTimeType extends BaseDateType {
 			return null;
 		}
 
-		if (typeof value !== 'string' || !/^\d{2}:\d{2}:\d{2}\.\d{3}$/.test(value)) {
+		if (typeof value !== 'string') {
 			throw new TransformDataError({
 				transformClass: this.constructor.name,
 				transformValue: value,

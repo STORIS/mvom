@@ -114,19 +114,6 @@ describe('transformToDb', () => {
 		}).toThrow(TransformDataError);
 	});
 
-	test('should throw TransformDataError if value does not match an ISOTime string', () => {
-		const definition: SchemaTypeDefinitionISOTime = {
-			type: 'ISOTime',
-			path: '1',
-			dbFormat: 's',
-		};
-		const isoTimeType = new ISOTimeType(definition);
-
-		expect(() => {
-			isoTimeType.transformToDb('12:12:12.');
-		}).toThrow(TransformDataError);
-	});
-
 	test('should return the number of seconds since midnight when time format is in seconds', () => {
 		const definition: SchemaTypeDefinitionISOTime = {
 			type: 'ISOTime',
