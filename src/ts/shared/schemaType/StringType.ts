@@ -58,6 +58,8 @@ class StringType extends BaseScalarType {
 	}
 
 	/** Transform mv string to js string */
+	public transformFromDb(value: null): null;
+	public transformFromDb(value: unknown): string;
 	public transformFromDb(value: unknown): string | null {
 		if (value == null) {
 			// if this property has an enumeration constraint and one of those constraints is empty string then return empty string;
@@ -69,6 +71,8 @@ class StringType extends BaseScalarType {
 	}
 
 	/** Transform js string to mv string */
+	public transformToDb(value: null): null;
+	public transformToDb(value: unknown): string;
 	public transformToDb(value: unknown): string | null {
 		return value == null ? null : String(value);
 	}

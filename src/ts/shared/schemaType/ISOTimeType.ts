@@ -32,6 +32,8 @@ class ISOTimeType extends BaseDateType {
 	 * Transform mv style time data to ISO 8601 approved time format (HH:mm:ss.SSS)
 	 * @throws {@link TransformDataError} Database value could not be transformed to external format
 	 */
+	public transformFromDb(value: null): null;
+	public transformFromDb(value: unknown): string;
 	public transformFromDb(value: unknown): string | null {
 		if (value == null) {
 			return null;
@@ -66,12 +68,14 @@ class ISOTimeType extends BaseDateType {
 	 * Transform ISO 8601 approved time format (HH:mm:ss.SSS) to mv style time data
 	 * @throws {@link TransformDataError} Value could not be transformed to database format
 	 */
+	public transformToDb(value: null): null;
+	public transformToDb(value: unknown): string;
 	public transformToDb(value: unknown): string | null {
 		if (value == null) {
 			return null;
 		}
 
-		if (typeof value !== 'string') {
+		if (typeof value !== 'string' || !/^\d{2}:\d{2}:\d{2}\.\d{3}$/.test(value)) {
 			throw new TransformDataError({
 				transformClass: this.constructor.name,
 				transformValue: value,

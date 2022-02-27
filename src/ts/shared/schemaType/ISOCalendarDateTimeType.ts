@@ -43,6 +43,8 @@ class ISOCalendarDateTimeType extends BaseDateType {
 	}
 
 	/** Transform mv style timestamp data (ddddd.sssss[SSS]) to ISO 8601 approved date/time format (yyyy-mm-ddTHH:mm:ss.SSS) */
+	public transformFromDb(value: null): null;
+	public transformFromDb(value: unknown): string;
 	public transformFromDb(value: unknown): string | null {
 		if (value == null) {
 			return null;
@@ -59,6 +61,8 @@ class ISOCalendarDateTimeType extends BaseDateType {
 	 * Transform ISO 8601 approved date/time format (yyyy-mm-ddTHH:mm:ss.SSS) to mv style timestamp data (ddddd.sssss[SSS])
 	 * @throws {@link TransformDataError} Value could not be transformed to database format
 	 */
+	public transformToDb(value: null): null;
+	public transformToDb(value: unknown): string;
 	public transformToDb(value: unknown): string | null {
 		if (value == null) {
 			return null;
@@ -75,14 +79,7 @@ class ISOCalendarDateTimeType extends BaseDateType {
 		const padLength = this.isDbInMs ? 8 : 5;
 
 		const transformedDatePart = this.isoCalendarDateType.transformToDb(datePart);
-		const transformedTimePart = this.isoTimeType.transformToDb(timePart)?.padStart(padLength, '0');
-
-		if (transformedDatePart == null || transformedTimePart == null) {
-			throw new TransformDataError({
-				transformClass: this.constructor.name,
-				transformValue: value,
-			});
-		}
+		const transformedTimePart = this.isoTimeType.transformToDb(timePart).padStart(padLength, '0');
 
 		return `${transformedDatePart}.${transformedTimePart}`;
 	}
@@ -99,11 +96,6 @@ class ISOCalendarDateTimeType extends BaseDateType {
 		}
 
 		const [datePart, timePart] = value.split('T');
-
-		if (datePart === '' || timePart === '' || timePart == null) {
-			// compound type must contain both parts
-			return false;
-		}
 
 		const partsValidations = (
 			await Promise.all([

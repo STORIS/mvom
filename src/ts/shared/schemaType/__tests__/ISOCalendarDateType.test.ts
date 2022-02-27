@@ -60,6 +60,18 @@ describe('transformToDb', () => {
 		}).toThrow(TransformDataError);
 	});
 
+	test('should throw TransformDataError if value does not match an ISOCalendarDate string', () => {
+		const definition: SchemaTypeDefinitionISOCalendarDate = {
+			type: 'ISOCalendarDate',
+			path: '1',
+		};
+		const isoCalendarDateType = new ISOCalendarDateType(definition);
+
+		expect(() => {
+			isoCalendarDateType.transformToDb('2022-02-2');
+		}).toThrow(TransformDataError);
+	});
+
 	test('should return the number of days since the multivalue epoch', () => {
 		const definition: SchemaTypeDefinitionISOCalendarDate = {
 			type: 'ISOCalendarDate',
