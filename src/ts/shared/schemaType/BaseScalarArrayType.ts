@@ -14,7 +14,7 @@ abstract class BaseScalarArrayType extends BaseSchemaType {
 
 	/** Cast to array type */
 	public override cast(value: unknown): unknown[] {
-		return ensureArray(value);
+		return value != null ? ensureArray(value) : [];
 	}
 
 	/** Transform query constants to the format defined by the array's schema */

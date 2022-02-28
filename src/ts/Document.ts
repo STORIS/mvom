@@ -1,6 +1,6 @@
 import { assignIn, cloneDeep, get as getIn, set as setIn } from 'lodash';
 import { ForeignKeyDbTransformer } from '#shared/classes';
-import { InvalidParameterError, TransformDataError } from '#shared/errors';
+import { TransformDataError } from '#shared/errors';
 import type { GenericObject, MvRecord } from '#shared/types';
 import type Schema from './Schema';
 
@@ -10,11 +10,21 @@ const DEFAULT_PROPERTY_DESCRIPTOR: PropertyDescriptor = {
 	writable: false,
 };
 
-export interface DocumentConstructorOptions {
-	data?: GenericObject;
+export interface DocumentConstructorOptionsData {
+	data: GenericObject;
 	isSubdocument?: boolean;
-	record?: MvRecord;
 }
+export interface DocumentConstructorOptionsRecord {
+	record: MvRecord;
+	isSubdocument?: boolean;
+}
+export interface DocumentConstructorOptionsRaw {
+	record: MvRecord;
+}
+export type DocumentConstructorOptions =
+	| DocumentConstructorOptionsData
+	| DocumentConstructorOptionsRecord
+	| DocumentConstructorOptionsRaw;
 
 export interface BuildForeignKeyDefinitionsResult {
 	filename: string;
@@ -30,8 +40,11 @@ class Document {
 
 	public _raw?: MvRecord;
 
+	/** Array of any errors which occurred during transformation from the database */
+	public transformationErrors: TransformDataError[];
+
 	/** Schema instance which defined this document */
-	private readonly schema: Schema;
+	private readonly schema: Schema | null;
 
 	/** Record array of multivalue data */
 	private record: MvRecord;
@@ -39,13 +52,11 @@ class Document {
 	/** Indicates whether this document is a subdocument of a composing parent */
 	private readonly isSubdocument: boolean;
 
-	/** Array of any errors which occurred during transformation from the database */
-	private transformationErrors: TransformDataError[];
+	public constructor(schema: Schema, options: DocumentConstructorOptions);
+	public constructor(schema: null, options: DocumentConstructorOptionsRaw);
+	public constructor(schema: Schema | null, options: DocumentConstructorOptions) {
+		const { data, isSubdocument, record } = this.parseConstructorOptions(options);
 
-	public constructor(
-		schema: Schema,
-		{ data = {}, isSubdocument = false, record }: DocumentConstructorOptions = {},
-	) {
 		this.schema = schema;
 		this.record = [];
 		this.isSubdocument = isSubdocument;
@@ -75,7 +86,7 @@ class Document {
 			: Object.entries(this.schema.paths).reduce(
 					(record, [keyPath, schemaType]) => {
 						const value = getIn(this, keyPath, null);
-						return schemaType.set(record, value);
+						return schemaType.set(record, schemaType.cast(value));
 					},
 					this.isSubdocument ? [] : cloneDeep(this.record),
 			  );
@@ -162,12 +173,20 @@ class Document {
 		return documentErrors;
 	}
 
-	/** Apply schema structure using record to document instance */
-	private transformRecordToDocument(record: MvRecord) {
-		if (!Array.isArray(record)) {
-			throw new InvalidParameterError({ parameterName: 'record' });
+	/** Parse constructor options to handle overloads */
+	private parseConstructorOptions(options: DocumentConstructorOptions) {
+		if ('record' in options && !('isSubdocument' in options)) {
+			// "raw" options
+			return { record: options.record, data: {}, isSubdocument: false } as const;
 		}
 
+		return 'record' in options
+			? { record: options.record, data: {}, isSubdocument: options.isSubdocument ?? false }
+			: { record: null, data: options.data, isSubdocument: options.isSubdocument ?? false };
+	}
+
+	/** Apply schema structure using record to document instance */
+	private transformRecordToDocument(record: MvRecord) {
 		// hold on to the original to use as the baseline when saving
 		this.record = record;
 
