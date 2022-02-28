@@ -4,8 +4,6 @@ import { ensureArray } from '#shared/utils';
 import BaseScalarArrayType from './BaseScalarArrayType';
 import type BaseScalarType from './BaseScalarType';
 
-const ISVALID_SYMBOL = Symbol('Is Valid');
-
 /** Scalar Array Schema Type */
 class ArrayType extends BaseScalarArrayType {
 	public constructor(valueSchemaType: BaseScalarType) {
@@ -38,27 +36,11 @@ class ArrayType extends BaseScalarArrayType {
 	public async validate(value: unknown, document: GenericObject): Promise<string[]> {
 		const castValue = ensureArray(value);
 
-		// combining all the validation into one array of promise.all
-		// - validation against the values in the array will return an array of 0 to n errors for each value
-		// - the validators against the entire array will return a placeholder symbol or the appropriate error message
-		// - flatten the results of all validators to ensure an array only 1-level deep
-		// - filter out the placeholder symbols to only return the error messages
-
 		return (
-			await Promise.all([
-				Promise.all(
-					this.validators.map(async ({ validator, message }) => {
-						const isValid = await validator(castValue, document);
-						return isValid ? ISVALID_SYMBOL : message;
-					}),
-				),
-				Promise.all(
-					castValue.map((arrayItem) => this.valueSchemaType.validate(arrayItem, document)),
-				),
-			])
-		)
-			.flat(2)
-			.filter((val): val is string => val !== ISVALID_SYMBOL);
+			await Promise.all(
+				castValue.map((arrayItem) => this.valueSchemaType.validate(arrayItem, document)),
+			)
+		).flat();
 	}
 }
 
