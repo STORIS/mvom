@@ -20,11 +20,13 @@ import type {
 } from '#shared/types';
 
 type SchemaTypeDefinition =
+	| Schema
 	| SchemaTypeDefinitionScalar
 	| SchemaDefinition
 	| SchemaTypeDefinitionArray;
 
 type SchemaTypeDefinitionArray =
+	| Schema[]
 	| SchemaTypeDefinitionScalar[]
 	| SchemaTypeDefinitionScalar[][]
 	| SchemaDefinition[]

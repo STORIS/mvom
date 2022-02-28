@@ -59,10 +59,6 @@ class Document {
 			},
 			isSubdocument: DEFAULT_PROPERTY_DESCRIPTOR,
 			transformationErrors: DEFAULT_PROPERTY_DESCRIPTOR,
-			buildForeignKeyDefinitions: DEFAULT_PROPERTY_DESCRIPTOR,
-			transformDocumentToRecord: DEFAULT_PROPERTY_DESCRIPTOR,
-			transformRecordToDocument: DEFAULT_PROPERTY_DESCRIPTOR,
-			validate: DEFAULT_PROPERTY_DESCRIPTOR,
 		});
 
 		if (record != null) {
@@ -167,7 +163,7 @@ class Document {
 	}
 
 	/** Apply schema structure using record to document instance */
-	private transformRecordToDocument = (record: MvRecord) => {
+	private transformRecordToDocument(record: MvRecord) {
 		if (!Array.isArray(record)) {
 			throw new InvalidParameterError({ parameterName: 'record' });
 		}
@@ -197,7 +193,7 @@ class Document {
 				  }, {});
 
 		assignIn(this, plainDocument);
-	};
+	}
 }
 
 export default Document;
