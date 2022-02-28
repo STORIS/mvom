@@ -1,17 +1,9 @@
 import type { ForeignKeyDbDefinition } from '#shared/classes/ForeignKeyDbTransformer';
-import ForeignKeyDbTransformer from '#shared/classes/ForeignKeyDbTransformer';
 import type { MvRecord } from '#shared/types';
 import { NumberType, StringType } from '..';
 import NestedArrayType from '../NestedArrayType';
 import type { SchemaTypeDefinitionNumber } from '../NumberType';
 import type { SchemaTypeDefinitionString } from '../StringType';
-
-const mockTransform = jest.fn<ForeignKeyDbDefinition[], (unknown | null)[]>();
-jest.mock('#shared/classes/ForeignKeyDbTransformer', () => jest.fn());
-
-beforeEach(() => {
-	(ForeignKeyDbTransformer as jest.Mock).mockImplementation(() => ({ transform: mockTransform }));
-});
 
 describe('get', () => {
 	const valueSchemaDefinition: SchemaTypeDefinitionNumber = {
@@ -100,25 +92,17 @@ describe('transformForeignKeyDefinitionsToDb', () => {
 		const stringType = new StringType(definition);
 		const nestedArrayType = new NestedArrayType(stringType);
 
-		mockTransform.mockImplementation((value) => [
-			{ filename: 'FILE', entityId: String(value), entityName: 'FK_ENTITY' },
-		]);
-
 		const value = [
 			['foo', 'bar'],
 			['baz', 'qux'],
 		];
-		const expected = [
+		const expected: ForeignKeyDbDefinition[] = [
 			{ filename: 'FILE', entityId: 'foo', entityName: 'FK_ENTITY' },
 			{ filename: 'FILE', entityId: 'bar', entityName: 'FK_ENTITY' },
 			{ filename: 'FILE', entityId: 'baz', entityName: 'FK_ENTITY' },
 			{ filename: 'FILE', entityId: 'qux', entityName: 'FK_ENTITY' },
 		];
 		expect(nestedArrayType.transformForeignKeyDefinitionsToDb(value)).toEqual(expected);
-		expect(mockTransform).toHaveBeenCalledWith('foo');
-		expect(mockTransform).toHaveBeenCalledWith('bar');
-		expect(mockTransform).toHaveBeenCalledWith('baz');
-		expect(mockTransform).toHaveBeenCalledWith('qux');
 	});
 });
 

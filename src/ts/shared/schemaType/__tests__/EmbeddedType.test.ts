@@ -63,10 +63,7 @@ describe('set', () => {
 
 	test('should return a record with the subdocument merged in', () => {
 		const originalRecord: MvRecord = ['unrelated'];
-		const value = new Document(valueSchema, {
-			record: originalRecord,
-			isSubdocument: true,
-		});
+		const value = new Document(valueSchema, { record: originalRecord, isSubdocument: true });
 		value.prop1 = 'foo';
 		value.prop2 = 12.34;
 
@@ -92,7 +89,21 @@ describe('validate', () => {
 
 		const validationResults = await embeddedType.validate(value);
 		expect(validationResults).toHaveLength(2);
-		expect(validationResults[0]).toBe('Property is required');
-		expect(validationResults[1]).toBe('Property is required');
+		validationResults.forEach((result) => {
+			expect(result).toBe('Property is required');
+		});
+	});
+
+	test('should return an empty array if no errors are encountered when validating the subdocument', async () => {
+		const originalRecord: MvRecord = ['unrelated'];
+		const value = new Document(valueSchema, {
+			record: originalRecord,
+			isSubdocument: true,
+		});
+		value.prop1 = 'foo';
+		value.prop2 = 12.34;
+
+		const validationResults = await embeddedType.validate(value);
+		expect(validationResults).toEqual([]);
 	});
 });

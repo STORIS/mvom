@@ -1,17 +1,9 @@
 import type { ForeignKeyDbDefinition } from '#shared/classes/ForeignKeyDbTransformer';
-import ForeignKeyDbTransformer from '#shared/classes/ForeignKeyDbTransformer';
 import type { MvRecord } from '#shared/types';
 import { NumberType, StringType } from '..';
 import ArrayType from '../ArrayType';
 import type { SchemaTypeDefinitionNumber } from '../NumberType';
 import type { SchemaTypeDefinitionString } from '../StringType';
-
-const mockTransform = jest.fn<ForeignKeyDbDefinition[], (unknown | null)[]>();
-jest.mock('#shared/classes/ForeignKeyDbTransformer', () => jest.fn());
-
-beforeEach(() => {
-	(ForeignKeyDbTransformer as jest.Mock).mockImplementation(() => ({ transform: mockTransform }));
-});
 
 describe('get', () => {
 	describe('attribute based path', () => {
@@ -128,18 +120,12 @@ describe('transformForeignKeyDefinitionsToDb', () => {
 		const stringType = new StringType(definition);
 		const arrayType = new ArrayType(stringType);
 
-		mockTransform.mockImplementation((value) => [
-			{ filename: 'FILE', entityId: String(value), entityName: 'FK_ENTITY' },
-		]);
-
 		const value = ['foo', 'bar'];
-		const expected = [
+		const expected: ForeignKeyDbDefinition[] = [
 			{ filename: 'FILE', entityId: 'foo', entityName: 'FK_ENTITY' },
 			{ filename: 'FILE', entityId: 'bar', entityName: 'FK_ENTITY' },
 		];
 		expect(arrayType.transformForeignKeyDefinitionsToDb(value)).toEqual(expected);
-		expect(mockTransform).toHaveBeenCalledWith('foo');
-		expect(mockTransform).toHaveBeenCalledWith('bar');
 	});
 });
 

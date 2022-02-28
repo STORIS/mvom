@@ -1,14 +1,6 @@
 import type { ForeignKeyDbDefinition } from '#shared/classes/ForeignKeyDbTransformer';
-import ForeignKeyDbTransformer from '#shared/classes/ForeignKeyDbTransformer';
 import type { SchemaTypeDefinitionString } from '../StringType';
 import StringType from '../StringType';
-
-const mockTransform = jest.fn<ForeignKeyDbDefinition[], (unknown | null)[]>();
-jest.mock('#shared/classes/ForeignKeyDbTransformer', () => jest.fn());
-
-beforeEach(() => {
-	(ForeignKeyDbTransformer as jest.Mock).mockImplementation(() => ({ transform: mockTransform }));
-});
 
 describe('transformFromDb', () => {
 	test('should return null if value is null and no enum is defined', () => {
@@ -106,15 +98,11 @@ describe('transformForeignKeyDefinitionsToDb', () => {
 		};
 		const stringType = new StringType(definition);
 
-		const transformResult: ForeignKeyDbDefinition[] = [
+		const value = 'foo';
+		const expected: ForeignKeyDbDefinition[] = [
 			{ filename: 'FILE', entityId: 'foo', entityName: 'FK_ENTITY' },
 		];
-		mockTransform.mockReturnValue(transformResult);
-
-		const value = 'foo';
-		expect(stringType.transformForeignKeyDefinitionsToDb(value)).toEqual(transformResult);
-		expect(ForeignKeyDbTransformer).toHaveBeenCalledWith(foreignKeyDefinition);
-		expect(mockTransform).toHaveBeenCalledWith(value);
+		expect(stringType.transformForeignKeyDefinitionsToDb(value)).toEqual(expected);
 	});
 });
 

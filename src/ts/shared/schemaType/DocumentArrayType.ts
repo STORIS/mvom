@@ -1,4 +1,4 @@
-import { castArray, cloneDeep, isPlainObject, set as setIn } from 'lodash';
+import { cloneDeep, isPlainObject, set as setIn } from 'lodash';
 import type { ForeignKeyDbDefinition } from '#shared/classes/ForeignKeyDbTransformer';
 import type { MvRecord } from '#shared/types';
 import { ensureArray, getFromMvArray } from '#shared/utils';
@@ -25,7 +25,7 @@ class DocumentArrayType extends BaseSchemaType {
 			return [];
 		}
 
-		return castArray(value).map((subdocument) => {
+		return ensureArray(value).map((subdocument) => {
 			// convert subdocument to a plain structure and then recast as document
 			const plainValue = subdocument == null ? {} : JSON.parse(JSON.stringify(subdocument));
 			if (!isPlainObject(plainValue)) {
