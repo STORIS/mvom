@@ -101,7 +101,7 @@ class Schema {
 
 	/** Transform the paths to positions */
 	public transformPathsToDbPositions = (paths: string[]): number[] => {
-		if (!Array.isArray(paths) || paths.length === 0) {
+		if (paths.length === 0) {
 			return [];
 		}
 		const positionPaths = this.getPositionPaths();
@@ -112,9 +112,7 @@ class Schema {
 				// add position
 				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 				const [dbPosition] = positionPaths.get(positionPath)!;
-				if (!acc.has(dbPosition + 1)) {
-					acc.add(dbPosition + 1);
-				}
+				acc.add(dbPosition + 1);
 			} else if (!positionPath.includes('.')) {
 				// if the property is a parent key, we will add positions for all children
 				// e.g we only pass property "name" to return all data for name.first, name.last, etc.
@@ -125,9 +123,7 @@ class Schema {
 					// add child position
 					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 					const [dbPosition] = positionPaths.get(key)!;
-					if (!acc.has(dbPosition + 1)) {
-						acc.add(dbPosition + 1);
-					}
+					acc.add(dbPosition + 1);
 				});
 			}
 			return acc;
