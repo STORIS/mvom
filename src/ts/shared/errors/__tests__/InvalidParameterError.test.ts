@@ -1,4 +1,4 @@
-import InvalidParameterError from './InvalidParameterError';
+import InvalidParameterError from '../InvalidParameterError';
 
 const parameterName = 'parameterName';
 

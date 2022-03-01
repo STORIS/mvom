@@ -1,4 +1,4 @@
-import ConnectionManagerError from './ConnectionManagerError';
+import ConnectionManagerError from '../ConnectionManagerError';
 
 test('should instantiate error with expected instance properties', (): void => {
 	const error = new ConnectionManagerError();

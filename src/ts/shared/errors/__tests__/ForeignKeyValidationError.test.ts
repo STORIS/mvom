@@ -1,4 +1,4 @@
-import ForeignKeyValidationError from './ForeignKeyValidationError';
+import ForeignKeyValidationError from '../ForeignKeyValidationError';
 
 const foreignKeyValidationErrors = [{ entityName: 'entityName', entityId: 'entityId' }];
 

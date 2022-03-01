@@ -1,17 +1,17 @@
-import RecordVersionError from './RecordVersionError';
+import RecordLockedError from '../RecordLockedError';
 
 test('should instantiate error with expected instance properties', (): void => {
-	const error = new RecordVersionError();
+	const error = new RecordLockedError();
 	const expected = {
-		name: 'RecordVersionError',
-		message: 'Record has changed since it was read and cannot be updated',
+		name: 'RecordLockedError',
+		message: 'Record is locked and cannot be updated',
 	};
 	expect(error).toMatchObject(expected);
 });
 
 test('should allow for override of message', (): void => {
 	const message = 'foo';
-	const error = new RecordVersionError({
+	const error = new RecordLockedError({
 		message,
 	});
 	expect(error.message).toEqual(message);

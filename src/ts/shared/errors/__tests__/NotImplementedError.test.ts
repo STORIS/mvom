@@ -1,4 +1,4 @@
-import NotImplementedError from './NotImplementedError';
+import NotImplementedError from '../NotImplementedError';
 
 test('should instantiate error with expected instance properties', (): void => {
 	const error = new NotImplementedError();

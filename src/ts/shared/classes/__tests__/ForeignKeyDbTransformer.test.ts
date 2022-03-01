@@ -1,9 +1,9 @@
-import ForeignKeyDbTransformer from './ForeignKeyDbTransformer';
+import ForeignKeyDbTransformer from '../ForeignKeyDbTransformer';
 import type {
 	CompoundForeignKeyDefinition,
 	ForeignKeyDbDefinition,
 	ForeignKeyDefinition,
-} from './ForeignKeyDbTransformer';
+} from '../ForeignKeyDbTransformer';
 
 describe('transform', () => {
 	test('should return an empty array if foreign key definitions are provided', () => {

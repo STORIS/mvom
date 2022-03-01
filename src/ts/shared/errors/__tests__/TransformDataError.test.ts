@@ -1,4 +1,4 @@
-import TransformDataError from './TransformDataError';
+import TransformDataError from '../TransformDataError';
 
 const transformClass = 'className';
 const transformValue = 'transformValue';

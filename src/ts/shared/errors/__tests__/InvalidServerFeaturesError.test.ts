@@ -1,4 +1,4 @@
-import InvalidServerFeaturesError from './InvalidServerFeaturesError';
+import InvalidServerFeaturesError from '../InvalidServerFeaturesError';
 
 const invalidFeatures = ['invalid1', 'invalid2'];
 

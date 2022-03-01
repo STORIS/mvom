@@ -1,5 +1,5 @@
 import { dbErrors } from '#shared/constants';
-import DbServerError from './DbServerError';
+import DbServerError from '../DbServerError';
 
 // use one of the codes from the errors table
 const dbError = Object.values(dbErrors)[0];

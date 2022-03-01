@@ -1,4 +1,4 @@
-import DataValidationError from './DataValidationError';
+import DataValidationError from '../DataValidationError';
 
 const validationErrors = { foo: 'foo' };
 
