@@ -103,7 +103,7 @@ class Document {
 		const definitionMap = Object.entries(this.schema.paths).reduce(
 			(foreignKeyDefinitions, [keyPath, schemaType]) => {
 				const value = getIn(this, keyPath, null);
-				const definitions = schemaType.transformForeignKeyDefinitionsToDb(value);
+				const definitions = schemaType.transformForeignKeyDefinitionsToDb(schemaType.cast(value));
 				// Deduplicate foreign key definitions by using a filename / entity name combination
 				// We could deduplicate using just the filename but ignoring the entity name could result in confusing error messages
 				definitions.forEach(({ filename, entityId, entityName }) => {
@@ -175,14 +175,19 @@ class Document {
 
 	/** Parse constructor options to handle overloads */
 	private parseConstructorOptions(options: DocumentConstructorOptions) {
-		if ('record' in options && !('isSubdocument' in options)) {
-			// "raw" options
-			return { record: options.record, data: {}, isSubdocument: false } as const;
+		if ('data' in options) {
+			return {
+				record: null,
+				data: options.data,
+				isSubdocument: Boolean(options.isSubdocument),
+			};
 		}
 
-		return 'record' in options
-			? { record: options.record, data: {}, isSubdocument: options.isSubdocument ?? false }
-			: { record: null, data: options.data, isSubdocument: options.isSubdocument ?? false };
+		return {
+			record: options.record,
+			data: {},
+			isSubdocument: Boolean('isSubdocument' in options && options.isSubdocument),
+		};
 	}
 
 	/** Apply schema structure using record to document instance */
