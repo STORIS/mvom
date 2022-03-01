@@ -124,7 +124,7 @@ class Document {
 			const definitions = foreignKeyDbTransformer.transform(this._id);
 			definitions.forEach(({ filename, entityId, entityName }) => {
 				const key = `${filename}${separator}${entityName}`;
-				const accumulatedEntityIds = definitionMap.get(key) || new Set<string>();
+				const accumulatedEntityIds = definitionMap.get(key) ?? new Set<string>();
 				accumulatedEntityIds.add(entityId);
 				definitionMap.set(key, accumulatedEntityIds);
 			});
