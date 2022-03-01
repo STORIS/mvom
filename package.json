@@ -33,7 +33,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://bitbucket.org/storis/mvom.git"
+    "url": "https://github.com/STORIS/mvom"
   },
   "keywords": [
     "node",
@@ -44,7 +44,7 @@
   "license": "MIT",
   "dependencies": {
     "axios": "^0.26.0",
-    "fs-extra": "^10.0.0",
+    "fs-extra": "^10.0.1",
     "lodash": "^4.17.21",
     "moment": "^2.29.1",
     "semver": "^7.3.5"
@@ -59,15 +59,15 @@
     "@storis/eslint-config": "1.0.1",
     "@storis/prettier-config": "0.0.2",
     "@storis/tsconfig": "0.0.2",
-    "@types/jest": "27.4.0",
-    "@types/lodash": "4.14.178",
-    "@types/node": "16.11.7",
-    "@typescript-eslint/eslint-plugin": "5.12.1",
-    "@typescript-eslint/parser": "5.12.1",
+    "@types/jest": "27.4.1",
+    "@types/lodash": "4.14.179",
+    "@types/node": "16.11.26",
+    "@typescript-eslint/eslint-plugin": "5.13.0",
+    "@typescript-eslint/parser": "5.13.0",
     "babel-jest": "27.5.1",
     "babel-plugin-module-resolver": "4.1.0",
     "babel-plugin-rewire-ts": "1.4.0",
-    "eslint": "8.9.0",
+    "eslint": "8.10.0",
     "eslint-config-airbnb-base": "15.0.0",
     "eslint-config-airbnb-typescript": "16.1.0",
     "eslint-config-prettier": "8.4.0",
@@ -82,7 +82,7 @@
     "prettier": "2.5.1",
     "rimraf": "3.0.2",
     "sinon": "13.0.1",
-    "typescript": "4.5.5"
+    "typescript": "4.6.2"
   },
   "types": "./src/index.d.ts",
   "prettier": "@storis/prettier-config"
