@@ -1,4 +1,4 @@
-import handleRequiredValidation from './handleRequiredValidation';
+import handleRequiredValidation from '../handleRequiredValidation';
 
 const defaultValidator = (): false => false;
 

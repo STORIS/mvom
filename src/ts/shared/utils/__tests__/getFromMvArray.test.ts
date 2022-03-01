@@ -1,4 +1,4 @@
-import getFromMvArray from './getFromMvArray';
+import getFromMvArray from '../getFromMvArray';
 
 test('should return undefined if no record is passed', () => {
 	expect(getFromMvArray([0], undefined)).toBeUndefined();

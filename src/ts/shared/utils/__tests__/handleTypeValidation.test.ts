@@ -1,4 +1,4 @@
-import handleTypeValidation from './handleTypeValidation';
+import handleTypeValidation from '../handleTypeValidation';
 
 const defaultValidator = (): false => false;
 
