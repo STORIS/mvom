@@ -1,3 +1,7 @@
+import type compileModel from '../../compileModel';
+
+export * from './DbFeature';
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type GenericObject = Record<string, any>;
 
@@ -35,3 +39,14 @@ export interface SchemaCompoundForeignKeyDefinition {
 	[key: number]: SchemaForeignKeyDefinition;
 	splitCharacter: string;
 }
+
+export interface Logger {
+	error(message: string): void;
+	warn(message: string): void;
+	info(message: string): void;
+	verbose(message: string): void;
+	debug(message: string): void;
+	silly(message: string): void;
+}
+
+export type ModelConstructor = ReturnType<typeof compileModel>;
