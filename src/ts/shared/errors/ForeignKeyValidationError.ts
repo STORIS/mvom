@@ -1,7 +1,7 @@
 import type { GenericObject } from '#shared/types';
 import BaseError from './BaseError';
 
-interface ForeignKeyValidationErrorData {
+export interface ForeignKeyValidationErrorData {
 	entityName: string;
 	entityId: string;
 }

@@ -1,6 +1,8 @@
 import type compileModel from '../../compileModel';
 
 export * from './DbFeature';
+export * from './DbSubroutineInput';
+export * from './DbSubroutineOutput';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type GenericObject = Record<string, any>;

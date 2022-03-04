@@ -1,5 +1,3 @@
-/* eslint-disable */
-// TODO REMOVE THE ABOVE
 import path from 'path';
 import type { AxiosResponse } from 'axios';
 import axios from 'axios';
@@ -25,11 +23,17 @@ import {
 import type {
 	DbActionInputCreateDir,
 	DbActionInputDeploy,
+	DbActionInputFeatureList,
 	DbActionInputSubroutine,
 	DbActionInputTypes,
+	DbActionOutputErrorForeignKey,
 	DbActionResponseCreateDir,
 	DbActionResponseDeploy,
+	DbActionResponseError,
+	DbActionResponseFeatureList,
 	DbFeatureResponseTypes,
+	DbSubroutineInputOptionsMap,
+	DbSubroutineResponseTypesMap,
 	Logger,
 } from '#shared/types';
 import { dependencies as serverDependencies } from '../.mvomrc.json';
@@ -59,7 +63,12 @@ export interface DeployFeaturesOptions {
 	createDir?: boolean;
 }
 
-type ServerDependencies = keyof typeof serverDependencies;
+type ServerDependency = keyof typeof serverDependencies;
+
+interface ServerFeatureSet {
+	validFeatures: Partial<Record<ServerDependency, string>>;
+	invalidFeatures: ServerDependency[];
+}
 
 /** A connection object */
 class Connection {
@@ -73,10 +82,7 @@ class Connection {
 	public logger: Logger;
 
 	/** Object providing the current state of db server features and availability */
-	private serverFeatureSet: {
-		validFeatures: Partial<Record<ServerDependencies, string>>;
-		invalidFeatures: ServerDependencies[];
-	} = {
+	private serverFeatureSet: ServerFeatureSet = {
 		validFeatures: {},
 		invalidFeatures: [],
 	};
@@ -110,43 +116,49 @@ class Connection {
 	}
 
 	/** Return the packaged specific version number of a feature */
-	private static getFeatureVersion(feature: ServerDependencies): string {
-		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-		const [featureVersion] = serverDependencies[feature].match(/\d\.\d\.\d.*$/)!;
-		return featureVersion;
+	private static getFeatureVersion(feature: ServerDependency): string {
+		const featureVersion = semver.minVersion(serverDependencies[feature]);
+		if (featureVersion == null) {
+			throw new TypeError('Server feature dependency list is corrupted');
+		}
+
+		return featureVersion.version;
 	}
 
-	/** Get the exact name of a program on the database server */
-	private static getServerProgramName(feature: ServerDependencies, version?: string): string {
+	/** Get the exact name of a feature subroutine on the database server */
+	private static getServerProgramName(feature: ServerDependency, version?: string): string {
 		const featureVersion = version ?? Connection.getFeatureVersion(feature);
 		return `mvom_${feature}@${featureVersion}`;
 	}
 
 	/** Get the UniBasic source code for a given feature */
-	private static async getUnibasicSource(feature: ServerDependencies): Promise<string> {
+	private static async getUnibasicSource(feature: ServerDependency): Promise<string> {
 		const filePath = path.join(Connection.unibasicPath, `${feature}.mvb`);
 		return fs.readFile(filePath, 'utf8');
 	}
 
 	/**
 	 * Handle error from the database server
+	 * @throws {@link ForeignKeyValidationError} A foreign key constraint was violated
 	 * @throws {@link RecordLockedError} A record was locked and could not be updated
 	 * @throws {@link RecordVersionError} A record changed between being read and written and could not be updated
 	 * @throws {@link DbServerError} An error was encountered on the database server
 	 */
-	private static handleDbServerError(response: AxiosResponse) {
+	private static handleDbServerError<TResponse extends DbFeatureResponseTypes>(
+		response: AxiosResponse<TResponse | DbActionResponseError>,
+	): asserts response is AxiosResponse<TResponse> {
 		if (response.data.output == null) {
 			// handle invalid response
 			throw new DbServerError({ message: 'Response from db server was malformed' });
 		}
 
-		const errorCode = +response.data.output.errorCode;
-
-		if (errorCode) {
+		if ('errorCode' in response.data.output) {
+			const errorCode = Number(response.data.output.errorCode);
 			switch (errorCode) {
 				case dbErrors.foreignKeyValidation.code:
 					throw new ForeignKeyValidationError({
-						foreignKeyValidationErrors: response.data.output.foreignKeyValidationErrors,
+						foreignKeyValidationErrors: (response.data.output as DbActionOutputErrorForeignKey)
+							.foreignKeyValidationErrors,
 					});
 				case dbErrors.recordLocked.code:
 					throw new RecordLockedError();
@@ -191,7 +203,7 @@ class Connection {
 			throw new InvalidParameterError({ parameterName: 'sourceDir' });
 		}
 
-		if (this.serverFeatureSet.invalidFeatures.length <= 0) {
+		if (this.serverFeatureSet.invalidFeatures.length === 0) {
 			// there aren't any invalid features to deploy
 			this.logger.debug(`no missing features to deploy`);
 			return;
@@ -207,7 +219,7 @@ class Connection {
 			await this.executeDb<DbActionInputCreateDir, DbActionResponseCreateDir>(data);
 		}
 
-		const bootstrapFeatures: ServerDependencies[] = ['deploy', 'setup', 'teardown'];
+		const bootstrapFeatures: ServerDependency[] = ['deploy', 'setup', 'teardown'];
 		const bootstrapped = await Promise.all(
 			bootstrapFeatures.map(async (feature) => {
 				if (!Object.prototype.hasOwnProperty.call(this.serverFeatureSet.validFeatures, feature)) {
@@ -246,28 +258,17 @@ class Connection {
 		);
 	}
 
-	/**
-	 * Execute a database feature
-	 * @function executeDbFeature
-	 * @memberof Connection
-	 * @instance
-	 * @async
-	 * @param {string} feature - Name of feature to execute
-	 * @param {*} [options={}] - Options parameter to pass to database feature
-	 * @param {*} [setupOptions={}] - Options parameter to pass to setup feature
-	 * @param {*} [teardownOptions={}] - Options parameter to pass to teardown feature
-	 * @returns {*} Output from database feature
-	 * @throws {ConnectionManagerError} (indirect) An error occurred in connection manager communications
-	 * @throws {DbServerError} (indirect) An error occurred on the database server
-	 */
-	public async executeDbFeature<TOptions extends Record<string, any>, TResult>(
-		feature: ServerDependencies,
-		options: TOptions,
-		setupOptions: Record<string, any> = {},
-		teardownOptions = {},
-	) {
+	/** Execute a database feature */
+	public async executeDbFeature<
+		TFeature extends keyof (DbSubroutineInputOptionsMap & DbSubroutineResponseTypesMap),
+	>(
+		feature: TFeature,
+		options: DbSubroutineInputOptionsMap[TFeature],
+		setupOptions: Record<string, never> = {},
+		teardownOptions: Record<string, never> = {},
+	): Promise<DbSubroutineResponseTypesMap[TFeature]['output']> {
 		this.logger.debug(`executing database feature "${feature}"`);
-		const data: DbActionInputSubroutine<TOptions> = {
+		const data: DbActionInputSubroutine<DbSubroutineInputOptionsMap[TFeature]> = {
 			action: 'subroutine',
 			// make sure to use the compatible server version of feature
 			subroutineId: Connection.getServerProgramName(
@@ -286,7 +287,7 @@ class Connection {
 
 		this.logger.debug(`executing database subroutine ${data.subroutineId}`);
 
-		return this.executeDb<DbActionInputSubroutine<TOptions>, TResult>(data);
+		return this.executeDb(data);
 	}
 
 	/** Get the current ISOCalendarDate from the database */
@@ -315,31 +316,16 @@ class Connection {
 		return compileModel(this, schema, file);
 	}
 
-	/* private instance methods */
-	/**
-	 * Execute a database function remotely
-	 * @function _executeDb
-	 * @memberof Connection
-	 * @instance
-	 * @private
-	 * @async
-	 * @param {Object} data
-	 * @param {string} data.action - Remote action to invoke
-	 * @param {*} data.xxx - Additional properties as required by remote function
-	 * @returns {*} Output from database function execution
-	 * @throws {InvalidParameterError} An invalid parameter was passed to the function
-	 * @throws {ConnectionManagerError} An error occurred in connection manager communications
-	 * @throws {DbServerError} An error occurred on the database server
-	 */
+	/** Execute a database function remotely */
 	private async executeDb<
 		TInput extends DbActionInputTypes,
 		TResponse extends DbFeatureResponseTypes,
-	>(data: TInput) {
+	>(data: TInput): Promise<TResponse['output']> {
 		this.logger.debug(`executing database function with action "${data.action}"`);
 
 		let response;
 		try {
-			response = await axios.post<TResponse>(
+			response = await axios.post<TResponse | DbActionResponseError>(
 				this.endpoint,
 				{ input: data },
 				{ timeout: this.timeout },
@@ -358,19 +344,11 @@ class Connection {
 		return response.data.output;
 	}
 
-	/**
-	 * Get the db server information (date, time, etc.)
-	 * @function _getDbServerInfo
-	 * @memberof Connection
-	 * @instance
-	 * @private
-	 * @async
-	 * @modifies {this}
-	 */
+	/** Get the db server information (date, time, etc.) */
 	private async getDbServerInfo() {
 		if (Date.now() > this.cacheExpiry) {
 			this.logger.debug('getting db server information');
-			const data = await this.executeDbFeature('getServerInfo');
+			const data = await this.executeDbFeature('getServerInfo', {});
 
 			const { date, time } = data;
 
@@ -380,30 +358,24 @@ class Connection {
 		}
 	}
 
-	/**
-	 * Get the state of database server features
-	 * @function _getFeatureState
-	 * @memberof Connection
-	 * @instance
-	 * @private
-	 * @async
-	 */
+	/** Get the state of database server features */
 	private getFeatureState = async () => {
 		this.logger.debug(`getting state of database server features`);
 		const serverFeatures = await this.getServerFeatures();
 
-		this.serverFeatureSet = Object.entries(serverDependencies).reduce(
-			(acc, [dependencyName, dependencyVersion]) => {
-				if (!Object.prototype.hasOwnProperty.call(serverFeatures, dependencyName)) {
+		this.serverFeatureSet = Object.entries(serverDependencies).reduce<ServerFeatureSet>(
+			(acc, entry) => {
+				const [dependencyName, dependencyVersion] = entry as [ServerDependency, string];
+
+				const featureVersions = serverFeatures.get(dependencyName);
+
+				if (featureVersions == null) {
 					// if the feature doesn't exist on the server then it is invalid
 					acc.invalidFeatures.push(dependencyName);
 					return acc;
 				}
 
-				const matchedVersion = semver.maxSatisfying(
-					serverFeatures[dependencyName],
-					dependencyVersion,
-				);
+				const matchedVersion = semver.maxSatisfying(featureVersions, dependencyVersion);
 				if (matchedVersion == null) {
 					// no versions satisfy the requirement
 					acc.invalidFeatures.push(dependencyName);
@@ -421,39 +393,26 @@ class Connection {
 		);
 	};
 
-	/**
-	 * Get a list of database server features
-	 * @function _getServerFeatures
-	 * @memberof Connection
-	 * @instance
-	 * @private
-	 * @async
-	 * @returns {Object} Key(s): Feature(s) / Value(s): array(s) of versions
-	 */
-	private getServerFeatures = async (): Promise<Partial<Record<ServerDependencies, string>>> => {
+	/** Get a list of database server features */
+	private getServerFeatures = async (): Promise<Map<string, string[]>> => {
 		this.logger.debug(`getting list of features from database server`);
-		const data = { action: 'featureList' };
-		const response = await this.executeDb(data);
-
-		if (!Array.isArray(response.features)) {
-			this.logger.debug(`no features found on server`);
-			return {};
-		}
+		const data = { action: 'featureList' } as const;
+		const response = await this.executeDb<DbActionInputFeatureList, DbActionResponseFeatureList>(
+			data,
+		);
 
 		return response.features.reduce((acc, feature) => {
-			// only include programs in the format of mvom_feature@x.y.z
 			const featureRegExp = /^mvom_(.*)@(\d\.\d\.\d.*$)/;
 
 			const match = featureRegExp.exec(feature);
-			if (!match) {
+			if (match == null) {
 				// does not match the format of an mvom feature program
 				return acc;
 			}
 
-			const featureName = match[1]; // acquired from first capturing group
-			const featureVersion = match[2]; // acquired from second capturing group
+			const [, featureName, featureVersion] = match;
 
-			if (!semver.valid(featureVersion)) {
+			if (semver.valid(featureVersion) == null) {
 				// a valid feature will contain an @-version specification that uses semver
 				return acc;
 			}
@@ -461,18 +420,13 @@ class Connection {
 			this.logger.debug(
 				`feature "${featureName}" version "${featureVersion}" found on database server`,
 			);
-			if (Object.prototype.hasOwnProperty.call(acc, featureName)) {
-				// another version of this feature already present - add to list of feature's versions
-				acc[featureName].push(featureVersion);
-				return acc;
-			}
 
-			// add this feature to the returned set
-			return {
-				...acc,
-				[featureName]: [featureVersion],
-			};
-		}, {});
+			const versions = acc.get(featureName) ?? [];
+			versions.push(featureVersion);
+
+			acc.set(featureName, versions);
+			return acc;
+		}, new Map<string, string[]>());
 	};
 }
 

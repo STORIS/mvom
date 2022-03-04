@@ -1,5 +1,7 @@
-/* eslint-disable */
-// TODO REMOVE THE ABOVE
+import type { ForeignKeyValidationErrorData } from '#shared/errors/ForeignKeyValidationError';
+import type { DbActionSubroutineInputTypes } from './DbSubroutineInput';
+import type { DbSubroutineResponseTypes } from './DbSubroutineOutput';
+
 export interface DbActionInput<TAction extends string> {
 	action: TAction;
 }
@@ -19,57 +21,43 @@ export interface DbActionInputDeploy extends DbActionInput<'deploy'> {
 	programName: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export interface DbActionInputSubroutine<TSubroutineOptions extends Record<string, any>> {
-	action: 'subroutine';
-	subroutineId: string;
-	setupId: string;
-	setupOptions: Record<string, any>;
-	teardownId: string;
-	teardownOptions: Record<string, any>;
-	options: TSubroutineOptions;
-}
-
-export interface DbSubroutineOptionsDeleteById {
-	filename: string;
-	id: string;
-}
-export type DbSubroutineInputDeleteById = DbActionInputSubroutine<DbSubroutineOptionsDeleteById>;
-
 /** DB Feature Input Types */
 export type DbActionInputTypes =
 	| DbActionInputFeatureList
 	| DbActionInputCreateDir
 	| DbActionInputDeploy
-	| DbActionInputSubroutine<any>;
+	| DbActionSubroutineInputTypes;
 
-interface DbActionResponse<TOutput> {
+export interface DbActionResponse<TOutput> {
 	output: TOutput;
 }
 
-export interface DbActionOutputError {
+export interface DbActionOutputErrorBase {
 	errorCode: string;
 }
-export type DbActionResponseError = DbActionResponse<DbActionOutputError>;
+export interface DbActionOutputErrorForeignKey extends DbActionOutputErrorBase {
+	errorCode: '14';
+	foreignKeyValidationErrors: ForeignKeyValidationErrorData[];
+}
+export type DbActionResponseError = DbActionResponse<
+	DbActionOutputErrorBase | DbActionOutputErrorForeignKey
+>;
 
 export interface DbActionOutputFeatureList {
-	featureList: string[];
+	features: string[];
 }
-export type DbActionResponseFeatureList =
-	| DbActionResponse<DbActionOutputFeatureList>
-	| DbActionResponseError;
+export type DbActionResponseFeatureList = DbActionResponse<DbActionOutputFeatureList>;
 
-export type DbActionResponseCreateDir =
-	| DbActionResponse<Record<string, never>>
-	| DbActionResponseError;
+export type DbActionResponseCreateDir = DbActionResponse<Record<string, never>>;
 
 export interface DbActionOutputDeploy {
 	deployed: string;
 }
-export type DbActionResponseDeploy = DbActionResponse<DbActionOutputDeploy> | DbActionResponseError;
+export type DbActionResponseDeploy = DbActionResponse<DbActionOutputDeploy>;
 
 /** DB Feature Response Types */
 export type DbFeatureResponseTypes =
 	| DbActionResponseFeatureList
 	| DbActionResponseCreateDir
-	| DbActionResponseDeploy;
+	| DbActionResponseDeploy
+	| DbSubroutineResponseTypes;
