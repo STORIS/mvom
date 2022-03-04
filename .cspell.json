@@ -22,8 +22,11 @@
     "subvalue",
     "thud",
     "uier",
+    "unibasic",
     "waldo",
     "xyzzy"
   ],
-  "enableFiletypes": ["!json"]
+  "enableFiletypes": ["!json"],
+  "includeRegExpList": ["CStyleComment", "string"],
+  "ignoreRegExpList": ["/from\\s+(['\"]).*\\1/"]
 }
