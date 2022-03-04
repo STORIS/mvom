@@ -3,7 +3,7 @@ import BaseError from './BaseError';
 interface ConstructorOptions {
 	message?: string;
 	transformClass: string;
-	transformValue: string;
+	transformValue: unknown;
 }
 
 /**
@@ -18,7 +18,7 @@ class TransformDataError extends BaseError {
 	/**
 	 * Original value that failed transformation
 	 */
-	public readonly transformValue: string;
+	public readonly transformValue: unknown;
 
 	public constructor({
 		message = 'Error transforming data from multivalue format',

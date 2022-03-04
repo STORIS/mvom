@@ -14,7 +14,7 @@ export type CompoundForeignKeyDefinition = PositionForeignKeyDefinition & {
 
 export interface ForeignKeyDbDefinition {
 	filename: string | string[];
-	entityIds: string | string[];
+	entityId: string;
 	entityName: string;
 }
 
@@ -22,14 +22,14 @@ class ForeignKeyDbTransformer {
 	private foreignKeyDefinition: ForeignKeyDefinition | CompoundForeignKeyDefinition | null;
 
 	public constructor(
-		foreignKeyDefinition: ForeignKeyDefinition | CompoundForeignKeyDefinition | null,
+		foreignKeyDefinition: ForeignKeyDefinition | CompoundForeignKeyDefinition | null = null,
 	) {
 		this.foreignKeyDefinition = foreignKeyDefinition;
 	}
 
 	/** Transform schema foreign key definitions to the format required by the db server */
-	public transform = (value: string | null): ForeignKeyDbDefinition[] => {
-		if (value == null || this.foreignKeyDefinition == null) {
+	public transform = (value: unknown | null): ForeignKeyDbDefinition[] => {
+		if (typeof value !== 'string' || this.foreignKeyDefinition == null) {
 			return [];
 		}
 
@@ -52,7 +52,7 @@ class ForeignKeyDbTransformer {
 					return acc;
 				}
 
-				acc.push({ filename: file, entityIds: entityId, entityName });
+				acc.push({ filename: file, entityId, entityName });
 
 				return acc;
 			}, []);
@@ -67,7 +67,7 @@ class ForeignKeyDbTransformer {
 		return [
 			{
 				filename: file,
-				entityIds: value,
+				entityId: value,
 				entityName,
 			},
 		];

@@ -1,8 +1,9 @@
+import type { GenericObject } from '#shared/types';
 import BaseError from './BaseError';
 
 interface ConstructorOptions {
 	message?: string;
-	validationErrors: Mvom.GenericObject;
+	validationErrors: GenericObject;
 }
 
 /**
@@ -12,7 +13,7 @@ class DataValidationError extends BaseError {
 	/**
 	 * Object containing details of validation errors
 	 */
-	public readonly validationErrors: Mvom.GenericObject;
+	public readonly validationErrors: GenericObject;
 
 	public constructor({
 		message = 'Error(s) found while validating data',

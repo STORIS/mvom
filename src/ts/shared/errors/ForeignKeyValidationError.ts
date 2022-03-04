@@ -1,3 +1,4 @@
+import type { GenericObject } from '#shared/types';
 import BaseError from './BaseError';
 
 interface ForeignKeyValidationErrorData {
@@ -17,7 +18,7 @@ class ForeignKeyValidationError extends BaseError {
 	/**
 	 * Object containing details of validation errors
 	 */
-	public readonly foreignKeyValidationErrors: Mvom.GenericObject;
+	public readonly foreignKeyValidationErrors: GenericObject;
 
 	public constructor({
 		message = 'Foreign key violation(s) encountered while saving',

@@ -1,7 +1,7 @@
 import { DataValidationError, InvalidParameterError } from '#shared/errors';
-import Document from './Document';
+import Document from '../ts/Document';
+import Schema from '../ts/Schema';
 import Query from './Query';
-import Schema from './Schema';
 
 /**
  * Define a new model

@@ -1,9 +1,10 @@
+import type { GenericObject } from '#shared/types';
 import BaseError from './BaseError';
 
 interface ConstructorOptions {
 	message?: string;
-	connectionManagerRequest?: Mvom.GenericObject;
-	connectionManagerResponse?: Mvom.GenericObject;
+	connectionManagerRequest?: GenericObject;
+	connectionManagerResponse?: GenericObject;
 }
 
 /**
@@ -13,12 +14,12 @@ class ConnectionManagerError extends BaseError {
 	/**
 	 * Request object passed to connection manager
 	 */
-	public readonly connectionManagerRequest: Mvom.GenericObject;
+	public readonly connectionManagerRequest: GenericObject;
 
 	/**
 	 * Response object returned from connection manager (if any)
 	 */
-	public readonly connectionManagerResponse: Mvom.GenericObject;
+	public readonly connectionManagerResponse: GenericObject;
 
 	public constructor({
 		message = 'Error in Connection Manager communication',
