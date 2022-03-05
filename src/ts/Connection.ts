@@ -15,7 +15,6 @@ import {
 	ConnectionManagerError,
 	DbServerError,
 	ForeignKeyValidationError,
-	InvalidParameterError,
 	InvalidServerFeaturesError,
 	RecordLockedError,
 	RecordVersionError,
@@ -201,9 +200,8 @@ class Connection {
 	): Promise<void> {
 		const { createDir = false } = options;
 		this.logger.debug(`deploying features to directory ${sourceDir}`);
-		if (sourceDir == null) {
-			throw new InvalidParameterError({ parameterName: 'sourceDir' });
-		}
+
+		await this.getFeatureState();
 
 		if (this.serverFeatureSet.invalidFeatures.size === 0) {
 			// there aren't any invalid features to deploy
@@ -224,25 +222,26 @@ class Connection {
 		const bootstrapFeatures: ServerDependency[] = ['deploy', 'setup', 'teardown'];
 		const bootstrapped = await Promise.all(
 			bootstrapFeatures.map(async (feature) => {
-				if (!Object.prototype.hasOwnProperty.call(this.serverFeatureSet.validFeatures, feature)) {
-					this.logger.debug(`deploying the "${feature}" feature to ${sourceDir}`);
-					const data: DbActionInputDeploy = {
-						action: 'deploy',
-						sourceDir,
-						source: await Connection.getUnibasicSource(feature),
-						programName: Connection.getServerProgramName(feature),
-					};
-
-					await this.executeDb(data);
-					return true;
+				if (this.serverFeatureSet.validFeatures.has(feature)) {
+					return false;
 				}
-				return false;
+
+				this.logger.debug(`deploying the "${feature}" feature to ${sourceDir}`);
+				const data: DbActionInputDeploy = {
+					action: 'deploy',
+					sourceDir,
+					source: await Connection.getUnibasicSource(feature),
+					programName: Connection.getServerProgramName(feature),
+				};
+
+				await this.executeDb(data);
+				return true;
 			}),
 		);
 
 		if (bootstrapped.includes(true)) {
 			// Bootstrap features needed for the deployment feature were installed, restart the deployment process
-			await this.deployFeatures(sourceDir);
+			await this.deployFeatures(sourceDir, options);
 			return;
 		}
 
