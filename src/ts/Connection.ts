@@ -68,8 +68,8 @@ export interface DeployFeaturesOptions {
 type ServerDependency = keyof typeof serverDependencies;
 
 interface ServerFeatureSet {
-	validFeatures: Partial<Record<ServerDependency, string>>;
-	invalidFeatures: ServerDependency[];
+	validFeatures: Map<ServerDependency, string>;
+	invalidFeatures: Set<ServerDependency>;
 }
 
 /** A connection object */
@@ -85,8 +85,8 @@ class Connection {
 
 	/** Object providing the current state of db server features and availability */
 	private serverFeatureSet: ServerFeatureSet = {
-		validFeatures: {},
-		invalidFeatures: [],
+		validFeatures: new Map(),
+		invalidFeatures: new Set(),
 	};
 
 	/** Time that the connection information cache will expire */
@@ -178,13 +178,13 @@ class Connection {
 		this.status = ConnectionStatus.connecting;
 		await this.getFeatureState();
 
-		if (this.serverFeatureSet.invalidFeatures.length > 0) {
+		if (this.serverFeatureSet.invalidFeatures.size > 0) {
 			// prevent connection attempt if features are invalid
 			this.logger.verbose(`invalid features found: ${this.serverFeatureSet.invalidFeatures}`);
 			this.logger.debug('connection will not be opened');
 			this.status = ConnectionStatus.disconnected;
 			throw new InvalidServerFeaturesError({
-				invalidFeatures: this.serverFeatureSet.invalidFeatures,
+				invalidFeatures: Array.from(this.serverFeatureSet.invalidFeatures),
 			});
 		}
 
@@ -205,7 +205,7 @@ class Connection {
 			throw new InvalidParameterError({ parameterName: 'sourceDir' });
 		}
 
-		if (this.serverFeatureSet.invalidFeatures.length === 0) {
+		if (this.serverFeatureSet.invalidFeatures.size === 0) {
 			// there aren't any invalid features to deploy
 			this.logger.debug(`no missing features to deploy`);
 			return;
@@ -248,7 +248,7 @@ class Connection {
 
 		// deploy any other missing features
 		await Promise.all(
-			this.serverFeatureSet.invalidFeatures.map(async (feature) => {
+			Array.from(this.serverFeatureSet.invalidFeatures).map(async (feature) => {
 				this.logger.debug(`deploying ${feature} to ${sourceDir}`);
 				const executeDbFeatureOptions = {
 					sourceDir,
@@ -270,18 +270,17 @@ class Connection {
 		teardownOptions: Record<string, never> = {},
 	): Promise<DbSubroutineResponseTypesMap[TFeature]['output']> {
 		this.logger.debug(`executing database feature "${feature}"`);
+
+		const featureVersion = this.serverFeatureSet.validFeatures.get(feature);
+		const setupVersion = this.serverFeatureSet.validFeatures.get('setup');
+		const teardownVersion = this.serverFeatureSet.validFeatures.get('teardown');
+
 		const data: DbActionInputSubroutine<DbSubroutineInputOptionsMap[TFeature]> = {
 			action: 'subroutine',
 			// make sure to use the compatible server version of feature
-			subroutineId: Connection.getServerProgramName(
-				feature,
-				this.serverFeatureSet.validFeatures[feature],
-			),
-			setupId: Connection.getServerProgramName('setup', this.serverFeatureSet.validFeatures.setup),
-			teardownId: Connection.getServerProgramName(
-				'teardown',
-				this.serverFeatureSet.validFeatures.teardown,
-			),
+			subroutineId: Connection.getServerProgramName(feature, featureVersion),
+			setupId: Connection.getServerProgramName('setup', setupVersion),
+			teardownId: Connection.getServerProgramName('teardown', teardownVersion),
 			options,
 			setupOptions,
 			teardownOptions,
@@ -380,24 +379,24 @@ class Connection {
 
 				if (featureVersions == null) {
 					// if the feature doesn't exist on the server then it is invalid
-					acc.invalidFeatures.push(dependencyName);
+					acc.invalidFeatures.add(dependencyName);
 					return acc;
 				}
 
 				const matchedVersion = semver.maxSatisfying(featureVersions, dependencyVersion);
 				if (matchedVersion == null) {
 					// no versions satisfy the requirement
-					acc.invalidFeatures.push(dependencyName);
+					acc.invalidFeatures.add(dependencyName);
 					return acc;
 				}
 
 				// return the match as a valid feature
-				acc.validFeatures[dependencyName] = matchedVersion;
+				acc.validFeatures.set(dependencyName, matchedVersion);
 				return acc;
 			},
 			{
-				validFeatures: {},
-				invalidFeatures: [],
+				validFeatures: new Map(),
+				invalidFeatures: new Set(),
 			},
 		);
 	};
