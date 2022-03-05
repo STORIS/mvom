@@ -7,7 +7,6 @@
     "paths": {
       /* Specify a set of entries that re-map imports to additional lookup locations. */
       "#shared/*": ["src/ts/shared/*"],
-      "#sharedjs/*": ["src/js/shared/*"],
       "#test/*": ["test/*"],
       "*": ["src/@types/overrides/*", "node_modules/*"]
     }
