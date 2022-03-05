@@ -36,6 +36,7 @@ import type {
 	DbSubroutineInputOptionsMap,
 	DbSubroutineResponseTypes,
 	DbSubroutineResponseTypesMap,
+	GenericObject,
 	Logger,
 } from '#shared/types';
 import { dummyLogger } from '#shared/utils';
@@ -346,11 +347,14 @@ class Connection {
 	}
 
 	/** Define a new model */
-	public model(schema: Schema | null, file: string): ModelConstructor {
+	public model<TSchema extends GenericObject>(
+		schema: Schema | null,
+		file: string,
+	): ModelConstructor {
 		if (this.status !== ConnectionStatus.connected) {
 			throw new Error('Cannot create model until database connection has been established.');
 		}
-		return compileModel(this, schema, file);
+		return compileModel<TSchema>(this, schema, file);
 	}
 
 	/** Execute a database function remotely */

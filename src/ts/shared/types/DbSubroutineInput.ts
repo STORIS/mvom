@@ -51,7 +51,7 @@ export interface DbSubroutineOptionsSave {
 	filename: string;
 	id: string;
 	__v?: string | null;
-	clearArributes?: boolean;
+	clearAttributes: boolean;
 	record: MvRecord;
 	foreignKeyDefinitions: BuildForeignKeyDefinitionsResult[];
 }

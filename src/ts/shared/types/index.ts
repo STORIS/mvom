@@ -1,5 +1,3 @@
-import type compileModel from '../../compileModel';
-
 export * from './DbFeature';
 export * from './DbSubroutineInput';
 export * from './DbSubroutineOutput';

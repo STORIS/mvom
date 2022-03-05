@@ -3,6 +3,7 @@ import { DataValidationError, InvalidParameterError } from '#shared/errors';
 import type { GenericObject, MvRecord } from '#shared/types';
 import { ensureArray } from '#shared/utils';
 import type Connection from './Connection';
+import type { DocumentConstructorOptions } from './Document';
 import Document from './Document';
 import type { QueryConstructorOptions } from './Query';
 import Query, { type Filter } from './Query';
@@ -12,15 +13,18 @@ export interface ModelConstructorOptionsBase {
 	_id?: string | null;
 	__v?: string | null;
 }
-export interface ModelConstructorOptionsData extends ModelConstructorOptionsBase {
-	data?: GenericObject;
+export interface ModelConstructorOptionsData<TSchema extends GenericObject>
+	extends ModelConstructorOptionsBase {
+	data: TSchema;
 }
 
 export interface ModelConstructorOptionsRecord extends ModelConstructorOptionsBase {
-	record?: MvRecord;
+	record: MvRecord;
 }
 
-export type ModelConstructorOptions = ModelConstructorOptionsData | ModelConstructorOptionsRecord;
+export type ModelConstructorOptions<TSchema extends GenericObject> =
+	| ModelConstructorOptionsData<TSchema>
+	| ModelConstructorOptionsRecord;
 
 export type ModelConstructor = ReturnType<typeof compileModel>;
 
@@ -56,54 +60,22 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 		/** Schema that defines this model */
 		public static schema = schema;
 
-		public __id: string | null;
+		/** Document version hash */
+		public readonly __v: string | null;
 
-		public constructor(options: ModelConstructorOptions = {}) {
-			super(Model.schema, options);
+		/** Private id tracking property */
+		private __id: string | null;
+
+		public constructor(options: ModelConstructorOptions<TSchema>) {
+			const documentConstructorOptions: DocumentConstructorOptions =
+				'record' in options ? { record: options.record } : { data: options.data };
+
+			super(Model.schema, documentConstructorOptions);
+
+			const { _id = null, __v = null } = options;
 
 			this.__id = _id;
-
-			Object.defineProperties(this, {
-				/**
-				 * Public id of model instance
-				 * @member {string} _id
-				 * @memberof Model
-				 * @instance
-				 * @public
-				 */
-				_id: {
-					enumerable: true,
-					get: () => this.__id,
-					set: (value) => {
-						if (this.__id != null) {
-							throw new Error('_id value cannot be changed once set');
-						}
-						this.__id = value;
-					},
-				},
-				/**
-				 * Private id of model instance
-				 * @member {string} __id
-				 * @memberof Model
-				 * @instance
-				 * @private
-				 */
-				__id: {
-					value: _id,
-					writable: true,
-				},
-				/**
-				 * Version hash of model instance
-				 * @member {uuid} __v
-				 * @memberof Model
-				 * @instance
-				 * @public
-				 */
-				__v: {
-					value: __v,
-					enumerable: true,
-				},
-			});
+			this.__v = __v;
 
 			Model.connection.logger.debug(`creating new instance of model for file ${Model.file}`);
 
@@ -115,11 +87,13 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			});
 		}
 
-		public override get _id(): string | null {
+		/** _id getter */
+		public get _id(): string | null {
 			return this.__id;
 		}
 
-		public override set _id(value) {
+		/** _id setter */
+		public set _id(value) {
 			if (this.__id != null) {
 				throw new Error('_id value cannot be changed once set');
 			}
