@@ -8,7 +8,7 @@ export interface DbDocument {
 }
 
 export interface DbSubroutineOutputDeleteById {
-	result: DbDocument;
+	result: DbDocument | null;
 }
 export type DbActionResponseSubroutineDeleteById = DbActionResponse<DbSubroutineOutputDeleteById>;
 
@@ -18,17 +18,18 @@ export interface DbSubroutineOutputDeploy {
 export type DbActionResponseSubroutineDeploy = DbActionResponse<DbSubroutineOutputDeploy>;
 
 export interface DbSubroutineOutputFind {
+	count: number;
 	documents: DbDocument[];
 }
 export type DbActionResponseSubroutineFind = DbActionResponse<DbSubroutineOutputFind>;
 
 export interface DbSubroutineOutputFindById {
-	result: DbDocument;
+	result: DbDocument | null;
 }
 export type DbActionResponseSubroutineFindById = DbActionResponse<DbSubroutineOutputFindById>;
 
 export interface DbSubroutineOutputFindByIds {
-	result: DbDocument[];
+	result: (DbDocument | null)[];
 }
 export type DbActionResponseSubroutineFindByIds = DbActionResponse<DbSubroutineOutputFindByIds>;
 

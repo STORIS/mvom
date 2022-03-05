@@ -1,8 +1,7 @@
-/* eslint-disable */
-// TODO REMOVE THE ABOVE
 import { InvalidParameterError } from '#shared/errors';
 import { BaseScalarArrayType, BaseScalarType } from '#shared/schemaType';
-import type { GenericObject, ModelConstructor } from '#shared/types';
+import type { DbDocument, GenericObject } from '#shared/types';
+import type { ModelConstructor } from './compileModel';
 
 export interface FilterOperators<TValue> {
 	$eq?: TValue;
@@ -26,7 +25,7 @@ export interface RootFilterOperators<TSchema> {
 export type Condition<TValue> = TValue | TValue[] | FilterOperators<TValue>;
 
 export type Filter<TSchema extends GenericObject = GenericObject> = {
-	[key in keyof TSchema]: Condition<TSchema[key]>;
+	[key in keyof TSchema]?: Condition<TSchema[key]>;
 } & RootFilterOperators<TSchema>;
 
 export type SortCriteria = [string, -1 | 1][];
@@ -36,6 +35,11 @@ export interface QueryConstructorOptions {
 	limit?: number;
 	sort?: SortCriteria;
 	projection?: string[];
+}
+
+export interface QueryExecutionResult {
+	count: number;
+	documents: DbDocument[];
 }
 
 /** A query object */
@@ -75,7 +79,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 	}
 
 	/** Execute query */
-	public async exec() {
+	public async exec(): Promise<QueryExecutionResult> {
 		let queryCommand = `select ${this.Model.file}`;
 		if (this.selection != null) {
 			queryCommand = `${queryCommand} with ${this.selection}`;
@@ -99,9 +103,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 
 		return {
 			count: data.count,
-			documents: data.documents.map((dbResultItem) =>
-				this.Model.makeModelFromDbResult(dbResultItem),
-			),
+			documents: data.documents,
 		};
 	}
 
