@@ -3,22 +3,36 @@ import { BaseScalarArrayType, BaseScalarType } from '#shared/schemaType';
 import type { DbDocument, GenericObject } from '#shared/types';
 import type { ModelConstructor } from './compileModel';
 
+// #region Types
 export interface FilterOperators<TValue> {
+	/** Equal */
 	$eq?: TValue;
+	/** Greater than */
 	$gt?: TValue;
+	/** Greater than or equal to */
 	$gte?: TValue;
+	/** Less than */
 	$lt?: TValue;
+	/** Less than or equal to */
 	$lte?: TValue;
+	/** Not equal */
 	$ne?: TValue;
+	/** String containing */
 	$contains?: TValue;
+	/** String starts with */
 	$startsWith?: TValue;
+	/** String ends with */
 	$endsWith?: TValue;
+	/** In list */
 	$in?: TValue[];
+	/** Not in list */
 	$nin?: TValue[];
 }
 
 export interface RootFilterOperators<TSchema> {
+	/** Used to combine conditions with an and */
 	$and?: Filter<TSchema>[];
+	/** Used to combine conditions with an or */
 	$or?: Filter<TSchema>[];
 }
 
@@ -31,16 +45,23 @@ export type Filter<TSchema extends GenericObject = GenericObject> = {
 export type SortCriteria = [string, -1 | 1][];
 
 export interface QueryConstructorOptions {
+	/** Skip the first _n_ results */
 	skip?: number;
+	/** Return only _n_ results */
 	limit?: number;
+	/** Sort criteria */
 	sort?: SortCriteria;
+	/** Return only the indicated properties */
 	projection?: string[];
 }
 
 export interface QueryExecutionResult {
+	/** Number of documents returned */
 	count: number;
+	/** Unformatted documents returned from database */
 	documents: DbDocument[];
 }
+// #endregion
 
 /** A query object */
 class Query<TSchema extends GenericObject = GenericObject> {
@@ -105,67 +126,6 @@ class Query<TSchema extends GenericObject = GenericObject> {
 			count: data.count,
 			documents: data.documents,
 		};
-	}
-
-	/**
-	 * Format a conditional expression
-	 * @function _formatCondition
-	 * @memberof Query
-	 * @instance
-	 * @private
-	 * @param {string} property - String keypath of property
-	 * @param {string} operator - Relational operator to use in expression
-	 * @param {string} value - Constant value to use in expression
-	 * @returns {string} Formatted conditional expression
-	 * @throws {Error} (indirect) Passed constant parameter contains both single and double quotes
-	 */
-	private formatCondition(property: string, operator: string, value: unknown): string {
-		const dictionaryId = this.getDictionaryId(property);
-		return `${dictionaryId} ${operator} ${this.formatConstant(property, value)}`;
-	}
-
-	/**
-	 * Format a list of conditional expressions
-	 * @throws {@link InvalidParameterError} An invalid parameter was passed to the function
-	 */
-	private formatConditionList(
-		property: string,
-		operator: string,
-		valueList: unknown[],
-		joinString: string,
-	): string {
-		if (valueList.length === 0) {
-			throw new InvalidParameterError({ parameterName: 'valueList' });
-		}
-
-		const conditionList = valueList.map((value) => this.formatCondition(property, operator, value));
-
-		return conditionList.length === 1
-			? conditionList[0]
-			: `(${conditionList.join(` ${joinString} `)})`;
-	}
-
-	/**
-	 * Format a constant for use in queries
-	 * @throws {@link Error} Passed constant parameter contains both single and double quotes
-	 */
-	private formatConstant(property: string, constant: unknown): string {
-		const queryTransformer = this.getQueryTransformer(property);
-		const constantToFormat = queryTransformer != null ? queryTransformer(constant) : constant;
-
-		if (
-			typeof constantToFormat === 'string' &&
-			constantToFormat.includes(`'`) &&
-			constantToFormat.includes(`"`)
-		) {
-			// cannot query if string has both single and double quotes in it
-			throw new Error('Query constants cannot contain both single and double quotes');
-		}
-
-		const quoteCharacter =
-			typeof constantToFormat === 'string' && constantToFormat.includes(`"`) ? `'` : `"`;
-
-		return `${quoteCharacter}${constantToFormat}${quoteCharacter}`;
 	}
 
 	/**
@@ -266,6 +226,55 @@ class Query<TSchema extends GenericObject = GenericObject> {
 			.join(' ');
 	};
 
+	/** Format a conditional expression */
+	private formatCondition(property: string, operator: string, value: unknown): string {
+		const dictionaryId = this.getDictionaryId(property);
+		return `${dictionaryId} ${operator} ${this.formatConstant(property, value)}`;
+	}
+
+	/**
+	 * Format a list of conditional expressions
+	 * @throws {@link InvalidParameterError} An invalid parameter was passed to the function
+	 */
+	private formatConditionList(
+		property: string,
+		operator: string,
+		valueList: unknown[],
+		joinString: string,
+	): string {
+		if (valueList.length === 0) {
+			throw new InvalidParameterError({ parameterName: 'valueList' });
+		}
+
+		const conditionList = valueList.map((value) => this.formatCondition(property, operator, value));
+
+		return conditionList.length === 1
+			? conditionList[0]
+			: `(${conditionList.join(` ${joinString} `)})`;
+	}
+
+	/**
+	 * Format a constant for use in queries
+	 * @throws {@link Error} Passed constant parameter contains both single and double quotes
+	 */
+	private formatConstant(property: string, constant: unknown): string {
+		const constantToFormat = this.transformToQuery(property, constant);
+
+		if (
+			typeof constantToFormat === 'string' &&
+			constantToFormat.includes(`'`) &&
+			constantToFormat.includes(`"`)
+		) {
+			// cannot query if string has both single and double quotes in it
+			throw new Error('Query constants cannot contain both single and double quotes');
+		}
+
+		const quoteCharacter =
+			typeof constantToFormat === 'string' && constantToFormat.includes(`"`) ? `'` : `"`;
+
+		return `${quoteCharacter}${constantToFormat}${quoteCharacter}`;
+	}
+
 	/**
 	 * Get a dictionary id at a given schema path
 	 * @throws {link InvalidParameterError} Nonexistent schema property or property does not have a dictionary specified
@@ -281,16 +290,16 @@ class Query<TSchema extends GenericObject = GenericObject> {
 		return dictionaryId;
 	};
 
-	/** Get the function to convert query constant to internal u2 format (if applicable) */
-	private getQueryTransformer(property: string) {
+	/** Transform query constant to internal u2 format (if applicable) */
+	private transformToQuery(property: string, constant: unknown): unknown {
 		const schemaType = this.Model.schema?.paths[property];
 		if (schemaType == null) {
-			return null;
+			return constant;
 		}
 
 		return schemaType instanceof BaseScalarType || schemaType instanceof BaseScalarArrayType
-			? schemaType.transformToQuery
-			: null;
+			? schemaType.transformToQuery(constant)
+			: constant;
 	}
 }
 
