@@ -15,6 +15,7 @@ import {
 	ConnectionManagerError,
 	DbServerError,
 	ForeignKeyValidationError,
+	InvalidParameterError,
 	InvalidServerFeaturesError,
 	RecordLockedError,
 	RecordVersionError,
@@ -37,6 +38,7 @@ import type {
 	DbSubroutineResponseTypesMap,
 	Logger,
 } from '#shared/types';
+import { dummyLogger } from '#shared/utils';
 import { dependencies as serverDependencies } from '../.mvomrc.json';
 import compileModel, { type ModelConstructor } from './compileModel';
 import type Schema from './Schema';
@@ -48,12 +50,20 @@ export enum ConnectionStatus {
 	connecting = 'connecting',
 }
 
-export interface ConnectionConstructorOptions {
-	connectionManagerUri: string;
-	account: string;
-	logger: Logger;
-	cacheMaxAge: number;
-	timeout: number;
+export interface CreateConnectionOptions {
+	/** Optional logger instance */
+	logger?: Logger;
+	/**
+	 * Lifetime of cache of db server data (s)
+	 * @defaultValue 3600
+	 */
+	cacheMaxAge?: number;
+	/**
+	 * Request timeout (ms)
+	 * 0 implies no timeout
+	 * @defaultValue 0
+	 */
+	timeout?: number;
 }
 
 export interface DeployFeaturesOptions {
@@ -103,17 +113,44 @@ class Connection {
 	/** Request timeout, in milliseconds */
 	private timeout: number;
 
-	public constructor(options: ConnectionConstructorOptions) {
-		const { connectionManagerUri, account, logger, cacheMaxAge, timeout } = options;
-
+	private constructor(
+		/** URI of the MVIS which facilitates access to the mv database */
+		mvisUri: string,
+		/** Database account that connection will be used against */
+		account: string,
+		/** Logger instance */
+		logger: Logger,
+		/** Lifetime of cache of db server data (s) */
+		cacheMaxAge: number,
+		/** Request timeout (ms) */
+		timeout: number,
+	) {
 		this.logger = logger;
 		this.cacheMaxAge = cacheMaxAge;
-		this.endpoint = `${connectionManagerUri}/${account}/subroutine/${Connection.getServerProgramName(
-			'entry',
-		)}`;
+		this.endpoint = `${mvisUri}/${account}/subroutine/${Connection.getServerProgramName('entry')}`;
 		this.timeout = timeout;
 
 		logger.debug(`creating new connection instance`);
+	}
+
+	public static createConnection(
+		/** URI of the MVIS which facilitates access to the mv database */
+		mvisUri: string,
+		/** Database account that connection will be used against */
+		account: string,
+		options: CreateConnectionOptions = {},
+	): Connection {
+		const { logger = dummyLogger, cacheMaxAge = 3600, timeout = 0 } = options;
+
+		if (!Number.isInteger(cacheMaxAge)) {
+			throw new InvalidParameterError({ parameterName: 'cacheMaxAge' });
+		}
+
+		if (!Number.isInteger(timeout)) {
+			throw new InvalidParameterError({ parameterName: 'timeout' });
+		}
+
+		return new Connection(mvisUri, account, logger, cacheMaxAge, timeout);
 	}
 
 	/** Return the packaged specific version number of a feature */
