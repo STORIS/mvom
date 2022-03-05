@@ -13,7 +13,7 @@ module.exports = {
 		[
 			'module-resolver',
 			{
-				extensions: ['.js', '.ts'],
+				extensions: ['.ts'],
 				alias: {
 					'#shared': './src/ts/shared',
 					'#test': './test',

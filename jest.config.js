@@ -5,16 +5,14 @@ module.exports = {
 	testPathIgnorePatterns: ['/node_modules/', '/dist/'], // ignore dist folder
 	collectCoverageFrom: [
 		'**/*.ts', // test typescript files
-		'src/js/**/*.js', // test unconverted source javascript files
 		'!**/node_modules/**', // do not test node_modules
 		'!**/__mocks__/**', // do not test jest mocks
 		'!**/test/**', // do not test any test helpers
 		'!**/src/**/index.*', // do not test index export files
-		'!**/src/shared/types/**', // do not test local type definitions
+		'!**/src/**/types/**', // do not test local type definitions
 		'!**/@types/**', // do not test ambient declarations
 		'!**/index.d.ts', // do not test typescript declaration files
 		'!**/src/**/constants/**', // do not test shared constants folder
-		'!src/shared/typedefs/**', // do not test jsdoc type definitions
 		'!dist/**', // do not test compiled output
 	],
 	coverageThreshold: {
