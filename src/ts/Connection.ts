@@ -38,7 +38,7 @@ import type {
 	Logger,
 } from '#shared/types';
 import { dependencies as serverDependencies } from '../.mvomrc.json';
-import compileModel from './compileModel';
+import compileModel, { type ModelConstructor } from './compileModel';
 import type Schema from './Schema';
 
 export enum ConnectionStatus {
@@ -309,7 +309,7 @@ class Connection {
 	}
 
 	/** Define a new model */
-	public model(schema: Schema | null, file: string): ReturnType<typeof compileModel> {
+	public model(schema: Schema | null, file: string): ModelConstructor {
 		if (this.status !== ConnectionStatus.connected) {
 			throw new Error('Cannot create model until database connection has been established.');
 		}

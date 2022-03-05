@@ -50,5 +50,3 @@ export interface Logger {
 	debug(message: string): void;
 	silly(message: string): void;
 }
-
-export type ModelConstructor = ReturnType<typeof compileModel>;

@@ -20,6 +20,8 @@ export interface ModelConstructorOptionsRecord extends ModelConstructorOptionsBa
 
 export type ModelConstructorOptions = ModelConstructorOptionsData | ModelConstructorOptionsRecord;
 
+export type ModelConstructor = ReturnType<typeof compileModel>;
+
 /** Define a new model */
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 const compileModel = (connection: Connection, schema: Schema | null, file: string) => {
