@@ -31,8 +31,10 @@ import type {
 	DbActionResponseDeploy,
 	DbActionResponseError,
 	DbActionResponseFeatureList,
+	DbActionSubroutineInputTypes,
 	DbFeatureResponseTypes,
 	DbSubroutineInputOptionsMap,
+	DbSubroutineResponseTypes,
 	DbSubroutineResponseTypesMap,
 	Logger,
 } from '#shared/types';
@@ -216,7 +218,7 @@ class Connection {
 				action: 'createDir',
 				dirName: sourceDir,
 			};
-			await this.executeDb<DbActionInputCreateDir, DbActionResponseCreateDir>(data);
+			await this.executeDb(data);
 		}
 
 		const bootstrapFeatures: ServerDependency[] = ['deploy', 'setup', 'teardown'];
@@ -231,7 +233,7 @@ class Connection {
 						programName: Connection.getServerProgramName(feature),
 					};
 
-					await this.executeDb<DbActionInputDeploy, DbActionResponseDeploy>(data);
+					await this.executeDb(data);
 					return true;
 				}
 				return false;
@@ -317,15 +319,22 @@ class Connection {
 	}
 
 	/** Execute a database function remotely */
-	private async executeDb<
-		TInput extends DbActionInputTypes,
-		TResponse extends DbFeatureResponseTypes,
-	>(data: TInput): Promise<TResponse['output']> {
+	private async executeDb(
+		data: DbActionInputFeatureList,
+	): Promise<DbActionResponseFeatureList['output']>;
+	private async executeDb(
+		data: DbActionInputCreateDir,
+	): Promise<DbActionResponseCreateDir['output']>;
+	private async executeDb(data: DbActionInputDeploy): Promise<DbActionResponseDeploy['output']>;
+	private async executeDb(
+		data: DbActionSubroutineInputTypes,
+	): Promise<DbSubroutineResponseTypes['output']>;
+	private async executeDb(data: DbActionInputTypes): Promise<DbFeatureResponseTypes['output']> {
 		this.logger.debug(`executing database function with action "${data.action}"`);
 
 		let response;
 		try {
-			response = await axios.post<TResponse | DbActionResponseError>(
+			response = await axios.post<DbFeatureResponseTypes | DbActionResponseError>(
 				this.endpoint,
 				{ input: data },
 				{ timeout: this.timeout },
@@ -397,9 +406,7 @@ class Connection {
 	private getServerFeatures = async (): Promise<Map<string, string[]>> => {
 		this.logger.debug(`getting list of features from database server`);
 		const data = { action: 'featureList' } as const;
-		const response = await this.executeDb<DbActionInputFeatureList, DbActionResponseFeatureList>(
-			data,
-		);
+		const response = await this.executeDb(data);
 
 		return response.features.reduce((acc, feature) => {
 			const featureRegExp = /^mvom_(.*)@(\d\.\d\.\d.*$)/;
