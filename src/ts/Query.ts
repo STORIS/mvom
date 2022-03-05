@@ -204,7 +204,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 	}
 
 	/** Format the sort criteria object into a string to use in multivalue query */
-	private formatSortCriteria = (criteria?: SortCriteria): string | null => {
+	private formatSortCriteria(criteria?: SortCriteria): string | null {
 		if (criteria == null || criteria.length === 0) {
 			return null;
 		}
@@ -224,7 +224,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 				return `${byClause} ${dictionaryId}`;
 			})
 			.join(' ');
-	};
+	}
 
 	/** Format a conditional expression */
 	private formatCondition(property: string, operator: string, value: unknown): string {
@@ -279,7 +279,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 	 * Get a dictionary id at a given schema path
 	 * @throws {link InvalidParameterError} Nonexistent schema property or property does not have a dictionary specified
 	 */
-	private getDictionaryId = (property: string): string => {
+	private getDictionaryId(property: string): string {
 		const dictionaryId = this.Model.schema?.dictPaths[property];
 		if (dictionaryId == null) {
 			throw new InvalidParameterError({
@@ -288,7 +288,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 			});
 		}
 		return dictionaryId;
-	};
+	}
 
 	/** Transform query constant to internal u2 format (if applicable) */
 	private transformToQuery(property: string, constant: unknown): unknown {

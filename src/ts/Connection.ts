@@ -407,7 +407,7 @@ class Connection {
 	}
 
 	/** Get the state of database server features */
-	private getFeatureState = async () => {
+	private async getFeatureState() {
 		this.logger.debug(`getting state of database server features`);
 		const serverFeatures = await this.getServerFeatures();
 
@@ -439,10 +439,10 @@ class Connection {
 				invalidFeatures: new Set(),
 			},
 		);
-	};
+	}
 
 	/** Get a list of database server features */
-	private getServerFeatures = async (): Promise<Map<string, string[]>> => {
+	private async getServerFeatures(): Promise<Map<string, string[]>> {
 		this.logger.debug(`getting list of features from database server`);
 		const data = { action: 'featureList' } as const;
 		const response = await this.executeDb(data);
@@ -473,7 +473,7 @@ class Connection {
 			acc.set(featureName, versions);
 			return acc;
 		}, new Map<string, string[]>());
-	};
+	}
 }
 
 export default Connection;
