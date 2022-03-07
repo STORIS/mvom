@@ -1,5 +1,4 @@
-/* eslint-disable max-classes-per-file */
-import { DataValidationError, InvalidParameterError } from '#shared/errors';
+import { DataValidationError } from '#shared/errors';
 import type { GenericObject, MvRecord } from '#shared/types';
 import { ensureArray } from '#shared/utils';
 import type Connection from './Connection';
@@ -78,6 +77,12 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 			this.__id = _id;
 			this.__v = __v;
+
+			Object.defineProperty(this, '__id', {
+				writable: true,
+				configurable: false,
+				enumerable: false,
+			});
 
 			Model.connection.logger.debug(`creating new instance of model for file ${Model.file}`);
 
@@ -178,9 +183,6 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			ids: string | string[],
 			options: ModelFindByIdOptions = {},
 		): Promise<(Model | null)[]> {
-			if (ids == null) {
-				throw new InvalidParameterError({ parameterName: 'ids' });
-			}
 			const { projection = [] } = options;
 
 			const idsArray = ensureArray(ids);
