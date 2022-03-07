@@ -211,8 +211,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 
 		return criteria
 			.map((sortEntry) => {
-				// if the caller did not pass in a property/order pair as an array default to an ascending sort
-				const [sortProperty, sortOrder] = Array.isArray(sortEntry) ? sortEntry : [sortEntry, 1];
+				const [sortProperty, sortOrder] = sortEntry;
 				const dictionaryId = this.getDictionaryId(sortProperty);
 
 				let byClause;
