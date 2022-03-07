@@ -44,13 +44,7 @@ import { dependencies as serverDependencies } from '../.mvomrc.json';
 import compileModel, { type ModelConstructor } from './compileModel';
 import type Schema from './Schema';
 
-export enum ConnectionStatus {
-	// convert to enum when transitioning class to TS
-	disconnected = 'disconnected',
-	connected = 'connected',
-	connecting = 'connecting',
-}
-
+// #region Types
 export interface CreateConnectionOptions {
 	/** Optional logger instance */
 	logger?: Logger;
@@ -67,6 +61,12 @@ export interface CreateConnectionOptions {
 	timeout?: number;
 }
 
+export enum ConnectionStatus {
+	// convert to enum when transitioning class to TS
+	disconnected = 'disconnected',
+	connected = 'connected',
+	connecting = 'connecting',
+}
 export interface DeployFeaturesOptions {
 	/**
 	 * Create directory when deploying features
@@ -81,6 +81,7 @@ interface ServerFeatureSet {
 	validFeatures: Map<ServerDependency, string>;
 	invalidFeatures: Set<ServerDependency>;
 }
+// #endregion
 
 /** A connection object */
 class Connection {

@@ -9,6 +9,7 @@ import type { QueryConstructorOptions } from './Query';
 import Query, { type Filter } from './Query';
 import type Schema from './Schema';
 
+// #region Types
 export interface ModelConstructorOptionsBase {
 	_id?: string | null;
 	__v?: string | null;
@@ -35,10 +36,11 @@ export interface ModelFindAndCountResult {
 	documents: InstanceType<ModelConstructor>[];
 }
 
-export interface FindByIdOptions {
+export interface ModelFindByIdOptions {
 	/** Array of projection properties */
 	projection?: string[];
 }
+// #endregion
 
 /** Define a new model */
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
@@ -151,7 +153,10 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 		}
 
 		/** Find a document by its id */
-		public static async findById(id: string, options: FindByIdOptions = {}): Promise<Model | null> {
+		public static async findById(
+			id: string,
+			options: ModelFindByIdOptions = {},
+		): Promise<Model | null> {
 			const { projection = [] } = options;
 			const data = await Model.connection.executeDbFeature('findById', {
 				filename: Model.file,
@@ -171,7 +176,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 		/** Find multiple documents by their ids */
 		public static async findByIds(
 			ids: string | string[],
-			options: FindByIdOptions = {},
+			options: ModelFindByIdOptions = {},
 		): Promise<(Model | null)[]> {
 			if (ids == null) {
 				throw new InvalidParameterError({ parameterName: 'ids' });

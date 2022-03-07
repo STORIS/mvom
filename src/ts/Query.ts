@@ -4,6 +4,17 @@ import type { DbDocument, GenericObject } from '#shared/types';
 import type { ModelConstructor } from './compileModel';
 
 // #region Types
+export interface QueryConstructorOptions {
+	/** Skip the first _n_ results */
+	skip?: number;
+	/** Return only _n_ results */
+	limit?: number;
+	/** Sort criteria */
+	sort?: SortCriteria;
+	/** Return only the indicated properties */
+	projection?: string[];
+}
+
 export interface FilterOperators<TValue> {
 	/** Equal */
 	$eq?: TValue;
@@ -43,17 +54,6 @@ export type Filter<TSchema extends GenericObject = GenericObject> = {
 } & RootFilterOperators<TSchema>;
 
 export type SortCriteria = [string, -1 | 1][];
-
-export interface QueryConstructorOptions {
-	/** Skip the first _n_ results */
-	skip?: number;
-	/** Return only _n_ results */
-	limit?: number;
-	/** Sort criteria */
-	sort?: SortCriteria;
-	/** Return only the indicated properties */
-	projection?: string[];
-}
 
 export interface QueryExecutionResult {
 	/** Number of documents returned */
