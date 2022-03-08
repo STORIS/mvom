@@ -6,7 +6,7 @@
     "resolveJsonModule": true /* Enable importing .json files */,
     "paths": {
       /* Specify a set of entries that re-map imports to additional lookup locations. */
-      "#shared/*": ["src/ts/shared/*"],
+      "#shared/*": ["src/shared/*"],
       "#test/*": ["test/*"],
       "*": ["src/@types/overrides/*", "node_modules/*"]
     }

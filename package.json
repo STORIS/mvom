@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "description": "Multivalue Object Mapper",
-  "main": "js/index.js",
+  "main": "index.js",
   "engines": {
     "node": ">=12.22"
   },

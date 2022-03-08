@@ -12,7 +12,7 @@ import {
 	RecordLockedError,
 	RecordVersionError,
 } from '#shared/errors';
-import { dependencies as serverDependencies } from '../../.mvomrc.json';
+import { dependencies as serverDependencies } from '../.mvomrc.json';
 import type { CreateConnectionOptions } from '../Connection';
 import Connection, { ConnectionStatus } from '../Connection';
 

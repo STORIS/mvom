@@ -40,7 +40,7 @@ import type {
 	Logger,
 } from '#shared/types';
 import { dummyLogger } from '#shared/utils';
-import { dependencies as serverDependencies } from '../.mvomrc.json';
+import { dependencies as serverDependencies } from './.mvomrc.json';
 import compileModel, { type ModelConstructor } from './compileModel';
 import type Schema from './Schema';
 
