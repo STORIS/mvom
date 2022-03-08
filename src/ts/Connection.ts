@@ -158,6 +158,7 @@ class Connection {
 	/** Return the packaged specific version number of a feature */
 	private static getFeatureVersion(feature: ServerDependency): string {
 		const featureVersion = semver.minVersion(serverDependencies[feature]);
+		/* istanbul ignore if: Cannot test without corrupting the feature dependency list */
 		if (featureVersion == null) {
 			throw new TypeError('Server feature dependency list is corrupted');
 		}
