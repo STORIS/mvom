@@ -1,5 +1,5 @@
-import type { MvRecord } from '#shared/types';
 import { BaseScalarType } from '..';
+import type { MvRecord } from '../../types';
 import BaseScalarArrayType from '../BaseScalarArrayType';
 import type { SchemaTypeDefinitionString } from '../StringType';
 

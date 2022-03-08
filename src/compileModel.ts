@@ -1,12 +1,12 @@
-import { DataValidationError } from '#shared/errors';
-import type { GenericObject, MvRecord } from '#shared/types';
-import { ensureArray } from '#shared/utils';
 import type Connection from './Connection';
 import type { DocumentConstructorOptions } from './Document';
 import Document from './Document';
 import type { QueryConstructorOptions } from './Query';
 import Query, { type Filter } from './Query';
 import type Schema from './Schema';
+import { DataValidationError } from './shared/errors';
+import type { GenericObject, MvRecord } from './shared/types';
+import { ensureArray } from './shared/utils';
 
 // #region Types
 export interface ModelConstructorOptionsBase {
@@ -65,7 +65,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 		public readonly __v: string | null;
 
 		/** Private id tracking property */
-		private __id: string | null;
+		#__id: string | null;
 
 		public constructor(options: ModelConstructorOptions<TSchema>) {
 			const documentConstructorOptions: DocumentConstructorOptions =
@@ -75,7 +75,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 			const { _id = null, __v = null } = options;
 
-			this.__id = _id;
+			this.#__id = _id;
 			this.__v = __v;
 
 			Object.defineProperty(this, '__id', {
@@ -96,16 +96,16 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 		/** _id getter */
 		public get _id(): string | null {
-			return this.__id;
+			return this.#__id;
 		}
 
 		/** _id setter */
 		public set _id(value) {
-			if (this.__id != null) {
+			if (this.#__id != null) {
 				throw new Error('_id value cannot be changed once set');
 			}
 
-			this.__id = value;
+			this.#__id = value;
 		}
 
 		/** Delete a document */

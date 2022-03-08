@@ -1,5 +1,4 @@
-import { InvalidParameterError } from '#shared/errors';
-import type { BaseSchemaType, SchemaTypeDefinitionScalar } from '#shared/schemaType';
+import { InvalidParameterError } from './shared/errors';
 import {
 	ArrayType,
 	BooleanType,
@@ -11,13 +10,14 @@ import {
 	NestedArrayType,
 	NumberType,
 	StringType,
-} from '#shared/schemaType';
+} from './shared/schemaType';
+import type { BaseSchemaType, SchemaTypeDefinitionScalar } from './shared/schemaType';
 import type {
 	DecryptFunc,
 	EncryptFunc,
 	SchemaCompoundForeignKeyDefinition,
 	SchemaForeignKeyDefinition,
-} from '#shared/types';
+} from './shared/types';
 
 type SchemaTypeDefinition =
 	| Schema

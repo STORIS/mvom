@@ -1,4 +1,4 @@
-import { TransformDataError } from '#shared/errors';
+import { TransformDataError } from '../../errors';
 import type { SchemaTypeDefinitionISOCalendarDateTime } from '../ISOCalendarDateTimeType';
 import ISOCalendarDateTimeType from '../ISOCalendarDateTimeType';
 

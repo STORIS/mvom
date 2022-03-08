@@ -4,13 +4,16 @@ import axios from 'axios';
 import fs from 'fs-extra';
 import moment from 'moment';
 import semver from 'semver';
+import { dependencies as serverDependencies } from './.mvomrc.json';
+import compileModel, { type ModelConstructor } from './compileModel';
+import type Schema from './Schema';
 import {
 	dbErrors,
 	ISOCalendarDateFormat,
 	ISOCalendarDateTimeFormat,
 	ISOTimeFormat,
 	mvEpoch,
-} from '#shared/constants';
+} from './shared/constants';
 import {
 	ConnectionManagerError,
 	DbServerError,
@@ -19,7 +22,7 @@ import {
 	InvalidServerFeaturesError,
 	RecordLockedError,
 	RecordVersionError,
-} from '#shared/errors';
+} from './shared/errors';
 import type {
 	DbActionInputCreateDir,
 	DbActionInputDeploy,
@@ -38,11 +41,8 @@ import type {
 	DbSubroutineResponseTypesMap,
 	GenericObject,
 	Logger,
-} from '#shared/types';
-import { dummyLogger } from '#shared/utils';
-import { dependencies as serverDependencies } from './.mvomrc.json';
-import compileModel, { type ModelConstructor } from './compileModel';
-import type Schema from './Schema';
+} from './shared/types';
+import { dummyLogger } from './shared/utils';
 
 // #region Types
 export interface CreateConnectionOptions {

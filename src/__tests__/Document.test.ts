@@ -1,9 +1,9 @@
-import { TransformDataError } from '#shared/errors';
-import type { MvRecord } from '#shared/types';
 import type { BuildForeignKeyDefinitionsResult } from '../Document';
 import Document from '../Document';
 import type { SchemaDefinition } from '../Schema';
 import Schema from '../Schema';
+import { TransformDataError } from '../shared/errors';
+import type { MvRecord } from '../shared/types';
 
 describe('constructor', () => {
 	test('should construct a document from supplied data', () => {
@@ -43,7 +43,7 @@ describe('constructor', () => {
 		const getMock = jest.fn().mockImplementation(() => {
 			throw err;
 		});
-		jest.doMock('#shared/schemaType/NumberType', () => jest.fn(() => ({ get: getMock })));
+		jest.doMock('../shared/schemaType/NumberType', () => jest.fn(() => ({ get: getMock })));
 		// eslint-disable-next-line @typescript-eslint/naming-convention
 		const { default: TestSchema } = await import('../Schema');
 
@@ -417,7 +417,7 @@ describe('validate', () => {
 			const validateMock = jest.fn().mockImplementation(() => {
 				throw err;
 			});
-			jest.doMock('#shared/schemaType/StringType', () =>
+			jest.doMock('../shared/schemaType/StringType', () =>
 				jest.fn(() => ({ cast: castMock, validate: validateMock })),
 			);
 			// eslint-disable-next-line @typescript-eslint/naming-convention

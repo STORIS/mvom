@@ -1,4 +1,6 @@
-import { InvalidParameterError } from '#shared/errors';
+import type { SchemaDefinition } from '../Schema';
+import Schema from '../Schema';
+import { InvalidParameterError } from '../shared/errors';
 import {
 	ArrayType,
 	BooleanType,
@@ -10,9 +12,7 @@ import {
 	NestedArrayType,
 	NumberType,
 	StringType,
-} from '#shared/schemaType';
-import type { SchemaDefinition } from '../Schema';
-import Schema from '../Schema';
+} from '../shared/schemaType';
 
 describe('constructor', () => {
 	describe('errors', () => {

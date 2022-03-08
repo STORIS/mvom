@@ -8,8 +8,9 @@
     "node": ">=12.22"
   },
   "scripts": {
-    "build": "npm run build:node && npm run build:prepare-unibasic && npm run build:copy-files",
+    "build": "npm-run-all build:node build:prepare-unibasic build:copy-files build:declaration",
     "build:copy-files": "babel-node --extensions .ts,.js ./scripts/copy-files",
+    "build:declaration": "tsc --project tsconfig.build.json --outDir ./dist",
     "build:node": "babel ./src --env-name build --out-dir ./dist --extensions .ts,.js",
     "build:prepare-unibasic": "babel-node --extensions .ts,.js ./scripts/prepare-unibasic",
     "clean": "npm run clean:build",

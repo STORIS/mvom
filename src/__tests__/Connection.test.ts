@@ -2,7 +2,10 @@ import axios from 'axios';
 import fs from 'fs-extra';
 import { when } from 'jest-when';
 import { minVersion } from 'semver';
-import { dbErrors } from '#shared/constants';
+import { dependencies as serverDependencies } from '../.mvomrc.json';
+import type { CreateConnectionOptions } from '../Connection';
+import Connection, { ConnectionStatus } from '../Connection';
+import { dbErrors } from '../shared/constants';
 import {
 	ConnectionManagerError,
 	DbServerError,
@@ -11,10 +14,7 @@ import {
 	InvalidServerFeaturesError,
 	RecordLockedError,
 	RecordVersionError,
-} from '#shared/errors';
-import { dependencies as serverDependencies } from '../.mvomrc.json';
-import type { CreateConnectionOptions } from '../Connection';
-import Connection, { ConnectionStatus } from '../Connection';
+} from '../shared/errors';
 
 jest.mock('axios');
 jest.mock('fs-extra');

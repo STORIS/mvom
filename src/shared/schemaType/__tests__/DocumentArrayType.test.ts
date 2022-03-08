@@ -1,8 +1,8 @@
-import type { ForeignKeyDbDefinition } from '#shared/classes/ForeignKeyDbTransformer';
-import type { MvRecord } from '#shared/types';
 import Document from '../../../Document';
 import type { SchemaDefinition } from '../../../Schema';
 import Schema from '../../../Schema';
+import type { ForeignKeyDbDefinition } from '../../classes/ForeignKeyDbTransformer';
+import type { MvRecord } from '../../types';
 import DocumentArrayType from '../DocumentArrayType';
 
 describe('cast', () => {

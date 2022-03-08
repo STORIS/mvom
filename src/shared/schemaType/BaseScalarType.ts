@@ -1,13 +1,7 @@
 import { cloneDeep, set as setIn, toPath } from 'lodash';
-import { InvalidParameterError } from '#shared/errors';
-import type {
-	DecryptFunc,
-	EncryptFunc,
-	GenericObject,
-	MvRecord,
-	SchemaValidator,
-} from '#shared/types';
-import { getFromMvArray, handleRequiredValidation } from '#shared/utils';
+import { InvalidParameterError } from '../errors';
+import type { DecryptFunc, EncryptFunc, GenericObject, MvRecord, SchemaValidator } from '../types';
+import { getFromMvArray, handleRequiredValidation } from '../utils';
 import BaseSchemaType from './BaseSchemaType';
 import type { SchemaTypeDefinitionBoolean } from './BooleanType';
 import type { SchemaTypeDefinitionISOCalendarDateTime } from './ISOCalendarDateTimeType';

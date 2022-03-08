@@ -1,11 +1,11 @@
 import { mockDeep } from 'jest-mock-extended';
-import { InvalidParameterError } from '#shared/errors';
-import { ArrayType, BooleanType } from '#shared/schemaType';
-import type { SchemaTypeDefinitionBoolean } from '#shared/schemaType/BooleanType';
-import type { DbSubroutineOutputFind } from '#shared/types';
 import type { ModelConstructor } from '../compileModel';
 import type { SortCriteria } from '../Query';
 import Query from '../Query';
+import { InvalidParameterError } from '../shared/errors';
+import { ArrayType, BooleanType } from '../shared/schemaType';
+import type { SchemaTypeDefinitionBoolean } from '../shared/schemaType/BooleanType';
+import type { DbSubroutineOutputFind } from '../shared/types';
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const ModelConstructorMock = mockDeep<ModelConstructor>();

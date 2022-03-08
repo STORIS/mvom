@@ -1,4 +1,4 @@
-import { dbErrors } from '#shared/constants';
+import { dbErrors } from '../../constants';
 import DbServerError from '../DbServerError';
 
 // use one of the codes from the errors table

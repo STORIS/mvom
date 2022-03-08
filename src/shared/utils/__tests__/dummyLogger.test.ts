@@ -1,4 +1,4 @@
-import type { Logger } from '#shared/types';
+import type { Logger } from '../../types';
 import dummyLogger from '../dummyLogger';
 
 test('should return void for all expected log levels', () => {

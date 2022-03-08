@@ -1,8 +1,8 @@
 import { assignIn, cloneDeep, get as getIn, set as setIn } from 'lodash';
-import { ForeignKeyDbTransformer } from '#shared/classes';
-import { TransformDataError } from '#shared/errors';
-import type { GenericObject, MvRecord } from '#shared/types';
 import type Schema from './Schema';
+import { ForeignKeyDbTransformer } from './shared/classes';
+import { TransformDataError } from './shared/errors';
+import type { GenericObject, MvRecord } from './shared/types';
 
 const DEFAULT_PROPERTY_DESCRIPTOR: PropertyDescriptor = {
 	configurable: false,
@@ -42,20 +42,20 @@ class Document {
 	public transformationErrors: TransformDataError[];
 
 	/** Schema instance which defined this document */
-	private readonly schema: Schema | null;
+	readonly #schema: Schema | null;
 
 	/** Record array of multivalue data */
-	private record: MvRecord;
+	#record: MvRecord;
 
 	/** Indicates whether this document is a subdocument of a composing parent */
-	private readonly isSubdocument: boolean;
+	readonly #isSubdocument: boolean;
 
 	public constructor(schema: Schema | null, options: DocumentConstructorOptions) {
-		const { data, isSubdocument, record } = this.parseConstructorOptions(options);
+		const { data, isSubdocument, record } = this.#parseConstructorOptions(options);
 
-		this.schema = schema;
-		this.record = [];
-		this.isSubdocument = isSubdocument;
+		this.#schema = schema;
+		this.#record = [];
+		this.#isSubdocument = isSubdocument;
 		this.transformationErrors = [];
 
 		Object.defineProperties(this, {
@@ -69,7 +69,7 @@ class Document {
 		});
 
 		if (record != null) {
-			this.transformRecordToDocument(record);
+			this.#transformRecordToDocument(record);
 		}
 		// load the data passed to constructor into document instance
 		assignIn(this, data);
@@ -77,26 +77,26 @@ class Document {
 
 	/** Transform document structure to multivalue array structure */
 	public transformDocumentToRecord(): MvRecord {
-		return this.schema === null
+		return this.#schema === null
 			? getIn(this, '_raw', [])
-			: Object.entries(this.schema.paths).reduce(
+			: Object.entries(this.#schema.paths).reduce(
 					(record, [keyPath, schemaType]) => {
 						const value = getIn(this, keyPath, null);
 						return schemaType.set(record, schemaType.cast(value));
 					},
-					this.isSubdocument ? [] : cloneDeep(this.record),
+					this.#isSubdocument ? [] : cloneDeep(this.#record),
 			  );
 	}
 
 	/** Build a list of foreign key definitions to be used by the database for foreign key validation */
 	public buildForeignKeyDefinitions(): BuildForeignKeyDefinitionsResult[] {
-		if (this.schema === null) {
+		if (this.#schema === null) {
 			return [];
 		}
 
 		// U2 does not allow commas in filenames so we can use it to separate filename/entityName combinations
 		const separator = ',';
-		const definitionMap = Object.entries(this.schema.paths).reduce(
+		const definitionMap = Object.entries(this.#schema.paths).reduce(
 			(foreignKeyDefinitions, [keyPath, schemaType]) => {
 				const value = getIn(this, keyPath, null);
 				const definitions = schemaType.transformForeignKeyDefinitionsToDb(schemaType.cast(value));
@@ -115,8 +115,8 @@ class Document {
 			new Map<string, Set<string>>(),
 		);
 
-		if (this.schema.idForeignKey != null) {
-			const foreignKeyDbTransformer = new ForeignKeyDbTransformer(this.schema.idForeignKey);
+		if (this.#schema.idForeignKey != null) {
+			const foreignKeyDbTransformer = new ForeignKeyDbTransformer(this.#schema.idForeignKey);
 			const definitions = foreignKeyDbTransformer.transform(this._id);
 			definitions.forEach(({ filename, entityId, entityName }) => {
 				const key = `${filename}${separator}${entityName}`;
@@ -143,16 +143,16 @@ class Document {
 	public async validate(): Promise<Record<string, string | string[]>> {
 		const documentErrors: GenericObject = {};
 
-		if (this.schema !== null) {
+		if (this.#schema !== null) {
 			if (
 				typeof this._id === 'string' &&
-				this.schema.idMatch != null &&
-				!this.schema.idMatch.test(this._id)
+				this.#schema.idMatch != null &&
+				!this.#schema.idMatch.test(this._id)
 			) {
 				documentErrors._id = 'Document id does not match pattern';
 			}
 			await Promise.all(
-				Object.entries(this.schema.paths).map(async ([keyPath, schemaType]) => {
+				Object.entries(this.#schema.paths).map(async ([keyPath, schemaType]) => {
 					let value: unknown = getIn(this, keyPath, null);
 					// cast to complex data type if necessary
 					try {
@@ -174,7 +174,7 @@ class Document {
 	}
 
 	/** Parse constructor options to handle overloads */
-	private parseConstructorOptions(options: DocumentConstructorOptions) {
+	#parseConstructorOptions(options: DocumentConstructorOptions) {
 		if ('data' in options) {
 			return {
 				record: null,
@@ -191,17 +191,17 @@ class Document {
 	}
 
 	/** Apply schema structure using record to document instance */
-	private transformRecordToDocument(record: MvRecord) {
+	#transformRecordToDocument(record: MvRecord) {
 		// hold on to the original to use as the baseline when saving
-		this.record = record;
+		this.#record = record;
 
 		const plainDocument =
-			this.schema === null
-				? { _raw: this.record }
-				: Object.entries(this.schema.paths).reduce((document, [keyPath, schemaType]) => {
+			this.#schema === null
+				? { _raw: this.#record }
+				: Object.entries(this.#schema.paths).reduce((document, [keyPath, schemaType]) => {
 						let setValue;
 						try {
-							setValue = schemaType.get(this.record);
+							setValue = schemaType.get(this.#record);
 						} catch (err) {
 							if (err instanceof TransformDataError) {
 								// if this was an error in data transformation, set the value to null and add to transformationErrors list

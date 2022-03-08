@@ -1,7 +1,7 @@
-import { InvalidParameterError } from '#shared/errors';
-import { BaseScalarArrayType, BaseScalarType } from '#shared/schemaType';
-import type { DbDocument, GenericObject } from '#shared/types';
 import type { ModelConstructor } from './compileModel';
+import { InvalidParameterError } from './shared/errors';
+import { BaseScalarArrayType, BaseScalarType } from './shared/schemaType';
+import type { DbDocument, GenericObject } from './shared/types';
 
 // #region Types
 export interface QueryConstructorOptions {

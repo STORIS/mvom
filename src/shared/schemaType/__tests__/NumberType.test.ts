@@ -1,4 +1,4 @@
-import { InvalidParameterError, TransformDataError } from '#shared/errors';
+import { InvalidParameterError, TransformDataError } from '../../errors';
 import type { SchemaTypeDefinitionNumber } from '../NumberType';
 import NumberType from '../NumberType';
 
