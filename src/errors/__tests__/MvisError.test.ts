@@ -3,8 +3,8 @@ import MvisError from '../MvisError';
 test('should instantiate error with expected instance properties', (): void => {
 	const error = new MvisError();
 	const expected = {
-		name: 'ConnectionManagerError',
-		message: 'Error in Connection Manager communication',
+		name: 'MvisError',
+		message: 'Error in MVIS communication',
 		connectionManagerRequest: {},
 		connectionManagerResponse: {},
 	};
