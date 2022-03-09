@@ -29,11 +29,11 @@ export interface FilterOperators<TValue> {
 	/** Not equal */
 	$ne?: TValue;
 	/** String containing */
-	$contains?: TValue;
+	$contains?: TValue extends string ? string : never;
 	/** String starts with */
-	$startsWith?: TValue;
+	$startsWith?: TValue extends string ? string : never;
 	/** String ends with */
-	$endsWith?: TValue;
+	$endsWith?: TValue extends string ? string : never;
 	/** In list */
 	$in?: TValue[];
 	/** Not in list */
