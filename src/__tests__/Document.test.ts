@@ -43,7 +43,7 @@ describe('constructor', () => {
 		const getMock = jest.fn().mockImplementation(() => {
 			throw err;
 		});
-		jest.doMock('../shared/schemaType/NumberType', () => jest.fn(() => ({ get: getMock })));
+		jest.doMock('../schemaType/NumberType', () => jest.fn(() => ({ get: getMock })));
 		// eslint-disable-next-line @typescript-eslint/naming-convention
 		const { default: TestSchema } = await import('../Schema');
 
@@ -417,7 +417,7 @@ describe('validate', () => {
 			const validateMock = jest.fn().mockImplementation(() => {
 				throw err;
 			});
-			jest.doMock('../shared/schemaType/StringType', () =>
+			jest.doMock('../schemaType/StringType', () =>
 				jest.fn(() => ({ cast: castMock, validate: validateMock })),
 			);
 			// eslint-disable-next-line @typescript-eslint/naming-convention

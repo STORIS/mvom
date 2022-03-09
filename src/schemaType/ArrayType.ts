@@ -1,6 +1,6 @@
-import type { ForeignKeyDbDefinition } from '../classes/ForeignKeyDbTransformer';
-import type { GenericObject, MvRecord } from '../types';
-import { ensureArray } from '../utils';
+import type { ForeignKeyDbDefinition } from '../shared/classes/ForeignKeyDbTransformer';
+import type { GenericObject, MvRecord } from '../shared/types';
+import { ensureArray } from '../shared/utils';
 import BaseScalarArrayType from './BaseScalarArrayType';
 import type BaseScalarType from './BaseScalarType';
 

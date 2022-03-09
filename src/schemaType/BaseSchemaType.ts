@@ -1,5 +1,5 @@
-import type { ForeignKeyDbDefinition } from '../classes/ForeignKeyDbTransformer';
-import type { GenericObject, MvRecord, Validator } from '../types';
+import type { ForeignKeyDbDefinition } from '../shared/classes/ForeignKeyDbTransformer';
+import type { GenericObject, MvRecord, Validator } from '../shared/types';
 
 export interface SchemaTypeDefinitionBase {
 	path: `${number}` | `${number}.${number}` | `${number}.${number}.${number}` | number;

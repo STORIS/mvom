@@ -1,7 +1,7 @@
-import Document from '../../../Document';
-import Schema from '../../../Schema';
-import type { SchemaDefinition } from '../../../Schema';
-import type { MvRecord } from '../../types';
+import Document from '../../Document';
+import Schema from '../../Schema';
+import type { SchemaDefinition } from '../../Schema';
+import type { MvRecord } from '../../shared/types';
 import EmbeddedType from '../EmbeddedType';
 
 describe('cast', () => {

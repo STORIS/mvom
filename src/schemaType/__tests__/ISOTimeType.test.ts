@@ -1,4 +1,4 @@
-import { TransformDataError } from '../../../errors';
+import { TransformDataError } from '../../errors';
 import type { SchemaTypeDefinitionISOTime } from '../ISOTimeType';
 import ISOTimeType from '../ISOTimeType';
 

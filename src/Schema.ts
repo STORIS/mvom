@@ -10,8 +10,8 @@ import {
 	NestedArrayType,
 	NumberType,
 	StringType,
-} from './shared/schemaType';
-import type { BaseSchemaType, SchemaTypeDefinitionScalar } from './shared/schemaType';
+} from './schemaType';
+import type { BaseSchemaType, SchemaTypeDefinitionScalar } from './schemaType';
 import type {
 	DecryptFunc,
 	EncryptFunc,

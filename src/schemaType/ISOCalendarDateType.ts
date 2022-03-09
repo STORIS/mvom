@@ -1,35 +1,29 @@
 import moment from 'moment';
-import { ISOTimeFormat } from '../../constants';
-import { TransformDataError } from '../../errors';
-import { handleTypeValidation } from '../utils';
+import { ISOCalendarDateFormat, mvEpoch } from '../constants';
+import { TransformDataError } from '../errors';
+import { handleTypeValidation } from '../shared/utils';
 import BaseDateType from './BaseDateType';
 import type { ScalarTypeConstructorOptions } from './BaseScalarType';
 import type { SchemaTypeDefinitionBase } from './BaseSchemaType';
 
-export interface SchemaTypeDefinitionISOTime extends SchemaTypeDefinitionBase {
-	type: 'ISOTime';
-	dbFormat?: 's' | 'ms';
+export interface SchemaTypeDefinitionISOCalendarDate extends SchemaTypeDefinitionBase {
+	type: 'ISOCalendarDate';
 }
 
-/** ISOTime Schema Type */
-class ISOTimeType extends BaseDateType {
-	/** Database time format is in milliseconds */
-	private isDbInMs: boolean;
-
+/** ISOCalendarDate Schema Type */
+class ISOCalendarDateType extends BaseDateType {
 	public constructor(
-		definition: SchemaTypeDefinitionISOTime,
+		definition: SchemaTypeDefinitionISOCalendarDate,
 		options: ScalarTypeConstructorOptions = {},
 	) {
 		super(definition, options);
-		const { dbFormat = 's' } = definition;
-		this.isDbInMs = dbFormat === 'ms';
 
 		// add validators for this type
 		this.validators.unshift(handleTypeValidation(this.validateType));
 	}
 
 	/**
-	 * Transform mv style time data to ISO 8601 approved time format (HH:mm:ss.SSS)
+	 * Transform mv date data to ISO 8601 approved date format (yyyy-mm-dd)
 	 * @throws {@link TransformDataError} Database value could not be transformed to external format
 	 */
 	public transformFromDb(value: null): null;
@@ -39,33 +33,18 @@ class ISOTimeType extends BaseDateType {
 			return null;
 		}
 		const castValue = Number(value);
-		if (!Number.isInteger(castValue) || castValue < 0) {
+		if (!Number.isInteger(castValue)) {
 			throw new TransformDataError({
 				transformClass: this.constructor.name,
 				transformValue: castValue,
 			});
 		}
 
-		if (castValue > 86400000 || (!this.isDbInMs && castValue > 86400)) {
-			throw new TransformDataError({
-				transformClass: this.constructor.name,
-				transformValue: castValue,
-			});
-		}
-
-		const isoTime = moment().startOf('day');
-
-		if (this.isDbInMs) {
-			isoTime.add(castValue, 'milliseconds');
-		} else {
-			isoTime.add(castValue, 'seconds');
-		}
-
-		return isoTime.format(ISOTimeFormat);
+		return moment(mvEpoch).add(castValue, 'days').format(ISOCalendarDateFormat);
 	}
 
 	/**
-	 * Transform ISO 8601 approved time format (HH:mm:ss.SSS) to mv style time data
+	 * Transform ISO 8601 approved date format (yyyy-mm-dd) to mv date data
 	 * @throws {@link TransformDataError} Value could not be transformed to database format
 	 */
 	public transformToDb(value: null): null;
@@ -82,15 +61,10 @@ class ISOTimeType extends BaseDateType {
 			});
 		}
 
-		const startOfDay = moment().startOf('day');
-
-		if (this.isDbInMs) {
-			return String(moment(value, ISOTimeFormat).diff(startOfDay, 'milliseconds'));
-		}
-		return String(moment(value, ISOTimeFormat).diff(startOfDay, 'seconds'));
+		return String(moment(value).diff(moment(mvEpoch), 'days'));
 	}
 
-	/** ISOTimeType data type validator */
+	/** ISOCalendarDateType data type validator */
 	private validateType = async (value: unknown): Promise<boolean> => {
 		if (value == null) {
 			return Promise.resolve(true);
@@ -100,8 +74,8 @@ class ISOTimeType extends BaseDateType {
 			return Promise.resolve(false);
 		}
 
-		return Promise.resolve(moment(value, ISOTimeFormat).isValid());
+		return Promise.resolve(moment(value, ISOCalendarDateFormat).isValid());
 	};
 }
 
-export default ISOTimeType;
+export default ISOCalendarDateType;

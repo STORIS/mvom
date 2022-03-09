@@ -3,8 +3,8 @@ import type { ModelConstructor } from '../compileModel';
 import { InvalidParameterError } from '../errors';
 import type { SortCriteria } from '../Query';
 import Query from '../Query';
-import { ArrayType, BooleanType } from '../shared/schemaType';
-import type { SchemaTypeDefinitionBoolean } from '../shared/schemaType/BooleanType';
+import { ArrayType, BooleanType } from '../schemaType';
+import type { SchemaTypeDefinitionBoolean } from '../schemaType/BooleanType';
 import type { DbSubroutineOutputFind } from '../shared/types';
 
 // eslint-disable-next-line @typescript-eslint/naming-convention

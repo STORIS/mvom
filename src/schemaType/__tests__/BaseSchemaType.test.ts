@@ -1,4 +1,4 @@
-import type { MvRecord } from '../../types';
+import type { MvRecord } from '../../shared/types';
 import BaseSchemaType from '../BaseSchemaType';
 
 class TestSubclass extends BaseSchemaType {

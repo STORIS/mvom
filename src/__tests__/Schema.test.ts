@@ -12,7 +12,7 @@ import {
 	NestedArrayType,
 	NumberType,
 	StringType,
-} from '../shared/schemaType';
+} from '../schemaType';
 
 describe('constructor', () => {
 	describe('errors', () => {

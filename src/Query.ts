@@ -1,6 +1,6 @@
 import type { ModelConstructor } from './compileModel';
 import { InvalidParameterError } from './errors';
-import { BaseScalarArrayType, BaseScalarType } from './shared/schemaType';
+import { BaseScalarArrayType, BaseScalarType } from './schemaType';
 import type { DbDocument, GenericObject } from './shared/types';
 
 // #region Types
