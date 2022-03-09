@@ -1,16 +1,14 @@
 import BaseError from './BaseError';
 
-interface ConstructorOptions {
+interface RecordVersionErrorConstructorOptions {
 	message?: string;
 }
 
-/**
- * Error thrown when an error occurs due to a record having changed since it was read which prevented update
- */
+/** Error thrown when an error occurs due to a record having changed since it was read which prevented update */
 class RecordVersionError extends BaseError {
 	public constructor({
 		message = 'Record has changed since it was read and cannot be updated',
-	}: ConstructorOptions = {}) {
+	}: RecordVersionErrorConstructorOptions = {}) {
 		const name = 'RecordVersionError';
 		super(message, name);
 	}

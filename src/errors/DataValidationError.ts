@@ -1,24 +1,20 @@
 import type { GenericObject } from '../types';
 import BaseError from './BaseError';
 
-interface ConstructorOptions {
+interface DataValidationErrorConstructorOptions {
 	message?: string;
 	validationErrors: GenericObject;
 }
 
-/**
- * Error thrown when a data validation fails when saving a document
- */
+/** Error thrown when a data validation fails when saving a document */
 class DataValidationError extends BaseError {
-	/**
-	 * Object containing details of validation errors
-	 */
+	/** Object containing details of validation errors */
 	public readonly validationErrors: GenericObject;
 
 	public constructor({
 		message = 'Error(s) found while validating data',
 		validationErrors,
-	}: ConstructorOptions) {
+	}: DataValidationErrorConstructorOptions) {
 		const name = 'DataValidationError';
 		super(message, name);
 

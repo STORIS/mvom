@@ -1,4 +1,4 @@
-export { default as ConnectionManagerError } from './ConnectionManagerError';
+export { default as MvisError } from './MvisError';
 export { default as DataValidationError } from './DataValidationError';
 export { default as DbServerError } from './DbServerError';
 export { default as ForeignKeyValidationError } from './ForeignKeyValidationError';

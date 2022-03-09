@@ -6,24 +6,20 @@ export interface ForeignKeyValidationErrorData {
 	entityId: string;
 }
 
-interface ConstructorOptions {
+interface ForeignKeyValidationErrorConstructorOptions {
 	message?: string;
 	foreignKeyValidationErrors: ForeignKeyValidationErrorData[];
 }
 
-/**
- * Error thrown when foreign key violations encountered when saving a document
- */
+/** Error thrown when foreign key violations encountered when saving a document */
 class ForeignKeyValidationError extends BaseError {
-	/**
-	 * Object containing details of validation errors
-	 */
+	/** Object containing details of validation errors */
 	public readonly foreignKeyValidationErrors: GenericObject;
 
 	public constructor({
 		message = 'Foreign key violation(s) encountered while saving',
 		foreignKeyValidationErrors,
-	}: ConstructorOptions) {
+	}: ForeignKeyValidationErrorConstructorOptions) {
 		const name = 'ForeignKeyValidationError';
 		super(message, name);
 

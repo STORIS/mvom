@@ -13,9 +13,7 @@ type DbServerErrorConstructorOptions =
 	| DbServerErrorConstructorOptionsMessage
 	| DbServerErrorConstructorOptionsCode;
 
-/**
- * Error thrown when an error is encountered on the database server
- */
+/** Error thrown when an error is encountered on the database server */
 class DbServerError extends BaseError {
 	public constructor(options: DbServerErrorConstructorOptions) {
 		const name = 'DbServerError';
