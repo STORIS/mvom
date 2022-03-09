@@ -36,8 +36,6 @@ export interface BuildForeignKeyDefinitionsResult {
 class Document {
 	[key: string]: unknown;
 
-	public _id?: string;
-
 	public _raw?: MvRecord;
 
 	/** Array of any errors which occurred during transformation from the database */
@@ -52,8 +50,6 @@ class Document {
 	/** Indicates whether this document is a subdocument of a composing parent */
 	private readonly isSubdocument: boolean;
 
-	public constructor(schema: Schema, options: DocumentConstructorOptions);
-	public constructor(schema: null, options: DocumentConstructorOptionsRaw);
 	public constructor(schema: Schema | null, options: DocumentConstructorOptions) {
 		const { data, isSubdocument, record } = this.parseConstructorOptions(options);
 
@@ -148,7 +144,11 @@ class Document {
 		const documentErrors: GenericObject = {};
 
 		if (this.schema !== null) {
-			if (this._id != null && this.schema.idMatch != null && !this.schema.idMatch.test(this._id)) {
+			if (
+				typeof this._id === 'string' &&
+				this.schema.idMatch != null &&
+				!this.schema.idMatch.test(this._id)
+			) {
 				documentErrors._id = 'Document id does not match pattern';
 			}
 			await Promise.all(

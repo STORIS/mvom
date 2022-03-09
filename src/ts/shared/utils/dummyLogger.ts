@@ -1,4 +1,6 @@
-const dummyLogger = {
+import type { Logger } from '#shared/types';
+
+const dummyLogger: Logger = {
 	error: () => {},
 	warn: () => {},
 	info: () => {},

@@ -1,27 +1,31 @@
 import { dbErrors } from '#shared/constants';
 import BaseError from './BaseError';
 
-interface ConstructorOptions {
-	message?: string;
+interface DbServerErrorConstructorOptionsMessage {
+	message: string;
+}
+
+interface DbServerErrorConstructorOptionsCode {
 	errorCode: number | string;
 }
+
+type DbServerErrorConstructorOptions =
+	| DbServerErrorConstructorOptionsMessage
+	| DbServerErrorConstructorOptionsCode;
 
 /**
  * Error thrown when an error is encountered on the database server
  */
 class DbServerError extends BaseError {
-	public constructor({ message: overrideMessage, errorCode }: ConstructorOptions) {
+	public constructor(options: DbServerErrorConstructorOptions) {
 		const name = 'DbServerError';
 
-		let message = 'Unknown database server error';
-		if (overrideMessage != null) {
-			message = overrideMessage;
-		} else {
-			const foundError = Object.values(dbErrors).find((errorObj) => errorObj.code === +errorCode);
-			if (foundError != null) {
-				({ message } = foundError);
-			}
-		}
+		const message =
+			'message' in options
+				? options.message
+				: Object.values(dbErrors).find((errorObj) => errorObj.code === +options.errorCode)
+						?.message ?? 'Unknown database server error';
+
 		super(message, name);
 	}
 }

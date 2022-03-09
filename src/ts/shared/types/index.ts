@@ -1,3 +1,7 @@
+export * from './DbFeature';
+export * from './DbSubroutineInput';
+export * from './DbSubroutineOutput';
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type GenericObject = Record<string, any>;
 
@@ -34,4 +38,13 @@ export interface SchemaForeignKeyDefinition {
 export interface SchemaCompoundForeignKeyDefinition {
 	[key: number]: SchemaForeignKeyDefinition;
 	splitCharacter: string;
+}
+
+export interface Logger {
+	error(message: string): void;
+	warn(message: string): void;
+	info(message: string): void;
+	verbose(message: string): void;
+	debug(message: string): void;
+	silly(message: string): void;
 }
