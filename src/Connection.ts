@@ -13,7 +13,6 @@ import {
 	ISOTimeFormat,
 	mvEpoch,
 } from './constants';
-import type Schema from './Schema';
 import {
 	ConnectionManagerError,
 	DbServerError,
@@ -22,7 +21,8 @@ import {
 	InvalidServerFeaturesError,
 	RecordLockedError,
 	RecordVersionError,
-} from './shared/errors';
+} from './errors';
+import type Schema from './Schema';
 import type {
 	DbActionInputCreateDir,
 	DbActionInputDeploy,

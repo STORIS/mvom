@@ -1,8 +1,8 @@
 import { mockDeep } from 'jest-mock-extended';
 import type { ModelConstructor } from '../compileModel';
+import { InvalidParameterError } from '../errors';
 import type { SortCriteria } from '../Query';
 import Query from '../Query';
-import { InvalidParameterError } from '../shared/errors';
 import { ArrayType, BooleanType } from '../shared/schemaType';
 import type { SchemaTypeDefinitionBoolean } from '../shared/schemaType/BooleanType';
 import type { DbSubroutineOutputFind } from '../shared/types';

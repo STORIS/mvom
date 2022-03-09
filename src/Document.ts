@@ -1,7 +1,7 @@
 import { assignIn, cloneDeep, get as getIn, set as setIn } from 'lodash';
+import { TransformDataError } from './errors';
 import type Schema from './Schema';
 import { ForeignKeyDbTransformer } from './shared/classes';
-import { TransformDataError } from './shared/errors';
 import type { GenericObject, MvRecord } from './shared/types';
 
 const DEFAULT_PROPERTY_DESCRIPTOR: PropertyDescriptor = {

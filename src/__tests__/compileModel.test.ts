@@ -2,9 +2,9 @@ import { mockDeep } from 'jest-mock-extended';
 import { getError, NoErrorThrownError } from '#test/helpers';
 import compileModel from '../compileModel';
 import type Connection from '../Connection';
+import { DataValidationError } from '../errors';
 import Schema from '../Schema';
 import type { SchemaDefinition } from '../Schema';
-import { DataValidationError } from '../shared/errors';
 import type { GenericObject } from '../shared/types';
 
 const connectionMock = mockDeep<Connection>();

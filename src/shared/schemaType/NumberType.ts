@@ -1,4 +1,4 @@
-import { InvalidParameterError, TransformDataError } from '../errors';
+import { InvalidParameterError, TransformDataError } from '../../errors';
 import { handleTypeValidation } from '../utils';
 import type { ScalarTypeConstructorOptions } from './BaseScalarType';
 import BaseScalarType from './BaseScalarType';

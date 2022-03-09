@@ -1,5 +1,5 @@
 import type { ModelConstructor } from './compileModel';
-import { InvalidParameterError } from './shared/errors';
+import { InvalidParameterError } from './errors';
 import { BaseScalarArrayType, BaseScalarType } from './shared/schemaType';
 import type { DbDocument, GenericObject } from './shared/types';
 

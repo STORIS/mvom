@@ -1,4 +1,4 @@
-import { TransformDataError } from '../errors';
+import { TransformDataError } from '../../errors';
 import type { GenericObject } from '../types';
 import { handleTypeValidation } from '../utils';
 import BaseDateType from './BaseDateType';

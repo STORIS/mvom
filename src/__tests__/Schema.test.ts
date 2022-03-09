@@ -1,6 +1,6 @@
+import { InvalidParameterError } from '../errors';
 import type { SchemaDefinition } from '../Schema';
 import Schema from '../Schema';
-import { InvalidParameterError } from '../shared/errors';
 import {
 	ArrayType,
 	BooleanType,

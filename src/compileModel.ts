@@ -1,10 +1,10 @@
 import type Connection from './Connection';
 import type { DocumentConstructorOptions } from './Document';
 import Document from './Document';
+import { DataValidationError } from './errors';
 import type { QueryConstructorOptions } from './Query';
 import Query, { type Filter } from './Query';
 import type Schema from './Schema';
-import { DataValidationError } from './shared/errors';
 import type { GenericObject, MvRecord } from './shared/types';
 import { ensureArray } from './shared/utils';
 

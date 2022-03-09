@@ -1,8 +1,8 @@
 import type { BuildForeignKeyDefinitionsResult } from '../Document';
 import Document from '../Document';
+import { TransformDataError } from '../errors';
 import type { SchemaDefinition } from '../Schema';
 import Schema from '../Schema';
-import { TransformDataError } from '../shared/errors';
 import type { MvRecord } from '../shared/types';
 
 describe('constructor', () => {

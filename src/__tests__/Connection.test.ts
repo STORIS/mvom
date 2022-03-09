@@ -14,7 +14,7 @@ import {
 	InvalidServerFeaturesError,
 	RecordLockedError,
 	RecordVersionError,
-} from '../shared/errors';
+} from '../errors';
 
 jest.mock('axios');
 jest.mock('fs-extra');

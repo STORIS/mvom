@@ -1,5 +1,5 @@
 import { cloneDeep, set as setIn, toPath } from 'lodash';
-import { InvalidParameterError } from '../errors';
+import { InvalidParameterError } from '../../errors';
 import type { DecryptFunc, EncryptFunc, GenericObject, MvRecord, SchemaValidator } from '../types';
 import { getFromMvArray, handleRequiredValidation } from '../utils';
 import BaseSchemaType from './BaseSchemaType';

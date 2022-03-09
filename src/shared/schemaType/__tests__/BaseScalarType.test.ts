@@ -1,5 +1,5 @@
 import type { SchemaTypeDefinitionScalar } from '..';
-import { InvalidParameterError } from '../../errors';
+import { InvalidParameterError } from '../../../errors';
 import type { MvRecord } from '../../types';
 import type { ScalarTypeConstructorOptions } from '../BaseScalarType';
 import BaseScalarType from '../BaseScalarType';

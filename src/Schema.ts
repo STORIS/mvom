@@ -1,4 +1,4 @@
-import { InvalidParameterError } from './shared/errors';
+import { InvalidParameterError } from './errors';
 import {
 	ArrayType,
 	BooleanType,
