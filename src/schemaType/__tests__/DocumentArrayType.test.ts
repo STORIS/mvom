@@ -1,7 +1,7 @@
 import Document from '../../Document';
+import type { ForeignKeyDbDefinition } from '../../ForeignKeyDbTransformer';
 import type { SchemaDefinition } from '../../Schema';
 import Schema from '../../Schema';
-import type { ForeignKeyDbDefinition } from '../../shared/classes/ForeignKeyDbTransformer';
 import type { MvRecord } from '../../shared/types';
 import DocumentArrayType from '../DocumentArrayType';
 

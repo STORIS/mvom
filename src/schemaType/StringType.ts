@@ -1,5 +1,5 @@
-import { ForeignKeyDbTransformer } from '../shared/classes';
-import type { ForeignKeyDbDefinition } from '../shared/classes/ForeignKeyDbTransformer';
+import type { ForeignKeyDbDefinition } from '../ForeignKeyDbTransformer';
+import ForeignKeyDbTransformer from '../ForeignKeyDbTransformer';
 import type {
 	SchemaCompoundForeignKeyDefinition,
 	SchemaForeignKeyDefinition,

@@ -1,4 +1,4 @@
-import type { ForeignKeyDbDefinition } from '../../shared/classes/ForeignKeyDbTransformer';
+import type { ForeignKeyDbDefinition } from '../../ForeignKeyDbTransformer';
 import type { SchemaTypeDefinitionString } from '../StringType';
 import StringType from '../StringType';
 
