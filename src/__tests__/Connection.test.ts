@@ -5,7 +5,7 @@ import { minVersion } from 'semver';
 import { dependencies as serverDependencies } from '../.mvomrc.json';
 import type { CreateConnectionOptions } from '../Connection';
 import Connection, { ConnectionStatus } from '../Connection';
-import { dbErrors } from '../shared/constants';
+import { dbErrors } from '../constants';
 import {
 	ConnectionManagerError,
 	DbServerError,

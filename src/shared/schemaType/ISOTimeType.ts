@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { ISOTimeFormat } from '../constants';
+import { ISOTimeFormat } from '../../constants';
 import { TransformDataError } from '../errors';
 import { handleTypeValidation } from '../utils';
 import BaseDateType from './BaseDateType';

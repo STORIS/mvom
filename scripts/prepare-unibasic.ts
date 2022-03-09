@@ -2,7 +2,7 @@
 import path from 'path';
 import fs from 'fs-extra';
 import nunjucks from 'nunjucks';
-import { dbErrors } from '../src/shared/constants';
+import { dbErrors } from '../src/constants';
 
 const inputDir = path.join(process.cwd(), 'src', 'unibasicTemplates');
 const outputDir = path.join(process.cwd(), 'dist', 'unibasic');

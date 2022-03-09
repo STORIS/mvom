@@ -1,4 +1,4 @@
-import { dbErrors } from '../constants';
+import { dbErrors } from '../../constants';
 import BaseError from './BaseError';
 
 interface DbServerErrorConstructorOptionsMessage {

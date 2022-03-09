@@ -6,14 +6,14 @@ import moment from 'moment';
 import semver from 'semver';
 import { dependencies as serverDependencies } from './.mvomrc.json';
 import compileModel, { type ModelConstructor } from './compileModel';
-import type Schema from './Schema';
 import {
 	dbErrors,
 	ISOCalendarDateFormat,
 	ISOCalendarDateTimeFormat,
 	ISOTimeFormat,
 	mvEpoch,
-} from './shared/constants';
+} from './constants';
+import type Schema from './Schema';
 import {
 	ConnectionManagerError,
 	DbServerError,
