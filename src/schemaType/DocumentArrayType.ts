@@ -9,7 +9,7 @@ import BaseSchemaType from './BaseSchemaType';
 /** A Document Array Schema Type */
 class DocumentArrayType extends BaseSchemaType {
 	/** An instance of Schema representing the document structure of the array's contents */
-	private valueSchema: Schema;
+	private readonly valueSchema: Schema;
 
 	public constructor(valueSchema: Schema) {
 		super();

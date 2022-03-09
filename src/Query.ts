@@ -66,22 +66,22 @@ export interface QueryExecutionResult {
 /** A query object */
 class Query<TSchema extends GenericObject = GenericObject> {
 	/** Model constructor to use with query */
-	private Model: ModelConstructor;
+	private readonly Model: ModelConstructor;
 
 	/** String to use as selection criteria in query */
-	private selection: string | null;
+	private readonly selection: string | null;
 
 	/** String to use as sort criteria in query */
-	private sort: string | null;
+	private readonly sort: string | null;
 
 	/** Limit the result set to this number of items */
-	private limit?: number | null;
+	private readonly limit?: number | null;
 
 	/** Skip this number of items in the result set */
-	private skip?: number | null;
+	private readonly skip?: number | null;
 
 	/** Specify the projection attribute in result set */
-	private projection: string[];
+	private readonly projection: string[];
 
 	public constructor(
 		Model: ModelConstructor,

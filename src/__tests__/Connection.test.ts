@@ -7,11 +7,11 @@ import type { CreateConnectionOptions } from '../Connection';
 import Connection, { ConnectionStatus } from '../Connection';
 import { dbErrors } from '../constants';
 import {
-	ConnectionManagerError,
 	DbServerError,
 	ForeignKeyValidationError,
 	InvalidParameterError,
 	InvalidServerFeaturesError,
+	MvisError,
 	RecordLockedError,
 	RecordVersionError,
 } from '../errors';
@@ -464,7 +464,7 @@ describe('executeDbFeature', () => {
 				clearAttributes: false,
 				foreignKeyDefinitions: [],
 			}),
-		).rejects.toThrow(ConnectionManagerError);
+		).rejects.toThrow(MvisError);
 	});
 });
 

@@ -10,6 +10,7 @@ import type { DbSubroutineOutputFind } from '../types';
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const ModelConstructorMock = mockDeep<ModelConstructor>();
 const filename = 'filename';
+// @ts-expect-error: Ignore readonly modifier in test
 ModelConstructorMock.file = filename;
 
 describe('constructor', () => {
@@ -515,6 +516,7 @@ describe('exec', () => {
 						[propertyName]: { $eq: propertyValue },
 					};
 
+					// @ts-expect-error: Ignore readonly modifier in test
 					ModelConstructorMock.schema!.paths = {};
 					ModelConstructorMock.schema!.dictPaths = { [propertyName]: propertyDictionary };
 

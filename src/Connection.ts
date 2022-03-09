@@ -14,11 +14,11 @@ import {
 	mvEpoch,
 } from './constants';
 import {
-	ConnectionManagerError,
 	DbServerError,
 	ForeignKeyValidationError,
 	InvalidParameterError,
 	InvalidServerFeaturesError,
+	MvisError,
 	RecordLockedError,
 	RecordVersionError,
 } from './errors';
@@ -86,13 +86,13 @@ interface ServerFeatureSet {
 /** A connection object */
 class Connection {
 	/** File system path of the UniBasic source code */
-	private static unibasicPath = path.resolve(path.join(__dirname, '../', 'unibasic'));
+	private static readonly unibasicPath = path.resolve(path.join(__dirname, '../', 'unibasic'));
 
 	/** Connection status */
 	public status: ConnectionStatus = ConnectionStatus.disconnected;
 
 	/** Logger instance used for diagnostic logging */
-	public logger: Logger;
+	public readonly logger: Logger;
 
 	/** Object providing the current state of db server features and availability */
 	private serverFeatureSet: ServerFeatureSet = {
@@ -104,16 +104,16 @@ class Connection {
 	private cacheExpiry = 0;
 
 	/** Maximum age of the cache before it must be refreshed */
-	private cacheMaxAge: number;
+	private readonly cacheMaxAge: number;
 
 	/** URI of the full endpoint for communicating with the database */
-	private endpoint: string;
+	private readonly endpoint: string;
 
 	/** +/- in milliseconds between database server time and local server time */
 	private timeDrift?: number;
 
 	/** Request timeout, in milliseconds */
-	private timeout: number;
+	private readonly timeout: number;
 
 	private constructor(
 		/** URI of the MVIS which facilitates access to the mv database */
@@ -381,7 +381,7 @@ class Connection {
 				{ timeout: this.timeout },
 			);
 		} catch (err) {
-			throw new ConnectionManagerError({
+			throw new MvisError({
 				message: err.message,
 				connectionManagerRequest: err.request,
 				connectionManagerResponse: err.response,

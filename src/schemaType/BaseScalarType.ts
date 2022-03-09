@@ -28,25 +28,25 @@ const ISVALID_SYMBOL = Symbol('Is Valid');
 /** Abstract Scalar Schema Type */
 abstract class BaseScalarType extends BaseSchemaType {
 	/** Data definition which this schema type was constructed from */
-	public definition: SchemaTypeDefinitionScalar;
+	public readonly definition: SchemaTypeDefinitionScalar;
 
 	/** 0-indexed Array path */
-	public path: number[];
+	public readonly path: number[];
 
 	/** Multivalue dictionary id */
-	public dictionary: string | null;
+	public readonly dictionary: string | null;
 
 	/** Required validation value for the schema type */
-	private required: boolean | SchemaValidator;
+	private readonly required: boolean | SchemaValidator;
 
 	/** Indicates whether data should be encrypted/decrypted */
-	private encrypted: boolean;
+	private readonly encrypted: boolean;
 
 	/** Encrypt function to call on sensitive data before writing to the database */
-	private encrypt?: EncryptFunc;
+	private readonly encrypt?: EncryptFunc;
 
 	/** Decrypt function to call on sensitive data encrypted in the database */
-	private decrypt?: DecryptFunc;
+	private readonly decrypt?: DecryptFunc;
 
 	protected constructor(
 		definition: SchemaTypeDefinitionScalar,

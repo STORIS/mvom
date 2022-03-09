@@ -50,28 +50,28 @@ class Schema {
 	public dictPaths: Record<string, string>;
 
 	/** The compiled schema object path structure */
-	public paths: Record<string, BaseSchemaType>;
+	public readonly paths: Record<string, BaseSchemaType>;
 
 	/** Foreign key definition for the record id */
-	public idForeignKey?: SchemaForeignKeyDefinition | SchemaCompoundForeignKeyDefinition;
+	public readonly idForeignKey?: SchemaForeignKeyDefinition | SchemaCompoundForeignKeyDefinition;
 
 	/** Regular expression to validate the record id against */
-	public idMatch?: RegExp;
+	public readonly idMatch?: RegExp;
 
 	/** The schema definition passed to the constructor */
-	private definition: SchemaDefinition;
+	private readonly definition: SchemaDefinition;
 
 	/** Map of the compiled schema object position paths */
-	private positionPaths: Map<string, number[]>;
+	private readonly positionPaths: Map<string, number[]>;
 
 	/** Map of all subdocument schemas represented in this Schema with parentPath as key */
-	private subdocumentSchemas: Map<string, Schema>;
+	private readonly subdocumentSchemas: Map<string, Schema>;
 
 	/** Optional function to use for encryption of sensitive data */
-	private encrypt?: EncryptFunc;
+	private readonly encrypt?: EncryptFunc;
 
 	/** Optional function to use for decryption of sensitive data */
-	private decrypt?: DecryptFunc;
+	private readonly decrypt?: DecryptFunc;
 
 	public constructor(
 		definition: SchemaDefinition,

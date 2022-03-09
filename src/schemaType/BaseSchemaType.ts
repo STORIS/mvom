@@ -10,7 +10,7 @@ export interface SchemaTypeDefinitionBase {
 
 /** Abstract Base Schema Type */
 abstract class BaseSchemaType {
-	protected validators: Validator[] = [];
+	protected readonly validators: Validator[] = [];
 
 	/** Create an array of foreign key definitions that will be validated before save */
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars

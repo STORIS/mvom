@@ -15,7 +15,7 @@ export interface SchemaTypeDefinitionNumber extends SchemaTypeDefinitionBase {
  */
 class NumberType extends BaseScalarType {
 	/** Number of implied decimals in database storage */
-	private dbDecimals: number;
+	private readonly dbDecimals: number;
 
 	public constructor(
 		definition: SchemaTypeDefinitionNumber,

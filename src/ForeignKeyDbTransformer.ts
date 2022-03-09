@@ -19,7 +19,7 @@ export interface ForeignKeyDbDefinition {
 }
 
 class ForeignKeyDbTransformer {
-	private foreignKeyDefinition: ForeignKeyDefinition | CompoundForeignKeyDefinition | null;
+	private readonly foreignKeyDefinition: ForeignKeyDefinition | CompoundForeignKeyDefinition | null;
 
 	public constructor(
 		foreignKeyDefinition: ForeignKeyDefinition | CompoundForeignKeyDefinition | null = null,

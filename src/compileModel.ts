@@ -53,13 +53,13 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 	/** Model constructor */
 	return class Model extends Document {
 		/** Connection instance which constructed this model definition */
-		public static connection = connection;
+		public static readonly connection = connection;
 
 		/** Database file this model acts against */
-		public static file = file;
+		public static readonly file = file;
 
 		/** Schema that defines this model */
-		public static schema = schema;
+		public static readonly schema = schema;
 
 		/** Document version hash */
 		public readonly __v: string | null;

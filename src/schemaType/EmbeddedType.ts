@@ -8,7 +8,7 @@ import BaseSchemaType from './BaseSchemaType';
 /** Embedded Schema Type */
 class EmbeddedType extends BaseSchemaType {
 	/** An instance of Schema representing the the document structure of embedded object contents */
-	private valueSchema: Schema;
+	private readonly valueSchema: Schema;
 
 	public constructor(valueSchema: Schema) {
 		super();

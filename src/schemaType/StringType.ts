@@ -20,13 +20,13 @@ export interface SchemaTypeDefinitionString extends SchemaTypeDefinitionBase {
 /** String Schema Type */
 class StringType extends BaseScalarType {
 	/** Array of allowed enumerations */
-	private enum: string[] | null;
+	private readonly enum: string[] | null;
 
 	/* Regular expression to validate the property value against */
-	private match: RegExp | null;
+	private readonly match: RegExp | null;
 
 	/* Transform schema foreign key definitions to the db format */
-	private foreignKeyDbTransformer: ForeignKeyDbTransformer;
+	private readonly foreignKeyDbTransformer: ForeignKeyDbTransformer;
 
 	public constructor(
 		definition: SchemaTypeDefinitionString,

@@ -14,7 +14,7 @@ export interface SchemaTypeDefinitionISOTime extends SchemaTypeDefinitionBase {
 /** ISOTime Schema Type */
 class ISOTimeType extends BaseDateType {
 	/** Database time format is in milliseconds */
-	private isDbInMs: boolean;
+	private readonly isDbInMs: boolean;
 
 	public constructor(
 		definition: SchemaTypeDefinitionISOTime,

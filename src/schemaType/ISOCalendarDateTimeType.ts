@@ -15,13 +15,13 @@ export interface SchemaTypeDefinitionISOCalendarDateTime extends SchemaTypeDefin
 /** An ISOCalendarDateTime Schema Type */
 class ISOCalendarDateTimeType extends BaseDateType {
 	/** Database time format is in milliseconds */
-	private isDbInMs: boolean;
+	private readonly isDbInMs: boolean;
 
 	/** ISOCalendarDateType instance to use for transformations and validations of the date part of the DateTime */
-	private isoCalendarDateType: ISOCalendarDateType;
+	private readonly isoCalendarDateType: ISOCalendarDateType;
 
 	/** ISOTimeType instance to use for transformations and validations of the time part of the DateTime */
-	private isoTimeType: ISOTimeType;
+	private readonly isoTimeType: ISOTimeType;
 
 	public constructor(
 		definition: SchemaTypeDefinitionISOCalendarDateTime,
