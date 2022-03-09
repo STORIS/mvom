@@ -291,7 +291,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 
 	/** Transform query constant to internal u2 format (if applicable) */
 	private transformToQuery(property: string, constant: unknown): unknown {
-		const schemaType = this.Model.schema?.paths[property];
+		const schemaType = this.Model.schema?.paths.get(property);
 		if (schemaType == null) {
 			return constant;
 		}

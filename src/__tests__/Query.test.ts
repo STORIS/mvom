@@ -3,7 +3,9 @@ import type { ModelConstructor } from '../compileModel';
 import { InvalidParameterError } from '../errors';
 import type { SortCriteria } from '../Query';
 import Query from '../Query';
-import { ArrayType, BooleanType } from '../schemaType';
+import type { SchemaDefinition } from '../Schema';
+import Schema from '../Schema';
+import { ArrayType, BooleanType, EmbeddedType } from '../schemaType';
 import type { SchemaTypeDefinitionBoolean } from '../schemaType/BooleanType';
 import type { DbSubroutineOutputFind } from '../types';
 
@@ -517,7 +519,7 @@ describe('exec', () => {
 					};
 
 					// @ts-expect-error: Ignore readonly modifier in test
-					ModelConstructorMock.schema!.paths = {};
+					ModelConstructorMock.schema!.paths = new Map();
 					ModelConstructorMock.schema!.dictPaths = { [propertyName]: propertyDictionary };
 
 					const query = new Query(ModelConstructorMock, selectionCritieria);
@@ -547,7 +549,7 @@ describe('exec', () => {
 					const booleanType = new BooleanType(definition);
 
 					// @ts-ignore: Replacing expected mock with actual instance for test
-					ModelConstructorMock.schema!.paths = { [propertyName]: booleanType };
+					ModelConstructorMock.schema!.paths = new Map([[propertyName, booleanType]]);
 					ModelConstructorMock.schema!.dictPaths = { [propertyName]: propertyDictionary };
 
 					const query = new Query(ModelConstructorMock, selectionCritieria);
@@ -578,7 +580,7 @@ describe('exec', () => {
 					const arrayType = new ArrayType(booleanType);
 
 					// @ts-ignore: Replacing expected mock with actual instance for test
-					ModelConstructorMock.schema!.paths = { [propertyName]: arrayType };
+					ModelConstructorMock.schema!.paths = new Map([[propertyName, arrayType]]);
 					ModelConstructorMock.schema!.dictPaths = { [propertyName]: propertyDictionary };
 
 					const query = new Query(ModelConstructorMock, selectionCritieria);
@@ -586,6 +588,36 @@ describe('exec', () => {
 					expect(await query.exec()).toEqual(dbQueryResult);
 
 					const expectedQuery = `select ${filename} with ${propertyDictionary} = "1"`;
+					expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith('find', {
+						filename,
+						projection: [],
+						queryCommand: expectedQuery,
+					});
+				});
+
+				test('should not run transformation for query condition if instance is a different type', async () => {
+					const propertyName = 'property-name';
+					const propertyValue = true;
+					const propertyDictionary = 'property-dictionary';
+					const selectionCritieria = {
+						[propertyName]: { $eq: propertyValue },
+					};
+
+					const definition: SchemaDefinition = {
+						prop1: { type: 'string', path: '1' },
+					};
+					const schema = new Schema(definition);
+					const embeddedType = new EmbeddedType(schema);
+
+					// @ts-ignore: Replacing expected mock with actual instance for test
+					ModelConstructorMock.schema!.paths = new Map([[propertyName, embeddedType]]);
+					ModelConstructorMock.schema!.dictPaths = { [propertyName]: propertyDictionary };
+
+					const query = new Query(ModelConstructorMock, selectionCritieria);
+
+					expect(await query.exec()).toEqual(dbQueryResult);
+
+					const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue}"`;
 					expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith('find', {
 						filename,
 						projection: [],

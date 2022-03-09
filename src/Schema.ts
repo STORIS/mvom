@@ -50,7 +50,7 @@ class Schema {
 	public dictPaths: Record<string, string>;
 
 	/** The compiled schema object path structure */
-	public readonly paths: Record<string, BaseSchemaType>;
+	public readonly paths: Map<string, BaseSchemaType>;
 
 	/** Foreign key definition for the record id */
 	public readonly idForeignKey?: SchemaForeignKeyDefinition | SchemaCompoundForeignKeyDefinition;
@@ -78,7 +78,7 @@ class Schema {
 		{ dictionaries = {}, idForeignKey, idMatch, encrypt, decrypt }: SchemaConstructorOptions = {},
 	) {
 		this.dictPaths = { _id: '@ID', ...dictionaries };
-		this.paths = {};
+		this.paths = new Map();
 
 		this.idForeignKey = idForeignKey;
 		this.idMatch = idMatch;
@@ -155,20 +155,20 @@ class Schema {
 
 			if (Array.isArray(value)) {
 				// cast this value as an array
-				this.paths[newKey] = this.castArray(value, newKey);
+				this.paths.set(newKey, this.castArray(value, newKey));
 				return;
 			}
 
 			if (this.isScalarDefinition(value)) {
 				// cast this value as a schemaType
-				this.paths[newKey] = this.castScalar(value, newKey);
+				this.paths.set(newKey, this.castScalar(value, newKey));
 				return;
 			}
 
 			if (value instanceof Schema) {
 				// value is an already compiled schema - cast as embedded document
 				this.handleSubDocumentSchemas(value, newKey);
-				this.paths[newKey] = new EmbeddedType(value);
+				this.paths.set(newKey, new EmbeddedType(value));
 				return;
 			}
 

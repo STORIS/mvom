@@ -79,7 +79,7 @@ class Document {
 	public transformDocumentToRecord(): MvRecord {
 		return this.#schema === null
 			? getIn(this, '_raw', [])
-			: Object.entries(this.#schema.paths).reduce(
+			: Array.from(this.#schema.paths).reduce(
 					(record, [keyPath, schemaType]) => {
 						const value = getIn(this, keyPath, null);
 						return schemaType.set(record, schemaType.cast(value));
@@ -96,7 +96,7 @@ class Document {
 
 		// U2 does not allow commas in filenames so we can use it to separate filename/entityName combinations
 		const separator = ',';
-		const definitionMap = Object.entries(this.#schema.paths).reduce(
+		const definitionMap = Array.from(this.#schema.paths).reduce(
 			(foreignKeyDefinitions, [keyPath, schemaType]) => {
 				const value = getIn(this, keyPath, null);
 				const definitions = schemaType.transformForeignKeyDefinitionsToDb(schemaType.cast(value));
@@ -152,7 +152,7 @@ class Document {
 				documentErrors._id = 'Document id does not match pattern';
 			}
 			await Promise.all(
-				Object.entries(this.#schema.paths).map(async ([keyPath, schemaType]) => {
+				Array.from(this.#schema.paths).map(async ([keyPath, schemaType]) => {
 					let value: unknown = getIn(this, keyPath, null);
 					// cast to complex data type if necessary
 					try {
@@ -198,7 +198,7 @@ class Document {
 		const plainDocument =
 			this.#schema === null
 				? { _raw: this.#record }
-				: Object.entries(this.#schema.paths).reduce((document, [keyPath, schemaType]) => {
+				: Array.from(this.#schema.paths).reduce((document, [keyPath, schemaType]) => {
 						let setValue;
 						try {
 							setValue = schemaType.get(this.#record);

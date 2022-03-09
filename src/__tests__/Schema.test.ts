@@ -92,38 +92,38 @@ describe('constructor', () => {
 			};
 
 			const schema = new Schema(definition);
-			expect(schema.paths.stringProp).toBeInstanceOf(StringType);
+			expect(schema.paths.get('stringProp')).toBeInstanceOf(StringType);
 			expect(schema.dictPaths.stringProp).toBe('stringPropDict');
 
-			expect(schema.paths.numberProp).toBeInstanceOf(NumberType);
+			expect(schema.paths.get('numberProp')).toBeInstanceOf(NumberType);
 			expect(schema.dictPaths.numberProp).toBe('numberPropDict');
 
-			expect(schema.paths.booleanProp).toBeInstanceOf(BooleanType);
+			expect(schema.paths.get('booleanProp')).toBeInstanceOf(BooleanType);
 			expect(schema.dictPaths.booleanProp).toBe('booleanPropDict');
 
-			expect(schema.paths.isoCalendarDateProp).toBeInstanceOf(ISOCalendarDateType);
+			expect(schema.paths.get('isoCalendarDateProp')).toBeInstanceOf(ISOCalendarDateType);
 			expect(schema.dictPaths.isoCalendarDateProp).toBe('isoCalendarDatePropDict');
 
-			expect(schema.paths.isoTimeProp).toBeInstanceOf(ISOTimeType);
+			expect(schema.paths.get('isoTimeProp')).toBeInstanceOf(ISOTimeType);
 			expect(schema.dictPaths.isoTimeProp).toBe('isoTimePropDict');
 
-			expect(schema.paths.isoCalendarDateTimeProp).toBeInstanceOf(ISOCalendarDateTimeType);
+			expect(schema.paths.get('isoCalendarDateTimeProp')).toBeInstanceOf(ISOCalendarDateTimeType);
 			expect(schema.dictPaths.isoCalendarDateTimeProp).toBe('isoCalendarDateTimePropDict');
 
-			expect(schema.paths.arrayProp).toBeInstanceOf(ArrayType);
+			expect(schema.paths.get('arrayProp')).toBeInstanceOf(ArrayType);
 			expect(schema.dictPaths.arrayProp).toBe('arrayPropDict');
 
-			expect(schema.paths.nestedArrayProp).toBeInstanceOf(NestedArrayType);
+			expect(schema.paths.get('nestedArrayProp')).toBeInstanceOf(NestedArrayType);
 			expect(schema.dictPaths.nestedArrayProp).toBe('nestedArrayPropDict');
 
-			expect(schema.paths.embeddedProp).toBeInstanceOf(EmbeddedType);
+			expect(schema.paths.get('embeddedProp')).toBeInstanceOf(EmbeddedType);
 			expect(schema.dictPaths['embeddedProp.innerEmbeddedProp']).toBe('innerEmbeddedPropDict');
 
-			expect(schema.paths.documentArrayProp).toBeInstanceOf(DocumentArrayType);
+			expect(schema.paths.get('documentArrayProp')).toBeInstanceOf(DocumentArrayType);
 			expect(schema.dictPaths['documentArrayProp.docStringProp']).toBe('docStringPropDict');
 			expect(schema.dictPaths['documentArrayProp.docNumberProp']).toBe('docNumberPropDict');
 
-			expect(schema.paths.documentArraySchemaProp).toBeInstanceOf(DocumentArrayType);
+			expect(schema.paths.get('documentArraySchemaProp')).toBeInstanceOf(DocumentArrayType);
 			expect(schema.dictPaths['documentArraySchemaProp.docStringProp']).toBe('docStringPropDict');
 			expect(schema.dictPaths['documentArraySchemaProp.docNumberProp']).toBe('docNumberPropDict');
 		});
