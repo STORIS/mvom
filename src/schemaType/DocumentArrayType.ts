@@ -3,7 +3,7 @@ import Document from '../Document';
 import type Schema from '../Schema';
 import type { ForeignKeyDbDefinition } from '../shared/classes/ForeignKeyDbTransformer';
 import type { MvRecord } from '../shared/types';
-import { ensureArray, getFromMvArray } from '../shared/utils';
+import { ensureArray, getFromMvArray } from '../utils';
 import BaseSchemaType from './BaseSchemaType';
 
 /** A Document Array Schema Type */

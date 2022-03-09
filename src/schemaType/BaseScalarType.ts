@@ -7,7 +7,7 @@ import type {
 	MvRecord,
 	SchemaValidator,
 } from '../shared/types';
-import { getFromMvArray, handleRequiredValidation } from '../shared/utils';
+import { getFromMvArray, handleRequiredValidation } from '../utils';
 import BaseSchemaType from './BaseSchemaType';
 import type { SchemaTypeDefinitionBoolean } from './BooleanType';
 import type { SchemaTypeDefinitionISOCalendarDateTime } from './ISOCalendarDateTimeType';

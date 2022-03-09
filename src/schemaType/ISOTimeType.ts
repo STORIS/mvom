@@ -1,7 +1,7 @@
 import moment from 'moment';
 import { ISOTimeFormat } from '../constants';
 import { TransformDataError } from '../errors';
-import { handleTypeValidation } from '../shared/utils';
+import { handleTypeValidation } from '../utils';
 import BaseDateType from './BaseDateType';
 import type { ScalarTypeConstructorOptions } from './BaseScalarType';
 import type { SchemaTypeDefinitionBase } from './BaseSchemaType';

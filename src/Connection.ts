@@ -42,7 +42,7 @@ import type {
 	GenericObject,
 	Logger,
 } from './shared/types';
-import { dummyLogger } from './shared/utils';
+import { dummyLogger } from './utils';
 
 // #region Types
 export interface CreateConnectionOptions {

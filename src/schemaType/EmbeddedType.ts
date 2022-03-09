@@ -2,7 +2,7 @@ import { cloneDeep, isPlainObject, set as setIn } from 'lodash';
 import Document from '../Document';
 import type Schema from '../Schema';
 import type { MvRecord } from '../shared/types';
-import { ensureArray } from '../shared/utils';
+import { ensureArray } from '../utils';
 import BaseSchemaType from './BaseSchemaType';
 
 /** Embedded Schema Type */

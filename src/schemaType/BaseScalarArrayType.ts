@@ -1,4 +1,4 @@
-import { ensureArray } from '../shared/utils';
+import { ensureArray } from '../utils';
 import type BaseScalarType from './BaseScalarType';
 import BaseSchemaType from './BaseSchemaType';
 
