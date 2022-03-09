@@ -6,9 +6,9 @@ import type { DbDocument, GenericObject } from './types';
 // #region Types
 export interface QueryConstructorOptions {
 	/** Skip the first _n_ results */
-	skip?: number;
+	skip?: number | null;
 	/** Return only _n_ results */
-	limit?: number;
+	limit?: number | null;
 	/** Sort criteria */
 	sort?: SortCriteria;
 	/** Return only the indicated properties */
@@ -75,10 +75,10 @@ class Query<TSchema extends GenericObject = GenericObject> {
 	private sort: string | null;
 
 	/** Limit the result set to this number of items */
-	private limit?: number;
+	private limit?: number | null;
 
 	/** Skip this number of items in the result set */
-	private skip?: number;
+	private skip?: number | null;
 
 	/** Specify the projection attribute in result set */
 	private projection: string[];
