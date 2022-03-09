@@ -5,7 +5,7 @@ import type Connection from '../Connection';
 import { DataValidationError } from '../errors';
 import Schema from '../Schema';
 import type { SchemaDefinition } from '../Schema';
-import type { GenericObject } from '../shared/types';
+import type { GenericObject } from '../types';
 
 const connectionMock = mockDeep<Connection>();
 const schemaDefinition: SchemaDefinition = {

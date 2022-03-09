@@ -1,6 +1,6 @@
 import { NumberType, StringType } from '..';
 import type { ForeignKeyDbDefinition } from '../../ForeignKeyDbTransformer';
-import type { MvRecord } from '../../shared/types';
+import type { MvRecord } from '../../types';
 import NestedArrayType from '../NestedArrayType';
 import type { SchemaTypeDefinitionNumber } from '../NumberType';
 import type { SchemaTypeDefinitionString } from '../StringType';

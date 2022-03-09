@@ -17,7 +17,7 @@ import type {
 	EncryptFunc,
 	SchemaCompoundForeignKeyDefinition,
 	SchemaForeignKeyDefinition,
-} from './shared/types';
+} from './types';
 
 type SchemaTypeDefinition =
 	| Schema

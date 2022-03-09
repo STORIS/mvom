@@ -1,4 +1,4 @@
-import type { Logger } from '../shared/types';
+import type { Logger } from '../types';
 
 const dummyLogger: Logger = {
 	error: () => {},

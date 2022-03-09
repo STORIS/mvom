@@ -1,7 +1,7 @@
 import type { ModelConstructor } from './compileModel';
 import { InvalidParameterError } from './errors';
 import { BaseScalarArrayType, BaseScalarType } from './schemaType';
-import type { DbDocument, GenericObject } from './shared/types';
+import type { DbDocument, GenericObject } from './types';
 
 // #region Types
 export interface QueryConstructorOptions {

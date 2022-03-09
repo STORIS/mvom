@@ -5,7 +5,7 @@ import type {
 	SchemaForeignKeyDefinition,
 	ValidationFunction,
 	Validator,
-} from '../shared/types';
+} from '../types';
 import type { ScalarTypeConstructorOptions } from './BaseScalarType';
 import BaseScalarType from './BaseScalarType';
 import type { SchemaTypeDefinitionBase } from './BaseSchemaType';

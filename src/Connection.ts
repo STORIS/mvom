@@ -41,7 +41,7 @@ import type {
 	DbSubroutineResponseTypesMap,
 	GenericObject,
 	Logger,
-} from './shared/types';
+} from './types';
 import { dummyLogger } from './utils';
 
 // #region Types

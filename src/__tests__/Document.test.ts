@@ -3,7 +3,7 @@ import Document from '../Document';
 import { TransformDataError } from '../errors';
 import type { SchemaDefinition } from '../Schema';
 import Schema from '../Schema';
-import type { MvRecord } from '../shared/types';
+import type { MvRecord } from '../types';
 
 describe('constructor', () => {
 	test('should construct a document from supplied data', () => {

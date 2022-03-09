@@ -2,7 +2,7 @@ import { cloneDeep, isPlainObject, set as setIn } from 'lodash';
 import Document from '../Document';
 import type { ForeignKeyDbDefinition } from '../ForeignKeyDbTransformer';
 import type Schema from '../Schema';
-import type { MvRecord } from '../shared/types';
+import type { MvRecord } from '../types';
 import { ensureArray, getFromMvArray } from '../utils';
 import BaseSchemaType from './BaseSchemaType';
 

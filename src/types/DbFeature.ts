@@ -1,4 +1,4 @@
-import type { ForeignKeyValidationErrorData } from '../../errors/ForeignKeyValidationError';
+import type { ForeignKeyValidationErrorData } from '../errors/ForeignKeyValidationError';
 import type { DbActionSubroutineInputTypes } from './DbSubroutineInput';
 import type { DbSubroutineResponseTypes } from './DbSubroutineOutput';
 

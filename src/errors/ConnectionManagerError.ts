@@ -1,4 +1,4 @@
-import type { GenericObject } from '../shared/types';
+import type { GenericObject } from '../types';
 import BaseError from './BaseError';
 
 interface ConstructorOptions {

@@ -5,7 +5,7 @@ import { DataValidationError } from './errors';
 import type { QueryConstructorOptions } from './Query';
 import Query, { type Filter } from './Query';
 import type Schema from './Schema';
-import type { GenericObject, MvRecord } from './shared/types';
+import type { GenericObject, MvRecord } from './types';
 import { ensureArray } from './utils';
 
 // #region Types

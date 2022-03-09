@@ -5,7 +5,7 @@ import type { SortCriteria } from '../Query';
 import Query from '../Query';
 import { ArrayType, BooleanType } from '../schemaType';
 import type { SchemaTypeDefinitionBoolean } from '../schemaType/BooleanType';
-import type { DbSubroutineOutputFind } from '../shared/types';
+import type { DbSubroutineOutputFind } from '../types';
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const ModelConstructorMock = mockDeep<ModelConstructor>();

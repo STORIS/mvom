@@ -1,4 +1,4 @@
-import type { BuildForeignKeyDefinitionsResult } from '../../Document';
+import type { BuildForeignKeyDefinitionsResult } from '../Document';
 import type { GenericObject, MvRecord } from '.';
 
 export interface DbActionInputSubroutine<TSubroutineOptions extends GenericObject> {

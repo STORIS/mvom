@@ -2,7 +2,7 @@ import Document from '../../Document';
 import type { ForeignKeyDbDefinition } from '../../ForeignKeyDbTransformer';
 import type { SchemaDefinition } from '../../Schema';
 import Schema from '../../Schema';
-import type { MvRecord } from '../../shared/types';
+import type { MvRecord } from '../../types';
 import DocumentArrayType from '../DocumentArrayType';
 
 describe('cast', () => {
