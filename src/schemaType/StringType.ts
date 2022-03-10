@@ -1,11 +1,7 @@
 import type { ForeignKeyDbDefinition } from '../ForeignKeyDbTransformer';
 import ForeignKeyDbTransformer from '../ForeignKeyDbTransformer';
-import type {
-	SchemaCompoundForeignKeyDefinition,
-	SchemaForeignKeyDefinition,
-	ValidationFunction,
-	Validator,
-} from '../types';
+import type { SchemaCompoundForeignKeyDefinition, SchemaForeignKeyDefinition } from '../Schema';
+import type { ValidationFunction, Validator } from '../types';
 import type { ScalarTypeConstructorOptions } from './BaseScalarType';
 import BaseScalarType from './BaseScalarType';
 import type { SchemaTypeDefinitionBase } from './BaseSchemaType';

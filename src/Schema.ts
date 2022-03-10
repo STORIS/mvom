@@ -12,13 +12,9 @@ import {
 	StringType,
 } from './schemaType';
 import type { BaseSchemaType, SchemaTypeDefinitionScalar } from './schemaType';
-import type {
-	DecryptFunc,
-	EncryptFunc,
-	SchemaCompoundForeignKeyDefinition,
-	SchemaForeignKeyDefinition,
-} from './types';
+import type { DecryptFunc, EncryptFunc } from './types';
 
+// #region Types
 type SchemaTypeDefinition =
 	| Schema
 	| SchemaTypeDefinitionScalar
@@ -36,6 +32,17 @@ export interface SchemaDefinition {
 	[x: string]: SchemaTypeDefinition;
 }
 
+export interface SchemaForeignKeyDefinition {
+	file: string | string[];
+	keysToIgnore?: string[];
+	entityName: string;
+}
+
+export interface SchemaCompoundForeignKeyDefinition {
+	[key: number]: SchemaForeignKeyDefinition;
+	splitCharacter: string;
+}
+
 export interface SchemaConstructorOptions {
 	dictionaries?: Record<string, string>;
 	idMatch?: RegExp;
@@ -43,6 +50,7 @@ export interface SchemaConstructorOptions {
 	encrypt?: EncryptFunc;
 	decrypt?: DecryptFunc;
 }
+// #endregion
 
 /** Schema constructor */
 class Schema {

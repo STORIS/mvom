@@ -29,17 +29,6 @@ export type EncryptFunc = {
 	(data: (unknown | null)[]): (string | null)[];
 };
 
-export interface SchemaForeignKeyDefinition {
-	file: string | string[];
-	keysToIgnore?: string[];
-	entityName: string;
-}
-
-export interface SchemaCompoundForeignKeyDefinition {
-	[key: number]: SchemaForeignKeyDefinition;
-	splitCharacter: string;
-}
-
 export interface Logger {
 	error(message: string): void;
 	warn(message: string): void;
