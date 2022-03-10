@@ -38,7 +38,7 @@ abstract class BaseScalarType extends BaseSchemaType {
 	public readonly dictionary: string | null;
 
 	/** Required validation value for the schema type */
-	private readonly required: boolean;
+	protected readonly required: boolean;
 
 	/** Indicates whether data should be encrypted/decrypted */
 	private readonly encrypted: boolean;
@@ -107,7 +107,7 @@ abstract class BaseScalarType extends BaseSchemaType {
 		return (
 			await Promise.all(
 				this.validators
-					.concat(createRequiredValidator(this.required, this.validateRequired))
+					.concat(createRequiredValidator(this.validateRequired))
 					.map(async ({ validator, message }) => {
 						const isValid = await validator(value, document);
 						return isValid ? ISVALID_SYMBOL : message;
@@ -131,7 +131,8 @@ abstract class BaseScalarType extends BaseSchemaType {
 	}
 
 	/** Required validator */
-	protected validateRequired = (value: unknown): Promise<boolean> => Promise.resolve(value != null);
+	protected validateRequired = (value: unknown): Promise<boolean> =>
+		Promise.resolve(!this.required || value != null);
 
 	/**
 	 * Convert a 1-index string array path definition (e.g. '1.1.1') to a 0-index array path definition (e.g. [0, 0, 0])

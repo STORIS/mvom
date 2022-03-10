@@ -2,15 +2,8 @@ import createRequiredValidator from '../createRequiredValidator';
 
 const defaultValidator = (): false => false;
 
-test('should return validator function which evaluates to true and empty message if required is false', (): void => {
-	const { validator, message } = createRequiredValidator(false, defaultValidator);
-	expect(validator).toBeInstanceOf(Function);
-	expect(validator(null, { foo: null })).toBe(true);
-	expect(message).toBe('Property is required');
-});
-
-test('should return default validator and message if required is true', (): void => {
-	const { validator, message } = createRequiredValidator(true, defaultValidator);
+test('should return default validator and message', (): void => {
+	const { validator, message } = createRequiredValidator(defaultValidator);
 	expect(validator).toEqual(defaultValidator);
 	expect(message).toBe('Property is required');
 });
