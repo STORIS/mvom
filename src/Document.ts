@@ -4,12 +4,7 @@ import ForeignKeyDbTransformer from './ForeignKeyDbTransformer';
 import type Schema from './Schema';
 import type { GenericObject, MvRecord } from './types';
 
-const DEFAULT_PROPERTY_DESCRIPTOR: PropertyDescriptor = {
-	configurable: false,
-	enumerable: false,
-	writable: false,
-};
-
+// #region Types
 export interface DocumentConstructorOptionsData {
 	data: GenericObject;
 	isSubdocument?: boolean;
@@ -31,6 +26,13 @@ export interface BuildForeignKeyDefinitionsResult {
 	entityName: string;
 	entityIds: string[];
 }
+// #endregion
+
+const DEFAULT_PROPERTY_DESCRIPTOR: PropertyDescriptor = {
+	configurable: false,
+	enumerable: false,
+	writable: false,
+};
 
 /** A document object */
 class Document {
