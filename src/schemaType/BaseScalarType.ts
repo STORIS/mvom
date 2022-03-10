@@ -137,8 +137,8 @@ abstract class BaseScalarType extends BaseSchemaType {
 
 	/** Type validator */
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	protected validateType = async (value: unknown, document: GenericObject): Promise<boolean> =>
-		Promise.resolve(true);
+	protected validateType = (value: unknown, document: GenericObject): boolean | Promise<boolean> =>
+		true;
 
 	/** Create validation object for required validation */
 	private createRequiredValidator(): Validator {

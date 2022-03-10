@@ -69,9 +69,9 @@ class StringType extends BaseScalarType {
 
 	/** Enum validator */
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	private validateEnum = async (value: any): Promise<boolean> =>
+	private validateEnum = (value: any): boolean =>
 		// skip validation on nullish values because a required validation error, if applicable, is more helpful
-		Promise.resolve(value == null || this.enum == null || this.enum.includes(value));
+		value == null || this.enum == null || this.enum.includes(value);
 
 	/** Create validation object for enum validation */
 	private createEnumValidator(): Validator {
@@ -82,9 +82,9 @@ class StringType extends BaseScalarType {
 
 	/** Match validator */
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	private validateMatch = async (value: any): Promise<boolean> =>
+	private validateMatch = (value: any): boolean =>
 		// skip validation on nullish values because a required validation error, if applicable, is more helpful
-		Promise.resolve(value == null || this.match == null || this.match.test(value));
+		value == null || this.match == null || this.match.test(value);
 
 	/** Create validation object for match validation */
 	private createMatchValidator(): Validator {

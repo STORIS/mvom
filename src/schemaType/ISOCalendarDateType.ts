@@ -61,16 +61,16 @@ class ISOCalendarDateType extends BaseDateType {
 	}
 
 	/** ISOCalendarDateType data type validator */
-	protected override validateType = async (value: unknown): Promise<boolean> => {
+	protected override validateType = (value: unknown): boolean => {
 		if (value == null) {
-			return Promise.resolve(true);
+			return true;
 		}
 
 		if (typeof value !== 'string') {
-			return Promise.resolve(false);
+			return false;
 		}
 
-		return Promise.resolve(moment(value, ISOCalendarDateFormat).isValid());
+		return moment(value, ISOCalendarDateFormat).isValid();
 	};
 }
 

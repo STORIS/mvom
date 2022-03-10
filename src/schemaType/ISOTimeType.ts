@@ -87,16 +87,16 @@ class ISOTimeType extends BaseDateType {
 	}
 
 	/** ISOTimeType data type validator */
-	protected override validateType = async (value: unknown): Promise<boolean> => {
+	protected override validateType = (value: unknown): boolean => {
 		if (value == null) {
-			return Promise.resolve(true);
+			return true;
 		}
 
 		if (typeof value !== 'string') {
-			return Promise.resolve(false);
+			return false;
 		}
 
-		return Promise.resolve(moment(value, ISOTimeFormat).isValid());
+		return moment(value, ISOTimeFormat).isValid();
 	};
 }
 
