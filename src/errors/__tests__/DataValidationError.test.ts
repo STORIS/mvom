@@ -1,6 +1,6 @@
 import DataValidationError from '../DataValidationError';
 
-const validationErrors = { foo: 'foo' };
+const validationErrors = new Map([['foo', 'foo']]);
 
 test('should instantiate error with expected instance properties', (): void => {
 	const error = new DataValidationError({ validationErrors });

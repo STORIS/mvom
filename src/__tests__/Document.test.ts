@@ -359,7 +359,7 @@ describe('validate', () => {
 	test('should return no errors if schema is null', async () => {
 		const document = new Document(null, { record: [] });
 
-		const expected = {};
+		const expected = new Map();
 		expect(await document.validate()).toEqual(expected);
 	});
 
@@ -374,14 +374,14 @@ describe('validate', () => {
 		test('should return error if id match is specified and id does not match pattern', async () => {
 			const document = new Document(schema, { data: { _id: 'id', prop1: 'foo' } });
 
-			const expected = { _id: 'Document id does not match pattern' };
+			const expected = new Map([['_id', 'Document id does not match pattern']]);
 			expect(await document.validate()).toEqual(expected);
 		});
 
 		test('should not return error if id match is specified and id matches pattern', async () => {
 			const document = new Document(schema, { data: { _id: 'foo', prop1: 'foo' } });
 
-			const expected = {};
+			const expected = new Map();
 			expect(await document.validate()).toEqual(expected);
 		});
 	});
@@ -394,7 +394,7 @@ describe('validate', () => {
 			const schema = new Schema(definition);
 			const document = new Document(schema, { record: [] });
 
-			const expected = { prop1: ['Property is required'] };
+			const expected = new Map([['prop1', ['Property is required']]]);
 			expect(await document.validate()).toEqual(expected);
 		});
 
@@ -405,7 +405,7 @@ describe('validate', () => {
 			const schema = new Schema(definition);
 			const document = new Document(schema, { record: ['foo'] });
 
-			const expected = {};
+			const expected = new Map();
 			expect(await document.validate()).toEqual(expected);
 		});
 
@@ -428,7 +428,7 @@ describe('validate', () => {
 			});
 			const document = new Document(schema, { data: { prop1: 'foo' } });
 
-			const expected = { prop1: 'Test error message' };
+			const expected = new Map([['prop1', 'Test error message']]);
 			expect(await document.validate()).toEqual(expected);
 		});
 	});

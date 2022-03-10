@@ -70,7 +70,7 @@ class DocumentArrayType extends BaseSchemaType {
 				documentList.map(async (document) => {
 					const documentErrors = await document.validate();
 
-					return Object.values(documentErrors).map((err) => ensureArray(err));
+					return Array.from(documentErrors.values()).map((err) => ensureArray(err));
 				}),
 			)
 		).flat(2);

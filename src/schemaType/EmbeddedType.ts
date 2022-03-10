@@ -54,7 +54,7 @@ class EmbeddedType extends BaseSchemaType {
 		// - flatten the final results
 		const documentErrors = await document.validate();
 
-		return Object.values(documentErrors)
+		return Array.from(documentErrors.values())
 			.map((err) => ensureArray(err))
 			.flat();
 	}

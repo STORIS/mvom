@@ -328,7 +328,7 @@ describe('save', () => {
 
 		const id = 'id';
 		const model = new Model({ _id: id, data: { prop1: 'prop1-value' } });
-		model.validate = () => Promise.resolve({ prop1: ['Not good'] });
+		model.validate = () => Promise.resolve(new Map([['prop1', 'Not good']]));
 
 		await expect(model.save()).rejects.toThrow(DataValidationError);
 	});

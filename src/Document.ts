@@ -142,8 +142,8 @@ class Document {
 	}
 
 	/** Validate document for errors */
-	public async validate(): Promise<Record<string, string | string[]>> {
-		const documentErrors: GenericObject = {};
+	public async validate(): Promise<Map<string, string | string[]>> {
+		const documentErrors = new Map<string, string | string[]>();
 
 		if (this.#schema !== null) {
 			if (
@@ -151,7 +151,7 @@ class Document {
 				this.#schema.idMatch != null &&
 				!this.#schema.idMatch.test(this._id)
 			) {
-				documentErrors._id = 'Document id does not match pattern';
+				documentErrors.set('_id', 'Document id does not match pattern');
 			}
 			await Promise.all(
 				Array.from(this.#schema.paths).map(async ([keyPath, schemaType]) => {
@@ -163,11 +163,11 @@ class Document {
 
 						const errors = await schemaType.validate(value, this);
 						if (errors.length > 0) {
-							documentErrors[keyPath] = errors;
+							documentErrors.set(keyPath, errors);
 						}
 					} catch (err) {
 						// an error was thrown - return the message from that error in the documentErrors list
-						documentErrors[keyPath] = err.message;
+						documentErrors.set(keyPath, err.message);
 					}
 				}),
 			);
