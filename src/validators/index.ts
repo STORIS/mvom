@@ -1,2 +1,2 @@
-export { default as handleRequiredValidation } from './handleRequiredValidation';
-export { default as handleTypeValidation } from './handleTypeValidation';
+export { default as createRequiredValidator } from './createRequiredValidator';
+export { default as createTypeValidator } from './createTypeValidator';

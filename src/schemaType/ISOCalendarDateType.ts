@@ -1,7 +1,7 @@
 import moment from 'moment';
 import { ISOCalendarDateFormat, mvEpoch } from '../constants';
 import { TransformDataError } from '../errors';
-import { handleTypeValidation } from '../validators';
+import { createTypeValidator } from '../validators';
 import BaseDateType from './BaseDateType';
 import type { ScalarTypeConstructorOptions } from './BaseScalarType';
 import type { SchemaTypeDefinitionBase } from './BaseSchemaType';
@@ -19,7 +19,7 @@ class ISOCalendarDateType extends BaseDateType {
 		super(definition, options);
 
 		// add validators for this type
-		this.validators.unshift(handleTypeValidation(this.validateType));
+		this.validators.unshift(createTypeValidator(this.validateType));
 	}
 
 	/**

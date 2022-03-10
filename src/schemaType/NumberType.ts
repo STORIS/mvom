@@ -1,5 +1,5 @@
 import { InvalidParameterError, TransformDataError } from '../errors';
-import { handleTypeValidation } from '../validators';
+import { createTypeValidator } from '../validators';
 import type { ScalarTypeConstructorOptions } from './BaseScalarType';
 import BaseScalarType from './BaseScalarType';
 import type { SchemaTypeDefinitionBase } from './BaseSchemaType';
@@ -32,7 +32,7 @@ class NumberType extends BaseScalarType {
 		this.dbDecimals = dbDecimals;
 
 		// add validators for this type
-		this.validators.unshift(handleTypeValidation(this.validateType));
+		this.validators.unshift(createTypeValidator(this.validateType));
 	}
 
 	/**

@@ -1,7 +1,7 @@
 import moment from 'moment';
 import { ISOTimeFormat } from '../constants';
 import { TransformDataError } from '../errors';
-import { handleTypeValidation } from '../validators';
+import { createTypeValidator } from '../validators';
 import BaseDateType from './BaseDateType';
 import type { ScalarTypeConstructorOptions } from './BaseScalarType';
 import type { SchemaTypeDefinitionBase } from './BaseSchemaType';
@@ -25,7 +25,7 @@ class ISOTimeType extends BaseDateType {
 		this.isDbInMs = dbFormat === 'ms';
 
 		// add validators for this type
-		this.validators.unshift(handleTypeValidation(this.validateType));
+		this.validators.unshift(createTypeValidator(this.validateType));
 	}
 
 	/**

@@ -1,6 +1,6 @@
 import { TransformDataError } from '../errors';
 import type { GenericObject } from '../types';
-import { handleTypeValidation } from '../validators';
+import { createTypeValidator } from '../validators';
 import BaseDateType from './BaseDateType';
 import type { ScalarTypeConstructorOptions } from './BaseScalarType';
 import type { SchemaTypeDefinitionBase } from './BaseSchemaType';
@@ -39,7 +39,7 @@ class ISOCalendarDateTimeType extends BaseDateType {
 		this.isoTimeType = new ISOTimeType({ ...definition, type: 'ISOTime' }, options);
 
 		// add validators for this type
-		this.validators.unshift(handleTypeValidation(this.validateType));
+		this.validators.unshift(createTypeValidator(this.validateType));
 	}
 
 	/** Transform mv style timestamp data (ddddd.sssss[SSS]) to ISO 8601 approved date/time format (yyyy-mm-ddTHH:mm:ss.SSS) */
