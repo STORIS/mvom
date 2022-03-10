@@ -1,8 +1,7 @@
 import { cloneDeep, set as setIn, toPath } from 'lodash';
 import { InvalidParameterError } from '../errors';
-import type { DecryptFunc, EncryptFunc, GenericObject, MvRecord } from '../types';
+import type { DecryptFunc, EncryptFunc, GenericObject, MvRecord, Validator } from '../types';
 import { getFromMvArray } from '../utils';
-import { createRequiredValidator } from '../validators';
 import BaseSchemaType from './BaseSchemaType';
 import type { SchemaTypeDefinitionBoolean } from './BooleanType';
 import type { SchemaTypeDefinitionISOCalendarDateTime } from './ISOCalendarDateTimeType';
@@ -107,7 +106,7 @@ abstract class BaseScalarType extends BaseSchemaType {
 		return (
 			await Promise.all(
 				this.validators
-					.concat(createRequiredValidator(this.validateRequired))
+					.concat(this.createRequiredValidator())
 					.map(async ({ validationFn, message }) => {
 						const isValid = await validationFn(value, document);
 						return isValid ? ISVALID_SYMBOL : message;
@@ -133,6 +132,13 @@ abstract class BaseScalarType extends BaseSchemaType {
 	/** Required validator */
 	protected validateRequired = (value: unknown): Promise<boolean> =>
 		Promise.resolve(!this.required || value != null);
+
+	/** Create validation object for required validation */
+	private createRequiredValidator(): Validator {
+		const message = 'Property is required';
+
+		return { validationFn: this.validateRequired, message };
+	}
 
 	/**
 	 * Convert a 1-index string array path definition (e.g. '1.1.1') to a 0-index array path definition (e.g. [0, 0, 0])
