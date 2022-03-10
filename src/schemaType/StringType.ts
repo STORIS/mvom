@@ -1,7 +1,7 @@
 import type { ForeignKeyDbDefinition } from '../ForeignKeyDbTransformer';
 import ForeignKeyDbTransformer from '../ForeignKeyDbTransformer';
 import type { SchemaCompoundForeignKeyDefinition, SchemaForeignKeyDefinition } from '../Schema';
-import type { ValidationFunction, Validator } from '../types';
+import type { Validator } from '../types';
 import type { ScalarTypeConstructorOptions } from './BaseScalarType';
 import BaseScalarType from './BaseScalarType';
 import type { SchemaTypeDefinitionBase } from './BaseSchemaType';
@@ -35,22 +35,8 @@ class StringType extends BaseScalarType {
 		this.foreignKeyDbTransformer = new ForeignKeyDbTransformer(definition.foreignKey);
 
 		// add validators for this type
-		this.validators.unshift(StringType.handleMatchValidation(this.validateMatch));
-		this.validators.unshift(StringType.handleEnumValidation(this.validateEnum));
-	}
-
-	/** Create validation object for enum validation */
-	private static handleEnumValidation(defaultValidator: ValidationFunction): Validator {
-		const message = 'Value not present in list of allowed values';
-
-		return { validationFn: defaultValidator, message };
-	}
-
-	/** Create validation object for match validation */
-	private static handleMatchValidation(defaultValidator: ValidationFunction): Validator {
-		const message = 'Value does not match pattern';
-
-		return { validationFn: defaultValidator, message };
+		this.validators.unshift(this.createMatchValidator());
+		this.validators.unshift(this.createEnumValidator());
 	}
 
 	/** Transform mv string to js string */
@@ -88,11 +74,25 @@ class StringType extends BaseScalarType {
 		// skip validation on nullish values because a required validation error, if applicable, is more helpful
 		Promise.resolve(value == null || this.enum == null || this.enum.includes(value));
 
+	/** Create validation object for enum validation */
+	private createEnumValidator(): Validator {
+		const message = 'Value not present in list of allowed values';
+
+		return { validationFn: this.validateEnum, message };
+	}
+
 	/** Match validator */
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	private validateMatch = async (value: any): Promise<boolean> =>
 		// skip validation on nullish values because a required validation error, if applicable, is more helpful
 		Promise.resolve(value == null || this.match == null || this.match.test(value));
+
+	/** Create validation object for match validation */
+	private createMatchValidator(): Validator {
+		const message = 'Value does not match pattern';
+
+		return { validationFn: this.validateMatch, message };
+	}
 }
 
 export default StringType;
