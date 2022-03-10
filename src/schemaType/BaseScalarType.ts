@@ -106,7 +106,7 @@ abstract class BaseScalarType extends BaseSchemaType {
 		return (
 			await Promise.all(
 				this.validators
-					.concat(this.createRequiredValidator())
+					.concat(this.createRequiredValidator(), this.createTypeValidator())
 					.map(async ({ validationFn, message }) => {
 						const isValid = await validationFn(value, document);
 						return isValid ? ISVALID_SYMBOL : message;
@@ -130,14 +130,26 @@ abstract class BaseScalarType extends BaseSchemaType {
 	}
 
 	/** Required validator */
-	protected validateRequired = (value: unknown): Promise<boolean> =>
+	protected validateRequired = async (value: unknown): Promise<boolean> =>
 		Promise.resolve(!this.required || value != null);
+
+	/** Type validator */
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	protected validateType = async (value: unknown, document: GenericObject): Promise<boolean> =>
+		Promise.resolve(true);
 
 	/** Create validation object for required validation */
 	private createRequiredValidator(): Validator {
 		const message = 'Property is required';
 
 		return { validationFn: this.validateRequired, message };
+	}
+
+	/** Create validation object for type validation */
+	private createTypeValidator(): Validator {
+		const message = 'Property cannot be cast into the defined type';
+
+		return { validationFn: this.validateType, message };
 	}
 
 	/**

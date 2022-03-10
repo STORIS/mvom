@@ -1,7 +1,6 @@
 import moment from 'moment';
 import { ISOTimeFormat } from '../constants';
 import { TransformDataError } from '../errors';
-import { createTypeValidator } from '../validators';
 import BaseDateType from './BaseDateType';
 import type { ScalarTypeConstructorOptions } from './BaseScalarType';
 import type { SchemaTypeDefinitionBase } from './BaseSchemaType';
@@ -23,9 +22,6 @@ class ISOTimeType extends BaseDateType {
 		super(definition, options);
 		const { dbFormat = 's' } = definition;
 		this.isDbInMs = dbFormat === 'ms';
-
-		// add validators for this type
-		this.validators.unshift(createTypeValidator(this.validateType));
 	}
 
 	/**
@@ -91,7 +87,7 @@ class ISOTimeType extends BaseDateType {
 	}
 
 	/** ISOTimeType data type validator */
-	private validateType = async (value: unknown): Promise<boolean> => {
+	protected override validateType = async (value: unknown): Promise<boolean> => {
 		if (value == null) {
 			return Promise.resolve(true);
 		}

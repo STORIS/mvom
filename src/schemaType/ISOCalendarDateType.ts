@@ -1,7 +1,6 @@
 import moment from 'moment';
 import { ISOCalendarDateFormat, mvEpoch } from '../constants';
 import { TransformDataError } from '../errors';
-import { createTypeValidator } from '../validators';
 import BaseDateType from './BaseDateType';
 import type { ScalarTypeConstructorOptions } from './BaseScalarType';
 import type { SchemaTypeDefinitionBase } from './BaseSchemaType';
@@ -17,9 +16,6 @@ class ISOCalendarDateType extends BaseDateType {
 		options: ScalarTypeConstructorOptions = {},
 	) {
 		super(definition, options);
-
-		// add validators for this type
-		this.validators.unshift(createTypeValidator(this.validateType));
 	}
 
 	/**
@@ -65,7 +61,7 @@ class ISOCalendarDateType extends BaseDateType {
 	}
 
 	/** ISOCalendarDateType data type validator */
-	private validateType = async (value: unknown): Promise<boolean> => {
+	protected override validateType = async (value: unknown): Promise<boolean> => {
 		if (value == null) {
 			return Promise.resolve(true);
 		}
