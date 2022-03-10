@@ -1,6 +1,6 @@
 import { cloneDeep, set as setIn, toPath } from 'lodash';
 import { InvalidParameterError } from '../errors';
-import type { DecryptFunc, EncryptFunc, GenericObject, MvRecord } from '../types';
+import type { DecryptFn, EncryptFn, GenericObject, MvRecord } from '../types';
 import { getFromMvArray } from '../utils';
 import BaseSchemaType, { type Validator } from './BaseSchemaType';
 import type { SchemaTypeDefinitionBoolean } from './BooleanType';
@@ -12,8 +12,8 @@ import type { SchemaTypeDefinitionString } from './StringType';
 
 // #region Types
 export interface ScalarTypeConstructorOptions {
-	encrypt?: EncryptFunc;
-	decrypt?: DecryptFunc;
+	encrypt?: EncryptFn;
+	decrypt?: DecryptFn;
 }
 
 export type SchemaTypeDefinitionScalar =
@@ -45,10 +45,10 @@ abstract class BaseScalarType extends BaseSchemaType {
 	private readonly encrypted: boolean;
 
 	/** Encrypt function to call on sensitive data before writing to the database */
-	private readonly encrypt?: EncryptFunc;
+	private readonly encrypt?: EncryptFn;
 
 	/** Decrypt function to call on sensitive data encrypted in the database */
-	private readonly decrypt?: DecryptFunc;
+	private readonly decrypt?: DecryptFn;
 
 	protected constructor(
 		definition: SchemaTypeDefinitionScalar,

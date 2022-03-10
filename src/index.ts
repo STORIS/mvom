@@ -21,4 +21,4 @@ export type {
 	SchemaTypeDefinitionNumber,
 	SchemaTypeDefinitionString,
 } from './schemaType';
-export type { EncryptFunc, DecryptFunc } from './types';
+export type { EncryptFn, DecryptFn } from './types';

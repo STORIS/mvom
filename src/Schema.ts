@@ -12,7 +12,7 @@ import {
 	StringType,
 } from './schemaType';
 import type { BaseSchemaType, SchemaTypeDefinitionScalar } from './schemaType';
-import type { DecryptFunc, EncryptFunc } from './types';
+import type { DecryptFn, EncryptFn } from './types';
 
 // #region Types
 type SchemaTypeDefinition =
@@ -47,8 +47,8 @@ export interface SchemaConstructorOptions {
 	dictionaries?: Record<string, string>;
 	idMatch?: RegExp;
 	idForeignKey?: SchemaForeignKeyDefinition | SchemaCompoundForeignKeyDefinition;
-	encrypt?: EncryptFunc;
-	decrypt?: DecryptFunc;
+	encrypt?: EncryptFn;
+	decrypt?: DecryptFn;
 }
 // #endregion
 
@@ -76,10 +76,10 @@ class Schema {
 	private readonly subdocumentSchemas: Map<string, Schema>;
 
 	/** Optional function to use for encryption of sensitive data */
-	private readonly encrypt?: EncryptFunc;
+	private readonly encrypt?: EncryptFn;
 
 	/** Optional function to use for decryption of sensitive data */
-	private readonly decrypt?: DecryptFunc;
+	private readonly decrypt?: DecryptFn;
 
 	public constructor(
 		definition: SchemaDefinition,
