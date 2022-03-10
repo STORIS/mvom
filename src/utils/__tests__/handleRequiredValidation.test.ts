@@ -14,21 +14,3 @@ test('should return default validator and message if required is true', (): void
 	expect(validator).toEqual(defaultValidator);
 	expect(message).toBe('Property is required');
 });
-
-test('should return custom validator and default message if required is a function', (): void => {
-	const validationFunction = (): true => true;
-	const { validator, message } = handleRequiredValidation(validationFunction, defaultValidator);
-	expect(validator).toEqual(validationFunction);
-	expect(message).toBe('Property is required');
-});
-
-test('should return custom validator and overridden message if required is a tuple', (): void => {
-	const validationFunction = (): true => true;
-	const overrideMessage = 'test message';
-	const { validator, message } = handleRequiredValidation(
-		[validationFunction, overrideMessage],
-		defaultValidator,
-	);
-	expect(validator).toEqual(validationFunction);
-	expect(message).toEqual(overrideMessage);
-});

@@ -1,6 +1,6 @@
 import { cloneDeep, set as setIn, toPath } from 'lodash';
 import { InvalidParameterError } from '../errors';
-import type { DecryptFunc, EncryptFunc, GenericObject, MvRecord, SchemaValidator } from '../types';
+import type { DecryptFunc, EncryptFunc, GenericObject, MvRecord } from '../types';
 import { getFromMvArray, handleRequiredValidation } from '../utils';
 import BaseSchemaType from './BaseSchemaType';
 import type { SchemaTypeDefinitionBoolean } from './BooleanType';
@@ -37,7 +37,7 @@ abstract class BaseScalarType extends BaseSchemaType {
 	public readonly dictionary: string | null;
 
 	/** Required validation value for the schema type */
-	private readonly required: boolean | SchemaValidator;
+	private readonly required: boolean;
 
 	/** Indicates whether data should be encrypted/decrypted */
 	private readonly encrypted: boolean;

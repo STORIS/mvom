@@ -1,29 +1,18 @@
-import type { SchemaValidator, ValidationFunction, Validator } from '../types';
+import type { ValidationFunction, Validator } from '../types';
 
-/**
- * Create Validator for required validation
- */
+/** Create Validator for required validation */
 const handleRequiredValidation = (
-	required: boolean | SchemaValidator,
+	required: boolean,
 	defaultValidator: ValidationFunction,
 ): Validator => {
 	const defaultMessage = 'Property is required';
 
-	if (typeof required === 'boolean') {
-		if (required) {
-			return { validator: defaultValidator, message: defaultMessage };
-		}
-
-		// always return validation result of true if property is not required
-		return { validator: (): true => true, message: '' };
+	if (required) {
+		return { validator: defaultValidator, message: defaultMessage };
 	}
 
-	if (Array.isArray(required)) {
-		const [validator, validatorMessage] = required;
-		return { validator, message: validatorMessage };
-	}
-
-	return { validator: required, message: defaultMessage };
+	// always return validation result of true if property is not required
+	return { validator: (): true => true, message: '' };
 };
 
 export default handleRequiredValidation;
