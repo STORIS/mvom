@@ -1,8 +1,8 @@
 import { cloneDeep, set as setIn, toPath } from 'lodash';
 import { InvalidParameterError } from '../errors';
-import type { DecryptFunc, EncryptFunc, GenericObject, MvRecord, Validator } from '../types';
+import type { DecryptFunc, EncryptFunc, GenericObject, MvRecord } from '../types';
 import { getFromMvArray } from '../utils';
-import BaseSchemaType from './BaseSchemaType';
+import BaseSchemaType, { type Validator } from './BaseSchemaType';
 import type { SchemaTypeDefinitionBoolean } from './BooleanType';
 import type { SchemaTypeDefinitionISOCalendarDateTime } from './ISOCalendarDateTimeType';
 import type { SchemaTypeDefinitionISOCalendarDate } from './ISOCalendarDateType';
@@ -10,6 +10,7 @@ import type { SchemaTypeDefinitionISOTime } from './ISOTimeType';
 import type { SchemaTypeDefinitionNumber } from './NumberType';
 import type { SchemaTypeDefinitionString } from './StringType';
 
+// #region Types
 export interface ScalarTypeConstructorOptions {
 	encrypt?: EncryptFunc;
 	decrypt?: DecryptFunc;
@@ -22,6 +23,7 @@ export type SchemaTypeDefinitionScalar =
 	| SchemaTypeDefinitionISOTime
 	| SchemaTypeDefinitionNumber
 	| SchemaTypeDefinitionString;
+// #endregion
 
 const ISVALID_SYMBOL = Symbol('Is Valid');
 

@@ -7,16 +7,6 @@ export type GenericObject = Record<string, any>;
 
 export type MvRecord = (string | number | null | undefined | MvRecord)[];
 
-export type ValidationFunction = (
-	value: unknown,
-	document: GenericObject,
-) => boolean | Promise<boolean>;
-
-export interface Validator {
-	validationFn: ValidationFunction;
-	message: string;
-}
-
 export type DecryptFunc = {
 	(data: string | null): unknown | null;
 	(data: (string | null)[]): (unknown | null)[];

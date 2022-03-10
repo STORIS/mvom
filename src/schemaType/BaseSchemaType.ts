@@ -1,12 +1,21 @@
 import type { ForeignKeyDbDefinition } from '../ForeignKeyDbTransformer';
-import type { GenericObject, MvRecord, Validator } from '../types';
+import type { GenericObject, MvRecord } from '../types';
 
+// #region types
 export interface SchemaTypeDefinitionBase {
 	path: `${number}` | `${number}.${number}` | `${number}.${number}.${number}` | number;
 	dictionary?: string;
 	required?: boolean;
 	encrypted?: boolean;
 }
+
+type ValidationFunction = (value: unknown, document: GenericObject) => boolean | Promise<boolean>;
+
+export interface Validator {
+	validationFn: ValidationFunction;
+	message: string;
+}
+// #endregion
 
 /** Abstract Base Schema Type */
 abstract class BaseSchemaType {
