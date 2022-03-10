@@ -7,12 +7,10 @@ const handleRequiredValidation = (
 ): Validator => {
 	const defaultMessage = 'Property is required';
 
-	if (required) {
-		return { validator: defaultValidator, message: defaultMessage };
-	}
-
 	// always return validation result of true if property is not required
-	return { validator: (): true => true, message: '' };
+	const validationFn = required ? defaultValidator : (): true => true;
+
+	return { validator: validationFn, message: defaultMessage };
 };
 
 export default handleRequiredValidation;

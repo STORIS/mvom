@@ -1,5 +1,5 @@
 import { InvalidParameterError, TransformDataError } from '../errors';
-import { handleTypeValidation } from '../utils';
+import { handleTypeValidation } from '../validators';
 import type { ScalarTypeConstructorOptions } from './BaseScalarType';
 import BaseScalarType from './BaseScalarType';
 import type { SchemaTypeDefinitionBase } from './BaseSchemaType';

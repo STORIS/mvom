@@ -1,6 +1,6 @@
 import { TransformDataError } from '../errors';
 import type { GenericObject } from '../types';
-import { handleTypeValidation } from '../utils';
+import { handleTypeValidation } from '../validators';
 import BaseDateType from './BaseDateType';
 import type { ScalarTypeConstructorOptions } from './BaseScalarType';
 import type { SchemaTypeDefinitionBase } from './BaseSchemaType';
