@@ -47,7 +47,7 @@ export interface SchemaConstructorOptions {
 /** Schema constructor */
 class Schema {
 	/** Key/value pairs of schema object path structure and associated multivalue dictionary ids */
-	public dictPaths: Record<string, string>;
+	public dictPaths: Map<string, string>;
 
 	/** The compiled schema object path structure */
 	public readonly paths: Map<string, BaseSchemaType>;
@@ -77,7 +77,7 @@ class Schema {
 		definition: SchemaDefinition,
 		{ dictionaries = {}, idForeignKey, idMatch, encrypt, decrypt }: SchemaConstructorOptions = {},
 	) {
-		this.dictPaths = { _id: '@ID', ...dictionaries };
+		this.dictPaths = new Map(Object.entries(dictionaries).concat([['_id', '@ID']]));
 
 		this.idForeignKey = idForeignKey;
 		this.idMatch = idMatch;
@@ -271,7 +271,7 @@ class Schema {
 
 		// update dictPaths
 		if (schemaTypeValue.dictionary != null) {
-			this.dictPaths[keyPath] = schemaTypeValue.dictionary;
+			this.dictPaths.set(keyPath, schemaTypeValue.dictionary);
 		}
 
 		return schemaTypeValue;
@@ -295,12 +295,10 @@ class Schema {
 
 	/** Merge subdocument schema dictionaries with the parent schema's dictionaries */
 	private mergeSchemaDictionaries = (schema: Schema, keyPath: string) => {
-		this.dictPaths = Object.entries(schema.dictPaths).reduce((acc, [subDictPath, subDictId]) => {
+		this.dictPaths = Array.from(schema.dictPaths).reduce((acc, [subDictPath, subDictId]) => {
 			const dictKey = `${keyPath}.${subDictPath}`;
-			return {
-				...acc,
-				[dictKey]: subDictId,
-			};
+
+			return acc.set(dictKey, subDictId);
 		}, this.dictPaths);
 	};
 }

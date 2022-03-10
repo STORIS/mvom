@@ -279,7 +279,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 	 * @throws {link InvalidParameterError} Nonexistent schema property or property does not have a dictionary specified
 	 */
 	private getDictionaryId(property: string): string {
-		const dictionaryId = this.Model.schema?.dictPaths[property];
+		const dictionaryId = this.Model.schema?.dictPaths.get(property);
 		if (dictionaryId == null) {
 			throw new InvalidParameterError({
 				message: 'Nonexistent schema property or property does not have a dictionary specified',
