@@ -43,14 +43,14 @@ class StringType extends BaseScalarType {
 	private static handleEnumValidation(defaultValidator: ValidationFunction): Validator {
 		const message = 'Value not present in list of allowed values';
 
-		return { validator: defaultValidator, message };
+		return { validationFn: defaultValidator, message };
 	}
 
 	/** Create validation object for match validation */
 	private static handleMatchValidation(defaultValidator: ValidationFunction): Validator {
 		const message = 'Value does not match pattern';
 
-		return { validator: defaultValidator, message };
+		return { validationFn: defaultValidator, message };
 	}
 
 	/** Transform mv string to js string */

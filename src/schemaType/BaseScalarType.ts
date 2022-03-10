@@ -108,8 +108,8 @@ abstract class BaseScalarType extends BaseSchemaType {
 			await Promise.all(
 				this.validators
 					.concat(createRequiredValidator(this.validateRequired))
-					.map(async ({ validator, message }) => {
-						const isValid = await validator(value, document);
+					.map(async ({ validationFn, message }) => {
+						const isValid = await validationFn(value, document);
 						return isValid ? ISVALID_SYMBOL : message;
 					}),
 			)

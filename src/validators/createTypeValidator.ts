@@ -4,7 +4,7 @@ import type { ValidationFunction, Validator } from '../types';
 const createTypeValidator = (validationFn: ValidationFunction): Validator => {
 	const message = 'Property cannot be cast into the defined type';
 
-	return { validator: validationFn, message };
+	return { validationFn, message };
 };
 
 export default createTypeValidator;

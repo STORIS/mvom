@@ -13,7 +13,7 @@ export type ValidationFunction = (
 ) => boolean | Promise<boolean>;
 
 export interface Validator {
-	validator: ValidationFunction;
+	validationFn: ValidationFunction;
 	message: string;
 }
 

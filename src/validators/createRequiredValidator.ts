@@ -4,7 +4,7 @@ import type { ValidationFunction, Validator } from '../types';
 const createRequiredValidator = (validationFn: ValidationFunction): Validator => {
 	const defaultMessage = 'Property is required';
 
-	return { validator: validationFn, message: defaultMessage };
+	return { validationFn, message: defaultMessage };
 };
 
 export default createRequiredValidator;
