@@ -1,6 +1,7 @@
 import { cloneDeep, set as setIn, toPath } from 'lodash';
+import type Document from '../Document';
 import { InvalidParameterError } from '../errors';
-import type { DecryptFn, EncryptFn, GenericObject, MvRecord } from '../types';
+import type { DecryptFn, EncryptFn, MvRecord } from '../types';
 import { getFromMvArray } from '../utils';
 import BaseSchemaType, { type Validator } from './BaseSchemaType';
 import type { SchemaTypeDefinitionBoolean } from './BooleanType';
@@ -100,7 +101,7 @@ abstract class BaseScalarType extends BaseSchemaType {
 	}
 
 	/** Validate the scalar type */
-	public async validate(value: unknown, document: GenericObject): Promise<string[]> {
+	public async validate(value: unknown, document: Document): Promise<string[]> {
 		// combining all the validation into one array of promise.all
 		// - a validator will return a placeholder symbol or the appropriate error message
 		// - filter out the placeholder symbols to only return the error messages
@@ -137,8 +138,7 @@ abstract class BaseScalarType extends BaseSchemaType {
 
 	/** Type validator */
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	protected validateType = (value: unknown, document: GenericObject): boolean | Promise<boolean> =>
-		true;
+	protected validateType = (value: unknown, document: Document): boolean | Promise<boolean> => true;
 
 	/** Create validation object for required validation */
 	private createRequiredValidator(): Validator {

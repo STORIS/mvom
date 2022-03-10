@@ -1,5 +1,9 @@
+import { mock } from 'jest-mock-extended';
+import type Document from '../../Document';
 import type { SchemaTypeDefinitionBoolean } from '../BooleanType';
 import BooleanType from '../BooleanType';
+
+const documentMock = mock<Document>();
 
 describe('transformFromDb', () => {
 	const definition: SchemaTypeDefinitionBoolean = {
@@ -103,9 +107,8 @@ describe('validations', () => {
 			const booleanType = new BooleanType(definition);
 
 			const value = null;
-			const document = {};
 
-			expect(await booleanType.validate(value, document)).toContain('Property is required');
+			expect(await booleanType.validate(value, documentMock)).toContain('Property is required');
 		});
 
 		test('should not return error message if required is true and value is populated with a boolean value', async () => {
@@ -117,9 +120,8 @@ describe('validations', () => {
 			const booleanType = new BooleanType(definition);
 
 			const value = true;
-			const document = {};
 
-			expect(await booleanType.validate(value, document)).not.toContain('Property is required');
+			expect(await booleanType.validate(value, documentMock)).not.toContain('Property is required');
 		});
 
 		test('should not return error message if required is false and value is null', async () => {
@@ -131,9 +133,8 @@ describe('validations', () => {
 			const booleanType = new BooleanType(definition);
 
 			const value = null;
-			const document = {};
 
-			expect(await booleanType.validate(value, document)).not.toContain('Property is required');
+			expect(await booleanType.validate(value, documentMock)).not.toContain('Property is required');
 		});
 	});
 });

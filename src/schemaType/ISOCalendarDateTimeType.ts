@@ -1,5 +1,5 @@
+import type Document from '../Document';
 import { TransformDataError } from '../errors';
-import type { GenericObject } from '../types';
 import BaseDateType from './BaseDateType';
 import type { ScalarTypeConstructorOptions } from './BaseScalarType';
 import type { SchemaTypeDefinitionBase } from './BaseSchemaType';
@@ -83,7 +83,7 @@ class ISOCalendarDateTimeType extends BaseDateType {
 	/** ISOCalendarDateTime data type validator */
 	protected override validateType = async (
 		value: unknown,
-		document: GenericObject,
+		document: Document,
 	): Promise<boolean> => {
 		if (value == null) {
 			return true;

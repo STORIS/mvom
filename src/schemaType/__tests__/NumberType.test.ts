@@ -1,6 +1,10 @@
+import { mock } from 'jest-mock-extended';
+import type Document from '../../Document';
 import { InvalidParameterError, TransformDataError } from '../../errors';
 import type { SchemaTypeDefinitionNumber } from '../NumberType';
 import NumberType from '../NumberType';
+
+const documentMock = mock<Document>();
 
 describe('constructor', () => {
 	test('should throw InvalidParameterError if dbDecimals is not an integer', () => {
@@ -138,9 +142,8 @@ describe('validations', () => {
 			const numberType = new NumberType(definition);
 
 			const value = null;
-			const document = {};
 
-			expect(await numberType.validate(value, document)).toContain('Property is required');
+			expect(await numberType.validate(value, documentMock)).toContain('Property is required');
 		});
 
 		test('should not return error message if required is true and value is populated with a number', async () => {
@@ -152,9 +155,8 @@ describe('validations', () => {
 			const numberType = new NumberType(definition);
 
 			const value = 1234;
-			const document = {};
 
-			expect(await numberType.validate(value, document)).not.toContain('Property is required');
+			expect(await numberType.validate(value, documentMock)).not.toContain('Property is required');
 		});
 
 		test('should not return error message if required is false and value is null', async () => {
@@ -166,9 +168,8 @@ describe('validations', () => {
 			const numberType = new NumberType(definition);
 
 			const value = null;
-			const document = {};
 
-			expect(await numberType.validate(value, document)).not.toContain('Property is required');
+			expect(await numberType.validate(value, documentMock)).not.toContain('Property is required');
 		});
 	});
 
@@ -182,9 +183,8 @@ describe('validations', () => {
 			const numberType = new NumberType(definition);
 
 			const value = 'foo';
-			const document = {};
 
-			expect(await numberType.validate(value, document)).toContain(
+			expect(await numberType.validate(value, documentMock)).toContain(
 				'Property cannot be cast into the defined type',
 			);
 		});
@@ -198,9 +198,8 @@ describe('validations', () => {
 			const numberType = new NumberType(definition);
 
 			const value = 1234;
-			const document = {};
 
-			expect(await numberType.validate(value, document)).not.toContain(
+			expect(await numberType.validate(value, documentMock)).not.toContain(
 				'Property cannot be cast into the defined type',
 			);
 		});

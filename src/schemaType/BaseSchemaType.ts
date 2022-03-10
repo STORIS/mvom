@@ -1,5 +1,6 @@
+import type Document from '../Document';
 import type { ForeignKeyDbDefinition } from '../ForeignKeyDbTransformer';
-import type { GenericObject, MvRecord } from '../types';
+import type { MvRecord } from '../types';
 
 // #region types
 export interface SchemaTypeDefinitionBase {
@@ -9,7 +10,7 @@ export interface SchemaTypeDefinitionBase {
 	encrypted?: boolean;
 }
 
-type ValidationFunction = (value: unknown, document: GenericObject) => boolean | Promise<boolean>;
+type ValidationFunction = (value: unknown, document: Document) => boolean | Promise<boolean>;
 
 export interface Validator {
 	validationFn: ValidationFunction;
@@ -39,7 +40,7 @@ abstract class BaseSchemaType {
 	public abstract set(record: MvRecord, value: unknown): MvRecord;
 
 	/** Validate value */
-	public abstract validate(value: unknown, document: GenericObject): Promise<string[]>;
+	public abstract validate(value: unknown, document: Document): Promise<string[]>;
 }
 
 export default BaseSchemaType;

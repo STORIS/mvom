@@ -1,9 +1,13 @@
+import { mock } from 'jest-mock-extended';
 import { NumberType, StringType } from '..';
+import type Document from '../../Document';
 import type { ForeignKeyDbDefinition } from '../../ForeignKeyDbTransformer';
 import type { MvRecord } from '../../types';
 import NestedArrayType from '../NestedArrayType';
 import type { SchemaTypeDefinitionNumber } from '../NumberType';
 import type { SchemaTypeDefinitionString } from '../StringType';
+
+const documentMock = mock<Document>();
 
 describe('get', () => {
 	const valueSchemaDefinition: SchemaTypeDefinitionNumber = {
@@ -118,9 +122,8 @@ describe('validate', () => {
 		const nestedArrayType = new NestedArrayType(valueSchemaType);
 
 		const value = [null, null, 1.23];
-		const document = {};
 
-		const validationResult = await nestedArrayType.validate(value, document);
+		const validationResult = await nestedArrayType.validate(value, documentMock);
 		expect(validationResult).toContain('Property is required');
 		expect(validationResult).toHaveLength(2);
 	});
@@ -140,9 +143,8 @@ describe('validate', () => {
 			[null, null],
 			[1.23, 4.56],
 		];
-		const document = {};
 
-		const validationResult = await nestedArrayType.validate(value, document);
+		const validationResult = await nestedArrayType.validate(value, documentMock);
 		expect(validationResult).toContain('Property is required');
 		expect(validationResult).toHaveLength(4);
 	});
@@ -161,9 +163,8 @@ describe('validate', () => {
 			[1.23, 4.56],
 			[7.89, 12.34],
 		];
-		const document = {};
 
-		const validationResult = await nestedArrayType.validate(value, document);
+		const validationResult = await nestedArrayType.validate(value, documentMock);
 		expect(validationResult).toHaveLength(0);
 	});
 });
