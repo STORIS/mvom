@@ -1,4 +1,3 @@
-import type { GenericObject } from '../types';
 import BaseError from './BaseError';
 
 export interface ForeignKeyValidationErrorData {
@@ -14,7 +13,7 @@ interface ForeignKeyValidationErrorConstructorOptions {
 /** Error thrown when foreign key violations encountered when saving a document */
 class ForeignKeyValidationError extends BaseError {
 	/** Object containing details of validation errors */
-	public readonly foreignKeyValidationErrors: GenericObject;
+	public readonly foreignKeyValidationErrors: ForeignKeyValidationErrorData[];
 
 	public constructor({
 		message = 'Foreign key violation(s) encountered while saving',
