@@ -78,7 +78,6 @@ class Schema {
 		{ dictionaries = {}, idForeignKey, idMatch, encrypt, decrypt }: SchemaConstructorOptions = {},
 	) {
 		this.dictPaths = { _id: '@ID', ...dictionaries };
-		this.paths = new Map();
 
 		this.idForeignKey = idForeignKey;
 		this.idMatch = idMatch;
@@ -88,7 +87,7 @@ class Schema {
 		this.encrypt = encrypt;
 		this.decrypt = decrypt;
 
-		this.buildPaths(this.definition);
+		this.paths = this.buildPaths(this.definition);
 	}
 
 	/** Get all multivalue data paths in this schema and its subdocument schemas */
@@ -148,34 +147,30 @@ class Schema {
 	}
 
 	/** Construct instance member paths */
-	private buildPaths = (definition: SchemaDefinition, prev?: string) => {
-		Object.entries(definition).forEach(([key, value]) => {
+	private buildPaths = (definition: SchemaDefinition, prev?: string): Map<string, BaseSchemaType> =>
+		Object.entries(definition).reduce((acc, [key, value]) => {
 			// construct flattened keypath
 			const newKey = prev != null ? `${prev}.${key}` : key;
 
 			if (Array.isArray(value)) {
-				// cast this value as an array
-				this.paths.set(newKey, this.castArray(value, newKey));
-				return;
+				return acc.set(newKey, this.castArray(value, newKey));
 			}
 
 			if (this.isScalarDefinition(value)) {
 				// cast this value as a schemaType
-				this.paths.set(newKey, this.castScalar(value, newKey));
-				return;
+				return acc.set(newKey, this.castScalar(value, newKey));
 			}
 
 			if (value instanceof Schema) {
 				// value is an already compiled schema - cast as embedded document
 				this.handleSubDocumentSchemas(value, newKey);
-				this.paths.set(newKey, new EmbeddedType(value));
-				return;
+				return acc.set(newKey, new EmbeddedType(value));
 			}
 
-			// this is an object but does not represent something which could be cast; need to recursively process it
-			this.buildPaths(value, newKey);
-		});
-	};
+			const nestedPaths = this.buildPaths(value, newKey);
+
+			return new Map([...acc, ...nestedPaths]);
+		}, new Map<string, BaseSchemaType>());
 
 	/**
 	 * Cast an array to a schemaType
