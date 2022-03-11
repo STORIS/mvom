@@ -3,13 +3,14 @@
   "private": true,
   "version": "1.0.0",
   "description": "Multivalue Object Mapper",
-  "main": "js/index.js",
+  "main": "index.js",
   "engines": {
     "node": ">=12.22"
   },
   "scripts": {
-    "build": "npm run build:node && npm run build:prepare-unibasic && npm run build:copy-files",
+    "build": "npm-run-all build:node build:prepare-unibasic build:copy-files build:declaration",
     "build:copy-files": "babel-node --extensions .ts,.js ./scripts/copy-files",
+    "build:declaration": "tsc --project tsconfig.build.json --outDir ./dist",
     "build:node": "babel ./src --env-name build --out-dir ./dist --extensions .ts,.js",
     "build:prepare-unibasic": "babel-node --extensions .ts,.js ./scripts/prepare-unibasic",
     "clean": "npm run clean:build",
@@ -64,6 +65,7 @@
     "@types/jest-when": "3.5.0",
     "@types/lodash": "4.14.179",
     "@types/node": "16.11.26",
+    "@types/nunjucks": "3.2.1",
     "@types/semver": "7.3.9",
     "@typescript-eslint/eslint-plugin": "5.14.0",
     "@typescript-eslint/parser": "5.14.0",
@@ -87,6 +89,6 @@
     "rimraf": "3.0.2",
     "typescript": "4.6.2"
   },
-  "types": "./src/index.d.ts",
+  "types": "index.d.ts",
   "prettier": "@storis/prettier-config"
 }

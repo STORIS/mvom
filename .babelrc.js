@@ -15,7 +15,6 @@ module.exports = {
 			{
 				extensions: ['.ts'],
 				alias: {
-					'#shared': './src/ts/shared',
 					'#test': './test',
 				},
 			},
