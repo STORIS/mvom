@@ -2,7 +2,6 @@ import { cloneDeep, set as setIn, toPath } from 'lodash';
 import type Document from '../Document';
 import { InvalidParameterError } from '../errors';
 import type { DecryptFn, EncryptFn, MvRecord } from '../types';
-import { getFromMvArray } from '../utils';
 import BaseSchemaType, { type Validator } from './BaseSchemaType';
 import type { SchemaTypeDefinitionBoolean } from './BooleanType';
 import type { SchemaTypeDefinitionISOCalendarDateTime } from './ISOCalendarDateTimeType';
@@ -120,7 +119,7 @@ abstract class BaseScalarType extends BaseSchemaType {
 
 	/** Get data from the specified keypath */
 	public getFromMvData(record: MvRecord): unknown {
-		const value = getFromMvArray(this.path, record);
+		const value = this.getFromMvArray(this.path, record);
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		return this.encrypted ? this.decrypt!(value) : value;
 	}
