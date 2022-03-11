@@ -64,8 +64,8 @@ class StringType extends BaseScalarType {
 	}
 
 	/** String required validator */
-	protected override validateRequired = async (value: unknown): Promise<boolean> =>
-		Promise.resolve(!this.required || (value != null && value !== ''));
+	protected override validateRequired = (value: unknown): boolean =>
+		!this.required || (value != null && value !== '');
 
 	/** Enum validator */
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
