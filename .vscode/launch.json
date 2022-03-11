@@ -9,7 +9,7 @@
       "request": "launch",
       "name": "Debug All Unit Tests",
       "env": {
-        "BABEL_ENV": "testDebug"
+        "BABEL_ENV": "debug"
       },
       "program": "${workspaceFolder}/node_modules/jest/bin/jest",
       "runtimeArgs": ["--nolazy"],
@@ -24,7 +24,7 @@
       "request": "launch",
       "name": "Debug Unit Tests for current workspace file",
       "env": {
-        "BABEL_ENV": "testDebug"
+        "BABEL_ENV": "debug"
       },
       "program": "${workspaceFolder}/node_modules/jest/bin/jest",
       "runtimeArgs": ["--nolazy"],
@@ -39,7 +39,7 @@
       "request": "launch",
       "name": "Debug Unit Tests by TestPathPattern",
       "env": {
-        "BABEL_ENV": "testDebug"
+        "BABEL_ENV": "debug"
       },
       "program": "${workspaceFolder}/node_modules/jest/bin/jest",
       "runtimeArgs": ["--nolazy"],

@@ -2,8 +2,11 @@
   "words": [
     "bar",
     "baz",
+    "castee",
     "corge",
     "def",
+    "dsnd",
+    "endregion",
     "foo",
     "fred",
     "garply",
@@ -11,16 +14,22 @@
     "henk",
     "mos",
     "multivalue",
+    "mvis",
+    "mvom",
     "plugh",
     "quux",
     "qux",
     "storis",
     "subdocument",
     "subdocuments",
+    "subvalue",
     "thud",
     "uier",
+    "unibasic",
     "waldo",
     "xyzzy"
   ],
-  "enableFiletypes": ["!json"]
+  "enableFiletypes": ["!json"],
+  "includeRegExpList": ["CStyleComment", "string"],
+  "ignoreRegExpList": ["/from\\s+(['\"]).*\\1/"]
 }
