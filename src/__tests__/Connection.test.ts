@@ -438,7 +438,7 @@ describe('executeDbFeature', () => {
 		).rejects.toThrow(DbServerError);
 	});
 
-	test('should throw ConnectionManagerError if axios call rejects', async () => {
+	test('should throw MvisError if axios call rejects', async () => {
 		when<any, any[]>(mockedAxios.post)
 			.calledWith(
 				expect.any(String),

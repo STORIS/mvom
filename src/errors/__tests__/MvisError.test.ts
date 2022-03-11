@@ -5,8 +5,8 @@ test('should instantiate error with expected instance properties', (): void => {
 	const expected = {
 		name: 'MvisError',
 		message: 'Error in MVIS communication',
-		connectionManagerRequest: {},
-		connectionManagerResponse: {},
+		mvisRequest: {},
+		mvisResponse: {},
 	};
 	expect(error).toMatchObject(expected);
 });
@@ -19,18 +19,18 @@ test('should allow for override of message', (): void => {
 	expect(error.message).toEqual(message);
 });
 
-test('should allow for override of connectionManagerRequest', (): void => {
-	const connectionManagerRequest = { foo: 'foo' };
+test('should allow for override of mvisRequest', (): void => {
+	const mvisRequest = { foo: 'foo' };
 	const error = new MvisError({
-		connectionManagerRequest,
+		mvisRequest,
 	});
-	expect(error.connectionManagerRequest).toEqual(connectionManagerRequest);
+	expect(error.mvisRequest).toEqual(mvisRequest);
 });
 
-test('should allow for override of connectionManagerResponse', (): void => {
-	const connectionManagerResponse = { foo: 'foo' };
+test('should allow for override of mvisResponse', (): void => {
+	const mvisResponse = { foo: 'foo' };
 	const error = new MvisError({
-		connectionManagerResponse,
+		mvisResponse,
 	});
-	expect(error.connectionManagerResponse).toEqual(connectionManagerResponse);
+	expect(error.mvisResponse).toEqual(mvisResponse);
 });

@@ -391,8 +391,8 @@ class Connection {
 		} catch (err) {
 			throw new MvisError({
 				message: err.message,
-				connectionManagerRequest: err.request,
-				connectionManagerResponse: err.response,
+				mvisRequest: err.request,
+				mvisResponse: err.response,
 			});
 		}
 
