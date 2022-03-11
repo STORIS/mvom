@@ -1,14 +1,9 @@
 import type { ForeignKeyDbDefinition } from '../ForeignKeyDbTransformer';
 import ForeignKeyDbTransformer from '../ForeignKeyDbTransformer';
-import type {
-	SchemaCompoundForeignKeyDefinition,
-	SchemaForeignKeyDefinition,
-	ValidationFunction,
-	Validator,
-} from '../types';
+import type { SchemaCompoundForeignKeyDefinition, SchemaForeignKeyDefinition } from '../Schema';
 import type { ScalarTypeConstructorOptions } from './BaseScalarType';
 import BaseScalarType from './BaseScalarType';
-import type { SchemaTypeDefinitionBase } from './BaseSchemaType';
+import type { SchemaTypeDefinitionBase, Validator } from './BaseSchemaType';
 
 export interface SchemaTypeDefinitionString extends SchemaTypeDefinitionBase {
 	type: 'string';
@@ -20,13 +15,13 @@ export interface SchemaTypeDefinitionString extends SchemaTypeDefinitionBase {
 /** String Schema Type */
 class StringType extends BaseScalarType {
 	/** Array of allowed enumerations */
-	private enum: string[] | null;
+	private readonly enum: string[] | null;
 
 	/* Regular expression to validate the property value against */
-	private match: RegExp | null;
+	private readonly match: RegExp | null;
 
 	/* Transform schema foreign key definitions to the db format */
-	private foreignKeyDbTransformer: ForeignKeyDbTransformer;
+	private readonly foreignKeyDbTransformer: ForeignKeyDbTransformer;
 
 	public constructor(
 		definition: SchemaTypeDefinitionString,
@@ -39,22 +34,8 @@ class StringType extends BaseScalarType {
 		this.foreignKeyDbTransformer = new ForeignKeyDbTransformer(definition.foreignKey);
 
 		// add validators for this type
-		this.validators.unshift(StringType.handleMatchValidation(this.validateMatch));
-		this.validators.unshift(StringType.handleEnumValidation(this.validateEnum));
-	}
-
-	/** Create validation object for enum validation */
-	private static handleEnumValidation(defaultValidator: ValidationFunction): Validator {
-		const message = 'Value not present in list of allowed values';
-
-		return { validator: defaultValidator, message };
-	}
-
-	/** Create validation object for match validation */
-	private static handleMatchValidation(defaultValidator: ValidationFunction): Validator {
-		const message = 'Value does not match pattern';
-
-		return { validator: defaultValidator, message };
+		this.validators.unshift(this.createMatchValidator());
+		this.validators.unshift(this.createEnumValidator());
 	}
 
 	/** Transform mv string to js string */
@@ -83,20 +64,34 @@ class StringType extends BaseScalarType {
 	}
 
 	/** String required validator */
-	protected override validateRequired = async (value: unknown): Promise<boolean> =>
-		Promise.resolve(value != null && value !== '');
+	protected override validateRequired = (value: unknown): boolean =>
+		!this.required || (value != null && value !== '');
 
 	/** Enum validator */
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	private validateEnum = async (value: any): Promise<boolean> =>
+	private validateEnum = (value: any): boolean =>
 		// skip validation on nullish values because a required validation error, if applicable, is more helpful
-		Promise.resolve(value == null || this.enum == null || this.enum.includes(value));
+		value == null || this.enum == null || this.enum.includes(value);
+
+	/** Create validation object for enum validation */
+	private createEnumValidator(): Validator {
+		const message = 'Value not present in list of allowed values';
+
+		return { validationFn: this.validateEnum, message };
+	}
 
 	/** Match validator */
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	private validateMatch = async (value: any): Promise<boolean> =>
+	private validateMatch = (value: any): boolean =>
 		// skip validation on nullish values because a required validation error, if applicable, is more helpful
-		Promise.resolve(value == null || this.match == null || this.match.test(value));
+		value == null || this.match == null || this.match.test(value);
+
+	/** Create validation object for match validation */
+	private createMatchValidator(): Validator {
+		const message = 'Value does not match pattern';
+
+		return { validationFn: this.validateMatch, message };
+	}
 }
 
 export default StringType;

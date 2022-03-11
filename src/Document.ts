@@ -4,12 +4,7 @@ import ForeignKeyDbTransformer from './ForeignKeyDbTransformer';
 import type Schema from './Schema';
 import type { GenericObject, MvRecord } from './types';
 
-const DEFAULT_PROPERTY_DESCRIPTOR: PropertyDescriptor = {
-	configurable: false,
-	enumerable: false,
-	writable: false,
-};
-
+// #region Types
 export interface DocumentConstructorOptionsData {
 	data: GenericObject;
 	isSubdocument?: boolean;
@@ -31,6 +26,13 @@ export interface BuildForeignKeyDefinitionsResult {
 	entityName: string;
 	entityIds: string[];
 }
+// #endregion
+
+const DEFAULT_PROPERTY_DESCRIPTOR: PropertyDescriptor = {
+	configurable: false,
+	enumerable: false,
+	writable: false,
+};
 
 /** A document object */
 class Document {
@@ -79,7 +81,7 @@ class Document {
 	public transformDocumentToRecord(): MvRecord {
 		return this.#schema === null
 			? getIn(this, '_raw', [])
-			: Object.entries(this.#schema.paths).reduce(
+			: Array.from(this.#schema.paths).reduce(
 					(record, [keyPath, schemaType]) => {
 						const value = getIn(this, keyPath, null);
 						return schemaType.set(record, schemaType.cast(value));
@@ -96,7 +98,7 @@ class Document {
 
 		// U2 does not allow commas in filenames so we can use it to separate filename/entityName combinations
 		const separator = ',';
-		const definitionMap = Object.entries(this.#schema.paths).reduce(
+		const definitionMap = Array.from(this.#schema.paths).reduce(
 			(foreignKeyDefinitions, [keyPath, schemaType]) => {
 				const value = getIn(this, keyPath, null);
 				const definitions = schemaType.transformForeignKeyDefinitionsToDb(schemaType.cast(value));
@@ -140,8 +142,8 @@ class Document {
 	}
 
 	/** Validate document for errors */
-	public async validate(): Promise<Record<string, string | string[]>> {
-		const documentErrors: GenericObject = {};
+	public async validate(): Promise<Map<string, string | string[]>> {
+		const documentErrors = new Map<string, string | string[]>();
 
 		if (this.#schema !== null) {
 			if (
@@ -149,10 +151,10 @@ class Document {
 				this.#schema.idMatch != null &&
 				!this.#schema.idMatch.test(this._id)
 			) {
-				documentErrors._id = 'Document id does not match pattern';
+				documentErrors.set('_id', 'Document id does not match pattern');
 			}
 			await Promise.all(
-				Object.entries(this.#schema.paths).map(async ([keyPath, schemaType]) => {
+				Array.from(this.#schema.paths).map(async ([keyPath, schemaType]) => {
 					let value: unknown = getIn(this, keyPath, null);
 					// cast to complex data type if necessary
 					try {
@@ -161,11 +163,11 @@ class Document {
 
 						const errors = await schemaType.validate(value, this);
 						if (errors.length > 0) {
-							documentErrors[keyPath] = errors;
+							documentErrors.set(keyPath, errors);
 						}
 					} catch (err) {
 						// an error was thrown - return the message from that error in the documentErrors list
-						documentErrors[keyPath] = err.message;
+						documentErrors.set(keyPath, err.message);
 					}
 				}),
 			);
@@ -198,7 +200,7 @@ class Document {
 		const plainDocument =
 			this.#schema === null
 				? { _raw: this.#record }
-				: Object.entries(this.#schema.paths).reduce((document, [keyPath, schemaType]) => {
+				: Array.from(this.#schema.paths).reduce((document, [keyPath, schemaType]) => {
 						let setValue;
 						try {
 							setValue = schemaType.get(this.#record);

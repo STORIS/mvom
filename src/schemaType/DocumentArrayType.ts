@@ -3,13 +3,13 @@ import Document from '../Document';
 import type { ForeignKeyDbDefinition } from '../ForeignKeyDbTransformer';
 import type Schema from '../Schema';
 import type { MvRecord } from '../types';
-import { ensureArray, getFromMvArray } from '../utils';
+import { ensureArray } from '../utils';
 import BaseSchemaType from './BaseSchemaType';
 
 /** A Document Array Schema Type */
 class DocumentArrayType extends BaseSchemaType {
 	/** An instance of Schema representing the document structure of the array's contents */
-	private valueSchema: Schema;
+	private readonly valueSchema: Schema;
 
 	public constructor(valueSchema: Schema) {
 		super();
@@ -70,7 +70,7 @@ class DocumentArrayType extends BaseSchemaType {
 				documentList.map(async (document) => {
 					const documentErrors = await document.validate();
 
-					return Object.values(documentErrors).map((err) => ensureArray(err));
+					return Array.from(documentErrors.values()).map((err) => ensureArray(err));
 				}),
 			)
 		).flat(2);
@@ -95,7 +95,7 @@ class DocumentArrayType extends BaseSchemaType {
 	private *makeSubDocument(record: MvRecord): Generator<Document> {
 		const makeSubRecord = (iteration: number): MvRecord =>
 			this.valueSchema.getMvPaths().reduce<MvRecord>((acc, path) => {
-				const value = getFromMvArray(path.concat([iteration]), record);
+				const value = this.getFromMvArray(path.concat([iteration]), record);
 				if (typeof value !== 'undefined') {
 					setIn(acc, path, value);
 				}

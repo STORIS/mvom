@@ -7,11 +7,11 @@ import type { CreateConnectionOptions } from '../Connection';
 import Connection, { ConnectionStatus } from '../Connection';
 import { dbErrors } from '../constants';
 import {
-	ConnectionManagerError,
 	DbServerError,
 	ForeignKeyValidationError,
 	InvalidParameterError,
 	InvalidServerFeaturesError,
+	MvisError,
 	RecordLockedError,
 	RecordVersionError,
 } from '../errors';
@@ -438,7 +438,7 @@ describe('executeDbFeature', () => {
 		).rejects.toThrow(DbServerError);
 	});
 
-	test('should throw ConnectionManagerError if axios call rejects', async () => {
+	test('should throw MvisError if axios call rejects', async () => {
 		when<any, any[]>(mockedAxios.post)
 			.calledWith(
 				expect.any(String),
@@ -464,7 +464,7 @@ describe('executeDbFeature', () => {
 				clearAttributes: false,
 				foreignKeyDefinitions: [],
 			}),
-		).rejects.toThrow(ConnectionManagerError);
+		).rejects.toThrow(MvisError);
 	});
 });
 

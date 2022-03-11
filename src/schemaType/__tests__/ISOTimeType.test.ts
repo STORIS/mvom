@@ -1,6 +1,10 @@
+import { mock } from 'jest-mock-extended';
+import type Document from '../../Document';
 import { TransformDataError } from '../../errors';
 import type { SchemaTypeDefinitionISOTime } from '../ISOTimeType';
 import ISOTimeType from '../ISOTimeType';
+
+const documentMock = mock<Document>();
 
 describe('transformFromDb', () => {
 	test('should return null if value is null', () => {
@@ -152,9 +156,8 @@ describe('validations', () => {
 			const isoTimeType = new ISOTimeType(definition);
 
 			const value = null;
-			const document = {};
 
-			expect(await isoTimeType.validate(value, document)).toContain('Property is required');
+			expect(await isoTimeType.validate(value, documentMock)).toContain('Property is required');
 		});
 
 		test('should not return error message if required is true and value is populated with a time', async () => {
@@ -166,9 +169,8 @@ describe('validations', () => {
 			const isoTimeType = new ISOTimeType(definition);
 
 			const value = '12:00:00.000';
-			const document = {};
 
-			expect(await isoTimeType.validate(value, document)).not.toContain('Property is required');
+			expect(await isoTimeType.validate(value, documentMock)).not.toContain('Property is required');
 		});
 
 		test('should not return error message if required is false and value is null', async () => {
@@ -180,9 +182,8 @@ describe('validations', () => {
 			const isoTimeType = new ISOTimeType(definition);
 
 			const value = null;
-			const document = {};
 
-			expect(await isoTimeType.validate(value, document)).not.toContain('Property is required');
+			expect(await isoTimeType.validate(value, documentMock)).not.toContain('Property is required');
 		});
 	});
 
@@ -195,9 +196,8 @@ describe('validations', () => {
 			const isoTimeType = new ISOTimeType(definition);
 
 			const value = null;
-			const document = {};
 
-			expect(await isoTimeType.validate(value, document)).not.toContain(
+			expect(await isoTimeType.validate(value, documentMock)).not.toContain(
 				'Property cannot be cast into the defined type',
 			);
 		});
@@ -210,9 +210,8 @@ describe('validations', () => {
 			const isoTimeType = new ISOTimeType(definition);
 
 			const value = 1234;
-			const document = {};
 
-			expect(await isoTimeType.validate(value, document)).toContain(
+			expect(await isoTimeType.validate(value, documentMock)).toContain(
 				'Property cannot be cast into the defined type',
 			);
 		});
@@ -225,9 +224,8 @@ describe('validations', () => {
 			const isoTimeType = new ISOTimeType(definition);
 
 			const value = 'foo';
-			const document = {};
 
-			expect(await isoTimeType.validate(value, document)).toContain(
+			expect(await isoTimeType.validate(value, documentMock)).toContain(
 				'Property cannot be cast into the defined type',
 			);
 		});
@@ -240,9 +238,8 @@ describe('validations', () => {
 			const isoTimeType = new ISOTimeType(definition);
 
 			const value = '12:01:02.123';
-			const document = {};
 
-			expect(await isoTimeType.validate(value, document)).not.toContain(
+			expect(await isoTimeType.validate(value, documentMock)).not.toContain(
 				'Property cannot be cast into the defined type',
 			);
 		});

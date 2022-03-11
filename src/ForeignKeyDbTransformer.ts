@@ -1,3 +1,4 @@
+// #region Types
 export interface ForeignKeyDefinition {
 	file: string | string[];
 	keysToIgnore?: string[];
@@ -17,9 +18,10 @@ export interface ForeignKeyDbDefinition {
 	entityId: string;
 	entityName: string;
 }
+// #endregion
 
 class ForeignKeyDbTransformer {
-	private foreignKeyDefinition: ForeignKeyDefinition | CompoundForeignKeyDefinition | null;
+	private readonly foreignKeyDefinition: ForeignKeyDefinition | CompoundForeignKeyDefinition | null;
 
 	public constructor(
 		foreignKeyDefinition: ForeignKeyDefinition | CompoundForeignKeyDefinition | null = null,

@@ -1,9 +1,13 @@
+import { mock } from 'jest-mock-extended';
 import { NumberType, StringType } from '..';
+import type Document from '../../Document';
 import type { ForeignKeyDbDefinition } from '../../ForeignKeyDbTransformer';
 import type { MvRecord } from '../../types';
 import ArrayType from '../ArrayType';
 import type { SchemaTypeDefinitionNumber } from '../NumberType';
 import type { SchemaTypeDefinitionString } from '../StringType';
+
+const documentMock = mock<Document>();
 
 describe('get', () => {
 	describe('attribute based path', () => {
@@ -141,9 +145,8 @@ describe('validate', () => {
 		const arrayType = new ArrayType(valueSchemaType);
 
 		const value = [null, null, 1.23];
-		const document = {};
 
-		const validationResult = await arrayType.validate(value, document);
+		const validationResult = await arrayType.validate(value, documentMock);
 		expect(validationResult).toContain('Property is required');
 		expect(validationResult).toHaveLength(2);
 	});
@@ -159,9 +162,8 @@ describe('validate', () => {
 		const arrayType = new ArrayType(valueSchemaType);
 
 		const value = [1.23, 4.56, 7.89];
-		const document = {};
 
-		const validationResult = await arrayType.validate(value, document);
+		const validationResult = await arrayType.validate(value, documentMock);
 		expect(validationResult).toHaveLength(0);
 	});
 });

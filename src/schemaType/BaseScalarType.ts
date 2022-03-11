@@ -1,8 +1,8 @@
 import { cloneDeep, set as setIn, toPath } from 'lodash';
+import type Document from '../Document';
 import { InvalidParameterError } from '../errors';
-import type { DecryptFunc, EncryptFunc, GenericObject, MvRecord, SchemaValidator } from '../types';
-import { getFromMvArray, handleRequiredValidation } from '../utils';
-import BaseSchemaType from './BaseSchemaType';
+import type { DecryptFn, EncryptFn, MvRecord } from '../types';
+import BaseSchemaType, { type Validator } from './BaseSchemaType';
 import type { SchemaTypeDefinitionBoolean } from './BooleanType';
 import type { SchemaTypeDefinitionISOCalendarDateTime } from './ISOCalendarDateTimeType';
 import type { SchemaTypeDefinitionISOCalendarDate } from './ISOCalendarDateType';
@@ -10,9 +10,10 @@ import type { SchemaTypeDefinitionISOTime } from './ISOTimeType';
 import type { SchemaTypeDefinitionNumber } from './NumberType';
 import type { SchemaTypeDefinitionString } from './StringType';
 
+// #region Types
 export interface ScalarTypeConstructorOptions {
-	encrypt?: EncryptFunc;
-	decrypt?: DecryptFunc;
+	encrypt?: EncryptFn;
+	decrypt?: DecryptFn;
 }
 
 export type SchemaTypeDefinitionScalar =
@@ -22,31 +23,32 @@ export type SchemaTypeDefinitionScalar =
 	| SchemaTypeDefinitionISOTime
 	| SchemaTypeDefinitionNumber
 	| SchemaTypeDefinitionString;
+// #endregion
 
 const ISVALID_SYMBOL = Symbol('Is Valid');
 
 /** Abstract Scalar Schema Type */
 abstract class BaseScalarType extends BaseSchemaType {
 	/** Data definition which this schema type was constructed from */
-	public definition: SchemaTypeDefinitionScalar;
+	public readonly definition: SchemaTypeDefinitionScalar;
 
 	/** 0-indexed Array path */
-	public path: number[];
+	public readonly path: number[];
 
 	/** Multivalue dictionary id */
-	public dictionary: string | null;
+	public readonly dictionary: string | null;
 
 	/** Required validation value for the schema type */
-	private required: boolean | SchemaValidator;
+	protected readonly required: boolean;
 
 	/** Indicates whether data should be encrypted/decrypted */
-	private encrypted: boolean;
+	private readonly encrypted: boolean;
 
 	/** Encrypt function to call on sensitive data before writing to the database */
-	private encrypt?: EncryptFunc;
+	private readonly encrypt?: EncryptFn;
 
 	/** Decrypt function to call on sensitive data encrypted in the database */
-	private decrypt?: DecryptFunc;
+	private readonly decrypt?: DecryptFn;
 
 	protected constructor(
 		definition: SchemaTypeDefinitionScalar,
@@ -98,7 +100,7 @@ abstract class BaseScalarType extends BaseSchemaType {
 	}
 
 	/** Validate the scalar type */
-	public async validate(value: unknown, document: GenericObject): Promise<string[]> {
+	public async validate(value: unknown, document: Document): Promise<string[]> {
 		// combining all the validation into one array of promise.all
 		// - a validator will return a placeholder symbol or the appropriate error message
 		// - filter out the placeholder symbols to only return the error messages
@@ -106,9 +108,9 @@ abstract class BaseScalarType extends BaseSchemaType {
 		return (
 			await Promise.all(
 				this.validators
-					.concat(handleRequiredValidation(this.required, this.validateRequired))
-					.map(async ({ validator, message }) => {
-						const isValid = await validator(value, document);
+					.concat(this.createRequiredValidator(), this.createTypeValidator())
+					.map(async ({ validationFn, message }) => {
+						const isValid = await validationFn(value, document);
 						return isValid ? ISVALID_SYMBOL : message;
 					}),
 			)
@@ -117,7 +119,7 @@ abstract class BaseScalarType extends BaseSchemaType {
 
 	/** Get data from the specified keypath */
 	public getFromMvData(record: MvRecord): unknown {
-		const value = getFromMvArray(this.path, record);
+		const value = this.getFromMvArray(this.path, record);
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		return this.encrypted ? this.decrypt!(value) : value;
 	}
@@ -130,7 +132,26 @@ abstract class BaseScalarType extends BaseSchemaType {
 	}
 
 	/** Required validator */
-	protected validateRequired = (value: unknown): Promise<boolean> => Promise.resolve(value != null);
+	protected validateRequired = (value: unknown): boolean | Promise<boolean> =>
+		!this.required || value != null;
+
+	/** Type validator */
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	protected validateType = (value: unknown, document: Document): boolean | Promise<boolean> => true;
+
+	/** Create validation object for required validation */
+	private createRequiredValidator(): Validator {
+		const message = 'Property is required';
+
+		return { validationFn: this.validateRequired, message };
+	}
+
+	/** Create validation object for type validation */
+	private createTypeValidator(): Validator {
+		const message = 'Property cannot be cast into the defined type';
+
+		return { validationFn: this.validateType, message };
+	}
 
 	/**
 	 * Convert a 1-index string array path definition (e.g. '1.1.1') to a 0-index array path definition (e.g. [0, 0, 0])

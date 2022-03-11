@@ -1,6 +1,5 @@
+import type Document from '../Document';
 import { TransformDataError } from '../errors';
-import type { GenericObject } from '../types';
-import { handleTypeValidation } from '../utils';
 import BaseDateType from './BaseDateType';
 import type { ScalarTypeConstructorOptions } from './BaseScalarType';
 import type { SchemaTypeDefinitionBase } from './BaseSchemaType';
@@ -15,13 +14,13 @@ export interface SchemaTypeDefinitionISOCalendarDateTime extends SchemaTypeDefin
 /** An ISOCalendarDateTime Schema Type */
 class ISOCalendarDateTimeType extends BaseDateType {
 	/** Database time format is in milliseconds */
-	private isDbInMs: boolean;
+	private readonly isDbInMs: boolean;
 
 	/** ISOCalendarDateType instance to use for transformations and validations of the date part of the DateTime */
-	private isoCalendarDateType: ISOCalendarDateType;
+	private readonly isoCalendarDateType: ISOCalendarDateType;
 
 	/** ISOTimeType instance to use for transformations and validations of the time part of the DateTime */
-	private isoTimeType: ISOTimeType;
+	private readonly isoTimeType: ISOTimeType;
 
 	public constructor(
 		definition: SchemaTypeDefinitionISOCalendarDateTime,
@@ -37,9 +36,6 @@ class ISOCalendarDateTimeType extends BaseDateType {
 			options,
 		);
 		this.isoTimeType = new ISOTimeType({ ...definition, type: 'ISOTime' }, options);
-
-		// add validators for this type
-		this.validators.unshift(handleTypeValidation(this.validateType));
 	}
 
 	/** Transform mv style timestamp data (ddddd.sssss[SSS]) to ISO 8601 approved date/time format (yyyy-mm-ddTHH:mm:ss.SSS) */
@@ -85,7 +81,10 @@ class ISOCalendarDateTimeType extends BaseDateType {
 	}
 
 	/** ISOCalendarDateTime data type validator */
-	private validateType = async (value: unknown, document: GenericObject): Promise<boolean> => {
+	protected override validateType = async (
+		value: unknown,
+		document: Document,
+	): Promise<boolean> => {
 		if (value == null) {
 			return true;
 		}

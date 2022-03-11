@@ -53,19 +53,19 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 	/** Model constructor */
 	return class Model extends Document {
 		/** Connection instance which constructed this model definition */
-		public static connection = connection;
+		public static readonly connection = connection;
 
 		/** Database file this model acts against */
-		public static file = file;
+		public static readonly file = file;
 
 		/** Schema that defines this model */
-		public static schema = schema;
+		public static readonly schema = schema;
 
 		/** Document version hash */
 		public readonly __v: string | null;
 
 		/** Private id tracking property */
-		#__id: string | null;
+		#_id: string | null;
 
 		public constructor(options: ModelConstructorOptions<TSchema>) {
 			const documentConstructorOptions: DocumentConstructorOptions =
@@ -75,7 +75,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 			const { _id = null, __v = null } = options;
 
-			this.#__id = _id;
+			this.#_id = _id;
 			this.__v = __v;
 
 			Object.defineProperty(this, '__id', {
@@ -96,16 +96,16 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 		/** _id getter */
 		public get _id(): string | null {
-			return this.#__id;
+			return this.#_id;
 		}
 
 		/** _id setter */
 		public set _id(value) {
-			if (this.#__id != null) {
+			if (this.#_id != null) {
 				throw new Error('_id value cannot be changed once set');
 			}
 
-			this.#__id = value;
+			this.#_id = value;
 		}
 
 		/** Delete a document */
@@ -220,7 +220,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 			// validate data prior to saving
 			const validationErrors = await this.validate();
-			if (Object.keys(validationErrors).length) {
+			if (validationErrors.size > 0) {
 				throw new DataValidationError({ validationErrors });
 			}
 

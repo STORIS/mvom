@@ -1,6 +1,10 @@
+import { mock } from 'jest-mock-extended';
+import type Document from '../../Document';
 import { TransformDataError } from '../../errors';
 import type { SchemaTypeDefinitionISOCalendarDate } from '../ISOCalendarDateType';
 import ISOCalendarDateType from '../ISOCalendarDateType';
+
+const documentMock = mock<Document>();
 
 describe('transformFromDb', () => {
 	test('should return null if value is null', () => {
@@ -83,9 +87,10 @@ describe('validations', () => {
 			const isoCalendarDateType = new ISOCalendarDateType(definition);
 
 			const value = null;
-			const document = {};
 
-			expect(await isoCalendarDateType.validate(value, document)).toContain('Property is required');
+			expect(await isoCalendarDateType.validate(value, documentMock)).toContain(
+				'Property is required',
+			);
 		});
 
 		test('should not return error message if required is true and value is populated with a date', async () => {
@@ -97,9 +102,8 @@ describe('validations', () => {
 			const isoCalendarDateType = new ISOCalendarDateType(definition);
 
 			const value = '2022-02-27';
-			const document = {};
 
-			expect(await isoCalendarDateType.validate(value, document)).not.toContain(
+			expect(await isoCalendarDateType.validate(value, documentMock)).not.toContain(
 				'Property is required',
 			);
 		});
@@ -113,9 +117,8 @@ describe('validations', () => {
 			const isoCalendarDateType = new ISOCalendarDateType(definition);
 
 			const value = null;
-			const document = {};
 
-			expect(await isoCalendarDateType.validate(value, document)).not.toContain(
+			expect(await isoCalendarDateType.validate(value, documentMock)).not.toContain(
 				'Property is required',
 			);
 		});
@@ -130,9 +133,8 @@ describe('validations', () => {
 			const isoCalendarDateType = new ISOCalendarDateType(definition);
 
 			const value = null;
-			const document = {};
 
-			expect(await isoCalendarDateType.validate(value, document)).not.toContain(
+			expect(await isoCalendarDateType.validate(value, documentMock)).not.toContain(
 				'Property cannot be cast into the defined type',
 			);
 		});
@@ -145,9 +147,8 @@ describe('validations', () => {
 			const isoCalendarDateType = new ISOCalendarDateType(definition);
 
 			const value = 1234;
-			const document = {};
 
-			expect(await isoCalendarDateType.validate(value, document)).toContain(
+			expect(await isoCalendarDateType.validate(value, documentMock)).toContain(
 				'Property cannot be cast into the defined type',
 			);
 		});
@@ -160,9 +161,8 @@ describe('validations', () => {
 			const isoCalendarDateType = new ISOCalendarDateType(definition);
 
 			const value = 'foo';
-			const document = {};
 
-			expect(await isoCalendarDateType.validate(value, document)).toContain(
+			expect(await isoCalendarDateType.validate(value, documentMock)).toContain(
 				'Property cannot be cast into the defined type',
 			);
 		});
@@ -175,9 +175,8 @@ describe('validations', () => {
 			const isoCalendarDateType = new ISOCalendarDateType(definition);
 
 			const value = '2022-02-27';
-			const document = {};
 
-			expect(await isoCalendarDateType.validate(value, document)).not.toContain(
+			expect(await isoCalendarDateType.validate(value, documentMock)).not.toContain(
 				'Property cannot be cast into the defined type',
 			);
 		});

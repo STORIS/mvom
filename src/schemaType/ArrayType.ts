@@ -1,5 +1,6 @@
+import type Document from '../Document';
 import type { ForeignKeyDbDefinition } from '../ForeignKeyDbTransformer';
-import type { GenericObject, MvRecord } from '../types';
+import type { MvRecord } from '../types';
 import { ensureArray } from '../utils';
 import BaseScalarArrayType from './BaseScalarArrayType';
 import type BaseScalarType from './BaseScalarType';
@@ -33,7 +34,7 @@ class ArrayType extends BaseScalarArrayType {
 	}
 
 	/** Validate the array */
-	public async validate(value: unknown, document: GenericObject): Promise<string[]> {
+	public async validate(value: unknown, document: Document): Promise<string[]> {
 		return (
 			await Promise.all(
 				ensureArray(value).map((arrayItem) => this.valueSchemaType.validate(arrayItem, document)),

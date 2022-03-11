@@ -66,22 +66,22 @@ export interface QueryExecutionResult {
 /** A query object */
 class Query<TSchema extends GenericObject = GenericObject> {
 	/** Model constructor to use with query */
-	private Model: ModelConstructor;
+	private readonly Model: ModelConstructor;
 
 	/** String to use as selection criteria in query */
-	private selection: string | null;
+	private readonly selection: string | null;
 
 	/** String to use as sort criteria in query */
-	private sort: string | null;
+	private readonly sort: string | null;
 
 	/** Limit the result set to this number of items */
-	private limit?: number | null;
+	private readonly limit?: number | null;
 
 	/** Skip this number of items in the result set */
-	private skip?: number | null;
+	private readonly skip?: number | null;
 
 	/** Specify the projection attribute in result set */
-	private projection: string[];
+	private readonly projection: string[];
 
 	public constructor(
 		Model: ModelConstructor,
@@ -279,7 +279,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 	 * @throws {link InvalidParameterError} Nonexistent schema property or property does not have a dictionary specified
 	 */
 	private getDictionaryId(property: string): string {
-		const dictionaryId = this.Model.schema?.dictPaths[property];
+		const dictionaryId = this.Model.schema?.dictPaths.get(property);
 		if (dictionaryId == null) {
 			throw new InvalidParameterError({
 				message: 'Nonexistent schema property or property does not have a dictionary specified',
@@ -291,7 +291,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 
 	/** Transform query constant to internal u2 format (if applicable) */
 	private transformToQuery(property: string, constant: unknown): unknown {
-		const schemaType = this.Model.schema?.paths[property];
+		const schemaType = this.Model.schema?.paths.get(property);
 		if (schemaType == null) {
 			return constant;
 		}

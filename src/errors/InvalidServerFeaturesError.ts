@@ -1,23 +1,19 @@
 import BaseError from './BaseError';
 
-interface ConstructorOptions {
+interface InvalidServerFeaturesErrorConstructorOptions {
 	message?: string;
 	invalidFeatures: string[];
 }
 
-/**
- * Error thrown when the db server has an invalid feature set
- */
+/** Error thrown when the db server has an invalid feature set */
 class InvalidServerFeaturesError extends BaseError {
-	/**
-	 * List of the features that are invalid
-	 */
+	/** List of the features that are invalid */
 	public readonly invalidFeatures: string[];
 
 	public constructor({
 		message = 'Invalid feature set on db server',
 		invalidFeatures,
-	}: ConstructorOptions) {
+	}: InvalidServerFeaturesErrorConstructorOptions) {
 		const name = 'InvalidServerFeaturesError';
 		super(message, name);
 

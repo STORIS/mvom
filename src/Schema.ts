@@ -12,13 +12,9 @@ import {
 	StringType,
 } from './schemaType';
 import type { BaseSchemaType, SchemaTypeDefinitionScalar } from './schemaType';
-import type {
-	DecryptFunc,
-	EncryptFunc,
-	SchemaCompoundForeignKeyDefinition,
-	SchemaForeignKeyDefinition,
-} from './types';
+import type { DecryptFn, EncryptFn } from './types';
 
+// #region Types
 type SchemaTypeDefinition =
 	| Schema
 	| SchemaTypeDefinitionScalar
@@ -36,49 +32,60 @@ export interface SchemaDefinition {
 	[x: string]: SchemaTypeDefinition;
 }
 
+export interface SchemaForeignKeyDefinition {
+	file: string | string[];
+	keysToIgnore?: string[];
+	entityName: string;
+}
+
+export interface SchemaCompoundForeignKeyDefinition {
+	[key: number]: SchemaForeignKeyDefinition;
+	splitCharacter: string;
+}
+
 export interface SchemaConstructorOptions {
 	dictionaries?: Record<string, string>;
 	idMatch?: RegExp;
 	idForeignKey?: SchemaForeignKeyDefinition | SchemaCompoundForeignKeyDefinition;
-	encrypt?: EncryptFunc;
-	decrypt?: DecryptFunc;
+	encrypt?: EncryptFn;
+	decrypt?: DecryptFn;
 }
+// #endregion
 
 /** Schema constructor */
 class Schema {
 	/** Key/value pairs of schema object path structure and associated multivalue dictionary ids */
-	public dictPaths: Record<string, string>;
+	public dictPaths: Map<string, string>;
 
 	/** The compiled schema object path structure */
-	public paths: Record<string, BaseSchemaType>;
+	public readonly paths: Map<string, BaseSchemaType>;
 
 	/** Foreign key definition for the record id */
-	public idForeignKey?: SchemaForeignKeyDefinition | SchemaCompoundForeignKeyDefinition;
+	public readonly idForeignKey?: SchemaForeignKeyDefinition | SchemaCompoundForeignKeyDefinition;
 
 	/** Regular expression to validate the record id against */
-	public idMatch?: RegExp;
+	public readonly idMatch?: RegExp;
 
 	/** The schema definition passed to the constructor */
-	private definition: SchemaDefinition;
+	private readonly definition: SchemaDefinition;
 
 	/** Map of the compiled schema object position paths */
-	private positionPaths: Map<string, number[]>;
+	private readonly positionPaths: Map<string, number[]>;
 
 	/** Map of all subdocument schemas represented in this Schema with parentPath as key */
-	private subdocumentSchemas: Map<string, Schema>;
+	private readonly subdocumentSchemas: Map<string, Schema>;
 
 	/** Optional function to use for encryption of sensitive data */
-	private encrypt?: EncryptFunc;
+	private readonly encrypt?: EncryptFn;
 
 	/** Optional function to use for decryption of sensitive data */
-	private decrypt?: DecryptFunc;
+	private readonly decrypt?: DecryptFn;
 
 	public constructor(
 		definition: SchemaDefinition,
 		{ dictionaries = {}, idForeignKey, idMatch, encrypt, decrypt }: SchemaConstructorOptions = {},
 	) {
-		this.dictPaths = { _id: '@ID', ...dictionaries };
-		this.paths = {};
+		this.dictPaths = new Map(Object.entries(dictionaries).concat([['_id', '@ID']]));
 
 		this.idForeignKey = idForeignKey;
 		this.idMatch = idMatch;
@@ -88,7 +95,7 @@ class Schema {
 		this.encrypt = encrypt;
 		this.decrypt = decrypt;
 
-		this.buildPaths(this.definition);
+		this.paths = this.buildPaths(this.definition);
 	}
 
 	/** Get all multivalue data paths in this schema and its subdocument schemas */
@@ -148,34 +155,30 @@ class Schema {
 	}
 
 	/** Construct instance member paths */
-	private buildPaths = (definition: SchemaDefinition, prev?: string) => {
-		Object.entries(definition).forEach(([key, value]) => {
+	private buildPaths = (definition: SchemaDefinition, prev?: string): Map<string, BaseSchemaType> =>
+		Object.entries(definition).reduce((acc, [key, value]) => {
 			// construct flattened keypath
 			const newKey = prev != null ? `${prev}.${key}` : key;
 
 			if (Array.isArray(value)) {
-				// cast this value as an array
-				this.paths[newKey] = this.castArray(value, newKey);
-				return;
+				return acc.set(newKey, this.castArray(value, newKey));
 			}
 
 			if (this.isScalarDefinition(value)) {
 				// cast this value as a schemaType
-				this.paths[newKey] = this.castScalar(value, newKey);
-				return;
+				return acc.set(newKey, this.castScalar(value, newKey));
 			}
 
 			if (value instanceof Schema) {
 				// value is an already compiled schema - cast as embedded document
 				this.handleSubDocumentSchemas(value, newKey);
-				this.paths[newKey] = new EmbeddedType(value);
-				return;
+				return acc.set(newKey, new EmbeddedType(value));
 			}
 
-			// this is an object but does not represent something which could be cast; need to recursively process it
-			this.buildPaths(value, newKey);
-		});
-	};
+			const nestedPaths = this.buildPaths(value, newKey);
+
+			return new Map([...acc, ...nestedPaths]);
+		}, new Map<string, BaseSchemaType>());
 
 	/**
 	 * Cast an array to a schemaType
@@ -276,7 +279,7 @@ class Schema {
 
 		// update dictPaths
 		if (schemaTypeValue.dictionary != null) {
-			this.dictPaths[keyPath] = schemaTypeValue.dictionary;
+			this.dictPaths.set(keyPath, schemaTypeValue.dictionary);
 		}
 
 		return schemaTypeValue;
@@ -300,12 +303,10 @@ class Schema {
 
 	/** Merge subdocument schema dictionaries with the parent schema's dictionaries */
 	private mergeSchemaDictionaries = (schema: Schema, keyPath: string) => {
-		this.dictPaths = Object.entries(schema.dictPaths).reduce((acc, [subDictPath, subDictId]) => {
+		this.dictPaths = Array.from(schema.dictPaths).reduce((acc, [subDictPath, subDictId]) => {
 			const dictKey = `${keyPath}.${subDictPath}`;
-			return {
-				...acc,
-				[dictKey]: subDictId,
-			};
+
+			return acc.set(dictKey, subDictId);
 		}, this.dictPaths);
 	};
 }

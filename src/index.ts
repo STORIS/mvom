@@ -3,7 +3,7 @@ export { default as Document } from './Document';
 export { default as Schema, type SchemaDefinition, type SchemaConstructorOptions } from './Schema';
 export type { ModelConstructor } from './compileModel';
 export {
-	ConnectionManagerError,
+	MvisError,
 	DataValidationError,
 	DbServerError,
 	ForeignKeyValidationError,
@@ -21,4 +21,4 @@ export type {
 	SchemaTypeDefinitionNumber,
 	SchemaTypeDefinitionString,
 } from './schemaType';
-export type { EncryptFunc, DecryptFunc } from './types';
+export type { EncryptFn, DecryptFn } from './types';

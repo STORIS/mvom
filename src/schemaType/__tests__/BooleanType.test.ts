@@ -1,14 +1,18 @@
+import { mock } from 'jest-mock-extended';
+import type Document from '../../Document';
 import type { SchemaTypeDefinitionBoolean } from '../BooleanType';
 import BooleanType from '../BooleanType';
 
-const definition: SchemaTypeDefinitionBoolean = {
-	type: 'boolean',
-	path: '2',
-};
-
-const booleanType = new BooleanType(definition);
+const documentMock = mock<Document>();
 
 describe('transformFromDb', () => {
+	const definition: SchemaTypeDefinitionBoolean = {
+		type: 'boolean',
+		path: '2',
+	};
+
+	const booleanType = new BooleanType(definition);
+
 	test('should transform null to false', () => {
 		expect(booleanType.transformFromDb(null)).toBe(false);
 	});
@@ -31,6 +35,13 @@ describe('transformFromDb', () => {
 });
 
 describe('transformToDb', () => {
+	const definition: SchemaTypeDefinitionBoolean = {
+		type: 'boolean',
+		path: '2',
+	};
+
+	const booleanType = new BooleanType(definition);
+
 	test('should transform boolean true to 1', () => {
 		expect(booleanType.transformToDb(true)).toBe('1');
 	});
@@ -49,6 +60,13 @@ describe('transformToDb', () => {
 });
 
 describe('transformToQuery', () => {
+	const definition: SchemaTypeDefinitionBoolean = {
+		type: 'boolean',
+		path: '2',
+	};
+
+	const booleanType = new BooleanType(definition);
+
 	test('should transform boolean true to 1', () => {
 		expect(booleanType.transformToQuery(true)).toBe('1');
 	});
@@ -75,5 +93,48 @@ describe('transformToQuery', () => {
 
 	test('should not transform other values', () => {
 		expect(booleanType.transformToQuery('foo')).toBe('foo');
+	});
+});
+
+describe('validations', () => {
+	describe('required validations', () => {
+		test('should return error message if required is true and value is null', async () => {
+			const definition: SchemaTypeDefinitionBoolean = {
+				type: 'boolean',
+				path: '2',
+				required: true,
+			};
+			const booleanType = new BooleanType(definition);
+
+			const value = null;
+
+			expect(await booleanType.validate(value, documentMock)).toContain('Property is required');
+		});
+
+		test('should not return error message if required is true and value is populated with a boolean value', async () => {
+			const definition: SchemaTypeDefinitionBoolean = {
+				type: 'boolean',
+				path: '2',
+				required: true,
+			};
+			const booleanType = new BooleanType(definition);
+
+			const value = true;
+
+			expect(await booleanType.validate(value, documentMock)).not.toContain('Property is required');
+		});
+
+		test('should not return error message if required is false and value is null', async () => {
+			const definition: SchemaTypeDefinitionBoolean = {
+				type: 'boolean',
+				path: '2',
+				required: false,
+			};
+			const booleanType = new BooleanType(definition);
+
+			const value = null;
+
+			expect(await booleanType.validate(value, documentMock)).not.toContain('Property is required');
+		});
 	});
 });

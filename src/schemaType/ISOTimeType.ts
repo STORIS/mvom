@@ -1,7 +1,6 @@
 import moment from 'moment';
 import { ISOTimeFormat } from '../constants';
 import { TransformDataError } from '../errors';
-import { handleTypeValidation } from '../utils';
 import BaseDateType from './BaseDateType';
 import type { ScalarTypeConstructorOptions } from './BaseScalarType';
 import type { SchemaTypeDefinitionBase } from './BaseSchemaType';
@@ -14,7 +13,7 @@ export interface SchemaTypeDefinitionISOTime extends SchemaTypeDefinitionBase {
 /** ISOTime Schema Type */
 class ISOTimeType extends BaseDateType {
 	/** Database time format is in milliseconds */
-	private isDbInMs: boolean;
+	private readonly isDbInMs: boolean;
 
 	public constructor(
 		definition: SchemaTypeDefinitionISOTime,
@@ -23,9 +22,6 @@ class ISOTimeType extends BaseDateType {
 		super(definition, options);
 		const { dbFormat = 's' } = definition;
 		this.isDbInMs = dbFormat === 'ms';
-
-		// add validators for this type
-		this.validators.unshift(handleTypeValidation(this.validateType));
 	}
 
 	/**
@@ -91,16 +87,16 @@ class ISOTimeType extends BaseDateType {
 	}
 
 	/** ISOTimeType data type validator */
-	private validateType = async (value: unknown): Promise<boolean> => {
+	protected override validateType = (value: unknown): boolean => {
 		if (value == null) {
-			return Promise.resolve(true);
+			return true;
 		}
 
 		if (typeof value !== 'string') {
-			return Promise.resolve(false);
+			return false;
 		}
 
-		return Promise.resolve(moment(value, ISOTimeFormat).isValid());
+		return moment(value, ISOTimeFormat).isValid();
 	};
 }
 

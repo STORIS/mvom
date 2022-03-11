@@ -5,7 +5,7 @@ import BaseSchemaType from './BaseSchemaType';
 /** Abstract Base Type for all scalar arrays */
 abstract class BaseScalarArrayType extends BaseSchemaType {
 	/** A schemaType representing the type of the array's contents */
-	protected valueSchemaType: BaseScalarType;
+	protected readonly valueSchemaType: BaseScalarType;
 
 	protected constructor(valueSchemaType: BaseScalarType) {
 		super();

@@ -1,30 +1,24 @@
 import BaseError from './BaseError';
 
-interface ConstructorOptions {
+interface TransformDataErrorConstructorOptions {
 	message?: string;
 	transformClass: string;
 	transformValue: unknown;
 }
 
-/**
- * Error thrown when data cannot be transformed from multivalue format
- */
+/** Error thrown when data cannot be transformed from multivalue format */
 class TransformDataError extends BaseError {
-	/**
-	 * Class instance performing transformation
-	 */
+	/** Class instance performing transformation */
 	public readonly transformClass: string;
 
-	/**
-	 * Original value that failed transformation
-	 */
+	/** Original value that failed transformation */
 	public readonly transformValue: unknown;
 
 	public constructor({
 		message = 'Error transforming data from multivalue format',
 		transformClass,
 		transformValue,
-	}: ConstructorOptions) {
+	}: TransformDataErrorConstructorOptions) {
 		const name = 'TransformDataError';
 		super(message, name);
 

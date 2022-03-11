@@ -1,5 +1,4 @@
 import { InvalidParameterError, TransformDataError } from '../errors';
-import { handleTypeValidation } from '../utils';
 import type { ScalarTypeConstructorOptions } from './BaseScalarType';
 import BaseScalarType from './BaseScalarType';
 import type { SchemaTypeDefinitionBase } from './BaseSchemaType';
@@ -15,7 +14,7 @@ export interface SchemaTypeDefinitionNumber extends SchemaTypeDefinitionBase {
  */
 class NumberType extends BaseScalarType {
 	/** Number of implied decimals in database storage */
-	private dbDecimals: number;
+	private readonly dbDecimals: number;
 
 	public constructor(
 		definition: SchemaTypeDefinitionNumber,
@@ -30,9 +29,6 @@ class NumberType extends BaseScalarType {
 		}
 
 		this.dbDecimals = dbDecimals;
-
-		// add validators for this type
-		this.validators.unshift(handleTypeValidation(this.validateType));
 	}
 
 	/**
@@ -64,8 +60,8 @@ class NumberType extends BaseScalarType {
 	}
 
 	/** NumberType data type validator */
-	private validateType = async (value: unknown): Promise<boolean> =>
-		Promise.resolve(value == null || Number.isFinite(Number(value)));
+	protected override validateType = (value: unknown): boolean =>
+		value == null || Number.isFinite(Number(value));
 }
 
 export default NumberType;

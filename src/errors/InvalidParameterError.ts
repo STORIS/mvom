@@ -1,23 +1,19 @@
 import BaseError from './BaseError';
 
-interface ConstructorOptions {
+interface InvalidParameterErrorConstructorOptions {
 	message?: string;
 	parameterName: string;
 }
 
-/**
- * Error thrown when a function is passed an invalid parameter
- */
+/** Error thrown when a function is passed an invalid parameter */
 class InvalidParameterError extends BaseError {
-	/**
-	 * Name of the parameter that was invalid
-	 */
+	/** Name of the parameter that was invalid */
 	public readonly parameterName: string;
 
 	public constructor({
 		message = 'Invalid parameter passed to function',
 		parameterName,
-	}: ConstructorOptions) {
+	}: InvalidParameterErrorConstructorOptions) {
 		const name = 'InvalidParameterError';
 		super(message, name);
 
