@@ -174,7 +174,7 @@ abstract class BaseScalarType extends BaseSchemaType {
 	public abstract transformFromDb(value: unknown): unknown;
 
 	/** Transform from externally formatted data to mv data */
-	public abstract transformToDb(value: unknown): unknown;
+	public abstract transformToDb(value: unknown): string | null;
 }
 
 export default BaseScalarType;
