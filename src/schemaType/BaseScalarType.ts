@@ -125,7 +125,10 @@ abstract class BaseScalarType extends BaseSchemaType {
 	}
 
 	/** Set specified value into mv record */
-	public setIntoMvData(originalRecord: MvRecord, setValue: unknown): MvRecord {
+	public setIntoMvData(
+		originalRecord: MvRecord,
+		setValue: string | null | (string | null)[] | (string | null)[][],
+	): MvRecord {
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		const encryptedSetValue = this.encrypted ? this.encrypt!(setValue) : setValue;
 		return setIn(cloneDeep(originalRecord), this.path, encryptedSetValue);
