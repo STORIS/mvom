@@ -1,23 +1,15 @@
-type EnsureArrayReturnType<T> = T extends undefined
-	? never[]
-	: T extends readonly (infer U)[]
-	? U[]
-	: T[];
-
-const ensureArray = <T>(value?: T): EnsureArrayReturnType<T> => {
-	// Unfortunately, TypeScript has a design limitation with respect to condition return types.  This has
-	// been noted in several issues, such as this one: https://github.com/microsoft/TypeScript/issues/22735
-	// Per a comment on that issue (https://github.com/microsoft/TypeScript/issues/22735#issuecomment-376960435) you
-	// can use type assertion to avoid the type errors but still get the proper expecting typing in the caller
+const ensureArray = <T>(value?: T | readonly T[]): T[] => {
 	if (Array.isArray(value)) {
-		return [...value] as EnsureArrayReturnType<T>;
+		return [...value];
 	}
 
 	if (typeof value === 'undefined') {
-		return [] as EnsureArrayReturnType<T>;
+		return [];
 	}
 
-	return [value] as EnsureArrayReturnType<T>;
+	// TODO: This cast is needed until Array.isArray can narrow readonly arrays correctly
+	// https://github.com/microsoft/TypeScript/issues/17002
+	return [value as T];
 };
 
 export default ensureArray;
