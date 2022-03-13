@@ -78,7 +78,7 @@ describe('transformFromDb', () => {
 		};
 		const isoTimeType = new ISOTimeType(definition);
 
-		expect(isoTimeType.transformFromDb(4321)).toBe('01:12:01.000');
+		expect(isoTimeType.transformFromDb(47655)).toBe('13:14:15.000');
 	});
 
 	test('should return a time when time format is in milliseconds', () => {
@@ -89,7 +89,7 @@ describe('transformFromDb', () => {
 		};
 		const isoTimeType = new ISOTimeType(definition);
 
-		expect(isoTimeType.transformFromDb(4321)).toBe('00:00:04.321');
+		expect(isoTimeType.transformFromDb(47655789)).toBe('13:14:15.789');
 	});
 });
 

@@ -51,8 +51,8 @@ describe('transformFromDb', () => {
 		};
 		const isoCalendarDateTimeType = new ISOCalendarDateTimeType(definition);
 
-		const value = '19782.04321';
-		expect(isoCalendarDateTimeType.transformFromDb(value)).toBe('2022-02-27T01:12:01.000');
+		const value = '19782.47655';
+		expect(isoCalendarDateTimeType.transformFromDb(value)).toBe('2022-02-27T13:14:15.000');
 	});
 
 	test('should return a date-time string if time is in milliseconds', () => {
@@ -63,8 +63,8 @@ describe('transformFromDb', () => {
 		};
 		const isoCalendarDateTimeType = new ISOCalendarDateTimeType(definition);
 
-		const value = '19782.00004321';
-		expect(isoCalendarDateTimeType.transformFromDb(value)).toBe('2022-02-27T00:00:04.321');
+		const value = '19782.47655789';
+		expect(isoCalendarDateTimeType.transformFromDb(value)).toBe('2022-02-27T13:14:15.789');
 	});
 });
 
@@ -99,8 +99,8 @@ describe('transformToDb', () => {
 		};
 		const isoCalendarDateTimeType = new ISOCalendarDateTimeType(definition);
 
-		const value = '2022-02-27T01:12:01.000';
-		expect(isoCalendarDateTimeType.transformToDb(value)).toBe('19782.04321');
+		const value = '2022-02-27T13:14:15.789';
+		expect(isoCalendarDateTimeType.transformToDb(value)).toBe('19782.47655');
 	});
 
 	test('should return a multivalue date-time string when the format is in milliseconds', () => {
@@ -111,8 +111,8 @@ describe('transformToDb', () => {
 		};
 		const isoCalendarDateTimeType = new ISOCalendarDateTimeType(definition);
 
-		const value = '2022-02-27T00:00:04.321';
-		expect(isoCalendarDateTimeType.transformToDb(value)).toBe('19782.00004321');
+		const value = '2022-02-27T13:14:15.789';
+		expect(isoCalendarDateTimeType.transformToDb(value)).toBe('19782.47655789');
 	});
 });
 
