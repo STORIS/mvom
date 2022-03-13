@@ -23,6 +23,8 @@ export type SchemaTypeDefinitionScalar =
 	| SchemaTypeDefinitionISOTime
 	| SchemaTypeDefinitionNumber
 	| SchemaTypeDefinitionString;
+
+type RecordSetType = string | null | (string | null | (string | null)[])[];
 // #endregion
 
 const ISVALID_SYMBOL = Symbol('Is Valid');
@@ -120,16 +122,11 @@ abstract class BaseScalarType extends BaseSchemaType {
 	/** Get data from the specified keypath */
 	public getFromMvData(record: MvRecord): MvAttribute {
 		const value = this.getFromMvArray(this.path, record);
-		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-		return this.encrypted ? this.decryptData(value) : value;
+		return this.decryptData(value);
 	}
 
 	/** Set specified value into mv record */
-	public setIntoMvData(
-		originalRecord: MvRecord,
-		setValue: string | null | (string | null)[] | (string | null)[][],
-	): MvRecord {
-		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+	public setIntoMvData(originalRecord: MvRecord, setValue: RecordSetType): MvRecord {
 		const encryptedSetValue = this.encryptData(setValue);
 		return setIn(cloneDeep(originalRecord), this.path, encryptedSetValue);
 	}
@@ -174,9 +171,7 @@ abstract class BaseScalarType extends BaseSchemaType {
 	}
 
 	/** Encrypt a transformed property */
-	private encryptData(
-		data: string | null | (string | null | (string | null)[])[],
-	): string | null | (string | null | (string | null)[])[] {
+	private encryptData(data: RecordSetType): RecordSetType {
 		if (!this.encrypted) {
 			return data;
 		}
