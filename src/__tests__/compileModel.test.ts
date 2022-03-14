@@ -51,6 +51,13 @@ describe('_id accessors', () => {
 		model._id = 'test';
 		expect(model._id).toBe('test');
 	});
+
+	test('_id should be enumerable on own properties of Model', () => {
+		const Model = compileModel(connectionMock, schema, filename);
+		const model = new Model({ record: [] });
+
+		expect(Object.keys(model)).toContain('_id');
+	});
 });
 
 describe('deleteById', () => {
