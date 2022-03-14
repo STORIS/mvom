@@ -10,8 +10,8 @@ class TestSubclass extends BaseDateType {
 		return value;
 	}
 
-	public transformToDb(value: unknown): unknown {
-		return value;
+	public transformToDb(value: unknown): string | null {
+		return String(value);
 	}
 }
 

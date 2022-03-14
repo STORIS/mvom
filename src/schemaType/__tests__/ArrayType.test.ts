@@ -57,6 +57,26 @@ describe('get', () => {
 			expect(arrayType.get(record)).toEqual(expected);
 		});
 	});
+
+	describe('decryption', () => {
+		test('should get from specified path and return decrypted value', () => {
+			const encrypt = jest.fn().mockReturnValue('encrypted');
+			const decrypt = jest.fn().mockReturnValue('decrypted');
+
+			const valueSchemaDefinition: SchemaTypeDefinitionString = {
+				type: 'string',
+				path: '2',
+				encrypted: true,
+			};
+			const valueSchemaType = new StringType(valueSchemaDefinition, { encrypt, decrypt });
+			const arrayType = new ArrayType(valueSchemaType);
+
+			const record: MvRecord = [null, ['encrypted', null, 'encrypted']];
+
+			const expected = ['decrypted', null, 'decrypted'];
+			expect(arrayType.get(record)).toEqual(expected);
+		});
+	});
 });
 
 describe('set', () => {
@@ -108,6 +128,46 @@ describe('set', () => {
 			const value = 1.23;
 
 			const expected: MvRecord = [null, [undefined, ['123']]];
+			expect(arrayType.set(originalRecord, value)).toEqual(expected);
+		});
+	});
+
+	describe('encryption', () => {
+		test('should set into encrypted path when value is an array', () => {
+			const encrypt = jest.fn().mockReturnValue('encrypted');
+			const decrypt = jest.fn().mockReturnValue('decrypted');
+
+			const valueSchemaDefinition: SchemaTypeDefinitionString = {
+				type: 'string',
+				path: '2',
+				encrypted: true,
+			};
+			const valueSchemaType = new StringType(valueSchemaDefinition, { encrypt, decrypt });
+			const arrayType = new ArrayType(valueSchemaType);
+
+			const originalRecord: MvRecord = [null, [null, null, null]];
+			const value = ['foo', null, 'bar'];
+
+			const expected: MvRecord = [null, ['encrypted', null, 'encrypted']];
+			expect(arrayType.set(originalRecord, value)).toEqual(expected);
+		});
+
+		test('should set into encrypted path when value is noy an array', () => {
+			const encrypt = jest.fn().mockReturnValue('encrypted');
+			const decrypt = jest.fn().mockReturnValue('decrypted');
+
+			const valueSchemaDefinition: SchemaTypeDefinitionString = {
+				type: 'string',
+				path: '2',
+				encrypted: true,
+			};
+			const valueSchemaType = new StringType(valueSchemaDefinition, { encrypt, decrypt });
+			const arrayType = new ArrayType(valueSchemaType);
+
+			const originalRecord: MvRecord = [null, null];
+			const value = 'foo';
+
+			const expected: MvRecord = [null, ['encrypted']];
 			expect(arrayType.set(originalRecord, value)).toEqual(expected);
 		});
 	});

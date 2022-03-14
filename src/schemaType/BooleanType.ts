@@ -27,7 +27,10 @@ class BooleanType extends BaseScalarType {
 	}
 
 	/** Transform query constants to u2 formatted Boolean */
-	public override transformToQuery(value: unknown): '1' | '0' | unknown {
+	public override transformToQuery(value: true | 'true' | 'TRUE'): '1';
+	public override transformToQuery(value: false | 'false' | 'FALSE'): '0';
+	public override transformToQuery(value: unknown): unknown;
+	public override transformToQuery(value: unknown): unknown {
 		if (value === true || value === 'true' || value === 'TRUE') {
 			return '1';
 		}

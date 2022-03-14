@@ -1,7 +1,7 @@
 import { cloneDeep, set as setIn, toPath } from 'lodash';
 import type Document from '../Document';
 import { InvalidParameterError } from '../errors';
-import type { DecryptFn, EncryptFn, MvRecord } from '../types';
+import type { DecryptFn, EncryptFn, MvAttribute, MvDataType, MvRecord } from '../types';
 import BaseSchemaType, { type Validator } from './BaseSchemaType';
 import type { SchemaTypeDefinitionBoolean } from './BooleanType';
 import type { SchemaTypeDefinitionISOCalendarDateTime } from './ISOCalendarDateTimeType';
@@ -23,6 +23,8 @@ export type SchemaTypeDefinitionScalar =
 	| SchemaTypeDefinitionISOTime
 	| SchemaTypeDefinitionNumber
 	| SchemaTypeDefinitionString;
+
+type RecordSetType = string | null | (string | null | (string | null)[])[];
 // #endregion
 
 const ISVALID_SYMBOL = Symbol('Is Valid');
@@ -118,16 +120,14 @@ abstract class BaseScalarType extends BaseSchemaType {
 	}
 
 	/** Get data from the specified keypath */
-	public getFromMvData(record: MvRecord): unknown {
+	public getFromMvData(record: MvRecord): MvAttribute {
 		const value = this.getFromMvArray(this.path, record);
-		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-		return this.encrypted ? this.decrypt!(value) : value;
+		return this.decryptData(value);
 	}
 
 	/** Set specified value into mv record */
-	public setIntoMvData(originalRecord: MvRecord, setValue: unknown): MvRecord {
-		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-		const encryptedSetValue = this.encrypted ? this.encrypt!(setValue) : setValue;
+	public setIntoMvData(originalRecord: MvRecord, setValue: RecordSetType): MvRecord {
+		const encryptedSetValue = this.encryptData(setValue);
 		return setIn(cloneDeep(originalRecord), this.path, encryptedSetValue);
 	}
 
@@ -170,11 +170,62 @@ abstract class BaseScalarType extends BaseSchemaType {
 		});
 	}
 
+	/** Encrypt a transformed property */
+	private encryptData(data: RecordSetType): RecordSetType {
+		if (!this.encrypted) {
+			return data;
+		}
+
+		if (Array.isArray(data)) {
+			return data.map((value) => {
+				if (Array.isArray(value)) {
+					return value.map((innerValue) => this.encryptSingle(innerValue));
+				}
+
+				return this.encryptSingle(value);
+			});
+		}
+
+		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+		return this.encryptSingle(data);
+	}
+
+	/** Encrypt a single value */
+	private encryptSingle(value: string | null): string | null {
+		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+		return value == null ? value : this.encrypt!(value);
+	}
+
+	/** Decrypt a multivalue attribute */
+	private decryptData(data: MvAttribute): MvAttribute {
+		if (!this.encrypted) {
+			return data;
+		}
+
+		if (Array.isArray(data)) {
+			return data.map((value) => {
+				if (Array.isArray(value)) {
+					return value.map((innerValue) => this.decryptSingle(innerValue));
+				}
+
+				return this.decryptSingle(value);
+			});
+		}
+
+		return this.decryptSingle(data);
+	}
+
+	/** Decrypt a single value */
+	private decryptSingle(value: MvDataType): MvDataType {
+		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+		return typeof value !== 'string' ? value : this.decrypt!(value);
+	}
+
 	/** Transform from mv data to externally formatted data */
 	public abstract transformFromDb(value: unknown): unknown;
 
 	/** Transform from externally formatted data to mv data */
-	public abstract transformToDb(value: unknown): unknown;
+	public abstract transformToDb(value: unknown): string | null;
 }
 
 export default BaseScalarType;

@@ -1,6 +1,6 @@
 import type Document from '../Document';
 import type { ForeignKeyDbDefinition } from '../ForeignKeyDbTransformer';
-import type { MvRecord } from '../types';
+import type { MvAttribute, MvRecord } from '../types';
 import { ensureArray } from '../utils';
 
 // #region types
@@ -36,7 +36,7 @@ abstract class BaseSchemaType {
 
 	/** Get data from a multivalue array at a given path */
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public getFromMvArray(path: number[], record: MvRecord = []): any {
+	public getFromMvArray(path: number[], record: MvRecord = []): MvAttribute {
 		// if the entire contents of the record at the base path is null then we must treat this as a special case:
 		// - returning undefined won't alter the behavior of scalar data types (e.g. string, Boolean) since the undefined
 		//   value will essentially get typecast back into null which is handled by all scalar types.
@@ -55,7 +55,7 @@ abstract class BaseSchemaType {
 		// lodash.get will not work here because "array" data might be returned from multi-value that still
 		// appears like a non-array; if that happens, lodash.get would return the character at that string position instead;
 		// this reducer ensures that the appropriate value is retrieved.
-		return path.reduce((acc, pathPart) => ensureArray(acc)[pathPart], record);
+		return path.slice(1).reduce((acc, pathPart) => ensureArray(acc)[pathPart], attributeData);
 	}
 
 	/** Get value from mv data */
