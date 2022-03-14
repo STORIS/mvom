@@ -42,7 +42,11 @@ end then
     go closeAndReturnFromSub
   end
 end else
-  document = ''
+  * create a null udo handle to assign as document
+  if udoCreate(UDO_NULL, document) then
+    errorCode = ERROR_UDO
+    go closeAndReturnFromSub
+  end
 end
 
 close f.file on error null
