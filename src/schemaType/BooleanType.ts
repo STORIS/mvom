@@ -13,10 +13,6 @@ class BooleanType extends BaseScalarType {
 		options: ScalarTypeConstructorOptions = {},
 	) {
 		super(definition, options);
-
-		const foo1 = this.transformToQuery(true);
-		const foo2 = this.transformToQuery(false);
-		const foo3 = this.transformToQuery('1');
 	}
 
 	/** Transform mv style data to Boolean */
