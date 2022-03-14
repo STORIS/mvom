@@ -7,11 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0-alpha.1] - 2022-03-14
+
+### Breaking Changes
+
+- The `encrypt` and `decrypt` functions are no longer overloaded to accept or return arrays and no longer accept or return `null`. All handling of arrays and `null` values has been internalized. ([#29](https://github.com/STORIS/mvom/pull/29))
+
+### Fixed
+
+- The `_id` property of `Model` instances was inadvertently not enumerable. This fix ensures that the `_id` property will be enumerable. ([#31](https://github.com/STORIS/mvom/pull/31))
+
 ## [2.0.0-alpha.0] - 2022-03-11
 
 ### Breaking Changes
 
 - Minimum Node version is now 14.19.0
+- The Schema constructor definitions no longer accept constructors for the `type` property in schema property definitions. Instead, the `type` will be string literals indicating the property's type (e.g. `'string'`).
 - Several exported types have been improved or renamed
 - There is no longer a default export from the library. The main export now includes named exports `Connection`, `Document`, `Schema`, and the various `Error` classes.
 - `createConnection` has been changed from a standalone exported function to a static method on the `Connection` class. This is now the only supported mechanism for instiantiating a `Connection`.
@@ -310,7 +321,8 @@ We've graduated from Alpha to Beta! Semver has been updated so breaking vs. non-
 
 Initial alpha release of this library! Thanks for using it!
 
-[unreleased]: https://github.com/storis/mvom/compare/2.0.0-alpha.0...HEAD
+[unreleased]: https://github.com/storis/mvom/compare/2.0.0-alpha.1...HEAD
+[2.0.0-alpha.1]: https://github.com/storis/mvom/compare/2.0.0-alpha.0...2.0.0-alpha.1
 [2.0.0-alpha.0]: https://github.com/storis/mvom/compare/1.0.0...2.0.0-alpha.0
 [1.0.0]: https://github.com/storis/mvom/compare/1.0.0-rc.1...1.0.0
 [1.0.0-rc.1]: https://github.com/storis/mvom/compare/1.0.0-rc.0...1.0.0-rc.1
