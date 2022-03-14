@@ -64,6 +64,9 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 		/** Document version hash */
 		public readonly __v: string | null;
 
+		/** Id of model instance */
+		public _id!: string | null; // add definite assignment assertion since property is assigned through defineProperty
+
 		/** Private id tracking property */
 		#_id: string | null;
 
@@ -78,10 +81,16 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			this.#_id = _id;
 			this.__v = __v;
 
-			Object.defineProperty(this, '__id', {
-				writable: true,
-				configurable: false,
-				enumerable: false,
+			Object.defineProperty(this, '_id', {
+				enumerable: true,
+				get: () => this.#_id,
+				set: (value) => {
+					if (this.#_id != null) {
+						throw new Error('_id value cannot be changed once set');
+					}
+
+					this.#_id = value;
+				},
 			});
 
 			Model.connection.logger.debug(`creating new instance of model for file ${Model.file}`);
@@ -92,20 +101,6 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 					`error transforming data -- file: ${Model.file}; _id: ${this._id}; class: ${error.transformClass}; value: ${error.transformValue}`,
 				);
 			});
-		}
-
-		/** _id getter */
-		public get _id(): string | null {
-			return this.#_id;
-		}
-
-		/** _id setter */
-		public set _id(value) {
-			if (this.#_id != null) {
-				throw new Error('_id value cannot be changed once set');
-			}
-
-			this.#_id = value;
 		}
 
 		/** Delete a document */
