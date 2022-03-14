@@ -10,78 +10,142 @@ import type { SchemaTypeDefinitionString } from '../StringType';
 const documentMock = mock<Document>();
 
 describe('get', () => {
-	const valueSchemaDefinition: SchemaTypeDefinitionNumber = {
-		type: 'number',
-		path: '2',
-		dbDecimals: 2,
-	};
-	const valueSchemaType = new NumberType(valueSchemaDefinition);
-	const nestedArrayType = new NestedArrayType(valueSchemaType);
+	describe('no encryption', () => {
+		const valueSchemaDefinition: SchemaTypeDefinitionNumber = {
+			type: 'number',
+			path: '2',
+			dbDecimals: 2,
+		};
+		const valueSchemaType = new NumberType(valueSchemaDefinition);
+		const nestedArrayType = new NestedArrayType(valueSchemaType);
 
-	test('should get from specified path and transform based on value schema when content is array', () => {
-		const record: MvRecord = [
-			null,
-			[
-				[123, 456],
-				[789, 1234],
-			],
-		];
+		test('should get from specified path and transform based on value schema when content is array', () => {
+			const record: MvRecord = [
+				null,
+				[
+					[123, 456],
+					[789, 1234],
+				],
+			];
 
-		const expected = [
-			[1.23, 4.56],
-			[7.89, 12.34],
-		];
-		expect(nestedArrayType.get(record)).toEqual(expected);
+			const expected = [
+				[1.23, 4.56],
+				[7.89, 12.34],
+			];
+			expect(nestedArrayType.get(record)).toEqual(expected);
+		});
+
+		test('should get from specified path and transform based on value schema when content is non-array', () => {
+			const record: MvRecord = [null, [123, 456]];
+
+			const expected = [[1.23], [4.56]];
+			expect(nestedArrayType.get(record)).toEqual(expected);
+		});
 	});
 
-	test('should get from specified path and transform based on value schema when content is non-array', () => {
-		const record: MvRecord = [null, [123, 456]];
+	describe('decryption', () => {
+		test('should get from specified path and return decrypted value', () => {
+			const encrypt = jest.fn().mockReturnValue('encrypted');
+			const decrypt = jest.fn().mockReturnValue('decrypted');
 
-		const expected = [[1.23], [4.56]];
-		expect(nestedArrayType.get(record)).toEqual(expected);
+			const valueSchemaDefinition: SchemaTypeDefinitionString = {
+				type: 'string',
+				path: '2',
+				encrypted: true,
+			};
+			const valueSchemaType = new StringType(valueSchemaDefinition, { encrypt, decrypt });
+			const arrayType = new NestedArrayType(valueSchemaType);
+
+			const record: MvRecord = [null, [['encrypted'], [null, 'encrypted']]];
+
+			const expected = [['decrypted'], [null, 'decrypted']];
+			expect(arrayType.get(record)).toEqual(expected);
+		});
 	});
 });
 
 describe('set', () => {
-	const valueSchemaDefinition: SchemaTypeDefinitionNumber = {
-		type: 'number',
-		path: '2',
-		dbDecimals: 2,
-	};
-	const valueSchemaType = new NumberType(valueSchemaDefinition);
-	const nestedArrayType = new NestedArrayType(valueSchemaType);
+	describe('no encryption', () => {
+		const valueSchemaDefinition: SchemaTypeDefinitionNumber = {
+			type: 'number',
+			path: '2',
+			dbDecimals: 2,
+		};
+		const valueSchemaType = new NumberType(valueSchemaDefinition);
+		const nestedArrayType = new NestedArrayType(valueSchemaType);
 
-	test('should transform based on value schema and set into array when value is an array', () => {
-		const originalRecord: MvRecord = [null, null];
-		const value = [
-			[1.23, 4.56],
-			[7.89, 12.34],
-		];
+		test('should transform based on value schema and set into array when value is an array', () => {
+			const originalRecord: MvRecord = [null, null];
+			const value = [
+				[1.23, 4.56],
+				[7.89, 12.34],
+			];
 
-		const expected: MvRecord = [
-			null,
-			[
-				['123', '456'],
-				['789', '1234'],
-			],
-		];
-		expect(nestedArrayType.set(originalRecord, value)).toEqual(expected);
+			const expected: MvRecord = [
+				null,
+				[
+					['123', '456'],
+					['789', '1234'],
+				],
+			];
+			expect(nestedArrayType.set(originalRecord, value)).toEqual(expected);
+		});
+
+		test('should transform based on value schema and set into array when value is a non-array', () => {
+			const originalRecord: MvRecord = [null, null];
+			const value = 1.23;
+
+			const expected: MvRecord = [null, [['123']]];
+			expect(nestedArrayType.set(originalRecord, value)).toEqual(expected);
+		});
+
+		test('should transform based on value schema and set into array when value is an un-nested array', () => {
+			const originalRecord: MvRecord = [null, null];
+			const value = [1.23];
+
+			const expected: MvRecord = [null, [['123']]];
+			expect(nestedArrayType.set(originalRecord, value)).toEqual(expected);
+		});
 	});
 
-	test('should transform based on value schema and set into array when value is a non-array', () => {
-		const originalRecord: MvRecord = [null, null];
-		const value = 1.23;
+	describe('encryption', () => {
+		test('should set into encrypted path when value is an array', () => {
+			const encrypt = jest.fn().mockReturnValue('encrypted');
+			const decrypt = jest.fn().mockReturnValue('decrypted');
 
-		const expected: MvRecord = [null, [['123']]];
-		expect(nestedArrayType.set(originalRecord, value)).toEqual(expected);
-	});
+			const valueSchemaDefinition: SchemaTypeDefinitionString = {
+				type: 'string',
+				path: '2',
+				encrypted: true,
+			};
+			const valueSchemaType = new StringType(valueSchemaDefinition, { encrypt, decrypt });
+			const arrayType = new NestedArrayType(valueSchemaType);
 
-	test('should transform based on value schema and set into array when value is an un-nested array', () => {
-		const originalRecord: MvRecord = [null, null];
-		const value = [1.23];
+			const originalRecord: MvRecord = [null, [[null], [null]]];
+			const value = [['foo'], [null, 'bar']];
 
-		const expected: MvRecord = [null, [['123']]];
-		expect(nestedArrayType.set(originalRecord, value)).toEqual(expected);
+			const expected: MvRecord = [null, [['encrypted'], [null, 'encrypted']]];
+			expect(arrayType.set(originalRecord, value)).toEqual(expected);
+		});
+
+		test('should set into encrypted path when value is noy an array', () => {
+			const encrypt = jest.fn().mockReturnValue('encrypted');
+			const decrypt = jest.fn().mockReturnValue('decrypted');
+
+			const valueSchemaDefinition: SchemaTypeDefinitionString = {
+				type: 'string',
+				path: '2',
+				encrypted: true,
+			};
+			const valueSchemaType = new StringType(valueSchemaDefinition, { encrypt, decrypt });
+			const arrayType = new NestedArrayType(valueSchemaType);
+
+			const originalRecord: MvRecord = [null, null];
+			const value = 'foo';
+
+			const expected: MvRecord = [null, [['encrypted']]];
+			expect(arrayType.set(originalRecord, value)).toEqual(expected);
+		});
 	});
 });
 
