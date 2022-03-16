@@ -94,7 +94,7 @@ interface ServerFeatureSet {
 /** A connection object */
 class Connection {
 	/** File system path of the UniBasic source code */
-	private static readonly unibasicPath = path.resolve(path.join(__dirname, '../', 'unibasic'));
+	private static readonly unibasicPath = path.resolve(path.join(__dirname, 'unibasic'));
 
 	/** Connection status */
 	public status: ConnectionStatus = ConnectionStatus.disconnected;
