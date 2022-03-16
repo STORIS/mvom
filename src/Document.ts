@@ -5,21 +5,11 @@ import type Schema from './Schema';
 import type { GenericObject, MvRecord } from './types';
 
 // #region Types
-export interface DocumentConstructorOptionsData {
-	data: GenericObject;
+export interface DocumentConstructorOptions {
+	data?: GenericObject;
+	record?: MvRecord;
 	isSubdocument?: boolean;
 }
-export interface DocumentConstructorOptionsRecord {
-	record: MvRecord;
-	isSubdocument?: boolean;
-}
-export interface DocumentConstructorOptionsRaw {
-	record: MvRecord;
-}
-export type DocumentConstructorOptions =
-	| DocumentConstructorOptionsData
-	| DocumentConstructorOptionsRecord
-	| DocumentConstructorOptionsRaw;
 
 export interface BuildForeignKeyDefinitionsResult {
 	filename: string;
@@ -53,7 +43,7 @@ class Document {
 	readonly #isSubdocument: boolean;
 
 	public constructor(schema: Schema | null, options: DocumentConstructorOptions) {
-		const { data, isSubdocument, record } = this.#parseConstructorOptions(options);
+		const { data = {}, record, isSubdocument = false } = options;
 
 		this.#schema = schema;
 		this.#record = [];
@@ -173,23 +163,6 @@ class Document {
 			);
 		}
 		return documentErrors;
-	}
-
-	/** Parse constructor options to handle overloads */
-	#parseConstructorOptions(options: DocumentConstructorOptions) {
-		if ('data' in options) {
-			return {
-				record: null,
-				data: options.data,
-				isSubdocument: Boolean(options.isSubdocument),
-			};
-		}
-
-		return {
-			record: options.record,
-			data: {},
-			isSubdocument: Boolean('isSubdocument' in options && options.isSubdocument),
-		};
 	}
 
 	/** Apply schema structure using record to document instance */
