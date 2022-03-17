@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0-alpha.2] - 2022-03-17
+
+### Fixed
+
+- The `findById` and `findByIds` database features were returning empty string when a record was not found. However, the types for the responses were anticipating `null` to be returned in this scenario. The handling code was anticipating `null` and was returning an empty `Model` instance instead of returning `null` as expected. Use of `null` is a better pattern and the database code was adjusted to return `null` instead of empty string. ([#37](https://github.com/STORIS/mvom/pull/37))
+- The `unibasic` path for db server feature deployments was resolving to the incorrect file system location ([#37](https://github.com/STORIS/mvom/pull/37))
+- The `Document` and `Model` constructors were incorrectly only allowing an option of either `record` or `data` to be supplied. It is valid syntax to supply both so the restrictions on the constructor options were relaxed. ([#37](https://github.com/STORIS/mvom/pull/37))
+
 ## [2.0.0-alpha.1] - 2022-03-14
 
 ### Breaking Changes
@@ -321,7 +329,8 @@ We've graduated from Alpha to Beta! Semver has been updated so breaking vs. non-
 
 Initial alpha release of this library! Thanks for using it!
 
-[unreleased]: https://github.com/storis/mvom/compare/2.0.0-alpha.1...HEAD
+[unreleased]: https://github.com/storis/mvom/compare/2.0.0-alpha.2...HEAD
+[2.0.0-alpha.2]: https://github.com/storis/mvom/compare/2.0.0-alpha.1...2.0.0-alpha.2
 [2.0.0-alpha.1]: https://github.com/storis/mvom/compare/2.0.0-alpha.0...2.0.0-alpha.1
 [2.0.0-alpha.0]: https://github.com/storis/mvom/compare/1.0.0...2.0.0-alpha.0
 [1.0.0]: https://github.com/storis/mvom/compare/1.0.0-rc.1...1.0.0
