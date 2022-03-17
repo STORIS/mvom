@@ -61,11 +61,9 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 		#_id: string | null;
 
 		public constructor(options: ModelConstructorOptions<TSchema>) {
-			const { data, record } = options;
+			const { data, record, _id = null, __v = null } = options;
 			const documentConstructorOptions: DocumentConstructorOptions = { data, record };
 			super(Model.schema, documentConstructorOptions);
-
-			const { _id = null, __v = null } = options;
 
 			this.#_id = _id;
 			this.__v = __v;
