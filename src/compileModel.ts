@@ -9,22 +9,12 @@ import type { GenericObject, MvRecord } from './types';
 import { ensureArray } from './utils';
 
 // #region Types
-export interface ModelConstructorOptionsBase {
+export interface ModelConstructorOptions<TSchema extends GenericObject> {
 	_id?: string | null;
 	__v?: string | null;
+	data?: TSchema;
+	record?: MvRecord;
 }
-export interface ModelConstructorOptionsData<TSchema extends GenericObject>
-	extends ModelConstructorOptionsBase {
-	data: TSchema;
-}
-
-export interface ModelConstructorOptionsRecord extends ModelConstructorOptionsBase {
-	record: MvRecord;
-}
-
-export type ModelConstructorOptions<TSchema extends GenericObject> =
-	| ModelConstructorOptionsData<TSchema>
-	| ModelConstructorOptionsRecord;
 
 export type ModelConstructor = ReturnType<typeof compileModel>;
 
@@ -71,12 +61,9 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 		#_id: string | null;
 
 		public constructor(options: ModelConstructorOptions<TSchema>) {
-			const documentConstructorOptions: DocumentConstructorOptions =
-				'record' in options ? { record: options.record } : { data: options.data };
-
+			const { data, record, _id = null, __v = null } = options;
+			const documentConstructorOptions: DocumentConstructorOptions = { data, record };
 			super(Model.schema, documentConstructorOptions);
-
-			const { _id = null, __v = null } = options;
 
 			this.#_id = _id;
 			this.__v = __v;
