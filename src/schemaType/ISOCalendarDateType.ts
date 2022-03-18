@@ -1,4 +1,4 @@
-import moment from 'moment';
+import { addDays, differenceInDays, format, isValid, parse } from 'date-fns';
 import { ISOCalendarDateFormat, mvEpoch } from '../constants';
 import { TransformDataError } from '../errors';
 import BaseDateType from './BaseDateType';
@@ -36,7 +36,7 @@ class ISOCalendarDateType extends BaseDateType {
 			});
 		}
 
-		return moment(mvEpoch).add(castValue, 'days').format(ISOCalendarDateFormat);
+		return format(addDays(mvEpoch, castValue), ISOCalendarDateFormat);
 	}
 
 	/**
@@ -57,7 +57,7 @@ class ISOCalendarDateType extends BaseDateType {
 			});
 		}
 
-		return String(moment(value).diff(moment(mvEpoch), 'days'));
+		return String(differenceInDays(this.parseISOCalendarDate(value), mvEpoch));
 	}
 
 	/** ISOCalendarDateType data type validator */
@@ -70,8 +70,13 @@ class ISOCalendarDateType extends BaseDateType {
 			return false;
 		}
 
-		return moment(value, ISOCalendarDateFormat).isValid();
+		return isValid(this.parseISOCalendarDate(value));
 	};
+
+	/** Parse ISOCalendarDate string into date */
+	private parseISOCalendarDate(value: string) {
+		return parse(value, ISOCalendarDateFormat, new Date());
+	}
 }
 
 export default ISOCalendarDateType;
