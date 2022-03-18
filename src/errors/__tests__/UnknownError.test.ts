@@ -1,17 +1,17 @@
-import TimeoutError from '../TimeoutError';
+import UnknownError from '../UnknownError';
 
 test('should instantiate error with expected instance properties', () => {
-	const error = new TimeoutError();
+	const error = new UnknownError();
 	const expected = {
-		name: 'TimeoutError',
-		message: 'The request to the DB server timed out',
+		name: 'UnknownError',
+		message: 'An unknown error has occurred',
 	};
 	expect(error).toMatchObject(expected);
 });
 
 test('should allow for override of message', () => {
 	const message = 'foo';
-	const error = new TimeoutError({
+	const error = new UnknownError({
 		message,
 	});
 	expect(error.message).toEqual(message);

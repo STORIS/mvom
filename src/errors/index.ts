@@ -8,3 +8,4 @@ export { default as RecordLockedError } from './RecordLockedError';
 export { default as RecordVersionError } from './RecordVersionError';
 export { default as TimeoutError } from './TimeoutError';
 export { default as TransformDataError } from './TransformDataError';
+export { default as UnknownError } from './UnknownError';
