@@ -195,39 +195,6 @@ class Connection {
 		return fs.readFile(filePath, 'utf8');
 	}
 
-	/**
-	 * Handle error from the database server
-	 * @throws {@link ForeignKeyValidationError} A foreign key constraint was violated
-	 * @throws {@link RecordLockedError} A record was locked and could not be updated
-	 * @throws {@link RecordVersionError} A record changed between being read and written and could not be updated
-	 * @throws {@link DbServerError} An error was encountered on the database server
-	 */
-	private static handleDbServerError<TResponse extends DbFeatureResponseTypes>(
-		response: AxiosResponse<TResponse | DbActionResponseError>,
-	): asserts response is AxiosResponse<TResponse> {
-		if (response.data.output == null) {
-			// handle invalid response
-			throw new DbServerError({ message: 'Response from db server was malformed' });
-		}
-
-		if ('errorCode' in response.data.output) {
-			const errorCode = Number(response.data.output.errorCode);
-			switch (errorCode) {
-				case dbErrors.foreignKeyValidation.code:
-					throw new ForeignKeyValidationError({
-						foreignKeyValidationErrors: (response.data.output as DbActionOutputErrorForeignKey)
-							.foreignKeyValidationErrors,
-					});
-				case dbErrors.recordLocked.code:
-					throw new RecordLockedError();
-				case dbErrors.recordVersion.code:
-					throw new RecordVersionError();
-				default:
-					throw new DbServerError({ errorCode: response.data.output.errorCode });
-			}
-		}
-	}
-
 	/** Open a database connection */
 	public async open(): Promise<void> {
 		this.logMessage('info', 'opening connection');
@@ -237,7 +204,7 @@ class Connection {
 		if (this.serverFeatureSet.invalidFeatures.size > 0) {
 			// prevent connection attempt if features are invalid
 			this.logMessage('info', `invalid features found: ${this.serverFeatureSet.invalidFeatures}`);
-			this.logMessage('info', 'connection will not be opened');
+			this.logMessage('error', 'connection will not be opened');
 			this.status = ConnectionStatus.disconnected;
 			throw new InvalidServerFeaturesError({
 				invalidFeatures: Array.from(this.serverFeatureSet.invalidFeatures),
@@ -372,7 +339,11 @@ class Connection {
 		file: string,
 	): ModelConstructor {
 		if (this.status !== ConnectionStatus.connected) {
-			throw new Error('Cannot create model until database connection has been established.');
+			this.logMessage(
+				'error',
+				'Cannot create model until database connection has been established',
+			);
+			throw new Error('Cannot create model until database connection has been established');
 		}
 		return compileModel<TSchema>(this, schema, file);
 	}
@@ -407,7 +378,7 @@ class Connection {
 			return axios.isAxiosError(err) ? this.handleAxiosError(err) : this.handleUnexpectedError(err);
 		}
 
-		Connection.handleDbServerError(response);
+		this.handleDbServerError(response);
 
 		// return the relevant portion from the db server response
 		return response.data.output;
@@ -495,6 +466,47 @@ class Connection {
 			acc.set(featureName, versions);
 			return acc;
 		}, new Map<string, string[]>());
+	}
+
+	/**
+	 * Handle error from the database server
+	 * @throws {@link ForeignKeyValidationError} A foreign key constraint was violated
+	 * @throws {@link RecordLockedError} A record was locked and could not be updated
+	 * @throws {@link RecordVersionError} A record changed between being read and written and could not be updated
+	 * @throws {@link DbServerError} An error was encountered on the database server
+	 */
+	private handleDbServerError<TResponse extends DbFeatureResponseTypes>(
+		response: AxiosResponse<TResponse | DbActionResponseError>,
+	): asserts response is AxiosResponse<TResponse> {
+		if (response.data.output == null) {
+			// handle invalid response
+			this.logMessage('error', 'Response from db server was malformed');
+			throw new DbServerError({ message: 'Response from db server was malformed' });
+		}
+
+		if ('errorCode' in response.data.output) {
+			const errorCode = Number(response.data.output.errorCode);
+			switch (errorCode) {
+				case dbErrors.foreignKeyValidation.code:
+					this.logMessage('debug', 'foreign key violations found when saving record');
+					throw new ForeignKeyValidationError({
+						foreignKeyValidationErrors: (response.data.output as DbActionOutputErrorForeignKey)
+							.foreignKeyValidationErrors,
+					});
+				case dbErrors.recordLocked.code:
+					this.logMessage('debug', 'record locked when saving record');
+					throw new RecordLockedError();
+				case dbErrors.recordVersion.code:
+					this.logMessage('debug', 'record version mismatch found when saving record');
+					throw new RecordVersionError();
+				default:
+					this.logMessage(
+						'error',
+						`error code ${response.data.output.errorCode} occurred in database operation`,
+					);
+					throw new DbServerError({ errorCode: response.data.output.errorCode });
+			}
+		}
 	}
 
 	/** Handle an axios error */
