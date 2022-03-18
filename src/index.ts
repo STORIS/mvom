@@ -11,6 +11,7 @@ export {
 	InvalidServerFeaturesError,
 	RecordLockedError,
 	RecordVersionError,
+	TimeoutError,
 	TransformDataError,
 } from './errors';
 export type {
