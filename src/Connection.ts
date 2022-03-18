@@ -114,8 +114,11 @@ class Connection {
 	/** Connection status */
 	public status: ConnectionStatus = ConnectionStatus.disconnected;
 
+	/** Database account name */
+	private readonly account: string;
+
 	/** Logger instance used for diagnostic logging */
-	public readonly logger: Logger;
+	private readonly logger: Logger;
 
 	/** Object providing the current state of db server features and availability */
 	private serverFeatureSet: ServerFeatureSet = {
@@ -150,6 +153,7 @@ class Connection {
 	) {
 		const { httpAgent, httpsAgent } = options;
 
+		this.account = account;
 		this.logger = logger;
 		this.cacheMaxAge = cacheMaxAge;
 
@@ -163,7 +167,7 @@ class Connection {
 			...(httpsAgent && { httpsAgent }),
 		});
 
-		logger.debug(`creating new connection instance`);
+		this.logMessage('debug', 'creating new connection instance');
 	}
 
 	public static createConnection(
@@ -218,49 +222,16 @@ class Connection {
 		return fs.readFile(filePath, 'utf8');
 	}
 
-	/**
-	 * Handle error from the database server
-	 * @throws {@link ForeignKeyValidationError} A foreign key constraint was violated
-	 * @throws {@link RecordLockedError} A record was locked and could not be updated
-	 * @throws {@link RecordVersionError} A record changed between being read and written and could not be updated
-	 * @throws {@link DbServerError} An error was encountered on the database server
-	 */
-	private static handleDbServerError<TResponse extends DbFeatureResponseTypes>(
-		response: AxiosResponse<TResponse | DbActionResponseError>,
-	): asserts response is AxiosResponse<TResponse> {
-		if (response.data.output == null) {
-			// handle invalid response
-			throw new DbServerError({ message: 'Response from db server was malformed' });
-		}
-
-		if ('errorCode' in response.data.output) {
-			const errorCode = Number(response.data.output.errorCode);
-			switch (errorCode) {
-				case dbErrors.foreignKeyValidation.code:
-					throw new ForeignKeyValidationError({
-						foreignKeyValidationErrors: (response.data.output as DbActionOutputErrorForeignKey)
-							.foreignKeyValidationErrors,
-					});
-				case dbErrors.recordLocked.code:
-					throw new RecordLockedError();
-				case dbErrors.recordVersion.code:
-					throw new RecordVersionError();
-				default:
-					throw new DbServerError({ errorCode: response.data.output.errorCode });
-			}
-		}
-	}
-
 	/** Open a database connection */
 	public async open(): Promise<void> {
-		this.logger.debug(`opening connection`);
+		this.logMessage('info', 'opening connection');
 		this.status = ConnectionStatus.connecting;
 		await this.getFeatureState();
 
 		if (this.serverFeatureSet.invalidFeatures.size > 0) {
 			// prevent connection attempt if features are invalid
-			this.logger.verbose(`invalid features found: ${this.serverFeatureSet.invalidFeatures}`);
-			this.logger.debug('connection will not be opened');
+			this.logMessage('info', `invalid features found: ${this.serverFeatureSet.invalidFeatures}`);
+			this.logMessage('error', 'connection will not be opened');
 			this.status = ConnectionStatus.disconnected;
 			throw new InvalidServerFeaturesError({
 				invalidFeatures: Array.from(this.serverFeatureSet.invalidFeatures),
@@ -269,7 +240,7 @@ class Connection {
 
 		await this.getDbServerInfo(); // establish baseline for database server information
 
-		this.logger.debug(`connection opened`);
+		this.logMessage('info', 'connection opened');
 		this.status = ConnectionStatus.connected;
 	}
 
@@ -279,19 +250,20 @@ class Connection {
 		options: DeployFeaturesOptions = {},
 	): Promise<void> {
 		const { createDir = false } = options;
-		this.logger.debug(`deploying features to directory ${sourceDir}`);
 
 		await this.getFeatureState();
 
 		if (this.serverFeatureSet.invalidFeatures.size === 0) {
 			// there aren't any invalid features to deploy
-			this.logger.debug(`no missing features to deploy`);
+			this.logMessage('debug', 'no missing features to deploy');
 			return;
 		}
 
+		this.logMessage('info', `deploying features to directory ${sourceDir}`);
+
 		if (createDir) {
 			// create deployment directory (if necessary)
-			this.logger.debug(`creating deployment directory ${sourceDir}`);
+			this.logMessage('info', `creating deployment directory ${sourceDir}`);
 			const data: DbActionInputCreateDir = {
 				action: 'createDir',
 				dirName: sourceDir,
@@ -306,7 +278,7 @@ class Connection {
 					return false;
 				}
 
-				this.logger.debug(`deploying the "${feature}" feature to ${sourceDir}`);
+				this.logMessage('info', `deploying the "${feature}" feature to ${sourceDir}`);
 				const data: DbActionInputDeploy = {
 					action: 'deploy',
 					sourceDir,
@@ -328,7 +300,7 @@ class Connection {
 		// deploy any other missing features
 		await Promise.all(
 			Array.from(this.serverFeatureSet.invalidFeatures).map(async (feature) => {
-				this.logger.debug(`deploying ${feature} to ${sourceDir}`);
+				this.logMessage('info', `deploying ${feature} to ${sourceDir}`);
 				const executeDbFeatureOptions = {
 					sourceDir,
 					source: await Connection.getUnibasicSource(feature),
@@ -348,7 +320,7 @@ class Connection {
 		setupOptions: Record<string, never> = {},
 		teardownOptions: Record<string, never> = {},
 	): Promise<DbSubroutineResponseTypesMap[TFeature]['output']> {
-		this.logger.debug(`executing database feature "${feature}"`);
+		this.logMessage('debug', `executing database feature "${feature}"`);
 
 		const featureVersion = this.serverFeatureSet.validFeatures.get(feature);
 		const setupVersion = this.serverFeatureSet.validFeatures.get('setup');
@@ -365,7 +337,7 @@ class Connection {
 			teardownOptions,
 		};
 
-		this.logger.debug(`executing database subroutine ${data.subroutineId}`);
+		this.logMessage('debug', `executing database subroutine ${data.subroutineId}`);
 
 		return this.executeDb(data);
 	}
@@ -394,9 +366,20 @@ class Connection {
 		file: string,
 	): ModelConstructor {
 		if (this.status !== ConnectionStatus.connected) {
-			throw new Error('Cannot create model until database connection has been established.');
+			this.logMessage(
+				'error',
+				'Cannot create model until database connection has been established',
+			);
+			throw new Error('Cannot create model until database connection has been established');
 		}
 		return compileModel<TSchema>(this, schema, file);
+	}
+
+	/** Log a message to logger including account name */
+	public logMessage(level: keyof Logger, message: string): void {
+		const formattedMessage = `[${this.account}] ${message}`;
+
+		this.logger[level](formattedMessage);
 	}
 
 	/** Execute a database function remotely */
@@ -411,7 +394,7 @@ class Connection {
 		data: DbActionSubroutineInputTypes,
 	): Promise<DbSubroutineResponseTypes['output']>;
 	private async executeDb(data: DbActionInputTypes): Promise<DbFeatureResponseTypes['output']> {
-		this.logger.debug(`executing database function with action "${data.action}"`);
+		this.logMessage('debug', `executing database function with action "${data.action}"`);
 
 		let response;
 		try {
@@ -422,7 +405,7 @@ class Connection {
 			return axios.isAxiosError(err) ? this.handleAxiosError(err) : this.handleUnexpectedError(err);
 		}
 
-		Connection.handleDbServerError(response);
+		this.handleDbServerError(response);
 
 		// return the relevant portion from the db server response
 		return response.data.output;
@@ -431,7 +414,7 @@ class Connection {
 	/** Get the db server information (date, time, etc.) */
 	private async getDbServerInfo() {
 		if (Date.now() > this.cacheExpiry) {
-			this.logger.debug('getting db server information');
+			this.logMessage('debug', 'getting db server information');
 			const data = await this.executeDbFeature('getServerInfo', {});
 
 			const { date, time } = data;
@@ -444,7 +427,7 @@ class Connection {
 
 	/** Get the state of database server features */
 	private async getFeatureState() {
-		this.logger.debug(`getting state of database server features`);
+		this.logMessage('debug', 'getting state of database server features');
 		const serverFeatures = await this.getServerFeatures();
 
 		this.serverFeatureSet = Object.entries(serverDependencies).reduce<ServerFeatureSet>(
@@ -499,7 +482,8 @@ class Connection {
 				return acc;
 			}
 
-			this.logger.debug(
+			this.logMessage(
+				'debug',
 				`feature "${featureName}" version "${featureVersion}" found on database server`,
 			);
 
@@ -511,12 +495,55 @@ class Connection {
 		}, new Map<string, string[]>());
 	}
 
+	/**
+	 * Handle error from the database server
+	 * @throws {@link ForeignKeyValidationError} A foreign key constraint was violated
+	 * @throws {@link RecordLockedError} A record was locked and could not be updated
+	 * @throws {@link RecordVersionError} A record changed between being read and written and could not be updated
+	 * @throws {@link DbServerError} An error was encountered on the database server
+	 */
+	private handleDbServerError<TResponse extends DbFeatureResponseTypes>(
+		response: AxiosResponse<TResponse | DbActionResponseError>,
+	): asserts response is AxiosResponse<TResponse> {
+		if (response.data.output == null) {
+			// handle invalid response
+			this.logMessage('error', 'Response from db server was malformed');
+			throw new DbServerError({ message: 'Response from db server was malformed' });
+		}
+
+		if ('errorCode' in response.data.output) {
+			const errorCode = Number(response.data.output.errorCode);
+			switch (errorCode) {
+				case dbErrors.foreignKeyValidation.code:
+					this.logMessage('debug', 'foreign key violations found when saving record');
+					throw new ForeignKeyValidationError({
+						foreignKeyValidationErrors: (response.data.output as DbActionOutputErrorForeignKey)
+							.foreignKeyValidationErrors,
+					});
+				case dbErrors.recordLocked.code:
+					this.logMessage('debug', 'record locked when saving record');
+					throw new RecordLockedError();
+				case dbErrors.recordVersion.code:
+					this.logMessage('debug', 'record version mismatch found when saving record');
+					throw new RecordVersionError();
+				default:
+					this.logMessage(
+						'error',
+						`error code ${response.data.output.errorCode} occurred in database operation`,
+					);
+					throw new DbServerError({ errorCode: response.data.output.errorCode });
+			}
+		}
+	}
+
 	/** Handle an axios error */
 	private handleAxiosError(err: AxiosError): never {
 		if (err.code === 'ETIMEDOUT') {
+			this.logMessage('error', `Timeout error occurred in MVIS request: ${err.message}`);
 			throw new TimeoutError({ message: err.message });
 		}
 
+		this.logMessage('error', `Error occurred in MVIS request: ${err.message}`);
 		throw new MvisError({
 			message: err.message,
 			mvisRequest: err.request,
@@ -527,9 +554,11 @@ class Connection {
 	/** Handle an unknown error */
 	private handleUnexpectedError(err: unknown): never {
 		if (err instanceof Error) {
+			this.logMessage('error', `Error occurred in MVIS request: ${err.message}`);
 			throw new UnknownError({ message: err.message });
 		}
 
+		this.logMessage('error', 'Unknown error occurred in MVIS request');
 		throw new UnknownError();
 	}
 }
