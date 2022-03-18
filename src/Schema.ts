@@ -11,7 +11,7 @@ import {
 	NumberType,
 	StringType,
 } from './schemaType';
-import type { BaseSchemaType, SchemaTypeDefinitionScalar } from './schemaType';
+import type { BaseScalarType, BaseSchemaType, SchemaTypeDefinitionScalar } from './schemaType';
 import type { DecryptFn, EncryptFn } from './types';
 
 // #region Types
@@ -43,19 +43,32 @@ export interface SchemaCompoundForeignKeyDefinition {
 	splitCharacter: string;
 }
 
+export interface TypedDictionary {
+	dictionaryName: string;
+	type: SchemaTypeDefinitionScalar['type'];
+}
+
+export type DictionaryDefinition = string | TypedDictionary;
+
 export interface SchemaConstructorOptions {
-	dictionaries?: Record<string, string>;
+	dictionaries?: Record<string, DictionaryDefinition>;
 	idMatch?: RegExp;
 	idForeignKey?: SchemaForeignKeyDefinition | SchemaCompoundForeignKeyDefinition;
 	encrypt?: EncryptFn;
 	decrypt?: DecryptFn;
 }
+
+interface DictionaryTypeDetail {
+	dictionaryName: string;
+	type: BaseScalarType;
+}
+
 // #endregion
 
 /** Schema constructor */
 class Schema {
 	/** Key/value pairs of schema object path structure and associated multivalue dictionary ids */
-	public dictPaths: Map<string, string>;
+	public dictPaths: Map<string, DictionaryTypeDetail>;
 
 	/** The compiled schema object path structure */
 	public readonly paths: Map<string, BaseSchemaType>;
@@ -85,7 +98,27 @@ class Schema {
 		definition: SchemaDefinition,
 		{ dictionaries = {}, idForeignKey, idMatch, encrypt, decrypt }: SchemaConstructorOptions = {},
 	) {
-		this.dictPaths = new Map(Object.entries(dictionaries).concat([['_id', '@ID']]));
+		this.dictPaths = Object.entries(dictionaries).reduce(
+			(acc, [dictionaryName, dictionaryDefinition]) =>
+				typeof dictionaryDefinition === 'string'
+					? acc.set(dictionaryName, {
+							dictionaryName: dictionaryDefinition,
+							type: this.castScalar({ type: 'string', path: Number.MIN_VALUE }),
+					  })
+					: acc.set(dictionaryName, {
+							dictionaryName: dictionaryDefinition.dictionaryName,
+							type: this.castScalar({ type: dictionaryDefinition.type, path: Number.MIN_VALUE }),
+					  }),
+			new Map<string, DictionaryTypeDetail>([
+				[
+					'_id',
+					{
+						dictionaryName: '@ID',
+						type: this.castScalar({ type: 'string', path: Number.MIN_VALUE }),
+					},
+				],
+			]),
+		);
 
 		this.idForeignKey = idForeignKey;
 		this.idMatch = idMatch;
@@ -166,7 +199,7 @@ class Schema {
 
 			if (this.isScalarDefinition(value)) {
 				// cast this value as a schemaType
-				return acc.set(newKey, this.castScalar(value, newKey));
+				return acc.set(newKey, this.processScalar(value, newKey));
 			}
 
 			if (value instanceof Schema) {
@@ -215,7 +248,7 @@ class Schema {
 				});
 			}
 
-			return new NestedArrayType(this.castScalar(nestedArrayValue, keyPath));
+			return new NestedArrayType(this.processScalar(nestedArrayValue, keyPath));
 		}
 
 		if (arrayValue instanceof Schema) {
@@ -224,7 +257,7 @@ class Schema {
 		}
 
 		if (this.isScalarDefinition(arrayValue)) {
-			return new ArrayType(this.castScalar(arrayValue, keyPath));
+			return new ArrayType(this.processScalar(arrayValue, keyPath));
 		}
 
 		const subdocumentSchema = new Schema(arrayValue, {
@@ -235,29 +268,44 @@ class Schema {
 		return new DocumentArrayType(subdocumentSchema);
 	};
 
+	/** Process a scalar schema definition */
+	private processScalar(castee: SchemaTypeDefinitionScalar, keyPath: string) {
+		const scalarType = this.castScalar(castee);
+
+		// add to mvPath array
+		this.positionPaths.set(keyPath, scalarType.path);
+
+		// update dictPaths
+		if (scalarType.dictionary != null) {
+			this.dictPaths.set(keyPath, { dictionaryName: scalarType.dictionary, type: scalarType });
+		}
+
+		return scalarType;
+	}
+
 	/**
 	 * Cast a scalar definition to a scalar schemaType
 	 * @throws {@link InvalidParameterError} An invalid parameter was passed to the function
 	 */
-	private castScalar = (castee: SchemaTypeDefinitionScalar, keyPath: string) => {
+	private castScalar = (castee: SchemaTypeDefinitionScalar) => {
 		const options = { encrypt: this.encrypt, decrypt: this.decrypt };
 		let schemaTypeValue;
 
 		switch (castee.type) {
 			case 'boolean':
-				schemaTypeValue = new BooleanType(castee);
+				schemaTypeValue = new BooleanType(castee, options);
 				break;
 			case 'ISOCalendarDateTime':
-				schemaTypeValue = new ISOCalendarDateTimeType(castee);
+				schemaTypeValue = new ISOCalendarDateTimeType(castee, options);
 				break;
 			case 'ISOCalendarDate':
 				schemaTypeValue = new ISOCalendarDateType(castee, options);
 				break;
 			case 'ISOTime':
-				schemaTypeValue = new ISOTimeType(castee);
+				schemaTypeValue = new ISOTimeType(castee, options);
 				break;
 			case 'number':
-				schemaTypeValue = new NumberType(castee);
+				schemaTypeValue = new NumberType(castee, options);
 				break;
 			case 'string':
 				schemaTypeValue = new StringType(castee, options);
@@ -270,16 +318,6 @@ class Schema {
 					parameterName: 'castee',
 				});
 			}
-		}
-
-		// add to mvPath array
-		if (schemaTypeValue.path != null) {
-			this.positionPaths.set(keyPath, schemaTypeValue.path);
-		}
-
-		// update dictPaths
-		if (schemaTypeValue.dictionary != null) {
-			this.dictPaths.set(keyPath, schemaTypeValue.dictionary);
 		}
 
 		return schemaTypeValue;
@@ -303,11 +341,14 @@ class Schema {
 
 	/** Merge subdocument schema dictionaries with the parent schema's dictionaries */
 	private mergeSchemaDictionaries = (schema: Schema, keyPath: string) => {
-		this.dictPaths = Array.from(schema.dictPaths).reduce((acc, [subDictPath, subDictId]) => {
-			const dictKey = `${keyPath}.${subDictPath}`;
+		this.dictPaths = Array.from(schema.dictPaths).reduce(
+			(acc, [subDictPath, subDictTypeDetail]) => {
+				const dictKey = `${keyPath}.${subDictPath}`;
 
-			return acc.set(dictKey, subDictId);
-		}, this.dictPaths);
+				return acc.set(dictKey, subDictTypeDetail);
+			},
+			this.dictPaths,
+		);
 	};
 }
 

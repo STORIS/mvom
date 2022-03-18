@@ -158,6 +158,10 @@ abstract class BaseScalarType extends BaseSchemaType {
 	 * @throws {@link InvalidParameterError} Path definition must be a string of integers split by periods
 	 */
 	private normalizeMvPath(path: string | number): number[] {
+		if (path === Number.MIN_VALUE) {
+			return [path];
+		}
+
 		return toPath(path).map((val) => {
 			const numVal = +val;
 			if (!Number.isInteger(numVal) || numVal < 1) {
