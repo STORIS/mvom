@@ -379,7 +379,7 @@ class Connection {
 
 	/** Log a message to logger including account name */
 	public logMessage(level: keyof Logger, message: string): void {
-		const formattedMessage = `${this.account}: ${message}`;
+		const formattedMessage = `[${this.account}] ${message}`;
 
 		this.logger[level](formattedMessage);
 	}
