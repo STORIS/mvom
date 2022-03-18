@@ -149,7 +149,7 @@ class Connection {
 		cacheMaxAge: number,
 		/** Request timeout (ms) */
 		timeout: number,
-		options: ConnectionConstructorOptions = {},
+		options: ConnectionConstructorOptions,
 	) {
 		const { httpAgent, httpsAgent } = options;
 
