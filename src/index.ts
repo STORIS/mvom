@@ -13,6 +13,7 @@ export {
 	RecordVersionError,
 	TimeoutError,
 	TransformDataError,
+	UnknownError,
 } from './errors';
 export type {
 	SchemaTypeDefinitionBoolean,
