@@ -10,7 +10,7 @@ class TestScalarType extends BaseScalarType {
 		super(definition);
 	}
 
-	public override transformToQuery(value: unknown): unknown {
+	public transformToQuery(value: unknown): string {
 		return transformToQueryMock(value);
 	}
 

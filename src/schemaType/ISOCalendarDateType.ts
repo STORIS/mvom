@@ -23,7 +23,7 @@ class ISOCalendarDateType extends BaseScalarType {
 		this.dataTransformer = new ISOCalendarDateDataTransformer();
 	}
 
-	/** transform mv date data to ISO 8601 approved date format (yyyy-mm-dd) */
+	/** Transform mv date data to ISO 8601 approved date format (yyyy-mm-dd) */
 	public transformFromDb(value: null): null;
 	public transformFromDb(value: unknown): string;
 	public transformFromDb(value: unknown): string | null {

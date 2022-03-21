@@ -24,6 +24,10 @@ class TestSubclass extends BaseScalarType {
 	public transformToDb(value: unknown): string | null {
 		return String(value);
 	}
+
+	public transformToQuery(value: unknown): string {
+		return String(value);
+	}
 }
 
 describe('constructor', () => {

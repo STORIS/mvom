@@ -6,5 +6,5 @@ export interface DataTransformer {
 	transformToDb(value: unknown): string | null;
 
 	/** Transform query constants to the format schema */
-	transformToQuery(value: unknown): unknown;
+	transformToQuery(value: unknown): string;
 }
