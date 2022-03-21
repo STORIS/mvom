@@ -18,12 +18,6 @@ export interface BuildForeignKeyDefinitionsResult {
 }
 // #endregion
 
-const DEFAULT_PROPERTY_DESCRIPTOR: PropertyDescriptor = {
-	configurable: false,
-	enumerable: false,
-	writable: false,
-};
-
 /** A document object */
 class Document {
 	[key: string]: unknown;
@@ -51,13 +45,7 @@ class Document {
 		this.transformationErrors = [];
 
 		Object.defineProperties(this, {
-			schema: DEFAULT_PROPERTY_DESCRIPTOR,
-			record: {
-				...DEFAULT_PROPERTY_DESCRIPTOR,
-				writable: true,
-			},
-			isSubdocument: DEFAULT_PROPERTY_DESCRIPTOR,
-			transformationErrors: DEFAULT_PROPERTY_DESCRIPTOR,
+			transformationErrors: { configurable: false, enumerable: false, writable: false },
 		});
 
 		if (record != null) {
