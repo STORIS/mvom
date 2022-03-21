@@ -14,11 +14,11 @@ class ISOCalendarDateTimeDataTransformer implements DataTransformer {
 	/** ISOTimeDataTransformer instance to use for transformations of the time part of the DateTime */
 	private readonly isoTimeTransformer: ISOTimeDataTransformer;
 
-	public constructor(isDbInMs = true) {
-		this.isDbInMs = isDbInMs;
+	public constructor(dbFormat: 's' | 'ms' = 'ms') {
+		this.isDbInMs = dbFormat === 'ms';
 
 		this.isoCalendarDateTransformer = new ISOCalendarDateDataTransformer();
-		this.isoTimeTransformer = new ISOTimeDataTransformer(isDbInMs);
+		this.isoTimeTransformer = new ISOTimeDataTransformer(dbFormat);
 	}
 
 	/** Transform query constants to internal u2 date-time */

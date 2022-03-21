@@ -13,8 +13,8 @@ class ISOTimeDataTransformer implements DataTransformer {
 	/** Database time format is in milliseconds */
 	private readonly isDbInMs: boolean;
 
-	public constructor(isDbInMs = false) {
-		this.isDbInMs = isDbInMs;
+	public constructor(dbFormat: 's' | 'ms' = 's') {
+		this.isDbInMs = dbFormat === 'ms';
 	}
 
 	/** Transform query constants to internal u2 time format */
