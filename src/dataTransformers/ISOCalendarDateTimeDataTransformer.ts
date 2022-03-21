@@ -21,11 +21,6 @@ class ISOCalendarDateTimeDataTransformer implements DataTransformer {
 		this.isoTimeTransformer = new ISOTimeDataTransformer(dbFormat);
 	}
 
-	/** Transform query constants to internal u2 date-time */
-	public transformToQuery(value: unknown): string {
-		return value === '' || value == null ? '' : this.transformToDb(value);
-	}
-
 	/** Transform mv style timestamp data (ddddd.sssss[SSS]) to ISO 8601 approved date/time format (yyyy-mm-ddTHH:mm:ss.SSS) */
 	public transformFromDb(value: null): null;
 	public transformFromDb(value: unknown): string;
@@ -68,6 +63,11 @@ class ISOCalendarDateTimeDataTransformer implements DataTransformer {
 			.padStart(padLength, '0');
 
 		return `${transformedDatePart}.${transformedTimePart}`;
+	}
+
+	/** Transform query constants to internal u2 date-time */
+	public transformToQuery(value: unknown): string {
+		return value === '' || value == null ? '' : this.transformToDb(value);
 	}
 }
 

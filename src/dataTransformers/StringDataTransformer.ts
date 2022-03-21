@@ -8,11 +8,6 @@ class StringDataTransformer implements DataTransformer {
 		this.enum = enumList ?? null;
 	}
 
-	/** Transform query constants to the format schema */
-	public transformToQuery(value: unknown): string {
-		return String(value);
-	}
-
 	/** Transform mv string to js string */
 	public transformFromDb(value: null): null;
 	public transformFromDb(value: unknown): string;
@@ -31,6 +26,11 @@ class StringDataTransformer implements DataTransformer {
 	public transformToDb(value: unknown): string;
 	public transformToDb(value: unknown): string | null {
 		return value == null ? null : String(value);
+	}
+
+	/** Transform query constants to the format schema */
+	public transformToQuery(value: unknown): string {
+		return String(value);
 	}
 }
 

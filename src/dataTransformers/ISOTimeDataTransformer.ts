@@ -17,11 +17,6 @@ class ISOTimeDataTransformer implements DataTransformer {
 		this.isDbInMs = dbFormat === 'ms';
 	}
 
-	/** Transform query constants to internal u2 time format */
-	public transformToQuery(value: unknown): string {
-		return value === '' || value == null ? '' : this.transformToDb(value);
-	}
-
 	/**
 	 * Transform mv style time data to ISO 8601 approved time format (HH:mm:ss.SSS)
 	 * @throws {@link TransformDataError} Database value could not be transformed to external format
@@ -81,6 +76,11 @@ class ISOTimeDataTransformer implements DataTransformer {
 		const [, hour, minute, second, millisecond] = match;
 
 		return this.convertISOTimeToInternalTime(hour, minute, second, millisecond);
+	}
+
+	/** Transform query constants to internal u2 time format */
+	public transformToQuery(value: unknown): string {
+		return value === '' || value == null ? '' : this.transformToDb(value);
 	}
 
 	/** Convert internal time to ISOTime format */

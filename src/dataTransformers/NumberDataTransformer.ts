@@ -17,11 +17,6 @@ class NumberDataTransformer implements DataTransformer {
 		this.dbDecimals = dbDecimals;
 	}
 
-	/** Transform query constants to u2 formatted string number */
-	public transformToQuery(value: unknown): string {
-		return (Number(value) * 10 ** this.dbDecimals).toFixed(0);
-	}
-
 	/**
 	 * Transform mv style internally formatted numeric data (nnnnn) to externally formatted numeric data (nnn.nn)
 	 * @throws {@link TransformDataError} Database value could not be transformed to external format
@@ -48,6 +43,11 @@ class NumberDataTransformer implements DataTransformer {
 	public transformToDb(value: unknown): string;
 	public transformToDb(value: unknown): string | null {
 		return value == null ? null : (Number(value) * 10 ** this.dbDecimals).toFixed(0);
+	}
+
+	/** Transform query constants to u2 formatted string number */
+	public transformToQuery(value: unknown): string {
+		return (Number(value) * 10 ** this.dbDecimals).toFixed(0);
 	}
 }
 

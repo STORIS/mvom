@@ -227,14 +227,14 @@ abstract class BaseScalarType extends BaseSchemaType implements DataTransformer 
 		return typeof value !== 'string' ? value : this.decrypt!(value);
 	}
 
-	/** Transform query constants to the format schema */
-	public abstract transformToQuery(value: unknown): string;
-
 	/** Transform from mv data to externally formatted data */
 	public abstract transformFromDb(value: unknown): unknown;
 
 	/** Transform from externally formatted data to mv data */
 	public abstract transformToDb(value: unknown): string | null;
+
+	/** Transform query constants to the format schema */
+	public abstract transformToQuery(value: unknown): string;
 }
 
 export default BaseScalarType;
