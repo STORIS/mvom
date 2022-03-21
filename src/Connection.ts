@@ -1,5 +1,5 @@
 import path from 'path';
-import type { AxiosResponse } from 'axios';
+import type { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
 import axios from 'axios';
 import { addDays, addMilliseconds, differenceInMilliseconds, format } from 'date-fns';
 import fs from 'fs-extra';
@@ -21,6 +21,8 @@ import {
 	MvisError,
 	RecordLockedError,
 	RecordVersionError,
+	TimeoutError,
+	UnknownError,
 } from './errors';
 import type Schema from './Schema';
 import type {
@@ -114,14 +116,11 @@ class Connection {
 	/** Maximum age of the cache before it must be refreshed */
 	private readonly cacheMaxAge: number;
 
-	/** URI of the full endpoint for communicating with the database */
-	private readonly endpoint: string;
-
 	/** +/- in milliseconds between database server time and local server time */
 	private timeDrift = 0;
 
-	/** Request timeout, in milliseconds */
-	private readonly timeout: number;
+	/** Axios instance */
+	private readonly axiosInstance: AxiosInstance;
 
 	private constructor(
 		/** URI of the MVIS which facilitates access to the mv database */
@@ -137,8 +136,14 @@ class Connection {
 	) {
 		this.logger = logger;
 		this.cacheMaxAge = cacheMaxAge;
-		this.endpoint = `${mvisUri}/${account}/subroutine/${Connection.getServerProgramName('entry')}`;
-		this.timeout = timeout;
+
+		const baseURL = `${mvisUri}/${account}/subroutine/${Connection.getServerProgramName('entry')}`;
+
+		this.axiosInstance = axios.create({
+			baseURL,
+			timeout,
+			transitional: { clarifyTimeoutError: true },
+		});
 
 		logger.debug(`creating new connection instance`);
 	}
@@ -383,17 +388,11 @@ class Connection {
 
 		let response;
 		try {
-			response = await axios.post<DbFeatureResponseTypes | DbActionResponseError>(
-				this.endpoint,
-				{ input: data },
-				{ timeout: this.timeout },
-			);
-		} catch (err) {
-			throw new MvisError({
-				message: err.message,
-				mvisRequest: err.request,
-				mvisResponse: err.response,
+			response = await this.axiosInstance.post<DbFeatureResponseTypes | DbActionResponseError>('', {
+				input: data,
 			});
+		} catch (err) {
+			return axios.isAxiosError(err) ? this.handleAxiosError(err) : this.handleUnexpectedError(err);
 		}
 
 		Connection.handleDbServerError(response);
@@ -486,6 +485,28 @@ class Connection {
 			acc.set(featureName, versions);
 			return acc;
 		}, new Map<string, string[]>());
+	}
+
+	/** Handle an axios error */
+	private handleAxiosError(err: AxiosError): never {
+		if (err.code === 'ETIMEDOUT') {
+			throw new TimeoutError({ message: err.message });
+		}
+
+		throw new MvisError({
+			message: err.message,
+			mvisRequest: err.request,
+			mvisResponse: err.response,
+		});
+	}
+
+	/** Handle an unknown error */
+	private handleUnexpectedError(err: unknown): never {
+		if (err instanceof Error) {
+			throw new UnknownError({ message: err.message });
+		}
+
+		throw new UnknownError();
 	}
 }
 
