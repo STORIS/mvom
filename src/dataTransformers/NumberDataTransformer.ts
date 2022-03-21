@@ -47,7 +47,7 @@ class NumberDataTransformer implements DataTransformer {
 
 	/** Transform query constants to u2 formatted string number */
 	public transformToQuery(value: unknown): string {
-		return (Number(value) * 10 ** this.dbDecimals).toFixed(0);
+		return String(value);
 	}
 }
 
