@@ -102,7 +102,9 @@ describe('transformToDb', () => {
 		};
 		const isoTimeType = new ISOTimeType(definition);
 
-		expect(isoTimeType.transformToDb(null)).toBeNull();
+		const value = null;
+
+		expect(isoTimeType.transformToDb(value)).toBeNull();
 	});
 
 	test('should throw TransformDataError if value is not a string', () => {
@@ -113,8 +115,25 @@ describe('transformToDb', () => {
 		};
 		const isoTimeType = new ISOTimeType(definition);
 
+		const value = 1234;
+
 		expect(() => {
-			isoTimeType.transformToDb(1234);
+			isoTimeType.transformToDb(value);
+		}).toThrow(TransformDataError);
+	});
+
+	test('should throw TransformDataError if value is an improperly formatted string', () => {
+		const definition: SchemaTypeDefinitionISOTime = {
+			type: 'ISOTime',
+			path: '1',
+			dbFormat: 's',
+		};
+		const isoTimeType = new ISOTimeType(definition);
+
+		const value = '13:14:15'; // missing milliseconds
+
+		expect(() => {
+			isoTimeType.transformToDb(value);
 		}).toThrow(TransformDataError);
 	});
 
