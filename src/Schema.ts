@@ -1,3 +1,4 @@
+import { NumberDataTransformer, StringDataTransformer } from './dataTransformers';
 import { InvalidParameterError } from './errors';
 import {
 	ArrayType,
@@ -11,8 +12,8 @@ import {
 	NumberType,
 	StringType,
 } from './schemaType';
-import type { BaseScalarType, BaseSchemaType, SchemaTypeDefinitionScalar } from './schemaType';
-import type { DecryptFn, EncryptFn } from './types';
+import type { BaseSchemaType, SchemaTypeDefinitionScalar } from './schemaType';
+import type { DataTransformer, DecryptFn, EncryptFn } from './types';
 
 // #region Types
 type SchemaTypeDefinition =
@@ -60,9 +61,8 @@ export interface SchemaConstructorOptions {
 
 interface DictionaryTypeDetail {
 	dictionaryName: string;
-	type: BaseScalarType;
+	type: DataTransformer;
 }
-
 // #endregion
 
 /** Schema constructor */
@@ -99,24 +99,33 @@ class Schema {
 		{ dictionaries = {}, idForeignKey, idMatch, encrypt, decrypt }: SchemaConstructorOptions = {},
 	) {
 		this.dictPaths = Object.entries(dictionaries).reduce(
-			(acc, [dictionaryName, dictionaryDefinition]) =>
-				typeof dictionaryDefinition === 'string'
-					? acc.set(dictionaryName, {
-							dictionaryName: dictionaryDefinition,
-							type: this.castScalar({ type: 'string', path: Number.MIN_VALUE }),
-					  })
-					: acc.set(dictionaryName, {
-							dictionaryName: dictionaryDefinition.dictionaryName,
-							type: this.castScalar({ type: dictionaryDefinition.type, path: Number.MIN_VALUE }),
-					  }),
+			(acc, [queryProperty, dictionaryDefinition]) => {
+				if (typeof dictionaryDefinition === 'string') {
+					return acc.set(queryProperty, {
+						dictionaryName: dictionaryDefinition,
+						type: new StringDataTransformer(),
+					});
+				}
+
+				const { type, dictionaryName } = dictionaryDefinition;
+
+				switch (type) {
+					case 'string':
+						return acc.set(queryProperty, {
+							dictionaryName,
+							type: new StringDataTransformer(),
+						});
+					case 'number':
+						return acc.set(queryProperty, {
+							dictionaryName,
+							type: new NumberDataTransformer(),
+						});
+					default:
+						return acc;
+				}
+			},
 			new Map<string, DictionaryTypeDetail>([
-				[
-					'_id',
-					{
-						dictionaryName: '@ID',
-						type: this.castScalar({ type: 'string', path: Number.MIN_VALUE }),
-					},
-				],
+				['_id', { dictionaryName: '@ID', type: new StringDataTransformer() }],
 			]),
 		);
 
