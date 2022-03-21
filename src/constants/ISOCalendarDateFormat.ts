@@ -1,2 +1,2 @@
 /** External format for ISO Calendar Date data */
-export default 'YYYY-MM-DD';
+export default 'yyyy-MM-dd';

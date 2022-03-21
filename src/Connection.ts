@@ -1,8 +1,8 @@
 import path from 'path';
 import type { AxiosResponse } from 'axios';
 import axios from 'axios';
+import { addDays, addMilliseconds, differenceInMilliseconds, format } from 'date-fns';
 import fs from 'fs-extra';
-import moment from 'moment';
 import semver from 'semver';
 import { dependencies as serverDependencies } from './.mvomrc.json';
 import compileModel, { type ModelConstructor } from './compileModel';
@@ -118,7 +118,7 @@ class Connection {
 	private readonly endpoint: string;
 
 	/** +/- in milliseconds between database server time and local server time */
-	private timeDrift?: number;
+	private timeDrift = 0;
 
 	/** Request timeout, in milliseconds */
 	private readonly timeout: number;
@@ -341,19 +341,19 @@ class Connection {
 	/** Get the current ISOCalendarDate from the database */
 	public async getDbDate(): Promise<string> {
 		await this.getDbServerInfo();
-		return moment().add(this.timeDrift).format(ISOCalendarDateFormat);
+		return format(addMilliseconds(Date.now(), this.timeDrift), ISOCalendarDateFormat);
 	}
 
 	/** Get the current ISOCalendarDateTime from the database */
 	public async getDbDateTime(): Promise<string> {
 		await this.getDbServerInfo();
-		return moment().add(this.timeDrift).format(ISOCalendarDateTimeFormat);
+		return format(addMilliseconds(Date.now(), this.timeDrift), ISOCalendarDateTimeFormat);
 	}
 
 	/** Get the current ISOTime from the database */
 	public async getDbTime(): Promise<string> {
 		await this.getDbServerInfo();
-		return moment().add(this.timeDrift).format(ISOTimeFormat);
+		return format(addMilliseconds(Date.now(), this.timeDrift), ISOTimeFormat);
 	}
 
 	/** Define a new model */
@@ -410,7 +410,10 @@ class Connection {
 
 			const { date, time } = data;
 
-			this.timeDrift = moment(mvEpoch).add(date, 'days').add(time, 'ms').diff(moment());
+			this.timeDrift = differenceInMilliseconds(
+				addMilliseconds(addDays(mvEpoch, date), time),
+				Date.now(),
+			);
 
 			this.cacheExpiry = Date.now() + this.cacheMaxAge * 1000;
 		}
