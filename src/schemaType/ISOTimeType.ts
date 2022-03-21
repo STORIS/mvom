@@ -1,4 +1,12 @@
-import moment from 'moment';
+import {
+	hoursToMilliseconds,
+	hoursToSeconds,
+	isValid,
+	minutesToMilliseconds,
+	minutesToSeconds,
+	parse,
+	secondsToMilliseconds,
+} from 'date-fns';
 import { ISOTimeFormat } from '../constants';
 import { TransformDataError } from '../errors';
 import BaseDateType from './BaseDateType';
@@ -34,30 +42,22 @@ class ISOTimeType extends BaseDateType {
 		if (value == null) {
 			return null;
 		}
-		const castValue = Number(value);
-		if (!Number.isInteger(castValue) || castValue < 0) {
+		const internalTime = Number(value);
+		if (!Number.isInteger(internalTime) || internalTime < 0) {
 			throw new TransformDataError({
 				transformClass: this.constructor.name,
-				transformValue: castValue,
+				transformValue: internalTime,
 			});
 		}
 
-		if (castValue > 86400000 || (!this.isDbInMs && castValue > 86400)) {
+		if (internalTime > 86400000 || (!this.isDbInMs && internalTime > 86400)) {
 			throw new TransformDataError({
 				transformClass: this.constructor.name,
-				transformValue: castValue,
+				transformValue: internalTime,
 			});
 		}
 
-		const isoTime = moment().startOf('day');
-
-		if (this.isDbInMs) {
-			isoTime.add(castValue, 'milliseconds');
-		} else {
-			isoTime.add(castValue, 'seconds');
-		}
-
-		return isoTime.format(ISOTimeFormat);
+		return this.convertInternalTimeToISOTime(internalTime);
 	}
 
 	/**
@@ -78,12 +78,19 @@ class ISOTimeType extends BaseDateType {
 			});
 		}
 
-		const startOfDay = moment().startOf('day');
+		const isoTimeRegex = /(\d{2}):(\d{2}):(\d{2})\.(\d{3})/; // hh:mm:ss.SSS
 
-		if (this.isDbInMs) {
-			return String(moment(value, ISOTimeFormat).diff(startOfDay, 'milliseconds'));
+		const match = isoTimeRegex.exec(value);
+		if (match == null) {
+			throw new TransformDataError({
+				transformClass: this.constructor.name,
+				transformValue: value,
+			});
 		}
-		return String(moment(value, ISOTimeFormat).diff(startOfDay, 'seconds'));
+
+		const [, hour, minute, second, millisecond] = match;
+
+		return this.convertISOTimeToInternalTime(hour, minute, second, millisecond);
 	}
 
 	/** ISOTimeType data type validator */
@@ -96,8 +103,54 @@ class ISOTimeType extends BaseDateType {
 			return false;
 		}
 
-		return moment(value, ISOTimeFormat).isValid();
+		return isValid(this.parseISOTime(value));
 	};
+
+	/** Convert internal time to ISOTime format */
+	private convertInternalTimeToISOTime(internalTime: number) {
+		let workingValue = internalTime;
+		const multiplier = this.isDbInMs ? 1000 : 1;
+
+		const hours = String(Math.floor(workingValue / (3600 * multiplier))).padStart(2, '0');
+		workingValue %= 3600 * multiplier;
+
+		const minutes = String(Math.floor(workingValue / (60 * multiplier))).padStart(2, '0');
+		workingValue %= 60 * multiplier;
+
+		const seconds = String(Math.floor(workingValue / multiplier)).padStart(2, '0');
+		workingValue %= multiplier;
+
+		const milliseconds = this.isDbInMs ? String(workingValue).padStart(3, '0') : '000';
+
+		return `${hours}:${minutes}:${seconds}.${milliseconds}`;
+	}
+
+	/** Convert hours, minutes, seconds, and milliseconds to multivalue internal time format */
+	private convertISOTimeToInternalTime(
+		hour: string,
+		minute: string,
+		second: string,
+		millisecond: string,
+	) {
+		let internalTime: number;
+		if (this.isDbInMs) {
+			internalTime =
+				hoursToMilliseconds(Number(hour)) +
+				minutesToMilliseconds(Number(minute)) +
+				secondsToMilliseconds(Number(second)) +
+				Number(millisecond);
+		} else {
+			internalTime =
+				hoursToSeconds(Number(hour)) + minutesToSeconds(Number(minute)) + Number(second);
+		}
+
+		return String(internalTime);
+	}
+
+	/** Parse ISOTime string into date */
+	private parseISOTime(value: string) {
+		return parse(value, ISOTimeFormat, new Date());
+	}
 }
 
 export default ISOTimeType;
