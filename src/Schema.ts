@@ -246,7 +246,7 @@ class Schema {
 
 			if (this.isScalarDefinition(value)) {
 				// cast this value as a schemaType
-				return acc.set(newKey, this.processScalar(value, newKey));
+				return acc.set(newKey, this.castScalar(value, newKey));
 			}
 
 			if (value instanceof Schema) {
@@ -295,7 +295,7 @@ class Schema {
 				});
 			}
 
-			return new NestedArrayType(this.processScalar(nestedArrayValue, keyPath));
+			return new NestedArrayType(this.castScalar(nestedArrayValue, keyPath));
 		}
 
 		if (arrayValue instanceof Schema) {
@@ -304,7 +304,7 @@ class Schema {
 		}
 
 		if (this.isScalarDefinition(arrayValue)) {
-			return new ArrayType(this.processScalar(arrayValue, keyPath));
+			return new ArrayType(this.castScalar(arrayValue, keyPath));
 		}
 
 		const subdocumentSchema = new Schema(arrayValue, {
@@ -315,26 +315,11 @@ class Schema {
 		return new DocumentArrayType(subdocumentSchema);
 	};
 
-	/** Process a scalar schema definition */
-	private processScalar(castee: SchemaTypeDefinitionScalar, keyPath: string) {
-		const scalarType = this.castScalar(castee);
-
-		// add to mvPath array
-		this.positionPaths.set(keyPath, scalarType.path);
-
-		// update dictPaths
-		if (scalarType.dictionary != null) {
-			this.dictPaths.set(keyPath, { dictionary: scalarType.dictionary, type: scalarType });
-		}
-
-		return scalarType;
-	}
-
 	/**
 	 * Cast a scalar definition to a scalar schemaType
 	 * @throws {@link InvalidParameterError} An invalid parameter was passed to the function
 	 */
-	private castScalar = (castee: SchemaTypeDefinitionScalar) => {
+	private castScalar = (castee: SchemaTypeDefinitionScalar, keyPath: string) => {
 		const options = { encrypt: this.encrypt, decrypt: this.decrypt };
 		let schemaTypeValue;
 
@@ -365,6 +350,19 @@ class Schema {
 					parameterName: 'castee',
 				});
 			}
+		}
+
+		// add to mvPath array
+		if (schemaTypeValue.path != null) {
+			this.positionPaths.set(keyPath, schemaTypeValue.path);
+		}
+
+		// update dictPaths
+		if (schemaTypeValue.dictionary != null) {
+			this.dictPaths.set(keyPath, {
+				dictionary: schemaTypeValue.dictionary,
+				type: schemaTypeValue,
+			});
 		}
 
 		return schemaTypeValue;
