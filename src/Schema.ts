@@ -1,4 +1,11 @@
-import { NumberDataTransformer, StringDataTransformer } from './dataTransformers';
+import {
+	BooleanDataTransformer,
+	ISOCalendarDateDataTransformer,
+	ISOCalendarDateTimeDataTransformer,
+	ISOTimeDataTransformer,
+	NumberDataTransformer,
+	StringDataTransformer,
+} from './dataTransformers';
 import { InvalidParameterError } from './errors';
 import {
 	ArrayType,
@@ -12,8 +19,17 @@ import {
 	NumberType,
 	StringType,
 } from './schemaType';
-import type { BaseSchemaType, SchemaTypeDefinitionScalar } from './schemaType';
-import type { DataTransformer, DecryptFn, EncryptFn } from './types';
+import type {
+	BaseSchemaType,
+	SchemaTypeDefinitionBoolean,
+	SchemaTypeDefinitionISOCalendarDate,
+	SchemaTypeDefinitionISOCalendarDateTime,
+	SchemaTypeDefinitionISOTime,
+	SchemaTypeDefinitionNumber,
+	SchemaTypeDefinitionScalar,
+	SchemaTypeDefinitionString,
+} from './schemaType';
+import type { DataTransformer, DecryptFn, EncryptFn, MarkRequired } from './types';
 
 // #region Types
 type SchemaTypeDefinition =
@@ -44,12 +60,20 @@ export interface SchemaCompoundForeignKeyDefinition {
 	splitCharacter: string;
 }
 
-export interface TypedDictionary {
-	dictionaryName: string;
-	type: SchemaTypeDefinitionScalar['type'];
-}
+type PickAndMark<T extends SchemaTypeDefinitionScalar, K extends keyof T = never> = MarkRequired<
+	Pick<T, 'dictionary' | 'type' | K>,
+	'dictionary'
+>;
 
-export type DictionaryDefinition = string | TypedDictionary;
+export type DictionaryTypeDefinition =
+	| PickAndMark<SchemaTypeDefinitionString>
+	| PickAndMark<SchemaTypeDefinitionNumber>
+	| PickAndMark<SchemaTypeDefinitionBoolean>
+	| PickAndMark<SchemaTypeDefinitionISOCalendarDate>
+	| PickAndMark<SchemaTypeDefinitionISOCalendarDateTime, 'dbFormat'>
+	| PickAndMark<SchemaTypeDefinitionISOTime, 'dbFormat'>;
+
+export type DictionaryDefinition = string | DictionaryTypeDefinition;
 
 export interface SchemaConstructorOptions {
 	dictionaries?: Record<string, DictionaryDefinition>;
@@ -60,7 +84,7 @@ export interface SchemaConstructorOptions {
 }
 
 interface DictionaryTypeDetail {
-	dictionaryName: string;
+	dictionary: string;
 	type: DataTransformer;
 }
 // #endregion
@@ -98,37 +122,6 @@ class Schema {
 		definition: SchemaDefinition,
 		{ dictionaries = {}, idForeignKey, idMatch, encrypt, decrypt }: SchemaConstructorOptions = {},
 	) {
-		this.dictPaths = Object.entries(dictionaries).reduce(
-			(acc, [queryProperty, dictionaryDefinition]) => {
-				if (typeof dictionaryDefinition === 'string') {
-					return acc.set(queryProperty, {
-						dictionaryName: dictionaryDefinition,
-						type: new StringDataTransformer(),
-					});
-				}
-
-				const { type, dictionaryName } = dictionaryDefinition;
-
-				switch (type) {
-					case 'string':
-						return acc.set(queryProperty, {
-							dictionaryName,
-							type: new StringDataTransformer(),
-						});
-					case 'number':
-						return acc.set(queryProperty, {
-							dictionaryName,
-							type: new NumberDataTransformer(),
-						});
-					default:
-						return acc;
-				}
-			},
-			new Map<string, DictionaryTypeDetail>([
-				['_id', { dictionaryName: '@ID', type: new StringDataTransformer() }],
-			]),
-		);
-
 		this.idForeignKey = idForeignKey;
 		this.idMatch = idMatch;
 		this.definition = definition;
@@ -137,6 +130,7 @@ class Schema {
 		this.encrypt = encrypt;
 		this.decrypt = decrypt;
 
+		this.dictPaths = this.buildDictionaryPaths(dictionaries);
 		this.paths = this.buildPaths(this.definition);
 	}
 
@@ -180,6 +174,50 @@ class Schema {
 
 		return [...positions];
 	};
+
+	/** Build the dictionary path map for additional dictionaries provided as schema options */
+	private buildDictionaryPaths(
+		dictionaries: Record<string, DictionaryDefinition>,
+	): Map<string, DictionaryTypeDetail> {
+		// Add reference for _id --> @ID by default
+		const dictPaths = new Map<string, DictionaryTypeDetail>([
+			['_id', { dictionary: '@ID', type: new StringDataTransformer() }],
+		]);
+
+		return Object.entries(dictionaries).reduce((acc, [queryProperty, dictionaryDefinition]) => {
+			if (typeof dictionaryDefinition === 'string') {
+				return acc.set(queryProperty, {
+					dictionary: dictionaryDefinition,
+					type: new StringDataTransformer(),
+				});
+			}
+
+			const { type, dictionary } = dictionaryDefinition;
+
+			switch (type) {
+				case 'string':
+					return acc.set(queryProperty, { dictionary, type: new StringDataTransformer() });
+				case 'number':
+					return acc.set(queryProperty, { dictionary, type: new NumberDataTransformer() });
+				case 'boolean':
+					return acc.set(queryProperty, { dictionary, type: new BooleanDataTransformer() });
+				case 'ISOCalendarDate':
+					return acc.set(queryProperty, { dictionary, type: new ISOCalendarDateDataTransformer() });
+				case 'ISOCalendarDateTime':
+					return acc.set(queryProperty, {
+						dictionary,
+						type: new ISOCalendarDateTimeDataTransformer(dictionaryDefinition.dbFormat),
+					});
+				case 'ISOTime':
+					return acc.set(queryProperty, {
+						dictionary,
+						type: new ISOTimeDataTransformer(dictionaryDefinition.dbFormat),
+					});
+				default:
+					return acc;
+			}
+		}, dictPaths);
+	}
 
 	/**
 	 * Get all positionPaths with path as key and position array as value including children schemas
@@ -286,7 +324,7 @@ class Schema {
 
 		// update dictPaths
 		if (scalarType.dictionary != null) {
-			this.dictPaths.set(keyPath, { dictionaryName: scalarType.dictionary, type: scalarType });
+			this.dictPaths.set(keyPath, { dictionary: scalarType.dictionary, type: scalarType });
 		}
 
 		return scalarType;
