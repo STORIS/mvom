@@ -1,5 +1,7 @@
+import type { AxiosError, AxiosInstance } from 'axios';
 import axios from 'axios';
 import fs from 'fs-extra';
+import { mock } from 'jest-mock-extended';
 import { when } from 'jest-when';
 import { minVersion } from 'semver';
 import { dependencies as serverDependencies } from '../.mvomrc.json';
@@ -14,11 +16,14 @@ import {
 	MvisError,
 	RecordLockedError,
 	RecordVersionError,
+	TimeoutError,
+	UnknownError,
 } from '../errors';
 
 jest.mock('axios');
 jest.mock('fs-extra');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
+const mockedAxiosInstance = mock<AxiosInstance>();
 const mockedFs = fs as jest.Mocked<typeof fs>;
 
 const mvisUri = 'mvisUri';
@@ -31,6 +36,10 @@ const fullFeatureOutput = Object.entries(serverDependencies).map(
 		return fullFeatureName;
 	},
 );
+
+beforeEach(() => {
+	mockedAxios.create.mockReturnValue(mockedAxiosInstance);
+});
 
 describe('createConnection', () => {
 	test('should throw InvalidParameterError if cacheMaxAge is not an integer', () => {
@@ -60,7 +69,7 @@ describe('createConnection', () => {
 
 describe('open', () => {
 	test('should throw InvalidServerFeaturesError if any database features are missing', async () => {
-		mockedAxios.post.mockResolvedValue({ data: { output: { features: [] } } });
+		mockedAxiosInstance.post.mockResolvedValue({ data: { output: { features: [] } } });
 
 		const connection = Connection.createConnection(mvisUri, account);
 
@@ -68,7 +77,7 @@ describe('open', () => {
 	});
 
 	test('should ignore database features with improper formatting and throw InvalidServerFeaturesError', async () => {
-		mockedAxios.post.mockResolvedValue({
+		mockedAxiosInstance.post.mockResolvedValue({
 			data: { output: { features: ['mvom_feature@foo.bar.baz', 'mvom_feature@1.1.1.leftover'] } },
 		});
 
@@ -87,7 +96,7 @@ describe('open', () => {
 			},
 		);
 
-		mockedAxios.post.mockResolvedValue({
+		mockedAxiosInstance.post.mockResolvedValue({
 			data: { output: { features: featureOutput } },
 		});
 
@@ -97,11 +106,10 @@ describe('open', () => {
 	});
 
 	test('should open new connection', async () => {
-		when<any, any[]>(mockedAxios.post)
+		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
 				expect.any(String),
 				expect.objectContaining({ input: expect.objectContaining({ action: 'featureList' }) }),
-				expect.anything(),
 			)
 			.mockResolvedValue({ data: { output: { features: fullFeatureOutput } } })
 			.calledWith(
@@ -112,7 +120,6 @@ describe('open', () => {
 						subroutineId: expect.stringContaining('getServerInfo'),
 					}),
 				}),
-				expect.anything(),
 			)
 			.mockResolvedValue({ data: { output: { date: 19791, time: 43200000 } } });
 
@@ -125,11 +132,10 @@ describe('open', () => {
 
 describe('deployFeatures', () => {
 	test('should not deploy any features if feature state is valid', async () => {
-		when<any, any[]>(mockedAxios.post)
+		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
 				expect.any(String),
 				expect.objectContaining({ input: expect.objectContaining({ action: 'featureList' }) }),
-				expect.anything(),
 			)
 			.mockResolvedValue({ data: { output: { features: fullFeatureOutput } } });
 
@@ -138,7 +144,7 @@ describe('deployFeatures', () => {
 		const sourceDir = 'sourceDir';
 		await connection.deployFeatures(sourceDir);
 
-		expect(mockedAxios.post).toHaveBeenCalledTimes(1); // only a single call to get the feature state
+		expect(mockedAxiosInstance.post).toHaveBeenCalledTimes(1); // only a single call to get the feature state
 	});
 
 	test('should create directory and deploy missing features', async () => {
@@ -146,17 +152,15 @@ describe('deployFeatures', () => {
 
 		const featureOutput = fullFeatureOutput.slice(1); // remove the first feature from the list
 
-		when<any, any[]>(mockedAxios.post)
+		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
 				expect.any(String),
 				expect.objectContaining({ input: expect.objectContaining({ action: 'featureList' }) }),
-				expect.anything(),
 			)
 			.mockResolvedValue({ data: { output: { features: featureOutput } } })
 			.calledWith(
 				expect.any(String),
 				expect.objectContaining({ input: expect.objectContaining({ action: 'createDir' }) }),
-				expect.anything(),
 			)
 			.mockResolvedValue({ data: { output: {} } })
 			.calledWith(
@@ -167,7 +171,6 @@ describe('deployFeatures', () => {
 						subroutineId: expect.stringContaining('deploy'),
 					}),
 				}),
-				expect.anything(),
 			)
 			.mockResolvedValue({ data: { output: { deployed: missingFeatureName } } });
 
@@ -179,12 +182,11 @@ describe('deployFeatures', () => {
 
 		const sourceDir = 'sourceDir';
 		await connection.deployFeatures(sourceDir, { createDir: true });
-		expect(mockedAxios.post).toHaveBeenCalledWith(
+		expect(mockedAxiosInstance.post).toHaveBeenCalledWith(
 			expect.any(String),
 			expect.objectContaining({ input: expect.objectContaining({ action: 'createDir' }) }),
-			expect.anything(),
 		);
-		expect(mockedAxios.post).toHaveBeenCalledWith(
+		expect(mockedAxiosInstance.post).toHaveBeenCalledWith(
 			expect.any(String),
 			expect.objectContaining({
 				input: expect.objectContaining({
@@ -197,7 +199,6 @@ describe('deployFeatures', () => {
 					}),
 				}),
 			}),
-			expect.anything(),
 		);
 	});
 
@@ -210,18 +211,16 @@ describe('deployFeatures', () => {
 				return fullFeatureName;
 			});
 
-		when<any, any[]>(mockedAxios.post)
+		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
 				expect.any(String),
 				expect.objectContaining({ input: expect.objectContaining({ action: 'featureList' }) }),
-				expect.anything(),
 			)
 			.mockResolvedValueOnce({ data: { output: { features: featureOutput } } })
 			.mockResolvedValueOnce({ data: { output: { features: fullFeatureOutput } } })
 			.calledWith(
 				expect.any(String),
 				expect.objectContaining({ input: expect.objectContaining({ action: 'deploy' }) }),
-				expect.anything(),
 			)
 			.mockResolvedValue({ data: { output: { deployed: 'setup' } } });
 
@@ -233,7 +232,7 @@ describe('deployFeatures', () => {
 
 		const sourceDir = 'sourceDir';
 		await connection.deployFeatures(sourceDir);
-		expect(mockedAxios.post).toHaveBeenCalledWith(
+		expect(mockedAxiosInstance.post).toHaveBeenCalledWith(
 			expect.any(String),
 			expect.objectContaining({
 				input: expect.objectContaining({
@@ -243,18 +242,16 @@ describe('deployFeatures', () => {
 					programName: expect.stringContaining('setup'),
 				}),
 			}),
-			expect.anything(),
 		);
 	});
 });
 
 describe('executeDbFeature', () => {
 	beforeEach(() => {
-		when<any, any[]>(mockedAxios.post)
+		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
 				expect.any(String),
 				expect.objectContaining({ input: expect.objectContaining({ action: 'featureList' }) }),
-				expect.anything(),
 			)
 			.mockResolvedValue({ data: { output: { features: fullFeatureOutput } } })
 			.calledWith(
@@ -265,7 +262,6 @@ describe('executeDbFeature', () => {
 						subroutineId: expect.stringContaining('getServerInfo'),
 					}),
 				}),
-				expect.anything(),
 			)
 			.mockResolvedValue({
 				data: {
@@ -278,7 +274,7 @@ describe('executeDbFeature', () => {
 	});
 
 	test('should throw DbServerError if response payload has a null output', async () => {
-		when<any, any[]>(mockedAxios.post)
+		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
 				expect.any(String),
 				expect.objectContaining({
@@ -287,7 +283,6 @@ describe('executeDbFeature', () => {
 						subroutineId: expect.stringContaining('save'),
 					}),
 				}),
-				expect.anything(),
 			)
 			.mockResolvedValue({ data: { output: null } });
 
@@ -307,7 +302,7 @@ describe('executeDbFeature', () => {
 	});
 
 	test('should throw ForeignKeyValidationError when that code is returned from db', async () => {
-		when<any, any[]>(mockedAxios.post)
+		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
 				expect.any(String),
 				expect.objectContaining({
@@ -316,7 +311,6 @@ describe('executeDbFeature', () => {
 						subroutineId: expect.stringContaining('save'),
 					}),
 				}),
-				expect.anything(),
 			)
 			.mockResolvedValue({
 				data: {
@@ -340,7 +334,7 @@ describe('executeDbFeature', () => {
 	});
 
 	test('should throw RecordLockedError when that code is returned from db', async () => {
-		when<any, any[]>(mockedAxios.post)
+		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
 				expect.any(String),
 				expect.objectContaining({
@@ -349,7 +343,6 @@ describe('executeDbFeature', () => {
 						subroutineId: expect.stringContaining('save'),
 					}),
 				}),
-				expect.anything(),
 			)
 			.mockResolvedValue({
 				data: {
@@ -373,7 +366,7 @@ describe('executeDbFeature', () => {
 	});
 
 	test('should throw RecordVersionError when that code is returned from db', async () => {
-		when<any, any[]>(mockedAxios.post)
+		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
 				expect.any(String),
 				expect.objectContaining({
@@ -382,7 +375,6 @@ describe('executeDbFeature', () => {
 						subroutineId: expect.stringContaining('save'),
 					}),
 				}),
-				expect.anything(),
 			)
 			.mockResolvedValue({
 				data: {
@@ -406,7 +398,7 @@ describe('executeDbFeature', () => {
 	});
 
 	test('should throw DbServerError for other returned codes', async () => {
-		when<any, any[]>(mockedAxios.post)
+		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
 				expect.any(String),
 				expect.objectContaining({
@@ -415,7 +407,6 @@ describe('executeDbFeature', () => {
 						subroutineId: expect.stringContaining('save'),
 					}),
 				}),
-				expect.anything(),
 			)
 			.mockResolvedValue({
 				data: {
@@ -438,8 +429,10 @@ describe('executeDbFeature', () => {
 		).rejects.toThrow(DbServerError);
 	});
 
-	test('should throw MvisError if axios call rejects', async () => {
-		when<any, any[]>(mockedAxios.post)
+	test('should throw MvisError if axios call rejects with an AxiosError that is not a timeout', async () => {
+		const err = new Error('test error') as AxiosError;
+		mockedAxios.isAxiosError.mockReturnValue(true);
+		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
 				expect.any(String),
 				expect.objectContaining({
@@ -448,9 +441,8 @@ describe('executeDbFeature', () => {
 						subroutineId: expect.stringContaining('save'),
 					}),
 				}),
-				expect.anything(),
 			)
-			.mockRejectedValue(new Error('test error'));
+			.mockRejectedValue(err);
 
 		const connection = Connection.createConnection(mvisUri, account);
 
@@ -466,6 +458,98 @@ describe('executeDbFeature', () => {
 			}),
 		).rejects.toThrow(MvisError);
 	});
+
+	test('should throw TimeoutError if axios call rejects with an AxiosError that is a timeout', async () => {
+		const err = new Error('test error') as AxiosError;
+		err.code = 'ETIMEDOUT';
+		mockedAxios.isAxiosError.mockReturnValue(true);
+		when<any, any[]>(mockedAxiosInstance.post)
+			.calledWith(
+				expect.any(String),
+				expect.objectContaining({
+					input: expect.objectContaining({
+						action: 'subroutine',
+						subroutineId: expect.stringContaining('save'),
+					}),
+				}),
+			)
+			.mockRejectedValue(err);
+
+		const connection = Connection.createConnection(mvisUri, account);
+
+		const filename = 'filename';
+		const id = 'id';
+		await expect(
+			connection.executeDbFeature('save', {
+				filename,
+				id,
+				record: [],
+				clearAttributes: false,
+				foreignKeyDefinitions: [],
+			}),
+		).rejects.toThrow(TimeoutError);
+	});
+
+	test("should throw UnknownError with error's message if axios call rejects with an Error other than an AxiosError", async () => {
+		const errMsg = 'test error';
+		const err = new Error(errMsg);
+		mockedAxios.isAxiosError.mockReturnValue(false);
+		when<any, any[]>(mockedAxiosInstance.post)
+			.calledWith(
+				expect.any(String),
+				expect.objectContaining({
+					input: expect.objectContaining({
+						action: 'subroutine',
+						subroutineId: expect.stringContaining('save'),
+					}),
+				}),
+			)
+			.mockRejectedValue(err);
+
+		const connection = Connection.createConnection(mvisUri, account);
+
+		const filename = 'filename';
+		const id = 'id';
+		await expect(
+			connection.executeDbFeature('save', {
+				filename,
+				id,
+				record: [],
+				clearAttributes: false,
+				foreignKeyDefinitions: [],
+			}),
+		).rejects.toThrow(new UnknownError({ message: errMsg }));
+	});
+
+	test('should throw UnknownError if axios call rejects with something other than an error', async () => {
+		const errMsg = 'test error';
+		mockedAxios.isAxiosError.mockReturnValue(false);
+		when<any, any[]>(mockedAxiosInstance.post)
+			.calledWith(
+				expect.any(String),
+				expect.objectContaining({
+					input: expect.objectContaining({
+						action: 'subroutine',
+						subroutineId: expect.stringContaining('save'),
+					}),
+				}),
+			)
+			.mockRejectedValue(errMsg);
+
+		const connection = Connection.createConnection(mvisUri, account);
+
+		const filename = 'filename';
+		const id = 'id';
+		await expect(
+			connection.executeDbFeature('save', {
+				filename,
+				id,
+				record: [],
+				clearAttributes: false,
+				foreignKeyDefinitions: [],
+			}),
+		).rejects.toThrow(UnknownError);
+	});
 });
 
 describe('getDbDate', () => {
@@ -478,11 +562,10 @@ describe('getDbDate', () => {
 	});
 
 	test('should return current db server date if there is no time drift', async () => {
-		when<any, any[]>(mockedAxios.post)
+		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
 				expect.any(String),
 				expect.objectContaining({ input: expect.objectContaining({ action: 'featureList' }) }),
-				expect.anything(),
 			)
 			.mockResolvedValue({ data: { output: { features: fullFeatureOutput } } })
 			.calledWith(
@@ -493,7 +576,6 @@ describe('getDbDate', () => {
 						subroutineId: expect.stringContaining('getServerInfo'),
 					}),
 				}),
-				expect.anything(),
 			)
 			.mockResolvedValue({
 				data: {
@@ -514,11 +596,10 @@ describe('getDbDate', () => {
 	});
 
 	test('should return current db server date when there is time drift', async () => {
-		when<any, any[]>(mockedAxios.post)
+		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
 				expect.any(String),
 				expect.objectContaining({ input: expect.objectContaining({ action: 'featureList' }) }),
-				expect.anything(),
 			)
 			.mockResolvedValue({ data: { output: { features: fullFeatureOutput } } })
 			.calledWith(
@@ -529,7 +610,6 @@ describe('getDbDate', () => {
 						subroutineId: expect.stringContaining('getServerInfo'),
 					}),
 				}),
-				expect.anything(),
 			)
 			.mockResolvedValue({
 				data: {
@@ -560,11 +640,10 @@ describe('getDbDateTime', () => {
 	});
 
 	test('should return current db server date and time if there is no time drift', async () => {
-		when<any, any[]>(mockedAxios.post)
+		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
 				expect.any(String),
 				expect.objectContaining({ input: expect.objectContaining({ action: 'featureList' }) }),
-				expect.anything(),
 			)
 			.mockResolvedValue({ data: { output: { features: fullFeatureOutput } } })
 			.calledWith(
@@ -575,7 +654,6 @@ describe('getDbDateTime', () => {
 						subroutineId: expect.stringContaining('getServerInfo'),
 					}),
 				}),
-				expect.anything(),
 			)
 			.mockResolvedValue({
 				data: {
@@ -596,11 +674,10 @@ describe('getDbDateTime', () => {
 	});
 
 	test('should return current db server date and time when there is time drift', async () => {
-		when<any, any[]>(mockedAxios.post)
+		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
 				expect.any(String),
 				expect.objectContaining({ input: expect.objectContaining({ action: 'featureList' }) }),
-				expect.anything(),
 			)
 			.mockResolvedValue({ data: { output: { features: fullFeatureOutput } } })
 			.calledWith(
@@ -611,7 +688,6 @@ describe('getDbDateTime', () => {
 						subroutineId: expect.stringContaining('getServerInfo'),
 					}),
 				}),
-				expect.anything(),
 			)
 			.mockResolvedValue({
 				data: {
@@ -642,11 +718,10 @@ describe('getDbTime', () => {
 	});
 
 	test('should return current db server time if there is no time drift', async () => {
-		when<any, any[]>(mockedAxios.post)
+		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
 				expect.any(String),
 				expect.objectContaining({ input: expect.objectContaining({ action: 'featureList' }) }),
-				expect.anything(),
 			)
 			.mockResolvedValue({ data: { output: { features: fullFeatureOutput } } })
 			.calledWith(
@@ -657,7 +732,6 @@ describe('getDbTime', () => {
 						subroutineId: expect.stringContaining('getServerInfo'),
 					}),
 				}),
-				expect.anything(),
 			)
 			.mockResolvedValue({
 				data: {
@@ -678,11 +752,10 @@ describe('getDbTime', () => {
 	});
 
 	test('should return current db server time when there is time drift', async () => {
-		when<any, any[]>(mockedAxios.post)
+		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
 				expect.any(String),
 				expect.objectContaining({ input: expect.objectContaining({ action: 'featureList' }) }),
-				expect.anything(),
 			)
 			.mockResolvedValue({ data: { output: { features: fullFeatureOutput } } })
 			.calledWith(
@@ -693,7 +766,6 @@ describe('getDbTime', () => {
 						subroutineId: expect.stringContaining('getServerInfo'),
 					}),
 				}),
-				expect.anything(),
 			)
 			.mockResolvedValue({
 				data: {
@@ -725,11 +797,10 @@ describe('model', () => {
 	});
 
 	test('should return compiled model', async () => {
-		when<any, any[]>(mockedAxios.post)
+		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
 				expect.any(String),
 				expect.objectContaining({ input: expect.objectContaining({ action: 'featureList' }) }),
-				expect.anything(),
 			)
 			.mockResolvedValue({ data: { output: { features: fullFeatureOutput } } })
 			.calledWith(
@@ -740,7 +811,6 @@ describe('model', () => {
 						subroutineId: expect.stringContaining('getServerInfo'),
 					}),
 				}),
-				expect.anything(),
 			)
 			.mockResolvedValue({ data: { output: { date: 19791, time: 43200000 } } });
 
