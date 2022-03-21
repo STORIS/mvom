@@ -1,3 +1,4 @@
+import { BooleanDataTransformer } from '../dataTransformers';
 import type { ScalarTypeConstructorOptions } from './BaseScalarType';
 import BaseScalarType from './BaseScalarType';
 import type { SchemaTypeDefinitionBase } from './BaseSchemaType';
@@ -8,22 +9,26 @@ export interface SchemaTypeDefinitionBoolean extends SchemaTypeDefinitionBase {
 
 /** Boolean Schema Type */
 class BooleanType extends BaseScalarType {
+	/** Data transformer */
+	private readonly dataTransformer: BooleanDataTransformer;
+
 	public constructor(
 		definition: SchemaTypeDefinitionBoolean,
 		options: ScalarTypeConstructorOptions = {},
 	) {
 		super(definition, options);
+
+		this.dataTransformer = new BooleanDataTransformer();
 	}
 
 	/** Transform mv style data to Boolean */
 	public transformFromDb(value: unknown): boolean {
-		// this logic is intentionally trying to mimic the Boolean rules of the UniBasic interpreter
-		return value != null && value !== '0' && value !== 0;
+		return this.dataTransformer.transformFromDb(value);
 	}
 
 	/** Transform js style data to mv style data */
 	public transformToDb(value: unknown): '1' | '0' {
-		return value ? '1' : '0';
+		return this.dataTransformer.transformToDb(value);
 	}
 
 	/** Transform query constants to u2 formatted Boolean */
@@ -31,15 +36,7 @@ class BooleanType extends BaseScalarType {
 	public override transformToQuery(value: false | 'false' | 'FALSE'): '0';
 	public override transformToQuery(value: unknown): unknown;
 	public override transformToQuery(value: unknown): unknown {
-		if (value === true || value === 'true' || value === 'TRUE') {
-			return '1';
-		}
-
-		if (value === false || value === 'false' || value === 'FALSE') {
-			return '0';
-		}
-
-		return value;
+		return this.dataTransformer.transformToQuery(value);
 	}
 }
 

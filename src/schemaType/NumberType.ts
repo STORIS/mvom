@@ -1,4 +1,4 @@
-import { InvalidParameterError, TransformDataError } from '../errors';
+import { NumberDataTransformer } from '../dataTransformers';
 import type { ScalarTypeConstructorOptions } from './BaseScalarType';
 import BaseScalarType from './BaseScalarType';
 import type { SchemaTypeDefinitionBase } from './BaseSchemaType';
@@ -8,13 +8,10 @@ export interface SchemaTypeDefinitionNumber extends SchemaTypeDefinitionBase {
 	dbDecimals?: number;
 }
 
-/**
- * Number Schema Type
- * @throws {@link InvalidParameterError} An invalid parameter was passed to the function
- */
+/** Number Schema Type */
 class NumberType extends BaseScalarType {
-	/** Number of implied decimals in database storage */
-	private readonly dbDecimals: number;
+	/** Data transformer */
+	private readonly dataTransformer: NumberDataTransformer;
 
 	public constructor(
 		definition: SchemaTypeDefinitionNumber,
@@ -22,41 +19,28 @@ class NumberType extends BaseScalarType {
 	) {
 		super(definition, options);
 
-		const { dbDecimals = 0 } = definition;
+		const { dbDecimals } = definition;
 
-		if (!Number.isInteger(dbDecimals)) {
-			throw new InvalidParameterError({ parameterName: 'definition.dbDecimals' });
-		}
-
-		this.dbDecimals = dbDecimals;
+		this.dataTransformer = new NumberDataTransformer(dbDecimals);
 	}
 
-	/**
-	 * Transform mv style internally formatted numeric data (nnnnn) to externally formatted numeric data (nnn.nn)
-	 * @throws {@link TransformDataError} Database value could not be transformed to external format
-	 */
+	/** Transform mv style internally formatted numeric data (nnnnn) to externally formatted numeric data (nnn.nn) */
 	public transformFromDb(value: null): null;
 	public transformFromDb(value: unknown): number;
 	public transformFromDb(value: unknown): number | null {
-		if (value == null) {
-			return null;
-		}
-		const castValue = Number(value);
-		if (!Number.isFinite(castValue)) {
-			throw new TransformDataError({
-				transformClass: this.constructor.name,
-				transformValue: castValue,
-			});
-		}
-
-		return Number((Math.round(castValue) / 10 ** this.dbDecimals).toFixed(this.dbDecimals));
+		return this.dataTransformer.transformFromDb(value);
 	}
 
 	/** Transform externally formatted numeric data (nnn.nn) to mv style internally formatted numeric data */
 	public transformToDb(value: null): null;
 	public transformToDb(value: unknown): string;
 	public transformToDb(value: unknown): string | null {
-		return value == null ? null : (Number(value) * 10 ** this.dbDecimals).toFixed(0);
+		return this.dataTransformer.transformToDb(value);
+	}
+
+	/** Transform query constants to u2 formatted string number */
+	public transformToQuery(value: unknown): string {
+		return this.dataTransformer.transformToQuery(value);
 	}
 
 	/** NumberType data type validator */

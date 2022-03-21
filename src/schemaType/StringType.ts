@@ -1,3 +1,4 @@
+import { StringDataTransformer } from '../dataTransformers';
 import type { ForeignKeyDbDefinition } from '../ForeignKeyDbTransformer';
 import ForeignKeyDbTransformer from '../ForeignKeyDbTransformer';
 import type { SchemaCompoundForeignKeyDefinition, SchemaForeignKeyDefinition } from '../Schema';
@@ -23,15 +24,22 @@ class StringType extends BaseScalarType {
 	/* Transform schema foreign key definitions to the db format */
 	private readonly foreignKeyDbTransformer: ForeignKeyDbTransformer;
 
+	/** Data transformer */
+	private readonly dataTransformer: StringDataTransformer;
+
 	public constructor(
 		definition: SchemaTypeDefinitionString,
 		options: ScalarTypeConstructorOptions = {},
 	) {
 		super(definition, options);
 
-		this.enum = definition.enum ?? null;
-		this.match = definition.match ?? null;
-		this.foreignKeyDbTransformer = new ForeignKeyDbTransformer(definition.foreignKey);
+		const { enum: definitionEnum, match, foreignKey } = definition;
+
+		this.enum = definitionEnum ?? null;
+		this.match = match ?? null;
+		this.foreignKeyDbTransformer = new ForeignKeyDbTransformer(foreignKey);
+
+		this.dataTransformer = new StringDataTransformer(definitionEnum);
 
 		// add validators for this type
 		this.validators.unshift(this.createMatchValidator());
@@ -42,20 +50,19 @@ class StringType extends BaseScalarType {
 	public transformFromDb(value: null): null;
 	public transformFromDb(value: unknown): string;
 	public transformFromDb(value: unknown): string | null {
-		if (value == null) {
-			// if this property has an enumeration constraint and one of those constraints is empty string then return empty string;
-			// otherwise return null
-			return this.enum != null && this.enum.includes('') ? '' : null;
-		}
-
-		return String(value);
+		return this.dataTransformer.transformFromDb(value);
 	}
 
 	/** Transform js string to mv string */
 	public transformToDb(value: null): null;
 	public transformToDb(value: unknown): string;
 	public transformToDb(value: unknown): string | null {
-		return value == null ? null : String(value);
+		return this.dataTransformer.transformToDb(value);
+	}
+
+	/** Transform query constants to the format schema */
+	public transformToQuery(value: unknown): string {
+		return this.dataTransformer.transformToQuery(value);
 	}
 
 	/** Create an array of foreign key definitions that will be validated before save */

@@ -103,11 +103,6 @@ abstract class BaseScalarType extends BaseSchemaType implements DataTransformer 
 		return this.setIntoMvData(originalRecord, this.transformToDb(value));
 	}
 
-	/** Transform query constants to the format schema */
-	public transformToQuery(value: unknown): unknown {
-		return value;
-	}
-
 	/** Validate the scalar type */
 	public async validate(value: unknown, document: Document): Promise<string[]> {
 		// combining all the validation into one array of promise.all
@@ -231,6 +226,9 @@ abstract class BaseScalarType extends BaseSchemaType implements DataTransformer 
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		return typeof value !== 'string' ? value : this.decrypt!(value);
 	}
+
+	/** Transform query constants to the format schema */
+	public abstract transformToQuery(value: unknown): string;
 
 	/** Transform from mv data to externally formatted data */
 	public abstract transformFromDb(value: unknown): unknown;
