@@ -295,7 +295,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 
 		return dictionaryTypeDetail == null
 			? constant
-			: dictionaryTypeDetail.type.transformToQuery(constant);
+			: dictionaryTypeDetail.dataTransformer.transformToQuery(constant);
 	}
 }
 

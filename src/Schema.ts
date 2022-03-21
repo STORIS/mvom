@@ -85,7 +85,7 @@ export interface SchemaConstructorOptions {
 
 interface DictionaryTypeDetail {
 	dictionary: string;
-	type: DataTransformer;
+	dataTransformer: DataTransformer;
 }
 // #endregion
 
@@ -181,14 +181,14 @@ class Schema {
 	): Map<string, DictionaryTypeDetail> {
 		// Add reference for _id --> @ID by default
 		const dictPaths = new Map<string, DictionaryTypeDetail>([
-			['_id', { dictionary: '@ID', type: new StringDataTransformer() }],
+			['_id', { dictionary: '@ID', dataTransformer: new StringDataTransformer() }],
 		]);
 
 		return Object.entries(dictionaries).reduce((acc, [queryProperty, dictionaryDefinition]) => {
 			if (typeof dictionaryDefinition === 'string') {
 				return acc.set(queryProperty, {
 					dictionary: dictionaryDefinition,
-					type: new StringDataTransformer(),
+					dataTransformer: new StringDataTransformer(),
 				});
 			}
 
@@ -196,22 +196,34 @@ class Schema {
 
 			switch (type) {
 				case 'string':
-					return acc.set(queryProperty, { dictionary, type: new StringDataTransformer() });
+					return acc.set(queryProperty, {
+						dictionary,
+						dataTransformer: new StringDataTransformer(),
+					});
 				case 'number':
-					return acc.set(queryProperty, { dictionary, type: new NumberDataTransformer() });
+					return acc.set(queryProperty, {
+						dictionary,
+						dataTransformer: new NumberDataTransformer(),
+					});
 				case 'boolean':
-					return acc.set(queryProperty, { dictionary, type: new BooleanDataTransformer() });
+					return acc.set(queryProperty, {
+						dictionary,
+						dataTransformer: new BooleanDataTransformer(),
+					});
 				case 'ISOCalendarDate':
-					return acc.set(queryProperty, { dictionary, type: new ISOCalendarDateDataTransformer() });
+					return acc.set(queryProperty, {
+						dictionary,
+						dataTransformer: new ISOCalendarDateDataTransformer(),
+					});
 				case 'ISOCalendarDateTime':
 					return acc.set(queryProperty, {
 						dictionary,
-						type: new ISOCalendarDateTimeDataTransformer(dictionaryDefinition.dbFormat),
+						dataTransformer: new ISOCalendarDateTimeDataTransformer(dictionaryDefinition.dbFormat),
 					});
 				case 'ISOTime':
 					return acc.set(queryProperty, {
 						dictionary,
-						type: new ISOTimeDataTransformer(dictionaryDefinition.dbFormat),
+						dataTransformer: new ISOTimeDataTransformer(dictionaryDefinition.dbFormat),
 					});
 				default:
 					return acc;
@@ -361,7 +373,7 @@ class Schema {
 		if (schemaTypeValue.dictionary != null) {
 			this.dictPaths.set(keyPath, {
 				dictionary: schemaTypeValue.dictionary,
-				type: schemaTypeValue,
+				dataTransformer: schemaTypeValue,
 			});
 		}
 
