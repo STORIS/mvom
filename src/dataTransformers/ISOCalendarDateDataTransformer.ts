@@ -3,6 +3,7 @@ import { ISOCalendarDateFormat, mvEpoch } from '../constants';
 import { TransformDataError } from '../errors';
 import type { DataTransformer } from '../types';
 
+/** ISOCalendarDate Data Transformer */
 class ISOCalendarDateDataTransformer implements DataTransformer {
 	/** Transform query constants to internal u2 date format */
 	public transformToQuery(value: unknown): string {

@@ -8,6 +8,7 @@ import {
 import { TransformDataError } from '../errors';
 import type { DataTransformer } from '../types';
 
+/** ISOTime Data Transformer */
 class ISOTimeDataTransformer implements DataTransformer {
 	/** Database time format is in milliseconds */
 	private readonly isDbInMs: boolean;

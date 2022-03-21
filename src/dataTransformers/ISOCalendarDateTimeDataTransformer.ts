@@ -3,6 +3,7 @@ import type { DataTransformer } from '../types';
 import ISOCalendarDateDataTransformer from './ISOCalendarDateDataTransformer';
 import ISOTimeDataTransformer from './ISOTimeDataTransformer';
 
+/** ISOCalendarDateTime Data Transformer */
 class ISOCalendarDateTimeDataTransformer implements DataTransformer {
 	/** Database time format is in milliseconds */
 	private readonly isDbInMs: boolean;

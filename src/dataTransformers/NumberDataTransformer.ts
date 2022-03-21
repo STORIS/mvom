@@ -1,11 +1,19 @@
-import { TransformDataError } from '../errors';
+import { InvalidParameterError, TransformDataError } from '../errors';
 import type { DataTransformer } from '../types';
 
+/**
+ * Number Data Transformer
+ * @throws {@link InvalidParameterError} An invalid parameter was passed to the function
+ */
 class NumberDataTransformer implements DataTransformer {
 	/** Number of implied decimals in database storage */
 	private readonly dbDecimals: number;
 
 	public constructor(dbDecimals = 0) {
+		if (!Number.isInteger(dbDecimals)) {
+			throw new InvalidParameterError({ parameterName: 'definition.dbDecimals' });
+		}
+
 		this.dbDecimals = dbDecimals;
 	}
 

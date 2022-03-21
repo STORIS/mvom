@@ -1,5 +1,6 @@
 import type { DataTransformer } from '../types';
 
+/** Boolean Data Transformer */
 class BooleanDataTransformer implements DataTransformer {
 	/** Transform query constants to u2 formatted Boolean */
 	public transformToQuery(value: true | 'true' | 'TRUE'): '1';
