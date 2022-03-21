@@ -1,7 +1,14 @@
 import { cloneDeep, set as setIn, toPath } from 'lodash';
 import type Document from '../Document';
 import { InvalidParameterError } from '../errors';
-import type { DecryptFn, EncryptFn, MvAttribute, MvDataType, MvRecord } from '../types';
+import type {
+	DataTransformer,
+	DecryptFn,
+	EncryptFn,
+	MvAttribute,
+	MvDataType,
+	MvRecord,
+} from '../types';
 import BaseSchemaType, { type Validator } from './BaseSchemaType';
 import type { SchemaTypeDefinitionBoolean } from './BooleanType';
 import type { SchemaTypeDefinitionISOCalendarDateTime } from './ISOCalendarDateTimeType';
@@ -30,7 +37,7 @@ type RecordSetType = string | null | (string | null | (string | null)[])[];
 const ISVALID_SYMBOL = Symbol('Is Valid');
 
 /** Abstract Scalar Schema Type */
-abstract class BaseScalarType extends BaseSchemaType {
+abstract class BaseScalarType extends BaseSchemaType implements DataTransformer {
 	/** Data definition which this schema type was constructed from */
 	public readonly definition: SchemaTypeDefinitionScalar;
 
