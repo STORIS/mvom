@@ -167,6 +167,20 @@ describe('validations', () => {
 			);
 		});
 
+		test('should return error message if value is an invalid date', async () => {
+			const definition: SchemaTypeDefinitionISOCalendarDate = {
+				type: 'ISOCalendarDate',
+				path: '2',
+			};
+			const isoCalendarDateType = new ISOCalendarDateType(definition);
+
+			const value = '2022-02-31'; // only 28 days in month
+
+			expect(await isoCalendarDateType.validate(value, documentMock)).toContain(
+				'Property cannot be cast into the defined type',
+			);
+		});
+
 		test('should not return error message if value is a properly formatted string', async () => {
 			const definition: SchemaTypeDefinitionISOCalendarDate = {
 				type: 'ISOCalendarDate',
