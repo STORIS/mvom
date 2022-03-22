@@ -1,19 +1,21 @@
-import { mockDeep } from 'jest-mock-extended';
+import { mock, mockDeep } from 'jest-mock-extended';
 import type { ModelConstructor } from '../compileModel';
 import { InvalidParameterError } from '../errors';
 import type { SortCriteria } from '../Query';
 import Query from '../Query';
-import type { SchemaDefinition } from '../Schema';
-import Schema from '../Schema';
-import { ArrayType, BooleanType, EmbeddedType } from '../schemaType';
-import type { SchemaTypeDefinitionBoolean } from '../schemaType/BooleanType';
-import type { DbSubroutineOutputFind } from '../types';
+import type { DataTransformer, DbSubroutineOutputFind } from '../types';
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const ModelConstructorMock = mockDeep<ModelConstructor>();
 const filename = 'filename';
 // @ts-expect-error: Ignore readonly modifier in test
 ModelConstructorMock.file = filename;
+
+const dataTransformerMock = mock<DataTransformer>();
+
+beforeEach(() => {
+	dataTransformerMock.transformToQuery.mockImplementation((val) => String(val));
+});
 
 describe('constructor', () => {
 	describe('errors', () => {
@@ -28,8 +30,8 @@ describe('constructor', () => {
 
 			// @ts-expect-error: Overriding mock
 			ModelConstructorMock.schema!.dictPaths = new Map([
-				[propertyName1, propertyDictionary1],
-				[propertyName2, propertyDictionary2],
+				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
+				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
 			expect(() => {
@@ -48,8 +50,8 @@ describe('constructor', () => {
 
 			// @ts-expect-error: Overriding mock
 			ModelConstructorMock.schema!.dictPaths = new Map([
-				[propertyName1, propertyDictionary1],
-				[propertyName2, propertyDictionary2],
+				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
+				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
 			expect(() => {
@@ -68,8 +70,8 @@ describe('constructor', () => {
 
 			// @ts-expect-error: Overriding mock
 			ModelConstructorMock.schema!.dictPaths = new Map([
-				[propertyName1, propertyDictionary1],
-				[propertyName2, propertyDictionary2],
+				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
+				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
 			expect(() => {
@@ -88,8 +90,8 @@ describe('constructor', () => {
 
 			// @ts-expect-error: Overriding mock
 			ModelConstructorMock.schema!.dictPaths = new Map([
-				[propertyName1, propertyDictionary1],
-				[propertyName2, propertyDictionary2],
+				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
+				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
 			expect(() => {
@@ -108,8 +110,8 @@ describe('constructor', () => {
 
 			// @ts-expect-error: Overriding mock
 			ModelConstructorMock.schema!.dictPaths = new Map([
-				[propertyName1, propertyDictionary1],
-				[propertyName2, propertyDictionary2],
+				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
+				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
 			expect(() => {
@@ -154,7 +156,9 @@ describe('exec', () => {
 				};
 
 				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([[propertyName, propertyDictionary]]);
+				ModelConstructorMock.schema!.dictPaths = new Map([
+					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
+				]);
 
 				const query = new Query(ModelConstructorMock, selectionCritieria);
 				expect(await query.exec()).toEqual(dbQueryResult);
@@ -177,7 +181,9 @@ describe('exec', () => {
 				};
 
 				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([[propertyName, propertyDictionary]]);
+				ModelConstructorMock.schema!.dictPaths = new Map([
+					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
+				]);
 
 				const query = new Query(ModelConstructorMock, selectionCritieria);
 				expect(await query.exec()).toEqual(dbQueryResult);
@@ -201,7 +207,9 @@ describe('exec', () => {
 				};
 
 				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([[propertyName, propertyDictionary]]);
+				ModelConstructorMock.schema!.dictPaths = new Map([
+					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
+				]);
 
 				const query = new Query(ModelConstructorMock, selectionCritieria);
 
@@ -224,7 +232,9 @@ describe('exec', () => {
 				};
 
 				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([[propertyName, propertyDictionary]]);
+				ModelConstructorMock.schema!.dictPaths = new Map([
+					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
+				]);
 
 				const query = new Query(ModelConstructorMock, selectionCritieria);
 
@@ -247,7 +257,9 @@ describe('exec', () => {
 				};
 
 				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([[propertyName, propertyDictionary]]);
+				ModelConstructorMock.schema!.dictPaths = new Map([
+					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
+				]);
 
 				const query = new Query(ModelConstructorMock, selectionCritieria);
 
@@ -271,7 +283,9 @@ describe('exec', () => {
 				};
 
 				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([[propertyName, propertyDictionary]]);
+				ModelConstructorMock.schema!.dictPaths = new Map([
+					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
+				]);
 
 				const query = new Query(ModelConstructorMock, selectionCritieria);
 				expect(await query.exec()).toEqual(dbQueryResult);
@@ -293,7 +307,9 @@ describe('exec', () => {
 				};
 
 				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([[propertyName, propertyDictionary]]);
+				ModelConstructorMock.schema!.dictPaths = new Map([
+					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
+				]);
 
 				const query = new Query(ModelConstructorMock, selectionCritieria);
 				expect(await query.exec()).toEqual(dbQueryResult);
@@ -315,7 +331,9 @@ describe('exec', () => {
 				};
 
 				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([[propertyName, propertyDictionary]]);
+				ModelConstructorMock.schema!.dictPaths = new Map([
+					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
+				]);
 
 				const query = new Query(ModelConstructorMock, selectionCritieria);
 
@@ -338,7 +356,9 @@ describe('exec', () => {
 				};
 
 				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([[propertyName, propertyDictionary]]);
+				ModelConstructorMock.schema!.dictPaths = new Map([
+					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
+				]);
 
 				const query = new Query(ModelConstructorMock, selectionCritieria);
 
@@ -361,7 +381,9 @@ describe('exec', () => {
 				};
 
 				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([[propertyName, propertyDictionary]]);
+				ModelConstructorMock.schema!.dictPaths = new Map([
+					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
+				]);
 
 				const query = new Query(ModelConstructorMock, selectionCritieria);
 
@@ -384,7 +406,9 @@ describe('exec', () => {
 				};
 
 				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([[propertyName, propertyDictionary]]);
+				ModelConstructorMock.schema!.dictPaths = new Map([
+					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
+				]);
 
 				const query = new Query(ModelConstructorMock, selectionCritieria);
 
@@ -407,7 +431,9 @@ describe('exec', () => {
 				};
 
 				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([[propertyName, propertyDictionary]]);
+				ModelConstructorMock.schema!.dictPaths = new Map([
+					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
+				]);
 
 				const query = new Query(ModelConstructorMock, selectionCritieria);
 
@@ -430,7 +456,9 @@ describe('exec', () => {
 				};
 
 				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([[propertyName, propertyDictionary]]);
+				ModelConstructorMock.schema!.dictPaths = new Map([
+					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
+				]);
 
 				const query = new Query(ModelConstructorMock, selectionCritieria);
 
@@ -453,7 +481,9 @@ describe('exec', () => {
 				};
 
 				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([[propertyName, propertyDictionary]]);
+				ModelConstructorMock.schema!.dictPaths = new Map([
+					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
+				]);
 
 				const query = new Query(ModelConstructorMock, selectionCritieria);
 
@@ -476,7 +506,9 @@ describe('exec', () => {
 				};
 
 				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([[propertyName, propertyDictionary]]);
+				ModelConstructorMock.schema!.dictPaths = new Map([
+					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
+				]);
 
 				const query = new Query(ModelConstructorMock, selectionCritieria);
 
@@ -500,7 +532,9 @@ describe('exec', () => {
 				};
 
 				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([[propertyName, propertyDictionary]]);
+				ModelConstructorMock.schema!.dictPaths = new Map([
+					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
+				]);
 
 				const query = new Query(ModelConstructorMock, selectionCritieria);
 				expect(await query.exec()).toEqual(dbQueryResult);
@@ -519,7 +553,9 @@ describe('exec', () => {
 				const selectionCritieria = {};
 
 				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([[propertyName, propertyDictionary]]);
+				ModelConstructorMock.schema!.dictPaths = new Map([
+					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
+				]);
 
 				const query = new Query(ModelConstructorMock, selectionCritieria);
 				expect(await query.exec()).toEqual(dbQueryResult);
@@ -541,10 +577,13 @@ describe('exec', () => {
 						[propertyName]: { $eq: propertyValue },
 					};
 
-					// @ts-expect-error: Ignore readonly modifier in test
-					ModelConstructorMock.schema!.paths = new Map();
 					// @ts-expect-error: Overriding mock
-					ModelConstructorMock.schema!.dictPaths = new Map([[propertyName, propertyDictionary]]);
+					ModelConstructorMock.schema!.dictPaths = new Map([
+						[
+							propertyName,
+							{ dictionary: propertyDictionary, dataTransformer: dataTransformerMock },
+						],
+					]);
 
 					const query = new Query(ModelConstructorMock, selectionCritieria);
 
@@ -558,7 +597,7 @@ describe('exec', () => {
 					});
 				});
 
-				test('should run transformation for query condition if instance of BaseScalarType', async () => {
+				test('should run transformation for query condition if property is found in dictPaths', async () => {
 					const propertyName = 'property-name';
 					const propertyValue = true;
 					const propertyDictionary = 'property-dictionary';
@@ -566,16 +605,15 @@ describe('exec', () => {
 						[propertyName]: { $eq: propertyValue },
 					};
 
-					const definition: SchemaTypeDefinitionBoolean = {
-						type: 'boolean',
-						path: '1',
-					};
-					const booleanType = new BooleanType(definition);
-
-					// @ts-ignore: Replacing expected mock with actual instance for test
-					ModelConstructorMock.schema!.paths = new Map([[propertyName, booleanType]]);
 					// @ts-expect-error: Overriding mock
-					ModelConstructorMock.schema!.dictPaths = new Map([[propertyName, propertyDictionary]]);
+					ModelConstructorMock.schema!.dictPaths = new Map([
+						[
+							propertyName,
+							{ dictionary: propertyDictionary, dataTransformer: dataTransformerMock },
+						],
+					]);
+
+					dataTransformerMock.transformToQuery.mockReturnValue('1');
 
 					const query = new Query(ModelConstructorMock, selectionCritieria);
 
@@ -587,69 +625,7 @@ describe('exec', () => {
 						projection: [],
 						queryCommand: expectedQuery,
 					});
-				});
-
-				test('should run transformation for query condition if instance of BaseScalarArrayType', async () => {
-					const propertyName = 'property-name';
-					const propertyValue = true;
-					const propertyDictionary = 'property-dictionary';
-					const selectionCritieria = {
-						[propertyName]: { $eq: propertyValue },
-					};
-
-					const definition: SchemaTypeDefinitionBoolean = {
-						type: 'boolean',
-						path: '1',
-					};
-					const booleanType = new BooleanType(definition);
-					const arrayType = new ArrayType(booleanType);
-
-					// @ts-ignore: Replacing expected mock with actual instance for test
-					ModelConstructorMock.schema!.paths = new Map([[propertyName, arrayType]]);
-					// @ts-expect-error: Overriding mock
-					ModelConstructorMock.schema!.dictPaths = new Map([[propertyName, propertyDictionary]]);
-
-					const query = new Query(ModelConstructorMock, selectionCritieria);
-
-					expect(await query.exec()).toEqual(dbQueryResult);
-
-					const expectedQuery = `select ${filename} with ${propertyDictionary} = "1"`;
-					expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith('find', {
-						filename,
-						projection: [],
-						queryCommand: expectedQuery,
-					});
-				});
-
-				test('should not run transformation for query condition if instance is a different type', async () => {
-					const propertyName = 'property-name';
-					const propertyValue = true;
-					const propertyDictionary = 'property-dictionary';
-					const selectionCritieria = {
-						[propertyName]: { $eq: propertyValue },
-					};
-
-					const definition: SchemaDefinition = {
-						prop1: { type: 'string', path: '1' },
-					};
-					const schema = new Schema(definition);
-					const embeddedType = new EmbeddedType(schema);
-
-					// @ts-ignore: Replacing expected mock with actual instance for test
-					ModelConstructorMock.schema!.paths = new Map([[propertyName, embeddedType]]);
-					// @ts-expect-error: Overriding mock
-					ModelConstructorMock.schema!.dictPaths = new Map([[propertyName, propertyDictionary]]);
-
-					const query = new Query(ModelConstructorMock, selectionCritieria);
-
-					expect(await query.exec()).toEqual(dbQueryResult);
-
-					const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue}"`;
-					expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith('find', {
-						filename,
-						projection: [],
-						queryCommand: expectedQuery,
-					});
+					expect(dataTransformerMock.transformToQuery).toHaveBeenCalledWith(propertyValue);
 				});
 			});
 		});
@@ -670,8 +646,8 @@ describe('exec', () => {
 
 			// @ts-expect-error: Overriding mock
 			ModelConstructorMock.schema!.dictPaths = new Map([
-				[propertyName1, propertyDictionary1],
-				[propertyName2, propertyDictionary2],
+				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
+				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
 			const query = new Query(ModelConstructorMock, selectionCritieria);
@@ -705,8 +681,8 @@ describe('exec', () => {
 
 			// @ts-expect-error: Overriding mock
 			ModelConstructorMock.schema!.dictPaths = new Map([
-				[propertyName1, propertyDictionary1],
-				[propertyName2, propertyDictionary2],
+				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
+				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
 			const query = new Query(ModelConstructorMock, selectionCritieria);
@@ -740,8 +716,8 @@ describe('exec', () => {
 
 			// @ts-expect-error: Overriding mock
 			ModelConstructorMock.schema!.dictPaths = new Map([
-				[propertyName1, propertyDictionary1],
-				[propertyName2, propertyDictionary2],
+				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
+				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
 			const query = new Query(ModelConstructorMock, selectionCritieria);
@@ -783,9 +759,9 @@ describe('exec', () => {
 
 			// @ts-expect-error: Overriding mock
 			ModelConstructorMock.schema!.dictPaths = new Map([
-				[propertyName1, propertyDictionary1],
-				[propertyName2, propertyDictionary2],
-				[propertyName3, propertyDictionary3],
+				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
+				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
+				[propertyName3, { dictionary: propertyDictionary3, dataTransformer: dataTransformerMock }],
 			]);
 
 			const query = new Query(ModelConstructorMock, selectionCritieria);
@@ -821,9 +797,9 @@ describe('exec', () => {
 
 			// @ts-expect-error: Overriding mock
 			ModelConstructorMock.schema!.dictPaths = new Map([
-				[propertyName1, propertyDictionary1],
-				[propertyName2, propertyDictionary2],
-				[propertyName3, propertyDictionary3],
+				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
+				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
+				[propertyName3, { dictionary: propertyDictionary3, dataTransformer: dataTransformerMock }],
 			]);
 
 			const query = new Query(ModelConstructorMock, selectionCritieria);
@@ -853,8 +829,8 @@ describe('exec', () => {
 
 			// @ts-expect-error: Overriding mock
 			ModelConstructorMock.schema!.dictPaths = new Map([
-				[propertyName1, propertyDictionary1],
-				[propertyName2, propertyDictionary2],
+				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
+				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
 			const query = new Query(ModelConstructorMock, selectionCritieria);
@@ -884,8 +860,8 @@ describe('exec', () => {
 
 			// @ts-expect-error: Overriding mock
 			ModelConstructorMock.schema!.dictPaths = new Map([
-				[propertyName1, propertyDictionary1],
-				[propertyName2, propertyDictionary2],
+				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
+				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
 			const query = new Query(ModelConstructorMock, selectionCritieria);
@@ -909,7 +885,9 @@ describe('exec', () => {
 			};
 
 			// @ts-expect-error: Overriding mock
-			ModelConstructorMock.schema!.dictPaths = new Map([[propertyName, propertyDictionary]]);
+			ModelConstructorMock.schema!.dictPaths = new Map([
+				[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
+			]);
 
 			const query = new Query(ModelConstructorMock, selectionCritieria);
 
@@ -935,7 +913,9 @@ describe('exec', () => {
 			const sortCriteria: SortCriteria = [];
 
 			// @ts-expect-error: Overriding mock
-			ModelConstructorMock.schema!.dictPaths = new Map([[propertyName, propertyDictionary]]);
+			ModelConstructorMock.schema!.dictPaths = new Map([
+				[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
+			]);
 
 			const query = new Query(ModelConstructorMock, selectionCritieria, { sort: sortCriteria });
 			expect(await query.exec()).toEqual(dbQueryResult);
@@ -958,7 +938,9 @@ describe('exec', () => {
 			const sortCriteria: SortCriteria = [[propertyName, 1]];
 
 			// @ts-expect-error: Overriding mock
-			ModelConstructorMock.schema!.dictPaths = new Map([[propertyName, propertyDictionary]]);
+			ModelConstructorMock.schema!.dictPaths = new Map([
+				[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
+			]);
 
 			const query = new Query(ModelConstructorMock, selectionCritieria, { sort: sortCriteria });
 			expect(await query.exec()).toEqual(dbQueryResult);
@@ -981,7 +963,9 @@ describe('exec', () => {
 			const sortCriteria: SortCriteria = [[propertyName, -1]];
 
 			// @ts-expect-error: Overriding mock
-			ModelConstructorMock.schema!.dictPaths = new Map([[propertyName, propertyDictionary]]);
+			ModelConstructorMock.schema!.dictPaths = new Map([
+				[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
+			]);
 
 			const query = new Query(ModelConstructorMock, selectionCritieria, { sort: sortCriteria });
 			expect(await query.exec()).toEqual(dbQueryResult);
@@ -1011,8 +995,8 @@ describe('exec', () => {
 
 			// @ts-expect-error: Overriding mock
 			ModelConstructorMock.schema!.dictPaths = new Map([
-				[propertyName1, propertyDictionary1],
-				[propertyName2, propertyDictionary2],
+				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
+				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
 			const query = new Query(ModelConstructorMock, selectionCritieria, { sort: sortCriteria });
@@ -1043,8 +1027,8 @@ describe('exec', () => {
 
 			// @ts-expect-error: Overriding mock
 			ModelConstructorMock.schema!.dictPaths = new Map([
-				[propertyName1, propertyDictionary1],
-				[propertyName2, propertyDictionary2],
+				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
+				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
 			const query = new Query(ModelConstructorMock, selectionCritieria, { sort: sortCriteria });
@@ -1075,8 +1059,8 @@ describe('exec', () => {
 
 			// @ts-expect-error: Overriding mock
 			ModelConstructorMock.schema!.dictPaths = new Map([
-				[propertyName1, propertyDictionary1],
-				[propertyName2, propertyDictionary2],
+				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
+				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
 			const query = new Query(ModelConstructorMock, selectionCritieria, { sort: sortCriteria });
@@ -1103,7 +1087,9 @@ describe('exec', () => {
 			const limit = 25;
 
 			// @ts-expect-error: Overriding mock
-			ModelConstructorMock.schema!.dictPaths = new Map([[propertyName, propertyDictionary]]);
+			ModelConstructorMock.schema!.dictPaths = new Map([
+				[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
+			]);
 
 			const query = new Query(ModelConstructorMock, selectionCritieria, { skip, limit });
 			expect(await query.exec()).toEqual(dbQueryResult);
