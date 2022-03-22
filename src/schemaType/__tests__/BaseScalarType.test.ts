@@ -22,6 +22,12 @@ class TestSubclass extends BaseScalarType {
 	}
 }
 
+beforeEach(() => {
+	dataTransformerMock.transformFromDb.mockImplementation((val) => val);
+	dataTransformerMock.transformToDb.mockImplementation((val) => String(val));
+	dataTransformerMock.transformToQuery.mockImplementation((val) => String(val));
+});
+
 describe('constructor', () => {
 	describe('encryption validation', () => {
 		test('should throw InvalidParameterError if encrypted flag is set but encrypt function is not provided', () => {
