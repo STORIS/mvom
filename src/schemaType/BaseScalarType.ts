@@ -59,6 +59,9 @@ abstract class BaseScalarType extends BaseSchemaType implements DataTransformer 
 	/** Decrypt function to call on sensitive data encrypted in the database */
 	private readonly decrypt?: DecryptFn;
 
+	/** Data transformer */
+	protected abstract readonly dataTransformer: DataTransformer;
+
 	protected constructor(
 		definition: SchemaTypeDefinitionScalar,
 		{ encrypt, decrypt }: ScalarTypeConstructorOptions = {},
@@ -101,6 +104,21 @@ abstract class BaseScalarType extends BaseSchemaType implements DataTransformer 
 	/** Transform into multivalue format and set specified value into mv record */
 	public set(originalRecord: MvRecord, value: unknown): MvRecord {
 		return this.setIntoMvData(originalRecord, this.transformToDb(value));
+	}
+
+	/** Transform from mv data to externally formatted data */
+	public transformFromDb(value: unknown): unknown {
+		return this.dataTransformer.transformFromDb(value);
+	}
+
+	/** Transform from externally formatted data to mv data */
+	public transformToDb(value: unknown): string | null {
+		return this.dataTransformer.transformToDb(value);
+	}
+
+	/** Transform query constants to the format schema */
+	public transformToQuery(value: unknown): string {
+		return this.dataTransformer.transformToQuery(value);
 	}
 
 	/** Validate the scalar type */
@@ -222,15 +240,6 @@ abstract class BaseScalarType extends BaseSchemaType implements DataTransformer 
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		return typeof value !== 'string' ? value : this.decrypt!(value);
 	}
-
-	/** Transform from mv data to externally formatted data */
-	public abstract transformFromDb(value: unknown): unknown;
-
-	/** Transform from externally formatted data to mv data */
-	public abstract transformToDb(value: unknown): string | null;
-
-	/** Transform query constants to the format schema */
-	public abstract transformToQuery(value: unknown): string;
 }
 
 export default BaseScalarType;

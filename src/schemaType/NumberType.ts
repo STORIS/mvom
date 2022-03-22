@@ -11,7 +11,7 @@ export interface SchemaTypeDefinitionNumber extends SchemaTypeDefinitionBase {
 /** Number Schema Type */
 class NumberType extends BaseScalarType {
 	/** Data transformer */
-	private readonly dataTransformer: NumberDataTransformer;
+	protected readonly dataTransformer: NumberDataTransformer;
 
 	public constructor(
 		definition: SchemaTypeDefinitionNumber,
@@ -22,25 +22,6 @@ class NumberType extends BaseScalarType {
 		const { dbDecimals } = definition;
 
 		this.dataTransformer = new NumberDataTransformer(dbDecimals);
-	}
-
-	/** Transform mv style internally formatted numeric data (nnnnn) to externally formatted numeric data (nnn.nn) */
-	public transformFromDb(value: null): null;
-	public transformFromDb(value: unknown): number;
-	public transformFromDb(value: unknown): number | null {
-		return this.dataTransformer.transformFromDb(value);
-	}
-
-	/** Transform externally formatted numeric data (nnn.nn) to mv style internally formatted numeric data */
-	public transformToDb(value: null): null;
-	public transformToDb(value: unknown): string;
-	public transformToDb(value: unknown): string | null {
-		return this.dataTransformer.transformToDb(value);
-	}
-
-	/** Transform query constants to u2 formatted string number */
-	public transformToQuery(value: unknown): string {
-		return this.dataTransformer.transformToQuery(value);
 	}
 
 	/** NumberType data type validator */

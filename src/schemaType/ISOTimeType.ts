@@ -13,7 +13,7 @@ export interface SchemaTypeDefinitionISOTime extends SchemaTypeDefinitionBase {
 /** ISOTime Schema Type */
 class ISOTimeType extends BaseScalarType {
 	/** Data transformer */
-	private readonly dataTransformer: ISOTimeDataTransformer;
+	protected readonly dataTransformer: ISOTimeDataTransformer;
 
 	public constructor(
 		definition: SchemaTypeDefinitionISOTime,
@@ -23,25 +23,6 @@ class ISOTimeType extends BaseScalarType {
 		const { dbFormat } = definition;
 
 		this.dataTransformer = new ISOTimeDataTransformer(dbFormat);
-	}
-
-	/** Transform mv style time data to ISO 8601 approved time format (HH:mm:ss.SSS) */
-	public transformFromDb(value: null): null;
-	public transformFromDb(value: unknown): string;
-	public transformFromDb(value: unknown): string | null {
-		return this.dataTransformer.transformFromDb(value);
-	}
-
-	/** Transform ISO 8601 approved time format (HH:mm:ss.SSS) to mv style time data */
-	public transformToDb(value: null): null;
-	public transformToDb(value: unknown): string;
-	public transformToDb(value: unknown): string | null {
-		return this.dataTransformer.transformToDb(value);
-	}
-
-	/** Transform query constants to internal u2 time format */
-	public transformToQuery(value: unknown): string {
-		return this.dataTransformer.transformToQuery(value);
 	}
 
 	/** ISOTimeType data type validator */

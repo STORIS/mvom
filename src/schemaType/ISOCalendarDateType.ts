@@ -12,7 +12,7 @@ export interface SchemaTypeDefinitionISOCalendarDate extends SchemaTypeDefinitio
 /** ISOCalendarDate Schema Type */
 class ISOCalendarDateType extends BaseScalarType {
 	/** Data transformer */
-	private readonly dataTransformer: ISOCalendarDateDataTransformer;
+	protected readonly dataTransformer: ISOCalendarDateDataTransformer;
 
 	public constructor(
 		definition: SchemaTypeDefinitionISOCalendarDate,
@@ -21,25 +21,6 @@ class ISOCalendarDateType extends BaseScalarType {
 		super(definition, options);
 
 		this.dataTransformer = new ISOCalendarDateDataTransformer();
-	}
-
-	/** Transform mv date data to ISO 8601 approved date format (yyyy-mm-dd) */
-	public transformFromDb(value: null): null;
-	public transformFromDb(value: unknown): string;
-	public transformFromDb(value: unknown): string | null {
-		return this.dataTransformer.transformFromDb(value);
-	}
-
-	/** Transform ISO 8601 approved date format (yyyy-mm-dd) to mv date data */
-	public transformToDb(value: null): null;
-	public transformToDb(value: unknown): string;
-	public transformToDb(value: unknown): string | null {
-		return this.dataTransformer.transformToDb(value);
-	}
-
-	/** Transform query constants to internal u2 date format */
-	public transformToQuery(value: unknown): string {
-		return this.dataTransformer.transformToQuery(value);
 	}
 
 	/** ISOCalendarDateType data type validator */

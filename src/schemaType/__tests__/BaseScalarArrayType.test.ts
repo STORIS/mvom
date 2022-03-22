@@ -1,25 +1,18 @@
+import { mock } from 'jest-mock-extended';
 import { BaseScalarType } from '..';
-import type { MvRecord } from '../../types';
+import type { DataTransformer, MvRecord } from '../../types';
 import BaseScalarArrayType from '../BaseScalarArrayType';
 import type { SchemaTypeDefinitionString } from '../StringType';
 
 const transformToQueryMock = jest.fn();
 
+const dataTransformerMock = mock<DataTransformer>();
+
 class TestScalarType extends BaseScalarType {
+	protected dataTransformer = dataTransformerMock;
+
 	public constructor(definition: SchemaTypeDefinitionString) {
 		super(definition);
-	}
-
-	public transformToQuery(value: unknown): string {
-		return transformToQueryMock(value);
-	}
-
-	public transformFromDb(value: unknown): unknown {
-		return value;
-	}
-
-	public transformToDb(value: unknown): string | null {
-		return String(value);
 	}
 }
 

@@ -15,6 +15,9 @@ export interface SchemaTypeDefinitionString extends SchemaTypeDefinitionBase {
 
 /** String Schema Type */
 class StringType extends BaseScalarType {
+	/** Data transformer */
+	protected readonly dataTransformer: StringDataTransformer;
+
 	/** Array of allowed enumerations */
 	private readonly enum: string[] | null;
 
@@ -23,9 +26,6 @@ class StringType extends BaseScalarType {
 
 	/* Transform schema foreign key definitions to the db format */
 	private readonly foreignKeyDbTransformer: ForeignKeyDbTransformer;
-
-	/** Data transformer */
-	private readonly dataTransformer: StringDataTransformer;
 
 	public constructor(
 		definition: SchemaTypeDefinitionString,
@@ -44,25 +44,6 @@ class StringType extends BaseScalarType {
 		// add validators for this type
 		this.validators.unshift(this.createMatchValidator());
 		this.validators.unshift(this.createEnumValidator());
-	}
-
-	/** Transform mv string to js string */
-	public transformFromDb(value: null): null;
-	public transformFromDb(value: unknown): string;
-	public transformFromDb(value: unknown): string | null {
-		return this.dataTransformer.transformFromDb(value);
-	}
-
-	/** Transform js string to mv string */
-	public transformToDb(value: null): null;
-	public transformToDb(value: unknown): string;
-	public transformToDb(value: unknown): string | null {
-		return this.dataTransformer.transformToDb(value);
-	}
-
-	/** Transform query constants to the format schema */
-	public transformToQuery(value: unknown): string {
-		return this.dataTransformer.transformToQuery(value);
 	}
 
 	/** Create an array of foreign key definitions that will be validated before save */
