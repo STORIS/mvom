@@ -38,7 +38,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 	schema: Schema | null,
 	file: string,
 ) => {
-	connection.logger.debug(`creating new model for file ${file}`);
+	connection.logMessage('debug', `creating new model for file ${file}`);
 
 	/** Model constructor */
 	return class Model extends Document {
@@ -80,11 +80,12 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 				},
 			});
 
-			Model.connection.logger.debug(`creating new instance of model for file ${Model.file}`);
+			Model.connection.logMessage('debug', `creating new instance of model for file ${Model.file}`);
 
 			this.transformationErrors.forEach((error) => {
 				// errors occurred while transforming data from multivalue format - log them
-				Model.connection.logger.warn(
+				Model.connection.logMessage(
+					'warn',
 					`error transforming data -- file: ${Model.file}; _id: ${this._id}; class: ${error.transformClass}; value: ${error.transformValue}`,
 				);
 			});
