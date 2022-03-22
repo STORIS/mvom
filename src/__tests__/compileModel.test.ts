@@ -26,7 +26,7 @@ describe('constructor', () => {
 
 		new Model({ record: [null, 'foo'] });
 
-		expect(connectionMock.logger.warn).toHaveBeenCalledTimes(1);
+		expect(connectionMock.logMessage).toHaveBeenCalledWith('warn', expect.anything());
 	});
 });
 
