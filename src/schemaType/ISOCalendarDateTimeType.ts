@@ -35,7 +35,7 @@ class ISOCalendarDateTimeType extends BaseDateType {
 			{ ...definition, type: 'ISOCalendarDate' },
 			options,
 		);
-		this.isoTimeType = new ISOTimeType({ ...definition, type: 'ISOTime' }, options);
+		this.isoTimeType = new ISOTimeType({ ...definition, type: 'ISOTime', dbFormat }, options);
 	}
 
 	/** Transform mv style timestamp data (ddddd.sssss[SSS]) to ISO 8601 approved date/time format (yyyy-mm-ddTHH:mm:ss.SSS) */
