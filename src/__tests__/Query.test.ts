@@ -569,35 +569,7 @@ describe('exec', () => {
 			});
 
 			describe('transformation', () => {
-				test('should not transform query condition if property is not found in schema paths', async () => {
-					const propertyName = 'property-name';
-					const propertyValue = 'property-value';
-					const propertyDictionary = 'property-dictionary';
-					const selectionCritieria = {
-						[propertyName]: { $eq: propertyValue },
-					};
-
-					// @ts-expect-error: Overriding mock
-					ModelConstructorMock.schema!.dictPaths = new Map([
-						[
-							propertyName,
-							{ dictionary: propertyDictionary, dataTransformer: dataTransformerMock },
-						],
-					]);
-
-					const query = new Query(ModelConstructorMock, selectionCritieria);
-
-					expect(await query.exec()).toEqual(dbQueryResult);
-
-					const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue}"`;
-					expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith('find', {
-						filename,
-						projection: [],
-						queryCommand: expectedQuery,
-					});
-				});
-
-				test('should run transformation for query condition if property is found in dictPaths', async () => {
+				test('should run transformation for query condition', async () => {
 					const propertyName = 'property-name';
 					const propertyValue = true;
 					const propertyDictionary = 'property-dictionary';
