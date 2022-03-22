@@ -66,6 +66,17 @@ describe('transformFromDb', () => {
 		const value = '19782.47655789';
 		expect(isoCalendarDateTimeType.transformFromDb(value)).toBe('2022-02-27T13:14:15.789');
 	});
+
+	test('should return a date-time string if time is in milliseconds because dbFormat is not specified', () => {
+		const definition: SchemaTypeDefinitionISOCalendarDateTime = {
+			type: 'ISOCalendarDateTime',
+			path: '1',
+		};
+		const isoCalendarDateTimeType = new ISOCalendarDateTimeType(definition);
+
+		const value = '19782.47655789';
+		expect(isoCalendarDateTimeType.transformFromDb(value)).toBe('2022-02-27T13:14:15.789');
+	});
 });
 
 describe('transformToDb', () => {
@@ -108,6 +119,17 @@ describe('transformToDb', () => {
 			type: 'ISOCalendarDateTime',
 			path: '1',
 			dbFormat: 'ms',
+		};
+		const isoCalendarDateTimeType = new ISOCalendarDateTimeType(definition);
+
+		const value = '2022-02-27T13:14:15.789';
+		expect(isoCalendarDateTimeType.transformToDb(value)).toBe('19782.47655789');
+	});
+
+	test('should return a multivalue date-time string when the format is in milliseconds because dbFormat is not specified', () => {
+		const definition: SchemaTypeDefinitionISOCalendarDateTime = {
+			type: 'ISOCalendarDateTime',
+			path: '1',
 		};
 		const isoCalendarDateTimeType = new ISOCalendarDateTimeType(definition);
 
