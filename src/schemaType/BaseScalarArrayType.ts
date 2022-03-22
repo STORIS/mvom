@@ -16,11 +16,6 @@ abstract class BaseScalarArrayType extends BaseSchemaType {
 	public override cast(value: unknown): unknown[] {
 		return value != null ? ensureArray(value) : [];
 	}
-
-	/** Transform query constants to the format defined by the array's schema */
-	public transformToQuery(value: unknown): unknown {
-		return this.valueSchemaType.transformToQuery(value);
-	}
 }
 
 export default BaseScalarArrayType;
