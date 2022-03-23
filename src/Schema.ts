@@ -143,7 +143,7 @@ class Schema {
 	}
 
 	/** Transform the paths to positions */
-	public transformPathsToDbPositions = (paths: string[]): number[] => {
+	public transformPathsToDbPositions(paths: string[]): number[] {
 		if (paths.length === 0) {
 			return [];
 		}
@@ -173,7 +173,7 @@ class Schema {
 		}, new Set<number>());
 
 		return [...positions];
-	};
+	}
 
 	/** Build the dictionary path map for additional dictionaries provided as schema options */
 	private buildDictionaryPaths(
@@ -248,8 +248,8 @@ class Schema {
 	}
 
 	/** Construct instance member paths */
-	private buildPaths = (definition: SchemaDefinition, prev?: string): Map<string, BaseSchemaType> =>
-		Object.entries(definition).reduce((acc, [key, value]) => {
+	private buildPaths(definition: SchemaDefinition, prev?: string): Map<string, BaseSchemaType> {
+		return Object.entries(definition).reduce((acc, [key, value]) => {
 			// construct flattened keypath
 			const newKey = prev != null ? `${prev}.${key}` : key;
 
@@ -272,15 +272,16 @@ class Schema {
 
 			return new Map([...acc, ...nestedPaths]);
 		}, new Map<string, BaseSchemaType>());
+	}
 
 	/**
 	 * Cast an array to a schemaType
 	 * @throws {@link InvalidParameterError} An invalid parameter was passed to the function
 	 */
-	private castArray = (
+	private castArray(
 		castee: SchemaTypeDefinitionArray,
 		keyPath: string,
-	): ArrayType | NestedArrayType | DocumentArrayType => {
+	): ArrayType | NestedArrayType | DocumentArrayType {
 		if (castee.length !== 1) {
 			// a schema array definition must contain exactly one value of language-type object (which includes arrays)
 			throw new InvalidParameterError({
@@ -326,13 +327,13 @@ class Schema {
 		});
 		this.handleSubDocumentSchemas(subdocumentSchema, keyPath);
 		return new DocumentArrayType(subdocumentSchema);
-	};
+	}
 
 	/**
 	 * Cast a scalar definition to a scalar schemaType
 	 * @throws {@link InvalidParameterError} An invalid parameter was passed to the function
 	 */
-	private castScalar = (castee: SchemaTypeDefinitionScalar, keyPath: string) => {
+	private castScalar(castee: SchemaTypeDefinitionScalar, keyPath: string) {
 		const options = { encrypt: this.encrypt, decrypt: this.decrypt };
 		let schemaTypeValue;
 
@@ -379,13 +380,13 @@ class Schema {
 		}
 
 		return schemaTypeValue;
-	};
+	}
 
 	/** Perform ancillary updates needed when a subdocument is in the Schema definition */
-	private handleSubDocumentSchemas = (schema: Schema, keyPath: string) => {
+	private handleSubDocumentSchemas(schema: Schema, keyPath: string) {
 		this.subdocumentSchemas.set(keyPath, schema);
 		this.mergeSchemaDictionaries(schema, keyPath);
-	};
+	}
 
 	/** Determine if an object matches the structure of a scalar definition */
 	private isScalarDefinition(
@@ -398,7 +399,7 @@ class Schema {
 	}
 
 	/** Merge subdocument schema dictionaries with the parent schema's dictionaries */
-	private mergeSchemaDictionaries = (schema: Schema, keyPath: string) => {
+	private mergeSchemaDictionaries(schema: Schema, keyPath: string) {
 		this.dictPaths = Array.from(schema.dictPaths).reduce(
 			(acc, [subDictPath, subDictTypeDetail]) => {
 				const dictKey = `${keyPath}.${subDictPath}`;
@@ -407,7 +408,7 @@ class Schema {
 			},
 			this.dictPaths,
 		);
-	};
+	}
 }
 
 export default Schema;
