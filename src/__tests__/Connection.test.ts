@@ -1,3 +1,5 @@
+import type http from 'http';
+import type https from 'https';
 import type { AxiosError, AxiosInstance } from 'axios';
 import axios from 'axios';
 import fs from 'fs-extra';
@@ -5,7 +7,7 @@ import { mock } from 'jest-mock-extended';
 import { when } from 'jest-when';
 import { minVersion } from 'semver';
 import { dependencies as serverDependencies } from '../.mvomrc.json';
-import type { CreateConnectionOptions } from '../Connection';
+import type { CreateConnectionOptions, Logger } from '../Connection';
 import Connection, { ConnectionStatus } from '../Connection';
 import { dbErrors } from '../constants';
 import {
@@ -64,6 +66,48 @@ describe('createConnection', () => {
 
 	test('should return a new Connection instance', () => {
 		expect(Connection.createConnection(mvisUri, account)).toBeInstanceOf(Connection);
+	});
+
+	test('should include mvisUri and account in base url', () => {
+		Connection.createConnection(mvisUri, account);
+		expect(mockedAxios.create).toHaveBeenCalledWith(
+			expect.objectContaining({ baseURL: expect.stringContaining(`${mvisUri}/${account}`) }),
+		);
+	});
+
+	test('should allow for override of Logger', () => {
+		const loggerMock = mock<Logger>();
+
+		const connection = Connection.createConnection(mvisUri, account, { logger: loggerMock });
+
+		const message = 'test message';
+		connection.logMessage('silly', message);
+		expect(loggerMock.silly).toHaveBeenCalledWith(`[${account}] ${message}`);
+	});
+
+	test('should allow for override of timeout', () => {
+		const timeout = 1;
+
+		Connection.createConnection(mvisUri, account, { timeout });
+		expect(mockedAxios.create).toHaveBeenCalledWith(expect.objectContaining({ timeout }));
+	});
+
+	test('should allow for override of httpAgent', () => {
+		const httpAgentMock = mock<http.Agent>();
+
+		Connection.createConnection(mvisUri, account, { httpAgent: httpAgentMock });
+		expect(mockedAxios.create).toHaveBeenCalledWith(
+			expect.objectContaining({ httpAgent: httpAgentMock }),
+		);
+	});
+
+	test('should allow for override of httpsAgent', () => {
+		const httpsAgentMock = mock<https.Agent>();
+
+		Connection.createConnection(mvisUri, account, { httpsAgent: httpsAgentMock });
+		expect(mockedAxios.create).toHaveBeenCalledWith(
+			expect.objectContaining({ httpsAgent: httpsAgentMock }),
+		);
 	});
 });
 
