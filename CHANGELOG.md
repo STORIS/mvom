@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0-alpha.3] - 2022-03-22
+
+### Fixed
+
+- Fixed an issue where the time transformations were returning the incorrect value on the date a daylight saving time transition occurred ([#42](https://github.com/STORIS/mvom/pull/42))
+- Fixed an issue where property descriptors were being added unnecessarily to properties on the `Document` class which had been migrated to JS private syntax ([#41](https://github.com/STORIS/mvom/pull/41))
+- Fixed an issue where the default `dbFormat` of `'ms'` for `ISOCalendarDateTime` schema types was not properly passing the defaulted format to the `ISOTime` constructor. This led to incorrect transformations of the time component of the `ISOCalendarDateTime`. ([#50](https://github.com/STORIS/mvom/pull/50))
+
+### Changed
+
+- `moment` was replaced with `date-fns` for use in date and time conversions since `moment` is in maintenance mode. ([#42](https://github.com/STORIS/mvom/pull/42))
+- Logging behaviors were changed to have a different severity level for many log events. Additionally, all logs now include the account name in the emitted log message. ([#44](https://github.com/STORIS/mvom/pull/44))
+
+### Added
+
+- When an MVIS connection times out, a new `TimeoutError` will be emitted instead of `MvisError`. Additionally, a new `UnknownError` could possibly be emitted if the caught error is not of type `AxiosError` (from `axios` library). ([#43](https://github.com/STORIS/mvom/pull/43))
+
 ## [2.0.0-alpha.2] - 2022-03-17
 
 ### Fixed
@@ -329,7 +346,8 @@ We've graduated from Alpha to Beta! Semver has been updated so breaking vs. non-
 
 Initial alpha release of this library! Thanks for using it!
 
-[unreleased]: https://github.com/storis/mvom/compare/2.0.0-alpha.2...HEAD
+[unreleased]: https://github.com/storis/mvom/compare/2.0.0-alpha.3...HEAD
+[2.0.0-alpha.3]: https://github.com/storis/mvom/compare/2.0.0-alpha.2...2.0.0-alpha.3
 [2.0.0-alpha.2]: https://github.com/storis/mvom/compare/2.0.0-alpha.1...2.0.0-alpha.2
 [2.0.0-alpha.1]: https://github.com/storis/mvom/compare/2.0.0-alpha.0...2.0.0-alpha.1
 [2.0.0-alpha.0]: https://github.com/storis/mvom/compare/1.0.0...2.0.0-alpha.0
