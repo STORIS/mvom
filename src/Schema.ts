@@ -225,6 +225,7 @@ class Schema {
 						dictionary,
 						dataTransformer: new ISOTimeDataTransformer(dictionaryDefinition.dbFormat),
 					});
+				/* istanbul ignore next: cannot hit without violating types */
 				default:
 					return acc;
 			}

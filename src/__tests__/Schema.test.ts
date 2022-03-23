@@ -1,4 +1,11 @@
-import { StringDataTransformer } from '../dataTransformers';
+import {
+	BooleanDataTransformer,
+	ISOCalendarDateDataTransformer,
+	ISOCalendarDateTimeDataTransformer,
+	ISOTimeDataTransformer,
+	NumberDataTransformer,
+	StringDataTransformer,
+} from '../dataTransformers';
 import { InvalidParameterError } from '../errors';
 import type { SchemaDefinition } from '../Schema';
 import Schema from '../Schema';
@@ -170,6 +177,89 @@ describe('constructor', () => {
 			expect(schema.dictPaths.get('documentArraySchemaProp.docNumberProp')).toEqual({
 				dictionary: 'docNumberPropDict',
 				dataTransformer: expect.any(NumberType),
+			});
+		});
+	});
+
+	describe('optional dictionaries', () => {
+		test('should add a string dictionary if type information not provided', () => {
+			const schema = new Schema({}, { dictionaries: { testProp: 'testDict' } });
+
+			expect(schema.dictPaths.get('testProp')).toEqual({
+				dictionary: 'testDict',
+				dataTransformer: expect.any(StringDataTransformer),
+			});
+		});
+
+		test('should add a string dictionary if type is string', () => {
+			const schema = new Schema(
+				{},
+				{ dictionaries: { testProp: { dictionary: 'testDict', type: 'string' } } },
+			);
+
+			expect(schema.dictPaths.get('testProp')).toEqual({
+				dictionary: 'testDict',
+				dataTransformer: expect.any(StringDataTransformer),
+			});
+		});
+
+		test('should add a number dictionary if type is number', () => {
+			const schema = new Schema(
+				{},
+				{ dictionaries: { testProp: { dictionary: 'testDict', type: 'number' } } },
+			);
+
+			expect(schema.dictPaths.get('testProp')).toEqual({
+				dictionary: 'testDict',
+				dataTransformer: expect.any(NumberDataTransformer),
+			});
+		});
+
+		test('should add a boolean dictionary if type is boolean', () => {
+			const schema = new Schema(
+				{},
+				{ dictionaries: { testProp: { dictionary: 'testDict', type: 'boolean' } } },
+			);
+
+			expect(schema.dictPaths.get('testProp')).toEqual({
+				dictionary: 'testDict',
+				dataTransformer: expect.any(BooleanDataTransformer),
+			});
+		});
+
+		test('should add a ISOCalendarDate dictionary if type is ISOCalendarDate', () => {
+			const schema = new Schema(
+				{},
+				{ dictionaries: { testProp: { dictionary: 'testDict', type: 'ISOCalendarDate' } } },
+			);
+
+			expect(schema.dictPaths.get('testProp')).toEqual({
+				dictionary: 'testDict',
+				dataTransformer: expect.any(ISOCalendarDateDataTransformer),
+			});
+		});
+
+		test('should add a ISOCalendarDateTime dictionary if type is ISOCalendarDateTime', () => {
+			const schema = new Schema(
+				{},
+				{ dictionaries: { testProp: { dictionary: 'testDict', type: 'ISOCalendarDateTime' } } },
+			);
+
+			expect(schema.dictPaths.get('testProp')).toEqual({
+				dictionary: 'testDict',
+				dataTransformer: expect.any(ISOCalendarDateTimeDataTransformer),
+			});
+		});
+
+		test('should add a ISOTime dictionary if type is ISOTime', () => {
+			const schema = new Schema(
+				{},
+				{ dictionaries: { testProp: { dictionary: 'testDict', type: 'ISOTime' } } },
+			);
+
+			expect(schema.dictPaths.get('testProp')).toEqual({
+				dictionary: 'testDict',
+				dataTransformer: expect.any(ISOTimeDataTransformer),
 			});
 		});
 	});
