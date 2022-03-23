@@ -1,3 +1,5 @@
+import type http from 'http';
+import type https from 'https';
 import path from 'path';
 import type { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
 import axios from 'axios';
@@ -69,6 +71,17 @@ export interface CreateConnectionOptions {
 	 * @defaultValue 0
 	 */
 	timeout?: number;
+	/** Optional http agent */
+	httpAgent?: http.Agent;
+	/** Optional https agent */
+	httpsAgent?: https.Agent;
+}
+
+interface ConnectionConstructorOptions {
+	/** Optional http agent */
+	httpAgent?: http.Agent;
+	/** Optional https agent */
+	httpsAgent?: https.Agent;
 }
 
 export enum ConnectionStatus {
@@ -136,7 +149,10 @@ class Connection {
 		cacheMaxAge: number,
 		/** Request timeout (ms) */
 		timeout: number,
+		options: ConnectionConstructorOptions,
 	) {
+		const { httpAgent, httpsAgent } = options;
+
 		this.account = account;
 		this.logger = logger;
 		this.cacheMaxAge = cacheMaxAge;
@@ -147,6 +163,8 @@ class Connection {
 			baseURL,
 			timeout,
 			transitional: { clarifyTimeoutError: true },
+			...(httpAgent && { httpAgent }),
+			...(httpsAgent && { httpsAgent }),
 		});
 
 		this.logMessage('debug', 'creating new connection instance');
@@ -159,7 +177,13 @@ class Connection {
 		account: string,
 		options: CreateConnectionOptions = {},
 	): Connection {
-		const { logger = dummyLogger, cacheMaxAge = 3600, timeout = 0 } = options;
+		const {
+			logger = dummyLogger,
+			cacheMaxAge = 3600,
+			timeout = 0,
+			httpAgent,
+			httpsAgent,
+		} = options;
 
 		if (!Number.isInteger(cacheMaxAge)) {
 			throw new InvalidParameterError({ parameterName: 'cacheMaxAge' });
@@ -169,7 +193,10 @@ class Connection {
 			throw new InvalidParameterError({ parameterName: 'timeout' });
 		}
 
-		return new Connection(mvisUri, account, logger, cacheMaxAge, timeout);
+		return new Connection(mvisUri, account, logger, cacheMaxAge, timeout, {
+			httpAgent,
+			httpsAgent,
+		});
 	}
 
 	/** Return the packaged specific version number of a feature */
