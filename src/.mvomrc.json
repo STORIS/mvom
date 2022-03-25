@@ -7,7 +7,7 @@
     "findById": "^3.0.0",
     "findByIds": "^3.0.0",
     "readFileContentsById": "^1.0.0",
-    "getServerInfo": "^1.0.0",
+    "getServerInfo": "^1.1.0",
     "save": "^2.0.0",
     "setup": "^1.0.0",
     "teardown": "^1.0.0"

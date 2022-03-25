@@ -38,9 +38,16 @@ export interface DbSubroutineOutputReadFileContentsById {
 export type DbActionResponseSubroutineReadFileContentsById =
 	DbActionResponse<DbSubroutineOutputReadFileContentsById>;
 
+export interface DbServerDelimiters {
+	rm: string;
+	am: string;
+	vm: string;
+	svm: string;
+}
 export interface DbSubroutineOutputGetServerInfo {
 	date: number;
 	time: number;
+	delimiters: DbServerDelimiters;
 }
 export type DbActionResponseSubroutineGetServerInfo =
 	DbActionResponse<DbSubroutineOutputGetServerInfo>;
