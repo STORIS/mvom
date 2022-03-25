@@ -1,10 +1,9 @@
 import type { DbActionResponse } from './DbFeature';
-import type { MvRecord } from '.';
 
 export interface DbDocument {
 	_id: string;
 	__v: string | null;
-	record: MvRecord;
+	record: string;
 }
 
 export interface DbSubroutineOutputDeleteById {
