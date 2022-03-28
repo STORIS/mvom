@@ -6,7 +6,7 @@ import type { QueryConstructorOptions } from './Query';
 import Query, { type Filter } from './Query';
 import type Schema from './Schema';
 import type { GenericObject, MvRecord } from './types';
-import { ensureArray } from './utils';
+import { convertMvStringToArray, ensureArray } from './utils';
 
 // #region Types
 export interface ModelConstructorOptions<TSchema extends GenericObject> {
@@ -201,36 +201,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			_id: string,
 			__v?: string | null,
 		): Model {
-			const {
-				dbServerDelimiters: { am, vm, svm },
-			} = Model.connection;
-
-			const record: MvRecord =
-				recordString === ''
-					? []
-					: recordString.split(am).map((attribute) => {
-							if (attribute === '') {
-								return null;
-							}
-
-							const attributeArray = attribute.split(vm);
-							if (attributeArray.length === 1) {
-								return attribute;
-							}
-
-							return attributeArray.map((value) => {
-								if (value === '') {
-									return null;
-								}
-
-								const valueArray = value.split(svm);
-								if (valueArray.length === 1) {
-									return value;
-								}
-
-								return valueArray.map((subvalue) => (subvalue === '' ? null : subvalue));
-							});
-					  });
+			const record = convertMvStringToArray(recordString, Model.connection.dbServerDelimiters);
 
 			return new Model({ _id, __v, record });
 		}
