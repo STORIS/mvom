@@ -104,7 +104,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 			const { _id, __v, record } = data.result;
 
-			return Model.createModelFromRecordString(record, _id, __v);
+			return Model.createFromRecordString(record, _id, __v);
 		}
 
 		/** Find documents via query */
@@ -117,7 +117,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 			return documents.map((document) => {
 				const { _id, __v, record } = document;
-				return Model.createModelFromRecordString(record, _id, __v);
+				return Model.createFromRecordString(record, _id, __v);
 			});
 		}
 
@@ -131,7 +131,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 			const models = documents.map((document) => {
 				const { _id, __v, record } = document;
-				return Model.createModelFromRecordString(record, _id, __v);
+				return Model.createFromRecordString(record, _id, __v);
 			});
 
 			return {
@@ -158,7 +158,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 			const { _id, __v, record } = data.result;
 
-			return Model.createModelFromRecordString(record, _id, __v);
+			return Model.createFromRecordString(record, _id, __v);
 		}
 
 		/** Find multiple documents by their ids */
@@ -181,7 +181,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 				}
 
 				const { _id, __v, record } = dbResultItem;
-				return Model.createModelFromRecordString(record, _id, __v);
+				return Model.createFromRecordString(record, _id, __v);
 			});
 		}
 
@@ -196,7 +196,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 		}
 
 		/** Create a new model instance from a record string */
-		private static createModelFromRecordString(
+		private static createFromRecordString(
 			recordString: string,
 			_id: string,
 			__v?: string | null,
@@ -259,7 +259,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 				const { _id, __v, record } = data.result;
 
-				return Model.createModelFromRecordString(record, _id, __v);
+				return Model.createFromRecordString(record, _id, __v);
 			} catch (err) {
 				// enrich caught error object with additional information and rethrow
 				err.other = {
