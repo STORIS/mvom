@@ -104,7 +104,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 			const { _id, __v, record } = data.result;
 
-			return new Model({ _id, __v, record });
+			return Model.createModelFromRecordString(record, _id, __v);
 		}
 
 		/** Find documents via query */
@@ -117,7 +117,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 			return documents.map((document) => {
 				const { _id, __v, record } = document;
-				return new Model({ _id, __v, record });
+				return Model.createModelFromRecordString(record, _id, __v);
 			});
 		}
 
@@ -131,7 +131,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 			const models = documents.map((document) => {
 				const { _id, __v, record } = document;
-				return new Model({ _id, __v, record });
+				return Model.createModelFromRecordString(record, _id, __v);
 			});
 
 			return {
@@ -158,7 +158,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 			const { _id, __v, record } = data.result;
 
-			return new Model({ _id, __v, record });
+			return Model.createModelFromRecordString(record, _id, __v);
 		}
 
 		/** Find multiple documents by their ids */
@@ -181,7 +181,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 				}
 
 				const { _id, __v, record } = dbResultItem;
-				return new Model({ _id, __v, record });
+				return Model.createModelFromRecordString(record, _id, __v);
 			});
 		}
 
@@ -193,6 +193,46 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			});
 
 			return data.result;
+		}
+
+		/** Create a new model instance from a record string */
+		private static createModelFromRecordString(
+			recordString: string,
+			_id: string,
+			__v?: string | null,
+		): Model {
+			const {
+				dbServerDelimiters: { am, vm, svm },
+			} = Model.connection;
+
+			const record: MvRecord =
+				recordString === ''
+					? []
+					: recordString.split(am).map((attribute) => {
+							if (attribute === '') {
+								return null;
+							}
+
+							const attributeArray = attribute.split(vm);
+							if (attributeArray.length === 1) {
+								return attribute;
+							}
+
+							return attributeArray.map((value) => {
+								if (value === '') {
+									return null;
+								}
+
+								const valueArray = value.split(svm);
+								if (valueArray.length === 1) {
+									return value;
+								}
+
+								return valueArray.map((subvalue) => (subvalue === '' ? null : subvalue));
+							});
+					  });
+
+			return new Model({ _id, __v, record });
 		}
 
 		/** Save a document to the database */
@@ -219,7 +259,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 				const { _id, __v, record } = data.result;
 
-				return new Model({ _id, __v, record });
+				return Model.createModelFromRecordString(record, _id, __v);
 			} catch (err) {
 				// enrich caught error object with additional information and rethrow
 				err.other = {
