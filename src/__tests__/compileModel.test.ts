@@ -364,11 +364,10 @@ describe('save', () => {
 			filename,
 			id,
 			__v: null,
-			record: ['prop1-value', '123'],
+			record: `prop1-value${am}123`,
 			foreignKeyDefinitions: [
 				{ entityIds: ['prop1-value'], entityName: 'prop1', filename: 'FK_FILE' },
 			],
-			clearAttributes: false,
 		});
 	});
 
@@ -390,11 +389,10 @@ describe('save', () => {
 			filename,
 			id,
 			__v: null,
-			record: ['prop1-value', '123'],
+			record: `prop1-value${am}123`,
 			foreignKeyDefinitions: [
 				{ entityIds: ['prop1-value'], entityName: 'prop1', filename: 'FK_FILE' },
 			],
-			clearAttributes: false,
 		});
 	});
 });
