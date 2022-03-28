@@ -6,7 +6,7 @@ import type { QueryConstructorOptions } from './Query';
 import Query, { type Filter } from './Query';
 import type Schema from './Schema';
 import type { GenericObject, MvRecord } from './types';
-import { convertMvStringToArray, ensureArray } from './utils';
+import { ensureArray } from './utils';
 
 // #region Types
 export interface ModelConstructorOptions<TSchema extends GenericObject> {
@@ -104,7 +104,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 			const { _id, __v, record } = data.result;
 
-			return Model.createFromRecordString(record, _id, __v);
+			return Model.createModelFromRecordString(record, _id, __v);
 		}
 
 		/** Find documents via query */
@@ -117,7 +117,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 			return documents.map((document) => {
 				const { _id, __v, record } = document;
-				return Model.createFromRecordString(record, _id, __v);
+				return Model.createModelFromRecordString(record, _id, __v);
 			});
 		}
 
@@ -131,7 +131,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 			const models = documents.map((document) => {
 				const { _id, __v, record } = document;
-				return Model.createFromRecordString(record, _id, __v);
+				return Model.createModelFromRecordString(record, _id, __v);
 			});
 
 			return {
@@ -158,7 +158,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 			const { _id, __v, record } = data.result;
 
-			return Model.createFromRecordString(record, _id, __v);
+			return Model.createModelFromRecordString(record, _id, __v);
 		}
 
 		/** Find multiple documents by their ids */
@@ -181,7 +181,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 				}
 
 				const { _id, __v, record } = dbResultItem;
-				return Model.createFromRecordString(record, _id, __v);
+				return Model.createModelFromRecordString(record, _id, __v);
 			});
 		}
 
@@ -195,13 +195,16 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			return data.result;
 		}
 
-		/** Create a new model instance from a record string */
-		private static createFromRecordString(
+		/** Create a new Model instance from a record string */
+		private static createModelFromRecordString(
 			recordString: string,
 			_id: string,
 			__v?: string | null,
 		): Model {
-			const record = convertMvStringToArray(recordString, Model.connection.dbServerDelimiters);
+			const record = Document.convertMvStringToArray(
+				recordString,
+				Model.connection.dbServerDelimiters,
+			);
 
 			return new Model({ _id, __v, record });
 		}
@@ -230,7 +233,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 				const { _id, __v, record } = data.result;
 
-				return Model.createFromRecordString(record, _id, __v);
+				return Model.createModelFromRecordString(record, _id, __v);
 			} catch (err) {
 				// enrich caught error object with additional information and rethrow
 				err.other = {
