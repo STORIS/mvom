@@ -40,6 +40,7 @@ import type {
 	DbActionResponseFeatureList,
 	DbActionSubroutineInputTypes,
 	DbFeatureResponseTypes,
+	DbServerDelimiters,
 	DbSubroutineInputOptionsMap,
 	DbSubroutineResponseTypes,
 	DbSubroutineResponseTypesMap,
@@ -75,6 +76,8 @@ export interface CreateConnectionOptions {
 	httpAgent?: http.Agent;
 	/** Optional https agent */
 	httpsAgent?: https.Agent;
+	/** Multivalue database server delimiters */
+	dbServerDelimiters?: DbServerDelimiters;
 }
 
 interface ConnectionConstructorOptions {
@@ -82,6 +85,8 @@ interface ConnectionConstructorOptions {
 	httpAgent?: http.Agent;
 	/** Optional https agent */
 	httpsAgent?: https.Agent;
+	/** Multivalue database server delimiters */
+	dbServerDelimiters?: DbServerDelimiters;
 }
 
 export enum ConnectionStatus {
@@ -90,6 +95,7 @@ export enum ConnectionStatus {
 	connected = 'connected',
 	connecting = 'connecting',
 }
+
 export interface DeployFeaturesOptions {
 	/**
 	 * Create directory when deploying features
@@ -113,6 +119,9 @@ class Connection {
 
 	/** Connection status */
 	public status: ConnectionStatus = ConnectionStatus.disconnected;
+
+	/** Multivalue database server delimiters */
+	public dbServerDelimiters: DbServerDelimiters;
 
 	/** Database account name */
 	private readonly account: string;
@@ -151,13 +160,21 @@ class Connection {
 		timeout: number,
 		options: ConnectionConstructorOptions,
 	) {
-		const { httpAgent, httpsAgent } = options;
+		const { httpAgent, httpsAgent, dbServerDelimiters: dbServerDelimitersOption } = options;
 
 		this.account = account;
 		this.logger = logger;
 		this.cacheMaxAge = cacheMaxAge;
 
 		const baseURL = `${mvisUri}/${account}/subroutine/${Connection.getServerProgramName('entry')}`;
+
+		const dbServerDelimiters: DbServerDelimiters = dbServerDelimitersOption ?? {
+			rm: String.fromCharCode(255),
+			am: String.fromCharCode(254),
+			vm: String.fromCharCode(253),
+			svm: String.fromCharCode(252),
+		};
+		this.dbServerDelimiters = dbServerDelimiters;
 
 		this.axiosInstance = axios.create({
 			baseURL,
@@ -170,6 +187,7 @@ class Connection {
 		this.logMessage('debug', 'creating new connection instance');
 	}
 
+	/** Create a connection */
 	public static createConnection(
 		/** URI of the MVIS which facilitates access to the mv database */
 		mvisUri: string,
@@ -183,6 +201,7 @@ class Connection {
 			timeout = 0,
 			httpAgent,
 			httpsAgent,
+			dbServerDelimiters,
 		} = options;
 
 		if (!Number.isInteger(cacheMaxAge)) {
@@ -196,6 +215,7 @@ class Connection {
 		return new Connection(mvisUri, account, logger, cacheMaxAge, timeout, {
 			httpAgent,
 			httpsAgent,
+			dbServerDelimiters,
 		});
 	}
 
@@ -417,7 +437,9 @@ class Connection {
 			this.logMessage('debug', 'getting db server information');
 			const data = await this.executeDbFeature('getServerInfo', {});
 
-			const { date, time } = data;
+			const { date, time, delimiters } = data;
+
+			this.dbServerDelimiters = delimiters;
 
 			this.timeDrift = differenceInMilliseconds(
 				addMilliseconds(addDays(mvEpoch, date), time),

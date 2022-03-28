@@ -1,4 +1,5 @@
 import type { DbActionResponse } from './DbFeature';
+import type { DbServerDelimiters } from './Miscellaneous';
 
 export interface DbDocument {
 	_id: string;
@@ -38,12 +39,6 @@ export interface DbSubroutineOutputReadFileContentsById {
 export type DbActionResponseSubroutineReadFileContentsById =
 	DbActionResponse<DbSubroutineOutputReadFileContentsById>;
 
-export interface DbServerDelimiters {
-	rm: string;
-	am: string;
-	vm: string;
-	svm: string;
-}
 export interface DbSubroutineOutputGetServerInfo {
 	date: number;
 	time: number;
