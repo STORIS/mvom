@@ -338,8 +338,7 @@ describe('executeDbFeature', () => {
 			connection.executeDbFeature('save', {
 				filename,
 				id,
-				record: [],
-				clearAttributes: false,
+				record: '',
 				foreignKeyDefinitions: [],
 			}),
 		).rejects.toThrow(DbServerError);
@@ -370,8 +369,7 @@ describe('executeDbFeature', () => {
 			connection.executeDbFeature('save', {
 				filename,
 				id,
-				record: [],
-				clearAttributes: false,
+				record: '',
 				foreignKeyDefinitions: [],
 			}),
 		).rejects.toThrow(ForeignKeyValidationError);
@@ -402,8 +400,7 @@ describe('executeDbFeature', () => {
 			connection.executeDbFeature('save', {
 				filename,
 				id,
-				record: [],
-				clearAttributes: false,
+				record: '',
 				foreignKeyDefinitions: [],
 			}),
 		).rejects.toThrow(RecordLockedError);
@@ -434,8 +431,7 @@ describe('executeDbFeature', () => {
 			connection.executeDbFeature('save', {
 				filename,
 				id,
-				record: [],
-				clearAttributes: false,
+				record: '',
 				foreignKeyDefinitions: [],
 			}),
 		).rejects.toThrow(RecordVersionError);
@@ -466,8 +462,7 @@ describe('executeDbFeature', () => {
 			connection.executeDbFeature('save', {
 				filename,
 				id,
-				record: [],
-				clearAttributes: false,
+				record: '',
 				foreignKeyDefinitions: [],
 			}),
 		).rejects.toThrow(DbServerError);
@@ -496,8 +491,7 @@ describe('executeDbFeature', () => {
 			connection.executeDbFeature('save', {
 				filename,
 				id,
-				record: [],
-				clearAttributes: false,
+				record: '',
 				foreignKeyDefinitions: [],
 			}),
 		).rejects.toThrow(MvisError);
@@ -527,8 +521,7 @@ describe('executeDbFeature', () => {
 			connection.executeDbFeature('save', {
 				filename,
 				id,
-				record: [],
-				clearAttributes: false,
+				record: '',
 				foreignKeyDefinitions: [],
 			}),
 		).rejects.toThrow(TimeoutError);
@@ -558,8 +551,7 @@ describe('executeDbFeature', () => {
 			connection.executeDbFeature('save', {
 				filename,
 				id,
-				record: [],
-				clearAttributes: false,
+				record: '',
 				foreignKeyDefinitions: [],
 			}),
 		).rejects.toThrow(new UnknownError({ message: errMsg }));
@@ -588,8 +580,7 @@ describe('executeDbFeature', () => {
 			connection.executeDbFeature('save', {
 				filename,
 				id,
-				record: [],
-				clearAttributes: false,
+				record: '',
 				foreignKeyDefinitions: [],
 			}),
 		).rejects.toThrow(UnknownError);
