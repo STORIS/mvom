@@ -26,14 +26,8 @@ if recordHashType eq UDO_NULL then
   recordHash = ''
 end
 
-* get the clearAttributes flag from the options
-if udoGetProperty(options, 'clearAttributes', clearAttributes, clearAttributesType) then
-  call error_handler(ERROR_MALFORMED_INPUT, output)
-  go returnFromSub
-end
-
-* get the record contents from the options
-if udoGetProperty(options, 'record', recordContents, type) then
+* get the record from the options
+if udoGetProperty(options, 'record', record, type) then
   call error_handler(ERROR_MALFORMED_INPUT, output)
   go returnFromSub
 end
@@ -54,18 +48,18 @@ end else
 end
 
 * read and lock record from the file
-readu record from f.file, recordId on error
+readu originalRecord from f.file, recordId on error
   call error_handler(ERROR_RECORD_READ, output)
   go closeAndReturnFromSub
 end locked
   call error_handler(ERROR_RECORD_LOCKED, output)
   go closeAndReturnFromSub
 end then
-  if record eq '' then
+  if originalRecord eq '' then
     * empty record
     originalRecordHash = ''
   end else
-    if digest('MD5', record, 1, originalRecordHash) then
+    if digest('MD5', originalRecord, 1, originalRecordHash) then
       errorCode = ERROR_DIGEST_HASH
       go closeReleaseAndReturnFromSub
     end
@@ -83,8 +77,6 @@ end else
     call error_handler(ERROR_RECORD_VERSION, output)
     go closeReleaseAndReturnFromSub
   end
-
-  record = ''
 end
 
 * validate any foreign keys before updating
@@ -109,86 +101,7 @@ if fkValidationErrorCount > 0 then
   go closeReleaseAndReturnFromSub
 end
 
-if udoArrayGetSize(recordContents, lastAttribute) then
-  call error_handler(ERROR_UDO, output)
-  go closeReleaseAndReturnFromSub
-end
-
-* if the clearAttributes flag is set, we are dealing with a schema-less file meaning the record
-* can be an array of varying length, so we need to clear the record to ensure updates overwrite
-* the existing data instead of merging the new record with the current one
-if clearAttributesType eq UDO_TRUE then
-  record = ''
-end
-
-for attributeCounter = 1 to lastAttribute
-  if udoArrayGetItem(recordContents, attributeCounter, attributeContents, attributeType) then
-    call error_handler(ERROR_UDO, output)
-    go closeReleaseAndReturnFromSub
-  end
-
-  begin case
-    case attributeType eq UDO_ARRAY
-      if udoArrayGetSize(attributeContents, lastValue) then
-        call error_handler(ERROR_UDO, output)
-        go closeReleaseAndReturnFromSub
-      end
-
-      record<attributeCounter> = ''
-
-      for valueCounter = 1 to lastValue
-        if udoArrayGetItem(attributeContents, valueCounter, valueContents, valueType) then
-          call error_handler(ERROR_UDO, output)
-          go closeReleaseAndReturnFromSub
-        end
-
-        begin case
-          case valueType eq UDO_ARRAY
-            if udoArrayGetSize(valueContents, lastSubvalue) then
-              call error_handler(ERROR_UDO, output)
-              go closeReleaseAndReturnFromSub
-            end
-
-            record<attributeCounter, valueCounter> = ''
-
-            for subvalueCounter = 1 to lastSubvalue
-              if udoArrayGetItem(valueContents, subvalueCounter, subvalueContents, subvalueType) then
-                call error_handler(ERROR_UDO, output)
-                go closeReleaseAndReturnFromSub
-              end
-
-              begin case
-                case subvalueType eq UDO_NULL
-                  record<attributeCounter, valueCounter, subvalueCounter> = ''
-                case subvalueType eq UDO_NUMBER or subvalueType eq UDO_STRING
-                  record<attributeCounter, valueCounter, subvalueCounter> = subvalueContents
-                case 1
-                  call error_handler(ERROR_MALFORMED_INPUT, output)
-                  go closeReleaseAndReturnFromSub
-              end case
-            next subvalueCounter
-
-          case valueType eq UDO_NULL
-            record<attributeCounter, valueCounter> = ''
-          case valueType eq UDO_NUMBER or valueType eq UDO_STRING
-            record<attributeCounter, valueCounter> = valueContents
-          case 1
-            call error_handler(ERROR_MALFORMED_INPUT, output)
-            go closeReleaseAndReturnFromSub
-        end case
-      next valueCounter
-
-    case attributeType eq UDO_NULL
-      record<attributeCounter> = ''
-    case attributeType eq UDO_NUMBER or attributeType eq UDO_STRING
-      record<attributeCounter> = attributeContents
-    case 1
-      call error_handler(ERROR_MALFORMED_INPUT, output)
-      go closeReleaseAndReturnFromSub
-  end case
-next attributeCounter
-
-* create emprty projection array
+* create empty projection array
 if udoCreate(UDO_ARRAY, projection) then
    call error_handler(ERROR_UDO, output)
    go closeAndReturnFromSub

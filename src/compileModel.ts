@@ -226,9 +226,8 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 					filename: Model.file,
 					id: this._id,
 					__v: this.__v,
-					record: this.transformDocumentToRecord(),
+					record: this.convertToMvString(),
 					foreignKeyDefinitions: this.buildForeignKeyDefinitions(),
-					clearAttributes: Model.schema === null, // clears all attributes before writing new record
 				});
 
 				const { _id, __v, record } = data.result;
@@ -244,6 +243,21 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 				throw err;
 			}
+		}
+
+		/** Convert model instance to multivalue string */
+		private convertToMvString(): string {
+			const { am, vm, svm } = Model.connection.dbServerDelimiters;
+
+			const mvRecord = this.transformDocumentToRecord();
+
+			return mvRecord
+				.map((attribute) =>
+					Array.isArray(attribute)
+						? attribute.map((value) => (Array.isArray(value) ? value.join(svm) : value)).join(vm)
+						: attribute,
+				)
+				.join(am);
 		}
 	};
 };

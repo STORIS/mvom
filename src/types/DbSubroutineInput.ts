@@ -1,5 +1,5 @@
 import type { BuildForeignKeyDefinitionsResult } from '../Document';
-import type { GenericObject, MvRecord } from '.';
+import type { GenericObject } from '.';
 
 export interface DbActionInputSubroutine<TSubroutineOptions extends GenericObject> {
 	action: 'subroutine';
@@ -51,8 +51,7 @@ export interface DbSubroutineOptionsSave {
 	filename: string;
 	id: string;
 	__v?: string | null;
-	clearAttributes: boolean;
-	record: MvRecord;
+	record: string;
 	foreignKeyDefinitions: BuildForeignKeyDefinitionsResult[];
 }
 
