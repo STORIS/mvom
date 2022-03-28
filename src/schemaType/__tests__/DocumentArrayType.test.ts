@@ -65,7 +65,7 @@ describe('get', () => {
 	const documentArrayType = new DocumentArrayType(valueSchema);
 
 	test('should return an array of subdocuments constructed from the provided record', () => {
-		const record: MvRecord = ['unrelated', ['foo', 'bar'], [123, 456]];
+		const record: MvRecord = ['unrelated', ['foo', 'bar'], ['123', '456']];
 		const documents = documentArrayType.get(record);
 
 		expect(documents).toHaveLength(2);
@@ -80,7 +80,7 @@ describe('get', () => {
 	});
 
 	test('should handle construction when mv record consists of unequal length arrays', () => {
-		const record: MvRecord = ['unrelated', ['foo', 'bar'], 123];
+		const record: MvRecord = ['unrelated', ['foo', 'bar'], '123'];
 		const documents = documentArrayType.get(record);
 
 		expect(documents).toHaveLength(2);

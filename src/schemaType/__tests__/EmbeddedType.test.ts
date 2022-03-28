@@ -44,7 +44,7 @@ describe('get', () => {
 	const embeddedType = new EmbeddedType(valueSchema);
 
 	test('should return a subdocument constructed from the provided record', () => {
-		const record: MvRecord = [null, 'foo', 1234];
+		const record: MvRecord = [null, 'foo', '1234'];
 		const document = embeddedType.get(record);
 
 		expect(document).toBeInstanceOf(Document);

@@ -23,8 +23,8 @@ describe('get', () => {
 			const record: MvRecord = [
 				null,
 				[
-					[123, 456],
-					[789, 1234],
+					['123', '456'],
+					['789', '1234'],
 				],
 			];
 
@@ -36,7 +36,7 @@ describe('get', () => {
 		});
 
 		test('should get from specified path and transform based on value schema when content is non-array', () => {
-			const record: MvRecord = [null, [123, 456]];
+			const record: MvRecord = [null, ['123', '456']];
 
 			const expected = [[1.23], [4.56]];
 			expect(nestedArrayType.get(record)).toEqual(expected);

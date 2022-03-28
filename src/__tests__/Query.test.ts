@@ -1,4 +1,5 @@
 import { mockDeep } from 'jest-mock-extended';
+import mockDelimiters from '#test/mockDelimiters';
 import type { ModelConstructor } from '../compileModel';
 import { InvalidParameterError } from '../errors';
 import type { SortCriteria } from '../Query';
@@ -14,6 +15,8 @@ const ModelConstructorMock = mockDeep<ModelConstructor>();
 const filename = 'filename';
 // @ts-expect-error: Ignore readonly modifier in test
 ModelConstructorMock.file = filename;
+
+const { am } = mockDelimiters;
 
 describe('constructor', () => {
 	describe('errors', () => {
@@ -137,7 +140,7 @@ describe('constructor', () => {
 describe('exec', () => {
 	const dbQueryResult: DbSubroutineOutputFind = {
 		count: 1,
-		documents: [{ _id: 'id', __v: '__v', record: ['foo', 'bar'] }],
+		documents: [{ _id: 'id', __v: '__v', record: `foo${am}bar` }],
 	};
 	beforeEach(() => {
 		ModelConstructorMock.connection.executeDbFeature.mockResolvedValue(dbQueryResult);

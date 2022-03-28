@@ -1,5 +1,6 @@
 import { mockDeep } from 'jest-mock-extended';
 import { getError, NoErrorThrownError } from '#test/helpers';
+import mockDelimiters from '#test/mockDelimiters';
 import compileModel from '../compileModel';
 import type Connection from '../Connection';
 import { DataValidationError } from '../errors';
@@ -7,7 +8,7 @@ import Schema from '../Schema';
 import type { SchemaDefinition } from '../Schema';
 import type { GenericObject } from '../types';
 
-const connectionMock = mockDeep<Connection>();
+const connectionMock = mockDeep<Connection>({ dbServerDelimiters: mockDelimiters });
 const schemaDefinition: SchemaDefinition = {
 	prop1: {
 		type: 'string',
@@ -19,6 +20,8 @@ const schemaDefinition: SchemaDefinition = {
 };
 const schema = new Schema(schemaDefinition);
 const filename = 'test.file';
+
+const { am } = mockDelimiters;
 
 describe('constructor', () => {
 	test('should log transformation errors if encountered during construction', () => {
@@ -77,7 +80,7 @@ describe('deleteById', () => {
 		const id = 'id';
 		const version = '1';
 		connectionMock.executeDbFeature.mockResolvedValue({
-			result: { _id: id, __v: version, record: [] },
+			result: { _id: id, __v: version, record: '' },
 		});
 
 		const model = (await Model.deleteById(id))!;
@@ -99,8 +102,8 @@ describe('find', () => {
 		connectionMock.executeDbFeature.mockResolvedValue({
 			count: 2,
 			documents: [
-				{ _id: id1, __v: version1, record: [] },
-				{ _id: id2, __v: version2, record: [] },
+				{ _id: id1, __v: version1, record: '' },
+				{ _id: id2, __v: version2, record: '' },
 			],
 		});
 
@@ -133,8 +136,8 @@ describe('findAndCount', () => {
 		connectionMock.executeDbFeature.mockResolvedValue({
 			count: 2,
 			documents: [
-				{ _id: id1, __v: version1, record: [] },
-				{ _id: id2, __v: version2, record: [] },
+				{ _id: id1, __v: version1, record: '' },
+				{ _id: id2, __v: version2, record: '' },
 			],
 		});
 
@@ -164,7 +167,7 @@ describe('findById', () => {
 		const id1 = 'id1';
 		const version1 = '1';
 		connectionMock.executeDbFeature.mockResolvedValue({
-			result: { _id: id1, __v: version1, record: [] },
+			result: { _id: id1, __v: version1, record: '' },
 		});
 
 		const document = await Model.findById(id1);
@@ -185,7 +188,7 @@ describe('findById', () => {
 		const id1 = 'id1';
 		const version1 = '1';
 		connectionMock.executeDbFeature.mockResolvedValue({
-			result: { _id: id1, __v: version1, record: ['attribute1', 'attribute2'] },
+			result: { _id: id1, __v: version1, record: `attribute1${am}attribute2` },
 		});
 
 		const document = await Model.findById(id1);
@@ -228,8 +231,8 @@ describe('findByIds', () => {
 		const version2 = '2';
 		connectionMock.executeDbFeature.mockResolvedValue({
 			result: [
-				{ _id: id1, __v: version1, record: [] },
-				{ _id: id2, __v: version2, record: [] },
+				{ _id: id1, __v: version1, record: '' },
+				{ _id: id2, __v: version2, record: '' },
 			],
 		});
 
@@ -259,8 +262,8 @@ describe('findByIds', () => {
 		const version2 = '2';
 		connectionMock.executeDbFeature.mockResolvedValue({
 			result: [
-				{ _id: id1, __v: version1, record: ['record1-attribute1', 'record1-attribute2'] },
-				{ _id: id1, __v: version2, record: ['record2-attribute1', 'record2-attribute2'] },
+				{ _id: id1, __v: version1, record: `record1-attribute1${am}record1-attribute2` },
+				{ _id: id1, __v: version2, record: `record2-attribute1${am}record2-attribute2` },
 			],
 		});
 
@@ -287,7 +290,7 @@ describe('findByIds', () => {
 		const id2 = 'id2';
 		const version2 = '2';
 		connectionMock.executeDbFeature.mockResolvedValue({
-			result: [null, { _id: id2, __v: version2, record: [] }],
+			result: [null, { _id: id2, __v: version2, record: '' }],
 		});
 
 		const documents = await Model.findByIds([id1, id2]);
@@ -348,7 +351,7 @@ describe('save', () => {
 		const model = new Model({ _id: id, data: { prop1: 'prop1-value', prop2: 123 } });
 
 		connectionMock.executeDbFeature.mockResolvedValue({
-			result: { _id: id, __v: version, record: ['prop1-value', 123] },
+			result: { _id: id, __v: version, record: `prop1-value${am}123` },
 		});
 		const result = await model.save();
 

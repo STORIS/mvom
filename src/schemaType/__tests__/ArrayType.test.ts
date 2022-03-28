@@ -20,14 +20,14 @@ describe('get', () => {
 		const arrayType = new ArrayType(valueSchemaType);
 
 		test('should get from specified path and transform based on value schema when content is array', () => {
-			const record: MvRecord = [null, [123, 456, 789]];
+			const record: MvRecord = [null, ['123', '456', '789']];
 
 			const expected = [1.23, 4.56, 7.89];
 			expect(arrayType.get(record)).toEqual(expected);
 		});
 
 		test('should get from specified path and transform based on value schema when content is non-array', () => {
-			const record: MvRecord = [null, 123];
+			const record: MvRecord = [null, '123'];
 
 			const expected = [1.23];
 			expect(arrayType.get(record)).toEqual(expected);
@@ -44,14 +44,14 @@ describe('get', () => {
 		const arrayType = new ArrayType(valueSchemaType);
 
 		test('should get from specified path and transform based on value schema when content is array', () => {
-			const record: MvRecord = [null, [null, [123, 456, 789]]];
+			const record: MvRecord = [null, [null, ['123', '456', '789']]];
 
 			const expected = [1.23, 4.56, 7.89];
 			expect(arrayType.get(record)).toEqual(expected);
 		});
 
 		test('should get from specified path and transform based on value schema when content is non-array', () => {
-			const record: MvRecord = [null, [null, 123]];
+			const record: MvRecord = [null, [null, '123']];
 
 			const expected = [1.23];
 			expect(arrayType.get(record)).toEqual(expected);
