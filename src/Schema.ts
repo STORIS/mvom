@@ -1,3 +1,11 @@
+import {
+	BooleanDataTransformer,
+	ISOCalendarDateDataTransformer,
+	ISOCalendarDateTimeDataTransformer,
+	ISOTimeDataTransformer,
+	NumberDataTransformer,
+	StringDataTransformer,
+} from './dataTransformers';
 import { InvalidParameterError } from './errors';
 import {
 	ArrayType,
@@ -11,8 +19,17 @@ import {
 	NumberType,
 	StringType,
 } from './schemaType';
-import type { BaseSchemaType, SchemaTypeDefinitionScalar } from './schemaType';
-import type { DecryptFn, EncryptFn } from './types';
+import type {
+	BaseSchemaType,
+	SchemaTypeDefinitionBoolean,
+	SchemaTypeDefinitionISOCalendarDate,
+	SchemaTypeDefinitionISOCalendarDateTime,
+	SchemaTypeDefinitionISOTime,
+	SchemaTypeDefinitionNumber,
+	SchemaTypeDefinitionScalar,
+	SchemaTypeDefinitionString,
+} from './schemaType';
+import type { DataTransformer, DecryptFn, EncryptFn, MarkRequired } from './types';
 
 // #region Types
 type SchemaTypeDefinition =
@@ -43,19 +60,39 @@ export interface SchemaCompoundForeignKeyDefinition {
 	splitCharacter: string;
 }
 
+type PickAndMark<T extends SchemaTypeDefinitionScalar, K extends keyof T = never> = MarkRequired<
+	Pick<T, 'dictionary' | 'type' | K>,
+	'dictionary'
+>;
+
+export type DictionaryTypeDefinition =
+	| PickAndMark<SchemaTypeDefinitionString>
+	| PickAndMark<SchemaTypeDefinitionNumber>
+	| PickAndMark<SchemaTypeDefinitionBoolean>
+	| PickAndMark<SchemaTypeDefinitionISOCalendarDate>
+	| PickAndMark<SchemaTypeDefinitionISOCalendarDateTime, 'dbFormat'>
+	| PickAndMark<SchemaTypeDefinitionISOTime, 'dbFormat'>;
+
+export type DictionaryDefinition = string | DictionaryTypeDefinition;
+
 export interface SchemaConstructorOptions {
-	dictionaries?: Record<string, string>;
+	dictionaries?: Record<string, DictionaryDefinition>;
 	idMatch?: RegExp;
 	idForeignKey?: SchemaForeignKeyDefinition | SchemaCompoundForeignKeyDefinition;
 	encrypt?: EncryptFn;
 	decrypt?: DecryptFn;
+}
+
+interface DictionaryTypeDetail {
+	dictionary: string;
+	dataTransformer: DataTransformer;
 }
 // #endregion
 
 /** Schema constructor */
 class Schema {
 	/** Key/value pairs of schema object path structure and associated multivalue dictionary ids */
-	public dictPaths: Map<string, string>;
+	public dictPaths: Map<string, DictionaryTypeDetail>;
 
 	/** The compiled schema object path structure */
 	public readonly paths: Map<string, BaseSchemaType>;
@@ -85,8 +122,6 @@ class Schema {
 		definition: SchemaDefinition,
 		{ dictionaries = {}, idForeignKey, idMatch, encrypt, decrypt }: SchemaConstructorOptions = {},
 	) {
-		this.dictPaths = new Map(Object.entries(dictionaries).concat([['_id', '@ID']]));
-
 		this.idForeignKey = idForeignKey;
 		this.idMatch = idMatch;
 		this.definition = definition;
@@ -95,6 +130,7 @@ class Schema {
 		this.encrypt = encrypt;
 		this.decrypt = decrypt;
 
+		this.dictPaths = this.buildDictionaryPaths(dictionaries);
 		this.paths = this.buildPaths(this.definition);
 	}
 
@@ -107,7 +143,7 @@ class Schema {
 	}
 
 	/** Transform the paths to positions */
-	public transformPathsToDbPositions = (paths: string[]): number[] => {
+	public transformPathsToDbPositions(paths: string[]): number[] {
 		if (paths.length === 0) {
 			return [];
 		}
@@ -137,7 +173,64 @@ class Schema {
 		}, new Set<number>());
 
 		return [...positions];
-	};
+	}
+
+	/** Build the dictionary path map for additional dictionaries provided as schema options */
+	private buildDictionaryPaths(
+		dictionaries: Record<string, DictionaryDefinition>,
+	): Map<string, DictionaryTypeDetail> {
+		// Add reference for _id --> @ID by default
+		const dictPaths = new Map<string, DictionaryTypeDetail>([
+			['_id', { dictionary: '@ID', dataTransformer: new StringDataTransformer() }],
+		]);
+
+		return Object.entries(dictionaries).reduce((acc, [queryProperty, dictionaryDefinition]) => {
+			if (typeof dictionaryDefinition === 'string') {
+				return acc.set(queryProperty, {
+					dictionary: dictionaryDefinition,
+					dataTransformer: new StringDataTransformer(),
+				});
+			}
+
+			const { type, dictionary } = dictionaryDefinition;
+
+			switch (type) {
+				case 'string':
+					return acc.set(queryProperty, {
+						dictionary,
+						dataTransformer: new StringDataTransformer(),
+					});
+				case 'number':
+					return acc.set(queryProperty, {
+						dictionary,
+						dataTransformer: new NumberDataTransformer(),
+					});
+				case 'boolean':
+					return acc.set(queryProperty, {
+						dictionary,
+						dataTransformer: new BooleanDataTransformer(),
+					});
+				case 'ISOCalendarDate':
+					return acc.set(queryProperty, {
+						dictionary,
+						dataTransformer: new ISOCalendarDateDataTransformer(),
+					});
+				case 'ISOCalendarDateTime':
+					return acc.set(queryProperty, {
+						dictionary,
+						dataTransformer: new ISOCalendarDateTimeDataTransformer(dictionaryDefinition.dbFormat),
+					});
+				case 'ISOTime':
+					return acc.set(queryProperty, {
+						dictionary,
+						dataTransformer: new ISOTimeDataTransformer(dictionaryDefinition.dbFormat),
+					});
+				/* istanbul ignore next: cannot hit without violating types */
+				default:
+					return acc;
+			}
+		}, dictPaths);
+	}
 
 	/**
 	 * Get all positionPaths with path as key and position array as value including children schemas
@@ -155,8 +248,8 @@ class Schema {
 	}
 
 	/** Construct instance member paths */
-	private buildPaths = (definition: SchemaDefinition, prev?: string): Map<string, BaseSchemaType> =>
-		Object.entries(definition).reduce((acc, [key, value]) => {
+	private buildPaths(definition: SchemaDefinition, prev?: string): Map<string, BaseSchemaType> {
+		return Object.entries(definition).reduce((acc, [key, value]) => {
 			// construct flattened keypath
 			const newKey = prev != null ? `${prev}.${key}` : key;
 
@@ -179,15 +272,16 @@ class Schema {
 
 			return new Map([...acc, ...nestedPaths]);
 		}, new Map<string, BaseSchemaType>());
+	}
 
 	/**
 	 * Cast an array to a schemaType
 	 * @throws {@link InvalidParameterError} An invalid parameter was passed to the function
 	 */
-	private castArray = (
+	private castArray(
 		castee: SchemaTypeDefinitionArray,
 		keyPath: string,
-	): ArrayType | NestedArrayType | DocumentArrayType => {
+	): ArrayType | NestedArrayType | DocumentArrayType {
 		if (castee.length !== 1) {
 			// a schema array definition must contain exactly one value of language-type object (which includes arrays)
 			throw new InvalidParameterError({
@@ -233,31 +327,31 @@ class Schema {
 		});
 		this.handleSubDocumentSchemas(subdocumentSchema, keyPath);
 		return new DocumentArrayType(subdocumentSchema);
-	};
+	}
 
 	/**
 	 * Cast a scalar definition to a scalar schemaType
 	 * @throws {@link InvalidParameterError} An invalid parameter was passed to the function
 	 */
-	private castScalar = (castee: SchemaTypeDefinitionScalar, keyPath: string) => {
+	private castScalar(castee: SchemaTypeDefinitionScalar, keyPath: string) {
 		const options = { encrypt: this.encrypt, decrypt: this.decrypt };
 		let schemaTypeValue;
 
 		switch (castee.type) {
 			case 'boolean':
-				schemaTypeValue = new BooleanType(castee);
+				schemaTypeValue = new BooleanType(castee, options);
 				break;
 			case 'ISOCalendarDateTime':
-				schemaTypeValue = new ISOCalendarDateTimeType(castee);
+				schemaTypeValue = new ISOCalendarDateTimeType(castee, options);
 				break;
 			case 'ISOCalendarDate':
 				schemaTypeValue = new ISOCalendarDateType(castee, options);
 				break;
 			case 'ISOTime':
-				schemaTypeValue = new ISOTimeType(castee);
+				schemaTypeValue = new ISOTimeType(castee, options);
 				break;
 			case 'number':
-				schemaTypeValue = new NumberType(castee);
+				schemaTypeValue = new NumberType(castee, options);
 				break;
 			case 'string':
 				schemaTypeValue = new StringType(castee, options);
@@ -279,17 +373,20 @@ class Schema {
 
 		// update dictPaths
 		if (schemaTypeValue.dictionary != null) {
-			this.dictPaths.set(keyPath, schemaTypeValue.dictionary);
+			this.dictPaths.set(keyPath, {
+				dictionary: schemaTypeValue.dictionary,
+				dataTransformer: schemaTypeValue,
+			});
 		}
 
 		return schemaTypeValue;
-	};
+	}
 
 	/** Perform ancillary updates needed when a subdocument is in the Schema definition */
-	private handleSubDocumentSchemas = (schema: Schema, keyPath: string) => {
+	private handleSubDocumentSchemas(schema: Schema, keyPath: string) {
 		this.subdocumentSchemas.set(keyPath, schema);
 		this.mergeSchemaDictionaries(schema, keyPath);
-	};
+	}
 
 	/** Determine if an object matches the structure of a scalar definition */
 	private isScalarDefinition(
@@ -302,13 +399,16 @@ class Schema {
 	}
 
 	/** Merge subdocument schema dictionaries with the parent schema's dictionaries */
-	private mergeSchemaDictionaries = (schema: Schema, keyPath: string) => {
-		this.dictPaths = Array.from(schema.dictPaths).reduce((acc, [subDictPath, subDictId]) => {
-			const dictKey = `${keyPath}.${subDictPath}`;
+	private mergeSchemaDictionaries(schema: Schema, keyPath: string) {
+		this.dictPaths = Array.from(schema.dictPaths).reduce(
+			(acc, [subDictPath, subDictTypeDetail]) => {
+				const dictKey = `${keyPath}.${subDictPath}`;
 
-			return acc.set(dictKey, subDictId);
-		}, this.dictPaths);
-	};
+				return acc.set(dictKey, subDictTypeDetail);
+			},
+			this.dictPaths,
+		);
+	}
 }
 
 export default Schema;

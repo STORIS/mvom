@@ -1,5 +1,4 @@
 export { default as ArrayType } from './ArrayType';
-export { default as BaseDateType } from './BaseDateType';
 export { default as BaseScalarArrayType } from './BaseScalarArrayType';
 export { default as BaseScalarType, type SchemaTypeDefinitionScalar } from './BaseScalarType';
 export { default as BaseSchemaType } from './BaseSchemaType';
