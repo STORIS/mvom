@@ -10,7 +10,7 @@ class NumberDataTransformer implements DataTransformer {
 	private readonly dbDecimals: number;
 
 	public constructor(dbDecimals = 0) {
-		if (!Number.isInteger(dbDecimals)) {
+		if (!Number.isInteger(dbDecimals) || dbDecimals < 0) {
 			throw new InvalidParameterError({ parameterName: 'definition.dbDecimals' });
 		}
 

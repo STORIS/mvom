@@ -1,5 +1,19 @@
-import { TransformDataError } from '../../errors';
+import { InvalidParameterError, TransformDataError } from '../../errors';
 import NumberDataTransformer from '../NumberDataTransformer';
+
+describe('constructor', () => {
+	test('should throw if dbDecimals is less than 0', () => {
+		expect(() => {
+			new NumberDataTransformer(-1);
+		}).toThrow(InvalidParameterError);
+	});
+
+	test('should throw if dbDecimals is not an integer', () => {
+		expect(() => {
+			new NumberDataTransformer(1.1);
+		}).toThrow(InvalidParameterError);
+	});
+});
 
 describe('transformFromDb', () => {
 	test('should return null if value is null', () => {
