@@ -1,7 +1,14 @@
 import { cloneDeep, set as setIn, toPath } from 'lodash';
 import type Document from '../Document';
 import { InvalidParameterError } from '../errors';
-import type { DecryptFn, EncryptFn, MvAttribute, MvDataType, MvRecord } from '../types';
+import type {
+	DataTransformer,
+	DecryptFn,
+	EncryptFn,
+	MvAttribute,
+	MvDataType,
+	MvRecord,
+} from '../types';
 import BaseSchemaType, { type Validator } from './BaseSchemaType';
 import type { SchemaTypeDefinitionBoolean } from './BooleanType';
 import type { SchemaTypeDefinitionISOCalendarDateTime } from './ISOCalendarDateTimeType';
@@ -30,7 +37,7 @@ type RecordSetType = string | null | (string | null | (string | null)[])[];
 const ISVALID_SYMBOL = Symbol('Is Valid');
 
 /** Abstract Scalar Schema Type */
-abstract class BaseScalarType extends BaseSchemaType {
+abstract class BaseScalarType extends BaseSchemaType implements DataTransformer {
 	/** Data definition which this schema type was constructed from */
 	public readonly definition: SchemaTypeDefinitionScalar;
 
@@ -51,6 +58,9 @@ abstract class BaseScalarType extends BaseSchemaType {
 
 	/** Decrypt function to call on sensitive data encrypted in the database */
 	private readonly decrypt?: DecryptFn;
+
+	/** Data transformer */
+	protected abstract readonly dataTransformer: DataTransformer;
 
 	protected constructor(
 		definition: SchemaTypeDefinitionScalar,
@@ -96,9 +106,19 @@ abstract class BaseScalarType extends BaseSchemaType {
 		return this.setIntoMvData(originalRecord, this.transformToDb(value));
 	}
 
+	/** Transform from mv data to externally formatted data */
+	public transformFromDb(value: unknown): unknown {
+		return this.dataTransformer.transformFromDb(value);
+	}
+
+	/** Transform from externally formatted data to mv data */
+	public transformToDb(value: unknown): string | null {
+		return this.dataTransformer.transformToDb(value);
+	}
+
 	/** Transform query constants to the format schema */
-	public transformToQuery(value: unknown): unknown {
-		return value;
+	public transformToQuery(value: unknown): string {
+		return this.dataTransformer.transformToQuery(value);
 	}
 
 	/** Validate the scalar type */
@@ -220,12 +240,6 @@ abstract class BaseScalarType extends BaseSchemaType {
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		return typeof value !== 'string' ? value : this.decrypt!(value);
 	}
-
-	/** Transform from mv data to externally formatted data */
-	public abstract transformFromDb(value: unknown): unknown;
-
-	/** Transform from externally formatted data to mv data */
-	public abstract transformToDb(value: unknown): string | null;
 }
 
 export default BaseScalarType;

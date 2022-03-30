@@ -1,3 +1,4 @@
+import { StringDataTransformer } from '../dataTransformers';
 import type { ForeignKeyDbDefinition } from '../ForeignKeyDbTransformer';
 import ForeignKeyDbTransformer from '../ForeignKeyDbTransformer';
 import type { SchemaCompoundForeignKeyDefinition, SchemaForeignKeyDefinition } from '../Schema';
@@ -14,6 +15,9 @@ export interface SchemaTypeDefinitionString extends SchemaTypeDefinitionBase {
 
 /** String Schema Type */
 class StringType extends BaseScalarType {
+	/** Data transformer */
+	protected readonly dataTransformer: StringDataTransformer;
+
 	/** Array of allowed enumerations */
 	private readonly enum: string[] | null;
 
@@ -29,33 +33,17 @@ class StringType extends BaseScalarType {
 	) {
 		super(definition, options);
 
-		this.enum = definition.enum ?? null;
-		this.match = definition.match ?? null;
-		this.foreignKeyDbTransformer = new ForeignKeyDbTransformer(definition.foreignKey);
+		const { enum: definitionEnum, match, foreignKey } = definition;
+
+		this.enum = definitionEnum ?? null;
+		this.match = match ?? null;
+		this.foreignKeyDbTransformer = new ForeignKeyDbTransformer(foreignKey);
+
+		this.dataTransformer = new StringDataTransformer(definitionEnum);
 
 		// add validators for this type
 		this.validators.unshift(this.createMatchValidator());
 		this.validators.unshift(this.createEnumValidator());
-	}
-
-	/** Transform mv string to js string */
-	public transformFromDb(value: null): null;
-	public transformFromDb(value: unknown): string;
-	public transformFromDb(value: unknown): string | null {
-		if (value == null) {
-			// if this property has an enumeration constraint and one of those constraints is empty string then return empty string;
-			// otherwise return null
-			return this.enum != null && this.enum.includes('') ? '' : null;
-		}
-
-		return String(value);
-	}
-
-	/** Transform js string to mv string */
-	public transformToDb(value: null): null;
-	public transformToDb(value: unknown): string;
-	public transformToDb(value: unknown): string | null {
-		return value == null ? null : String(value);
 	}
 
 	/** Create an array of foreign key definitions that will be validated before save */

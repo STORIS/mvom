@@ -1,6 +1,5 @@
 import type { ModelConstructor } from './compileModel';
 import { InvalidParameterError } from './errors';
-import { BaseScalarArrayType, BaseScalarType } from './schemaType';
 import type { DbDocument, GenericObject } from './types';
 
 // #region Types
@@ -279,26 +278,29 @@ class Query<TSchema extends GenericObject = GenericObject> {
 	 * @throws {link InvalidParameterError} Nonexistent schema property or property does not have a dictionary specified
 	 */
 	private getDictionaryId(property: string): string {
-		const dictionaryId = this.Model.schema?.dictPaths.get(property);
-		if (dictionaryId == null) {
+		const dictionaryTypeDetail = this.Model.schema?.dictPaths.get(property);
+		if (dictionaryTypeDetail == null) {
 			throw new InvalidParameterError({
 				message: 'Nonexistent schema property or property does not have a dictionary specified',
 				parameterName: 'property',
 			});
 		}
-		return dictionaryId;
+
+		return dictionaryTypeDetail.dictionary;
 	}
 
 	/** Transform query constant to internal u2 format (if applicable) */
 	private transformToQuery(property: string, constant: unknown): unknown {
-		const schemaType = this.Model.schema?.paths.get(property);
-		if (schemaType == null) {
-			return constant;
+		const dictionaryTypeDetail = this.Model.schema?.dictPaths.get(property);
+		/* istanbul ignore if: Would have thrown previously in getDictionaryId */
+		if (dictionaryTypeDetail == null) {
+			throw new InvalidParameterError({
+				message: 'Nonexistent schema property or property does not have a dictionary specified',
+				parameterName: 'property',
+			});
 		}
 
-		return schemaType instanceof BaseScalarType || schemaType instanceof BaseScalarArrayType
-			? schemaType.transformToQuery(constant)
-			: constant;
+		return dictionaryTypeDetail.dataTransformer.transformToQuery(constant);
 	}
 }
 
