@@ -105,8 +105,8 @@ describe('set', () => {
 
 	test('should return a record with the subdocument array merged in', () => {
 		const originalRecord: MvRecord = ['unrelated'];
-		const value1 = new Document(valueSchema, { record: originalRecord, isSubdocument: true });
-		const value2 = new Document(valueSchema, { record: originalRecord, isSubdocument: true });
+		const value1 = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
+		const value2 = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
 		value1.prop1 = 'foo';
 		value1.prop2 = 1.23;
 		value2.prop1 = 'bar';
@@ -119,8 +119,8 @@ describe('set', () => {
 
 	test('should return a record with the subdocument array merged in when the document has missing schema properties', () => {
 		const originalRecord: MvRecord = ['unrelated'];
-		const value1 = new Document(valueSchema, { record: originalRecord, isSubdocument: true });
-		const value2 = new Document(valueSchema, { record: originalRecord, isSubdocument: true });
+		const value1 = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
+		const value2 = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
 		value1.prop2 = 1.23;
 		value2.prop1 = 'bar';
 
@@ -141,8 +141,8 @@ describe('validate', () => {
 	test('should return an array of the errors encountered when validating the subdocuments', async () => {
 		const originalRecord: MvRecord = ['unrelated'];
 
-		const value1 = new Document(valueSchema, { record: originalRecord, isSubdocument: true });
-		const value2 = new Document(valueSchema, { record: originalRecord, isSubdocument: true });
+		const value1 = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
+		const value2 = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
 
 		const validationResults = await documentArrayType.validate([value1, value2]);
 		expect(validationResults).toHaveLength(4);
@@ -153,8 +153,8 @@ describe('validate', () => {
 
 	test('should return an empty array if no errors are encountered when validating the subdocument', async () => {
 		const originalRecord: MvRecord = ['unrelated'];
-		const value1 = new Document(valueSchema, { record: originalRecord, isSubdocument: true });
-		const value2 = new Document(valueSchema, { record: originalRecord, isSubdocument: true });
+		const value1 = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
+		const value2 = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
 		value1.prop1 = 'foo';
 		value1.prop2 = 1.23;
 		value2.prop1 = 'bar';
@@ -176,8 +176,8 @@ describe('transformForeignKeyDefinitionsToDb', () => {
 
 	test('should transform document array values to foreign key definitions', () => {
 		const originalRecord: MvRecord = ['unrelated'];
-		const value1 = new Document(valueSchema, { record: originalRecord, isSubdocument: true });
-		const value2 = new Document(valueSchema, { record: originalRecord, isSubdocument: true });
+		const value1 = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
+		const value2 = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
 		value1.prop1 = 'foo';
 		value1.prop2 = 1.23;
 		value2.prop1 = 'bar';

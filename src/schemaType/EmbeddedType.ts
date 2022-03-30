@@ -26,12 +26,12 @@ class EmbeddedType extends BaseSchemaType {
 		if (!isPlainObject(plainValue)) {
 			throw new TypeError('Cast value must be an object');
 		}
-		return new Document(this.valueSchema, { data: plainValue, isSubdocument: true });
+		return Document.createSubdocumentFromData(this.valueSchema, plainValue);
 	}
 
 	/** Get value from mv data */
 	public get(record: MvRecord): Document {
-		const embeddedDocument = new Document(this.valueSchema, { isSubdocument: true, record });
+		const embeddedDocument = Document.createSubdocumentFromRecord(this.valueSchema, record);
 		return embeddedDocument;
 	}
 

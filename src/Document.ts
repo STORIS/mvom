@@ -36,7 +36,7 @@ class Document {
 	/** Indicates whether this document is a subdocument of a composing parent */
 	readonly #isSubdocument: boolean;
 
-	public constructor(schema: Schema | null, options: DocumentConstructorOptions) {
+	protected constructor(schema: Schema | null, options: DocumentConstructorOptions) {
 		const { data = {}, record, isSubdocument = false } = options;
 
 		this.#schema = schema;
@@ -54,7 +54,17 @@ class Document {
 		assignIn(this, data);
 	}
 
-	/** Create a new Document instances from a record string */
+	/** Create a new Subdocument instance from a record array */
+	public static createSubdocumentFromRecord(schema: Schema, record: MvRecord): Document {
+		return new Document(schema, { record, isSubdocument: true });
+	}
+
+	/** Create a new Subdocument instance from data */
+	public static createSubdocumentFromData(schema: Schema, data: GenericObject): Document {
+		return new Document(schema, { data, isSubdocument: true });
+	}
+
+	/** Create a new Document instance from a record string */
 	public static createDocumentFromRecordString(
 		schema: Schema,
 		recordString: string,

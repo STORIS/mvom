@@ -1,9 +1,18 @@
-import type { BuildForeignKeyDefinitionsResult } from '../Document';
+import mockDelimiters from '#test/mockDelimiters';
+import type { BuildForeignKeyDefinitionsResult, DocumentConstructorOptions } from '../Document';
 import Document from '../Document';
 import { TransformDataError } from '../errors';
 import type { SchemaDefinition } from '../Schema';
 import Schema from '../Schema';
 import type { MvRecord } from '../types';
+
+const { am } = mockDelimiters;
+
+class DocumentSubclass extends Document {
+	public constructor(schema: Schema | null, options: DocumentConstructorOptions) {
+		super(schema, options);
+	}
+}
 
 describe('constructor', () => {
 	test('should construct a document from supplied data', () => {
@@ -11,14 +20,14 @@ describe('constructor', () => {
 			prop1: { type: 'string', path: '1' },
 			prop2: { type: 'number', path: '2', dbDecimals: 2 },
 		});
-		const document = new Document(schema, { data: { prop1: 'foo', prop2: 1.23 } });
+		const document = new DocumentSubclass(schema, { data: { prop1: 'foo', prop2: 1.23 } });
 
 		expect(document.prop1).toBe('foo');
 		expect(document.prop2).toBe(1.23);
 	});
 
 	test('should construct a document with a raw property if no schema is supplied', () => {
-		const document = new Document(null, { record: ['foo', '123'] });
+		const document = new DocumentSubclass(null, { record: ['foo', '123'] });
 
 		expect(document._raw).toEqual(['foo', '123']);
 	});
@@ -28,7 +37,7 @@ describe('constructor', () => {
 			prop1: { type: 'string', path: '1' },
 			prop2: { type: 'number', path: '2', dbDecimals: 2 },
 		});
-		const document = new Document(schema, { record: ['foo', 'bar'] });
+		const document = new DocumentSubclass(schema, { record: ['foo', 'bar'] });
 
 		expect(document.prop1).toBe('foo');
 		expect(document.prop2).toBeNull();
@@ -53,16 +62,59 @@ describe('constructor', () => {
 		});
 
 		expect(() => {
-			new Document(schema, { record: ['foo', '123'] });
+			new DocumentSubclass(schema, { record: ['foo', '123'] });
 		}).toThrow(err);
+	});
+});
+
+describe('createSubdocumentFromRecord', () => {
+	test('should create a new subdocument from the provided record', () => {
+		const definition: SchemaDefinition = {
+			prop1: { type: 'string', path: '1' },
+			prop2: { type: 'number', path: '2', dbDecimals: 2 },
+		};
+		const schema = new Schema(definition);
+
+		const document = Document.createSubdocumentFromRecord(schema, ['foo', '123']);
+
+		expect(document.prop1).toBe('foo');
+		expect(document.prop2).toBe(1.23);
+	});
+});
+
+describe('createSubdocumentFromData', () => {
+	test('should create a new subdocument from the provided data', () => {
+		const definition: SchemaDefinition = {
+			prop1: { type: 'string', path: '1' },
+			prop2: { type: 'number', path: '2', dbDecimals: 2 },
+		};
+		const schema = new Schema(definition);
+
+		const document = Document.createSubdocumentFromData(schema, { prop1: 'foo', prop2: 1.23 });
+
+		expect(document.prop1).toBe('foo');
+		expect(document.prop2).toBe(1.23);
+	});
+});
+
+describe('createDocumentFromRecordString', () => {
+	test('should create a new document from the provided record string', () => {
+		const definition: SchemaDefinition = {
+			prop1: { type: 'string', path: '1' },
+			prop2: { type: 'number', path: '2', dbDecimals: 2 },
+		};
+		const schema = new Schema(definition);
+
+		const document = Document.createDocumentFromRecordString(schema, `foo${am}123`, mockDelimiters);
+
+		expect(document.prop1).toBe('foo');
+		expect(document.prop2).toBe(1.23);
 	});
 });
 
 describe('transformDocumentToRecord', () => {
 	test('should transform "raw" document to record', () => {
-		const document = new Document(null, { record: [] });
-
-		document._raw = ['foo', ['bar', 'baz']];
+		const document = new DocumentSubclass(null, { record: ['foo', ['bar', 'baz']] });
 
 		expect(document.transformDocumentToRecord()).toEqual(['foo', ['bar', 'baz']]);
 	});
@@ -97,7 +149,7 @@ describe('transformDocumentToRecord', () => {
 				{ prop1: 'thud', prop2: 4.56 },
 			],
 		};
-		const document = new Document(schema, { data });
+		const document = new DocumentSubclass(schema, { data });
 
 		const expected: MvRecord = [
 			'foo',
@@ -132,7 +184,7 @@ describe('transformDocumentToRecord', () => {
 		const schema = new Schema(definition);
 
 		const data = {};
-		const document = new Document(schema, { data });
+		const document = new DocumentSubclass(schema, { data });
 
 		const expected: MvRecord = [null, null, [], [], null, null, null, null];
 		expect(document.transformDocumentToRecord()).toEqual(expected);
@@ -176,7 +228,7 @@ describe('transformDocumentToRecord', () => {
 			null,
 		];
 
-		const document = new Document(schema, { record });
+		const document = new DocumentSubclass(schema, { record });
 		document.prop1 = 'foo';
 		document.prop2 = 1.23;
 		document.array = ['bar', 'baz'];
@@ -215,10 +267,12 @@ describe('transformDocumentToRecord', () => {
 		};
 		const schema = new Schema(definition);
 
-		const document = new Document(schema, {
-			isSubdocument: true,
-			record: ['unmapped1', null, 'unmapped2', null],
-		});
+		const document = Document.createSubdocumentFromRecord(schema, [
+			'unmapped1',
+			null,
+			'unmapped2',
+			null,
+		]);
 		document.prop1 = 'foo';
 		document.prop2 = 1.23;
 
@@ -229,7 +283,7 @@ describe('transformDocumentToRecord', () => {
 
 describe('buildForeignKeyDefinitions', () => {
 	test('should return empty array if schema is null', () => {
-		const document = new Document(null, { record: [] });
+		const document = new DocumentSubclass(null, { record: [] });
 
 		expect(document.buildForeignKeyDefinitions()).toEqual([]);
 	});
@@ -240,7 +294,7 @@ describe('buildForeignKeyDefinitions', () => {
 		};
 		const schema = new Schema(definition);
 
-		const document = new Document(schema, { data: { prop1: 'foo' } });
+		const document = new DocumentSubclass(schema, { data: { prop1: 'foo' } });
 
 		const expected: BuildForeignKeyDefinitionsResult[] = [
 			{ filename: 'FILE', entityName: 'entityName', entityIds: ['foo'] },
@@ -263,7 +317,7 @@ describe('buildForeignKeyDefinitions', () => {
 		};
 		const schema = new Schema(definition);
 
-		const document = new Document(schema, { data: { prop1: 'foo', prop2: 'bar' } });
+		const document = new DocumentSubclass(schema, { data: { prop1: 'foo', prop2: 'bar' } });
 
 		const expected: BuildForeignKeyDefinitionsResult[] = [
 			{ filename: 'FILE1', entityName: 'entityName1', entityIds: ['foo'] },
@@ -279,7 +333,7 @@ describe('buildForeignKeyDefinitions', () => {
 		};
 		const schema = new Schema(definition);
 
-		const document = new Document(schema, { data: { prop1: 'foo', prop2: 'bar' } });
+		const document = new DocumentSubclass(schema, { data: { prop1: 'foo', prop2: 'bar' } });
 
 		const expected: BuildForeignKeyDefinitionsResult[] = [
 			{ filename: 'FILE', entityName: 'entityName', entityIds: ['foo', 'bar'] },
@@ -295,7 +349,7 @@ describe('buildForeignKeyDefinitions', () => {
 		};
 		const schema = new Schema(definition);
 
-		const document = new Document(schema, { data: { prop1: ['foo', 'bar'] } });
+		const document = new DocumentSubclass(schema, { data: { prop1: ['foo', 'bar'] } });
 
 		const expected: BuildForeignKeyDefinitionsResult[] = [
 			{ filename: 'FILE', entityName: 'entityName', entityIds: ['foo', 'bar'] },
@@ -322,7 +376,7 @@ describe('buildForeignKeyDefinitions', () => {
 		};
 		const schema = new Schema(definition);
 
-		const document = new Document(schema, {
+		const document = new DocumentSubclass(schema, {
 			data: {
 				documentArray: [
 					{ prop1: 'foo', prop2: 'bar' },
@@ -346,7 +400,7 @@ describe('buildForeignKeyDefinitions', () => {
 			idForeignKey: { entityName: 'entityName', file: 'FILE' },
 		});
 
-		const document = new Document(schema, { data: { _id: 'id', prop1: 'foo' } });
+		const document = new DocumentSubclass(schema, { data: { _id: 'id', prop1: 'foo' } });
 
 		const expected: BuildForeignKeyDefinitionsResult[] = [
 			{ filename: 'FILE', entityName: 'entityName', entityIds: ['id'] },
@@ -357,7 +411,7 @@ describe('buildForeignKeyDefinitions', () => {
 
 describe('validate', () => {
 	test('should return no errors if schema is null', async () => {
-		const document = new Document(null, { record: [] });
+		const document = new DocumentSubclass(null, { record: [] });
 
 		const expected = new Map();
 		expect(await document.validate()).toEqual(expected);
@@ -372,14 +426,14 @@ describe('validate', () => {
 		});
 
 		test('should return error if id match is specified and id does not match pattern', async () => {
-			const document = new Document(schema, { data: { _id: 'id', prop1: 'foo' } });
+			const document = new DocumentSubclass(schema, { data: { _id: 'id', prop1: 'foo' } });
 
 			const expected = new Map([['_id', 'Document id does not match pattern']]);
 			expect(await document.validate()).toEqual(expected);
 		});
 
 		test('should not return error if id match is specified and id matches pattern', async () => {
-			const document = new Document(schema, { data: { _id: 'foo', prop1: 'foo' } });
+			const document = new DocumentSubclass(schema, { data: { _id: 'foo', prop1: 'foo' } });
 
 			const expected = new Map();
 			expect(await document.validate()).toEqual(expected);
@@ -392,7 +446,7 @@ describe('validate', () => {
 				prop1: { type: 'string', path: '1', required: true },
 			};
 			const schema = new Schema(definition);
-			const document = new Document(schema, { record: [] });
+			const document = new DocumentSubclass(schema, { record: [] });
 
 			const expected = new Map([['prop1', ['Property is required']]]);
 			expect(await document.validate()).toEqual(expected);
@@ -403,7 +457,7 @@ describe('validate', () => {
 				prop1: { type: 'string', path: '1', required: true },
 			};
 			const schema = new Schema(definition);
-			const document = new Document(schema, { record: ['foo'] });
+			const document = new DocumentSubclass(schema, { record: ['foo'] });
 
 			const expected = new Map();
 			expect(await document.validate()).toEqual(expected);
@@ -427,7 +481,7 @@ describe('validate', () => {
 			const schema = new TestSchema({
 				prop1: { type: 'string', path: '1' },
 			});
-			const document = new Document(schema, { data: { prop1: 'foo' } });
+			const document = new DocumentSubclass(schema, { data: { prop1: 'foo' } });
 
 			const expected = new Map([['prop1', 'Test error message']]);
 			expect(await document.validate()).toEqual(expected);
