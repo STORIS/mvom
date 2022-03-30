@@ -25,7 +25,7 @@ class Document {
 	public _raw?: MvRecord;
 
 	/** Array of any errors which occurred during transformation from the database */
-	public transformationErrors: TransformDataError[];
+	public _transformationErrors: TransformDataError[];
 
 	/** Schema instance which defined this document */
 	readonly #schema: Schema | null;
@@ -42,10 +42,10 @@ class Document {
 		this.#schema = schema;
 		this.#record = [];
 		this.#isSubdocument = isSubdocument;
-		this.transformationErrors = [];
+		this._transformationErrors = [];
 
 		Object.defineProperties(this, {
-			transformationErrors: { configurable: false, enumerable: false, writable: false },
+			_transformationErrors: { configurable: false, enumerable: false, writable: false },
 		});
 
 		if (record != null) {
@@ -216,7 +216,7 @@ class Document {
 							if (err instanceof TransformDataError) {
 								// if this was an error in data transformation, set the value to null and add to transformationErrors list
 								setValue = null;
-								this.transformationErrors.push(err);
+								this._transformationErrors.push(err);
 							} else {
 								// otherwise rethrow any other type of error
 								throw err;

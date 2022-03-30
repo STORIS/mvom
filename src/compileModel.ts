@@ -99,7 +99,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 			Model.connection.logMessage('debug', `creating new instance of model for file ${Model.file}`);
 
-			this.transformationErrors.forEach((error) => {
+			this._transformationErrors.forEach((error) => {
 				// errors occurred while transforming data from multivalue format - log them
 				Model.connection.logMessage(
 					'warn',

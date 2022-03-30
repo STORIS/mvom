@@ -32,8 +32,8 @@ describe('constructor', () => {
 
 		expect(document.prop1).toBe('foo');
 		expect(document.prop2).toBeNull();
-		expect(document.transformationErrors).toHaveLength(1);
-		expect(document.transformationErrors[0]).toBeInstanceOf(TransformDataError);
+		expect(document._transformationErrors).toHaveLength(1);
+		expect(document._transformationErrors[0]).toBeInstanceOf(TransformDataError);
 	});
 
 	test('should throw error during Document construction if schemaType.get throws any error other than TransformDataError', async () => {
