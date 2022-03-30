@@ -76,7 +76,7 @@ class Document {
 	}
 
 	/** Convert a multivalue string to an array */
-	protected static convertMvStringToArray(
+	public static convertMvStringToArray(
 		recordString: string,
 		dbServerDelimiters: DbServerDelimiters,
 	): MvRecord {

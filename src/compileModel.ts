@@ -121,7 +121,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 			const { _id, __v, record } = data.result;
 
-			return Model.createModelFromRecordString(record, _id, __v);
+			return Model.#createModelFromRecordString(record, _id, __v);
 		}
 
 		/** Find documents via query */
@@ -134,7 +134,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 			return documents.map((document) => {
 				const { _id, __v, record } = document;
-				return Model.createModelFromRecordString(record, _id, __v);
+				return Model.#createModelFromRecordString(record, _id, __v);
 			});
 		}
 
@@ -148,7 +148,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 			const models = documents.map((document) => {
 				const { _id, __v, record } = document;
-				return Model.createModelFromRecordString(record, _id, __v);
+				return Model.#createModelFromRecordString(record, _id, __v);
 			});
 
 			return {
@@ -175,7 +175,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 			const { _id, __v, record } = data.result;
 
-			return Model.createModelFromRecordString(record, _id, __v);
+			return Model.#createModelFromRecordString(record, _id, __v);
 		}
 
 		/** Find multiple documents by their ids */
@@ -213,7 +213,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 		}
 
 		/** Create a new Model instance from a record string */
-		private static createModelFromRecordString(
+		static #createModelFromRecordString(
 			recordString: string,
 			_id: string,
 			__v?: string | null,
@@ -238,13 +238,13 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 					filename: Model.file,
 					id: this._id,
 					__v: this.__v,
-					record: this.convertToMvString(),
+					record: this.#convertToMvString(),
 					foreignKeyDefinitions: this.buildForeignKeyDefinitions(),
 				});
 
 				const { _id, __v, record } = data.result;
 
-				return Model.createModelFromRecordString(record, _id, __v);
+				return Model.#createModelFromRecordString(record, _id, __v);
 			} catch (err) {
 				// enrich caught error object with additional information and rethrow
 				err.other = {
@@ -258,7 +258,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 		}
 
 		/** Convert model instance to multivalue string */
-		private convertToMvString(): string {
+		#convertToMvString(): string {
 			const { am, vm, svm } = Model.connection.dbServerDelimiters;
 
 			const mvRecord = this.transformDocumentToRecord();
