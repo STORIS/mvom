@@ -5,7 +5,7 @@ import { DataValidationError } from './errors';
 import type { QueryConstructorOptions } from './Query';
 import Query, { type Filter } from './Query';
 import type Schema from './Schema';
-import type { GenericObject, MvRecord } from './types';
+import type { GenericObject } from './types';
 import { ensureArray } from './utils';
 
 // #region Types
@@ -13,7 +13,7 @@ export interface ModelConstructorOptions<TSchema extends GenericObject> {
 	_id?: string | null;
 	__v?: string | null;
 	data?: TSchema;
-	record?: MvRecord;
+	record?: string;
 }
 
 export type ModelConstructor = ReturnType<typeof compileModel>;
@@ -57,26 +57,43 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 		/** Id of model instance */
 		public _id!: string | null; // add definite assignment assertion since property is assigned through defineProperty
 
+		/** Original record string that model was generated from */
+		public readonly _originalRecordString: string | null;
+
 		/** Private id tracking property */
 		#_id: string | null;
 
 		public constructor(options: ModelConstructorOptions<TSchema>) {
 			const { data, record, _id = null, __v = null } = options;
-			const documentConstructorOptions: DocumentConstructorOptions = { data, record };
+
+			const mvRecord =
+				record != null
+					? Document.convertMvStringToArray(record, Model.connection.dbServerDelimiters)
+					: [];
+
+			const documentConstructorOptions: DocumentConstructorOptions = { data, record: mvRecord };
 			super(Model.schema, documentConstructorOptions);
 
 			this.#_id = _id;
 			this.__v = __v;
+			this._originalRecordString = record ?? null;
 
-			Object.defineProperty(this, '_id', {
-				enumerable: true,
-				get: () => this.#_id,
-				set: (value) => {
-					if (this.#_id != null) {
-						throw new Error('_id value cannot be changed once set');
-					}
+			Object.defineProperties(this, {
+				_id: {
+					enumerable: true,
+					get: () => this.#_id,
+					set: (value) => {
+						if (this.#_id != null) {
+							throw new Error('_id value cannot be changed once set');
+						}
 
-					this.#_id = value;
+						this.#_id = value;
+					},
+				},
+				_originalRecordString: {
+					enumerable: false,
+					writable: false,
+					configurable: false,
 				},
 			});
 
@@ -181,7 +198,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 				}
 
 				const { _id, __v, record } = dbResultItem;
-				return Model.createModelFromRecordString(record, _id, __v);
+				return new Model({ _id, __v, record });
 			});
 		}
 
@@ -201,12 +218,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			_id: string,
 			__v?: string | null,
 		): Model {
-			const record = Document.convertMvStringToArray(
-				recordString,
-				Model.connection.dbServerDelimiters,
-			);
-
-			return new Model({ _id, __v, record });
+			return new Model({ _id, __v, record: recordString });
 		}
 
 		/** Save a document to the database */
