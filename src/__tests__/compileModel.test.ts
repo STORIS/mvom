@@ -27,7 +27,7 @@ describe('constructor', () => {
 	test('should log transformation errors if encountered during construction', () => {
 		const Model = compileModel(connectionMock, schema, filename);
 
-		new Model({ record: [null, 'foo'] });
+		new Model({ record: `${am}'foo'` });
 
 		expect(connectionMock.logMessage).toHaveBeenCalledWith('warn', expect.anything());
 	});
@@ -36,7 +36,7 @@ describe('constructor', () => {
 describe('_id accessors', () => {
 	test('should only allow _id to be set a single time', () => {
 		const Model = compileModel(connectionMock, schema, filename);
-		const model = new Model({ record: [] });
+		const model = new Model({ record: '' });
 
 		model._id = 'test1';
 
@@ -47,7 +47,7 @@ describe('_id accessors', () => {
 
 	test('should return _id value after being set', () => {
 		const Model = compileModel(connectionMock, schema, filename);
-		const model = new Model({ record: [] });
+		const model = new Model({ record: '' });
 
 		expect(model._id).toBeNull();
 
@@ -57,7 +57,7 @@ describe('_id accessors', () => {
 
 	test('_id should be enumerable on own properties of Model', () => {
 		const Model = compileModel(connectionMock, schema, filename);
-		const model = new Model({ record: [] });
+		const model = new Model({ record: '' });
 
 		expect(Object.keys(model)).toContain('_id');
 	});
@@ -328,7 +328,7 @@ describe('save', () => {
 	test('should throw TypeError if _id is not set', async () => {
 		const Model = compileModel(connectionMock, schema, filename);
 
-		const model = new Model({ record: [] });
+		const model = new Model({ record: '' });
 
 		await expect(model.save()).rejects.toThrow(TypeError);
 	});
