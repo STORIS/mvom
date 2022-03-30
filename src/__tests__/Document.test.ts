@@ -413,12 +413,13 @@ describe('validate', () => {
 			// mock StringType.validate to throw
 			jest.resetModules();
 			const err = new Error('Test error message');
+			const getMock = jest.fn().mockReturnValue(null);
 			const castMock = jest.fn().mockImplementation((value) => value);
 			const validateMock = jest.fn().mockImplementation(() => {
 				throw err;
 			});
 			jest.doMock('../schemaType/StringType', () =>
-				jest.fn(() => ({ cast: castMock, validate: validateMock })),
+				jest.fn(() => ({ get: getMock, cast: castMock, validate: validateMock })),
 			);
 			// eslint-disable-next-line @typescript-eslint/naming-convention
 			const { default: TestSchema } = await import('../Schema');

@@ -44,8 +44,8 @@ describe('cast', () => {
 		const [document1, document2] = documents;
 		expect(document1.prop1).toBe('foo');
 		expect(document1.prop2).toBe(1.23);
-		expect(document2.prop1).toBeUndefined();
-		expect(document2.prop2).toBeUndefined();
+		expect(document2.prop1).toBeNull();
+		expect(document2.prop2).toBeNull();
 	});
 
 	test('should throw TypeError if array contents cannot be cast into a plain object', () => {

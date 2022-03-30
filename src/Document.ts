@@ -40,7 +40,7 @@ class Document {
 		const { data = {}, record, isSubdocument = false } = options;
 
 		this.#schema = schema;
-		this.#record = [];
+		this.#record = record ?? [];
 		this.#isSubdocument = isSubdocument;
 		this._transformationErrors = [];
 
@@ -48,9 +48,8 @@ class Document {
 			_transformationErrors: { configurable: false, enumerable: false, writable: false },
 		});
 
-		if (record != null) {
-			this.#transformRecordToDocument(record);
-		}
+		this.#transformRecordToDocument();
+
 		// load the data passed to constructor into document instance
 		assignIn(this, data);
 	}
@@ -201,10 +200,7 @@ class Document {
 	}
 
 	/** Apply schema structure using record to document instance */
-	#transformRecordToDocument(record: MvRecord) {
-		// hold on to the original to use as the baseline when saving
-		this.#record = record;
-
+	#transformRecordToDocument() {
 		const plainDocument =
 			this.#schema === null
 				? { _raw: this.#record }
