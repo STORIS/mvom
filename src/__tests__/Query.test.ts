@@ -12,8 +12,9 @@ const filename = 'filename';
 // @ts-expect-error: Ignore readonly modifier in test
 ModelConstructorMock.file = filename;
 
-const { am } = mockDelimiters;
 const dataTransformerMock = mock<DataTransformer>();
+
+const { am } = mockDelimiters;
 
 beforeEach(() => {
 	dataTransformerMock.transformToQuery.mockImplementation((val) => String(val));
