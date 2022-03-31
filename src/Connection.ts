@@ -85,8 +85,6 @@ interface ConnectionConstructorOptions {
 	httpAgent?: http.Agent;
 	/** Optional https agent */
 	httpsAgent?: https.Agent;
-	/** Multivalue database server delimiters */
-	dbServerDelimiters?: DbServerDelimiters;
 }
 
 export enum ConnectionStatus {
@@ -158,9 +156,11 @@ class Connection {
 		cacheMaxAge: number,
 		/** Request timeout (ms) */
 		timeout: number,
+		/** Multivalue database server delimiters */
+		dbServerDelimiters: DbServerDelimiters,
 		options: ConnectionConstructorOptions,
 	) {
-		const { httpAgent, httpsAgent, dbServerDelimiters: dbServerDelimitersOption } = options;
+		const { httpAgent, httpsAgent } = options;
 
 		this.account = account;
 		this.logger = logger;
@@ -168,12 +168,6 @@ class Connection {
 
 		const baseURL = `${mvisUri}/${account}/subroutine/${Connection.getServerProgramName('entry')}`;
 
-		const dbServerDelimiters: DbServerDelimiters = dbServerDelimitersOption ?? {
-			rm: String.fromCharCode(255),
-			am: String.fromCharCode(254),
-			vm: String.fromCharCode(253),
-			svm: String.fromCharCode(252),
-		};
 		this.dbServerDelimiters = dbServerDelimiters;
 
 		this.axiosInstance = axios.create({
@@ -201,7 +195,7 @@ class Connection {
 			timeout = 0,
 			httpAgent,
 			httpsAgent,
-			dbServerDelimiters,
+			dbServerDelimiters: dbServerDelimitersOption,
 		} = options;
 
 		if (!Number.isInteger(cacheMaxAge)) {
@@ -212,10 +206,16 @@ class Connection {
 			throw new InvalidParameterError({ parameterName: 'timeout' });
 		}
 
-		return new Connection(mvisUri, account, logger, cacheMaxAge, timeout, {
+		const dbServerDelimiters: DbServerDelimiters = dbServerDelimitersOption ?? {
+			rm: String.fromCharCode(255),
+			am: String.fromCharCode(254),
+			vm: String.fromCharCode(253),
+			svm: String.fromCharCode(252),
+		};
+
+		return new Connection(mvisUri, account, logger, cacheMaxAge, timeout, dbServerDelimiters, {
 			httpAgent,
 			httpsAgent,
-			dbServerDelimiters,
 		});
 	}
 
