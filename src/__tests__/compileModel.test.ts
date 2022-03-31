@@ -21,7 +21,7 @@ const schemaDefinition: SchemaDefinition = {
 const schema = new Schema(schemaDefinition);
 const filename = 'test.file';
 
-const { am } = mockDelimiters;
+const { am, vm, svm } = mockDelimiters;
 
 describe('constructor', () => {
 	test('should log transformation errors if encountered during construction', () => {
@@ -343,34 +343,6 @@ describe('save', () => {
 		await expect(model.save()).rejects.toThrow(DataValidationError);
 	});
 
-	test('should save and return new model instance', async () => {
-		const Model = compileModel(connectionMock, schema, filename);
-
-		const id = 'id';
-		const version = '1';
-		const model = new Model({ _id: id, data: { prop1: 'prop1-value', prop2: 123 } });
-
-		connectionMock.executeDbFeature.mockResolvedValue({
-			result: { _id: id, __v: version, record: `prop1-value${am}123` },
-		});
-		const result = await model.save();
-
-		expect(result).toBeInstanceOf(Model);
-		expect(result._id).toBe(id);
-		expect(result.__v).toBe(version);
-		expect(result.prop1).toBe('prop1-value');
-		expect(result.prop2).toBe(123);
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith('save', {
-			filename,
-			id,
-			__v: null,
-			record: `prop1-value${am}123`,
-			foreignKeyDefinitions: [
-				{ entityIds: ['prop1-value'], entityName: 'prop1', filename: 'FK_FILE' },
-			],
-		});
-	});
-
 	test('should catch, enrich, and rethrow errors returned from database operations', async () => {
 		const Model = compileModel(connectionMock, schema, filename);
 
@@ -393,6 +365,170 @@ describe('save', () => {
 			foreignKeyDefinitions: [
 				{ entityIds: ['prop1-value'], entityName: 'prop1', filename: 'FK_FILE' },
 			],
+		});
+	});
+
+	describe('success', () => {
+		test('should save and return new model instance with attribute based schemas', async () => {
+			const Model = compileModel(connectionMock, schema, filename);
+
+			const id = 'id';
+			const version = '1';
+			const model = new Model({ _id: id, data: { prop1: 'prop1-value', prop2: 123 } });
+
+			connectionMock.executeDbFeature.mockResolvedValue({
+				result: { _id: id, __v: version, record: `prop1-value${am}123` },
+			});
+			const result = await model.save();
+
+			expect(result).toBeInstanceOf(Model);
+			expect(result._id).toBe(id);
+			expect(result.__v).toBe(version);
+			expect(result.prop1).toBe('prop1-value');
+			expect(result.prop2).toBe(123);
+			expect(connectionMock.executeDbFeature).toHaveBeenCalledWith('save', {
+				filename,
+				id,
+				__v: null,
+				record: `prop1-value${am}123`,
+				foreignKeyDefinitions: [
+					{ entityIds: ['prop1-value'], entityName: 'prop1', filename: 'FK_FILE' },
+				],
+			});
+		});
+
+		test('should save and return new model instance with array based schemas', async () => {
+			const arraySchema = new Schema({ arrayProp: [{ type: 'string', path: 1 }] });
+			const Model = compileModel(connectionMock, arraySchema, filename);
+
+			const id = 'id';
+			const version = '1';
+			const model = new Model({ _id: id, data: { arrayProp: ['val1', 'val2'] } });
+
+			connectionMock.executeDbFeature.mockResolvedValue({
+				result: { _id: id, __v: version, record: `val1${vm}val2` },
+			});
+			const result = await model.save();
+
+			expect(result).toBeInstanceOf(Model);
+			expect(result._id).toBe(id);
+			expect(result.__v).toBe(version);
+			expect(result.arrayProp).toEqual(['val1', 'val2']);
+			expect(connectionMock.executeDbFeature).toHaveBeenCalledWith('save', {
+				filename,
+				id,
+				__v: null,
+				record: `val1${vm}val2`,
+				foreignKeyDefinitions: [],
+			});
+		});
+
+		test('should save and return new model instance with array based schemas and sparse arrays', async () => {
+			const arraySchema = new Schema({ arrayProp: [{ type: 'string', path: 1 }] });
+			const Model = compileModel(connectionMock, arraySchema, filename);
+
+			const id = 'id';
+			const version = '1';
+			const model = new Model({ _id: id, data: { arrayProp: [null, 'val2'] } });
+
+			connectionMock.executeDbFeature.mockResolvedValue({
+				result: { _id: id, __v: version, record: `${vm}val2` },
+			});
+			const result = await model.save();
+
+			expect(result).toBeInstanceOf(Model);
+			expect(result._id).toBe(id);
+			expect(result.__v).toBe(version);
+			expect(result.arrayProp).toEqual([null, 'val2']);
+			expect(connectionMock.executeDbFeature).toHaveBeenCalledWith('save', {
+				filename,
+				id,
+				__v: null,
+				record: `${vm}val2`,
+				foreignKeyDefinitions: [],
+			});
+		});
+
+		test('should save and return new model instance with nested array based schemas', async () => {
+			const arraySchema = new Schema({ nestedArrayProp: [[{ type: 'string', path: 1 }]] });
+			const Model = compileModel(connectionMock, arraySchema, filename);
+
+			const id = 'id';
+			const version = '1';
+			const model = new Model({
+				_id: id,
+				data: {
+					nestedArrayProp: [
+						['val1-subVal1', 'val1-subVal2'],
+						['val2-subVal1', 'val2-subVal2'],
+					],
+				},
+			});
+
+			connectionMock.executeDbFeature.mockResolvedValue({
+				result: {
+					_id: id,
+					__v: version,
+					record: `val1-subVal1${svm}val1-subVal2${vm}val2-subVal1${svm}val2-subVal2`,
+				},
+			});
+			const result = await model.save();
+
+			expect(result).toBeInstanceOf(Model);
+			expect(result._id).toBe(id);
+			expect(result.__v).toBe(version);
+			expect(result.nestedArrayProp).toEqual([
+				['val1-subVal1', 'val1-subVal2'],
+				['val2-subVal1', 'val2-subVal2'],
+			]);
+			expect(connectionMock.executeDbFeature).toHaveBeenCalledWith('save', {
+				filename,
+				id,
+				__v: null,
+				record: `val1-subVal1${svm}val1-subVal2${vm}val2-subVal1${svm}val2-subVal2`,
+				foreignKeyDefinitions: [],
+			});
+		});
+
+		test('should save and return new model instance with nested array based schemas and sparse arrays', async () => {
+			const arraySchema = new Schema({ nestedArrayProp: [[{ type: 'string', path: 1 }]] });
+			const Model = compileModel(connectionMock, arraySchema, filename);
+
+			const id = 'id';
+			const version = '1';
+			const model = new Model({
+				_id: id,
+				data: {
+					nestedArrayProp: [
+						[null, 'val1-subVal2'],
+						['val2-subVal1', null],
+					],
+				},
+			});
+
+			connectionMock.executeDbFeature.mockResolvedValue({
+				result: {
+					_id: id,
+					__v: version,
+					record: `${svm}val1-subVal2${vm}val2-subVal1${svm}`,
+				},
+			});
+			const result = await model.save();
+
+			expect(result).toBeInstanceOf(Model);
+			expect(result._id).toBe(id);
+			expect(result.__v).toBe(version);
+			expect(result.nestedArrayProp).toEqual([
+				[null, 'val1-subVal2'],
+				['val2-subVal1', null],
+			]);
+			expect(connectionMock.executeDbFeature).toHaveBeenCalledWith('save', {
+				filename,
+				id,
+				__v: null,
+				record: `${svm}val1-subVal2${vm}val2-subVal1${svm}`,
+				foreignKeyDefinitions: [],
+			});
 		});
 	});
 });
