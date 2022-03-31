@@ -6,7 +6,7 @@ import type { SchemaDefinition } from '../Schema';
 import Schema from '../Schema';
 import type { MvRecord } from '../types';
 
-const { am } = mockDelimiters;
+const { am, vm, svm } = mockDelimiters;
 
 class DocumentSubclass extends Document {
 	public constructor(schema: Schema | null, options: DocumentConstructorOptions) {
@@ -70,12 +70,17 @@ describe('constructor', () => {
 describe('createSubdocumentFromRecord', () => {
 	test('should create a new subdocument from the provided record', () => {
 		const definition: SchemaDefinition = {
-			prop1: { type: 'string', path: '1' },
-			prop2: { type: 'number', path: '2', dbDecimals: 2 },
+			prop1: { type: 'string', path: '3' },
+			prop2: { type: 'number', path: '4', dbDecimals: 2 },
 		};
 		const schema = new Schema(definition);
 
-		const document = Document.createSubdocumentFromRecord(schema, ['foo', '123']);
+		const document = Document.createSubdocumentFromRecord(schema, [
+			'unused',
+			'unused',
+			'foo',
+			'123',
+		]);
 
 		expect(document.prop1).toBe('foo');
 		expect(document.prop2).toBe(1.23);
@@ -100,15 +105,137 @@ describe('createSubdocumentFromData', () => {
 describe('createDocumentFromRecordString', () => {
 	test('should create a new document from the provided record string', () => {
 		const definition: SchemaDefinition = {
-			prop1: { type: 'string', path: '1' },
-			prop2: { type: 'number', path: '2', dbDecimals: 2 },
+			prop1: { type: 'string', path: '3' },
+			prop2: { type: 'number', path: '4', dbDecimals: 2 },
 		};
 		const schema = new Schema(definition);
 
-		const document = Document.createDocumentFromRecordString(schema, `foo${am}123`, mockDelimiters);
+		const document = Document.createDocumentFromRecordString(
+			schema,
+			`unused${am}unused${am}foo${am}123`,
+			mockDelimiters,
+		);
 
 		expect(document.prop1).toBe('foo');
 		expect(document.prop2).toBe(1.23);
+	});
+
+	test('should create a new document with an array from the provided record string', () => {
+		const definition: SchemaDefinition = {
+			arrayProp: [{ type: 'string', path: '3' }],
+		};
+		const schema = new Schema(definition);
+
+		const document = Document.createDocumentFromRecordString(
+			schema,
+			`unused${am}unused${am}foo${vm}bar${vm}baz${am}unused${am}unused`,
+			mockDelimiters,
+		);
+
+		expect(document.arrayProp).toEqual(['foo', 'bar', 'baz']);
+	});
+
+	test('should create a new document with an array from the provided record string with sparse data', () => {
+		const definition: SchemaDefinition = {
+			arrayProp: [{ type: 'string', path: '3' }],
+		};
+		const schema = new Schema(definition);
+
+		const document = Document.createDocumentFromRecordString(
+			schema,
+			`unused${am}unused${am}foo${vm}${vm}baz${am}unused${am}unused`,
+			mockDelimiters,
+		);
+
+		expect(document.arrayProp).toEqual(['foo', null, 'baz']);
+	});
+
+	test('should create a new document with a nested array from the provided record string', () => {
+		const definition: SchemaDefinition = {
+			nestedArrayProp: [[{ type: 'string', path: '3' }]],
+		};
+		const schema = new Schema(definition);
+
+		const document = Document.createDocumentFromRecordString(
+			schema,
+			`unused${am}unused${am}foo${svm}bar${vm}baz${svm}qux${am}unused${am}unused`,
+			mockDelimiters,
+		);
+
+		expect(document.nestedArrayProp).toEqual([
+			['foo', 'bar'],
+			['baz', 'qux'],
+		]);
+	});
+
+	test('should create a new document with a nested array from the provided record string with sparse data', () => {
+		const definition: SchemaDefinition = {
+			nestedArrayProp: [[{ type: 'string', path: '3' }]],
+		};
+		const schema = new Schema(definition);
+
+		const document = Document.createDocumentFromRecordString(
+			schema,
+			`unused${am}unused${am}${svm}bar${vm}baz${svm}${am}unused${am}unused`,
+			mockDelimiters,
+		);
+
+		expect(document.nestedArrayProp).toEqual([
+			[null, 'bar'],
+			['baz', null],
+		]);
+	});
+
+	test('should create a new document with a subdocument array from the provided record string', () => {
+		const definition: SchemaDefinition = {
+			subdocumentArray: [
+				{
+					prop1: { type: 'string', path: '3' },
+					prop2: { type: 'number', path: '4', dbDecimals: 2 },
+					prop3: [{ type: 'string', path: '5' }],
+				},
+			],
+		};
+		const schema = new Schema(definition);
+
+		const document = Document.createDocumentFromRecordString(
+			schema,
+			`unused${am}unused${am}foo${vm}bar${am}123${vm}456${am}val1${svm}val2${vm}val3${svm}val4${am}unused${am}unused`,
+			mockDelimiters,
+		);
+
+		const expected = [
+			{ prop1: 'foo', prop2: 1.23, prop3: ['val1', 'val2'] },
+			{ prop1: 'bar', prop2: 4.56, prop3: ['val3', 'val4'] },
+		];
+
+		expect(document.subdocumentArray).toEqual(expected);
+	});
+
+	test('should create a new document with a subdocument array from the provided record string with sparse data', () => {
+		const definition: SchemaDefinition = {
+			subdocumentArray: [
+				{
+					prop1: { type: 'string', path: '3' },
+					prop2: { type: 'number', path: '4', dbDecimals: 2 },
+					prop3: [{ type: 'string', path: '5' }],
+				},
+			],
+		};
+		const schema = new Schema(definition);
+
+		const document = Document.createDocumentFromRecordString(
+			schema,
+			`unused${am}unused${am}${vm}bar${am}123${vm}${am}${svm}val2${vm}val3${svm}${am}unused${am}unused`,
+			mockDelimiters,
+		);
+
+		const expected = [
+			{ prop1: null, prop2: 1.23, prop3: [null, 'val2'] },
+			{ prop1: 'bar', prop2: null, prop3: ['val3', null] },
+		];
+
+		expect(document.subdocumentArray).toEqual(expected);
 	});
 });
 
