@@ -85,6 +85,152 @@ describe('createSubdocumentFromRecord', () => {
 		expect(document.prop1).toBe('foo');
 		expect(document.prop2).toBe(1.23);
 	});
+
+	test('should create a new subdocument from the provided record with array schema properties', () => {
+		const definition: SchemaDefinition = {
+			arrayProp: [{ type: 'string', path: '3' }],
+		};
+		const schema = new Schema(definition);
+
+		const document = Document.createSubdocumentFromRecord(schema, [
+			'unused',
+			'unused',
+			['foo', 'bar'],
+			'unused',
+			'unused',
+		]);
+
+		expect(document.arrayProp).toEqual(['foo', 'bar']);
+	});
+
+	test('should create a new subdocument from the provided record with array schema properties and sparse arrays', () => {
+		const definition: SchemaDefinition = {
+			arrayProp: [{ type: 'string', path: '3' }],
+		};
+		const schema = new Schema(definition);
+
+		const document = Document.createSubdocumentFromRecord(schema, [
+			'unused',
+			'unused',
+			[null, 'bar'],
+			'unused',
+			'unused',
+		]);
+
+		expect(document.arrayProp).toEqual([null, 'bar']);
+	});
+
+	test('should create a new subdocument from the provided record with nested array schema properties', () => {
+		const definition: SchemaDefinition = {
+			nestedArrayProp: [[{ type: 'string', path: '3' }]],
+		};
+		const schema = new Schema(definition);
+
+		const document = Document.createSubdocumentFromRecord(schema, [
+			'unused',
+			'unused',
+			[
+				['foo', 'bar'],
+				['baz', 'qux'],
+			],
+			'unused',
+			'unused',
+		]);
+
+		expect(document.nestedArrayProp).toEqual([
+			['foo', 'bar'],
+			['baz', 'qux'],
+		]);
+	});
+
+	test('should create a new subdocument from the provided record with nested array schema properties and sparse arrays', () => {
+		const definition: SchemaDefinition = {
+			nestedArrayProp: [[{ type: 'string', path: '3' }]],
+		};
+		const schema = new Schema(definition);
+
+		const document = Document.createSubdocumentFromRecord(schema, [
+			'unused',
+			'unused',
+			[
+				[null, 'bar'],
+				['baz', null],
+			],
+			'unused',
+			'unused',
+		]);
+
+		expect(document.nestedArrayProp).toEqual([
+			[null, 'bar'],
+			['baz', null],
+		]);
+	});
+
+	test('should create a new subdocument with a subdocument array from the provided record', () => {
+		const definition: SchemaDefinition = {
+			subdocumentArray: [
+				{
+					prop1: { type: 'string', path: '3' },
+					prop2: { type: 'number', path: '4', dbDecimals: 2 },
+					prop3: [{ type: 'string', path: '5' }],
+				},
+			],
+		};
+		const schema = new Schema(definition);
+
+		const document = Document.createSubdocumentFromRecord(schema, [
+			null,
+			null,
+			['foo', 'bar'],
+			['123', '456'],
+			[
+				['val1', 'val2'],
+				['val3', 'val4'],
+			],
+			'unused',
+			'unused',
+		]);
+
+		const expected = [
+			{ prop1: 'foo', prop2: 1.23, prop3: ['val1', 'val2'] },
+			{ prop1: 'bar', prop2: 4.56, prop3: ['val3', 'val4'] },
+		];
+
+		expect(document.subdocumentArray).toEqual(expected);
+	});
+
+	test('should create a new subdocument with a subdocument array from the provided record and sparse arrays', () => {
+		const definition: SchemaDefinition = {
+			subdocumentArray: [
+				{
+					prop1: { type: 'string', path: '3' },
+					prop2: { type: 'number', path: '4', dbDecimals: 2 },
+					prop3: [{ type: 'string', path: '5' }],
+				},
+			],
+		};
+		const schema = new Schema(definition);
+
+		const document = Document.createSubdocumentFromRecord(schema, [
+			null,
+			null,
+			[null, 'bar'],
+			['123', null],
+			[
+				[null, 'val2'],
+				['val3', null],
+			],
+			'unused',
+			'unused',
+		]);
+
+		const expected = [
+			{ prop1: null, prop2: 1.23, prop3: [null, 'val2'] },
+			{ prop1: 'bar', prop2: null, prop3: ['val3', null] },
+		];
+
+		expect(document.subdocumentArray).toEqual(expected);
+	});
 });
 
 describe('createSubdocumentFromData', () => {
