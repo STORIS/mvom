@@ -48,6 +48,12 @@ class TestSubclass extends BaseScalarArrayType {
 }
 
 describe('cast', () => {
+	test('should return empty array if input value is null', () => {
+		const testSubclass = new TestSubclass(testScalarType);
+
+		expect(testSubclass.cast(null)).toEqual([]);
+	});
+
 	test('should cast scalar value to array', () => {
 		const testSubclass = new TestSubclass(testScalarType);
 
