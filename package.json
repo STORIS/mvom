@@ -57,7 +57,7 @@
     "@babel/plugin-transform-runtime": "7.17.0",
     "@babel/preset-env": "7.16.11",
     "@babel/preset-typescript": "7.16.7",
-    "@storis/eslint-config": "1.0.1",
+    "@storis/eslint-config": "2.0.0",
     "@storis/prettier-config": "0.0.2",
     "@storis/tsconfig": "0.0.2",
     "@types/fs-extra": "9.0.13",
