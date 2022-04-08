@@ -9,24 +9,12 @@ export type MvRecord = MvAttribute[];
 
 /** Characters which delimit strings on multivalue database server */
 export interface DbServerDelimiters {
-	/**
-	 * Record mark
-	 * @defaultValue String.fromCharCode(255)
-	 */
+	/** Record mark */
 	rm: string;
-	/**
-	 * Attribute mark
-	 * @defaultValue String.fromCharCode(254)
-	 */
+	/** Attribute mark */
 	am: string;
-	/**
-	 * Value mark
-	 * * @defaultValue String.fromCharCode(253)
-	 */
+	/** Value mark */
 	vm: string;
-	/**
-	 * Subvalue mark
-	 * @defaultValue String.fromCharCode(252)
-	 */
+	/** Subvalue mark */
 	svm: string;
 }
