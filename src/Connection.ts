@@ -427,21 +427,19 @@ class Connection {
 
 	/** Get the db server information (date, time, etc.) */
 	private async getDbServerInfo(): Promise<ServerInfo> {
-		if (this.status !== ConnectionStatus.connected) {
-			this.logMessage(
-				'error',
-				'Cannot get database server info until database connection has been established',
-			);
-			throw new Error(
-				'Cannot get database server info until database connection has been established',
-			);
-		}
-
 		if (this.dbServerInfo == null || Date.now() > this.dbServerInfo.cacheExpiry) {
-			this.logMessage('debug', 'getting db server information');
-			const data = await this.executeDbFeature('getServerInfo', {});
+			if (this.status !== ConnectionStatus.connected) {
+				this.logMessage(
+					'error',
+					'Cannot get database server info until database connection has been established',
+				);
+				throw new Error(
+					'Cannot get database server info until database connection has been established',
+				);
+			}
 
-			const { date, time, delimiters } = data;
+			this.logMessage('debug', 'getting db server information');
+			const { date, time, delimiters } = await this.executeDbFeature('getServerInfo', {});
 
 			const timeDrift = differenceInMilliseconds(
 				addMilliseconds(addDays(mvEpoch, date), time),
