@@ -6,7 +6,6 @@ import axios from 'axios';
 import { addDays, addMilliseconds, differenceInMilliseconds, format } from 'date-fns';
 import fs from 'fs-extra';
 import semver from 'semver';
-import { dependencies as serverDependencies } from './.mvomrc.json';
 import compileModel, { type ModelConstructor } from './compileModel';
 import {
 	dbErrors,
@@ -26,6 +25,7 @@ import {
 	TimeoutError,
 	UnknownError,
 } from './errors';
+import { dependencies as serverDependencies } from './manifest.json';
 import type Schema from './Schema';
 import type {
 	DbActionInputCreateDir,
