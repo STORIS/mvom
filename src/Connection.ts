@@ -109,6 +109,8 @@ interface ServerFeatureSet {
 
 /** Multivalue database server information */
 interface ServerInfo {
+	/** Time that the connection information cache will expire */
+	cacheExpiry: number;
 	/** +/- in milliseconds between database server time and local server time */
 	timeDrift: number;
 	/** Multivalue database server delimiters */
@@ -135,9 +137,6 @@ class Connection {
 		validFeatures: new Map(),
 		invalidFeatures: new Set(),
 	};
-
-	/** Time that the connection information cache will expire */
-	private cacheExpiry = 0;
 
 	/** Maximum age of the cache before it must be refreshed */
 	private readonly cacheMaxAge: number;
@@ -438,7 +437,7 @@ class Connection {
 			);
 		}
 
-		if (this.dbServerInfo == null || Date.now() > this.cacheExpiry) {
+		if (this.dbServerInfo == null || Date.now() > this.dbServerInfo.cacheExpiry) {
 			this.logMessage('debug', 'getting db server information');
 			const data = await this.executeDbFeature('getServerInfo', {});
 
@@ -448,13 +447,13 @@ class Connection {
 				addMilliseconds(addDays(mvEpoch, date), time),
 				Date.now(),
 			);
+			const cacheExpiry = Date.now() + this.cacheMaxAge * 1000;
 
 			this.dbServerInfo = {
+				cacheExpiry,
 				timeDrift,
 				delimiters,
 			};
-
-			this.cacheExpiry = Date.now() + this.cacheMaxAge * 1000;
 		}
 
 		return this.dbServerInfo;
