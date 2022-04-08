@@ -76,8 +76,6 @@ export interface CreateConnectionOptions {
 	httpAgent?: http.Agent;
 	/** Optional https agent */
 	httpsAgent?: https.Agent;
-	/** Multivalue database server delimiters */
-	dbServerDelimiters?: DbServerDelimiters;
 }
 
 interface ConnectionConstructorOptions {
@@ -119,7 +117,7 @@ class Connection {
 	public status: ConnectionStatus = ConnectionStatus.disconnected;
 
 	/** Multivalue database server delimiters */
-	public dbServerDelimiters: DbServerDelimiters;
+	public dbServerDelimiters?: DbServerDelimiters;
 
 	/** Database account name */
 	private readonly account: string;
@@ -156,8 +154,6 @@ class Connection {
 		cacheMaxAge: number,
 		/** Request timeout (ms) */
 		timeout: number,
-		/** Multivalue database server delimiters */
-		dbServerDelimiters: DbServerDelimiters,
 		options: ConnectionConstructorOptions,
 	) {
 		const { httpAgent, httpsAgent } = options;
@@ -167,8 +163,6 @@ class Connection {
 		this.cacheMaxAge = cacheMaxAge;
 
 		const baseURL = `${mvisUri}/${account}/subroutine/${Connection.getServerProgramName('entry')}`;
-
-		this.dbServerDelimiters = dbServerDelimiters;
 
 		this.axiosInstance = axios.create({
 			baseURL,
@@ -195,7 +189,6 @@ class Connection {
 			timeout = 0,
 			httpAgent,
 			httpsAgent,
-			dbServerDelimiters: dbServerDelimitersOption,
 		} = options;
 
 		if (!Number.isInteger(cacheMaxAge)) {
@@ -206,14 +199,7 @@ class Connection {
 			throw new InvalidParameterError({ parameterName: 'timeout' });
 		}
 
-		const dbServerDelimiters: DbServerDelimiters = dbServerDelimitersOption ?? {
-			rm: String.fromCharCode(255),
-			am: String.fromCharCode(254),
-			vm: String.fromCharCode(253),
-			svm: String.fromCharCode(252),
-		};
-
-		return new Connection(mvisUri, account, logger, cacheMaxAge, timeout, dbServerDelimiters, {
+		return new Connection(mvisUri, account, logger, cacheMaxAge, timeout, {
 			httpAgent,
 			httpsAgent,
 		});
@@ -385,14 +371,14 @@ class Connection {
 		schema: Schema | null,
 		file: string,
 	): ModelConstructor {
-		if (this.status !== ConnectionStatus.connected) {
+		if (this.status !== ConnectionStatus.connected || this.dbServerDelimiters == null) {
 			this.logMessage(
 				'error',
 				'Cannot create model until database connection has been established',
 			);
 			throw new Error('Cannot create model until database connection has been established');
 		}
-		return compileModel<TSchema>(this, schema, file);
+		return compileModel<TSchema>(this, schema, file, this.dbServerDelimiters);
 	}
 
 	/** Log a message to logger including account name */

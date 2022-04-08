@@ -8,7 +8,7 @@ import Schema from '../Schema';
 import type { SchemaDefinition } from '../Schema';
 import type { GenericObject } from '../types';
 
-const connectionMock = mockDeep<Connection>({ dbServerDelimiters: mockDelimiters });
+const connectionMock = mockDeep<Connection>();
 const schemaDefinition: SchemaDefinition = {
 	prop1: {
 		type: 'string',
@@ -25,7 +25,7 @@ const { am, vm, svm } = mockDelimiters;
 
 describe('constructor', () => {
 	test('should log transformation errors if encountered during construction', () => {
-		const Model = compileModel(connectionMock, schema, filename);
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 
 		new Model({ record: `${am}'foo'` });
 
@@ -35,7 +35,7 @@ describe('constructor', () => {
 
 describe('_id accessors', () => {
 	test('should only allow _id to be set a single time', () => {
-		const Model = compileModel(connectionMock, schema, filename);
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 		const model = new Model({ record: '' });
 
 		model._id = 'test1';
@@ -46,7 +46,7 @@ describe('_id accessors', () => {
 	});
 
 	test('should return _id value after being set', () => {
-		const Model = compileModel(connectionMock, schema, filename);
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 		const model = new Model({ record: '' });
 
 		expect(model._id).toBeNull();
@@ -56,7 +56,7 @@ describe('_id accessors', () => {
 	});
 
 	test('_id should be enumerable on own properties of Model', () => {
-		const Model = compileModel(connectionMock, schema, filename);
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 		const model = new Model({ record: '' });
 
 		expect(Object.keys(model)).toContain('_id');
@@ -65,7 +65,7 @@ describe('_id accessors', () => {
 
 describe('deleteById', () => {
 	test('should return null if database returns null', async () => {
-		const Model = compileModel(connectionMock, schema, filename);
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 
 		const id = 'id';
 		connectionMock.executeDbFeature.mockResolvedValue({ result: null });
@@ -75,7 +75,7 @@ describe('deleteById', () => {
 	});
 
 	test('should return new model instance from returned database record', async () => {
-		const Model = compileModel(connectionMock, schema, filename);
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 
 		const id = 'id';
 		const version = '1';
@@ -93,7 +93,7 @@ describe('deleteById', () => {
 
 describe('find', () => {
 	test('should return new model instance for each returned database record', async () => {
-		const Model = compileModel(connectionMock, schema, filename);
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 
 		const id1 = 'id1';
 		const version1 = '1';
@@ -127,7 +127,7 @@ describe('find', () => {
 
 describe('findAndCount', () => {
 	test('should return new model instance for each returned database record', async () => {
-		const Model = compileModel(connectionMock, schema, filename);
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 
 		const id1 = 'id1';
 		const version1 = '1';
@@ -162,7 +162,7 @@ describe('findAndCount', () => {
 
 describe('findById', () => {
 	test('should return new model instance for returned database record', async () => {
-		const Model = compileModel(connectionMock, schema, filename);
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 
 		const id1 = 'id1';
 		const version1 = '1';
@@ -183,7 +183,7 @@ describe('findById', () => {
 	});
 
 	test('should return new model instance for returned database record when there is no schema', async () => {
-		const Model = compileModel(connectionMock, null, filename);
+		const Model = compileModel(connectionMock, null, filename, mockDelimiters);
 
 		const id1 = 'id1';
 		const version1 = '1';
@@ -203,7 +203,7 @@ describe('findById', () => {
 	});
 
 	test('should return null if database record is not found', async () => {
-		const Model = compileModel(connectionMock, schema, filename);
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 
 		const id1 = 'id1';
 		connectionMock.executeDbFeature.mockResolvedValue({
@@ -223,7 +223,7 @@ describe('findById', () => {
 
 describe('findByIds', () => {
 	test('should return new model instance for each returned database record', async () => {
-		const Model = compileModel(connectionMock, schema, filename);
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 
 		const id1 = 'id1';
 		const version1 = '1';
@@ -254,7 +254,7 @@ describe('findByIds', () => {
 	});
 
 	test('should return new model instance for returned database record when there is no schema', async () => {
-		const Model = compileModel(connectionMock, null, filename);
+		const Model = compileModel(connectionMock, null, filename, mockDelimiters);
 
 		const id1 = 'id1';
 		const version1 = '1';
@@ -284,7 +284,7 @@ describe('findByIds', () => {
 	});
 
 	test('should return null for each database record that is not found', async () => {
-		const Model = compileModel(connectionMock, schema, filename);
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 
 		const id1 = 'id1';
 		const id2 = 'id2';
@@ -309,7 +309,7 @@ describe('findByIds', () => {
 
 describe('readFileContentsById', () => {
 	test('should return string from database', async () => {
-		const Model = compileModel(connectionMock, schema, filename);
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 
 		const id1 = 'id1';
 		const mockResult = 'RWFzdGVyIEVnZwo=';
@@ -326,7 +326,7 @@ describe('readFileContentsById', () => {
 
 describe('save', () => {
 	test('should throw TypeError if _id is not set', async () => {
-		const Model = compileModel(connectionMock, schema, filename);
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 
 		const model = new Model({ record: '' });
 
@@ -334,7 +334,7 @@ describe('save', () => {
 	});
 
 	test('should reject save if validation is not successful', async () => {
-		const Model = compileModel(connectionMock, schema, filename);
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 
 		const id = 'id';
 		const model = new Model({ _id: id, data: { prop1: 'prop1-value' } });
@@ -344,7 +344,7 @@ describe('save', () => {
 	});
 
 	test('should catch, enrich, and rethrow errors returned from database operations', async () => {
-		const Model = compileModel(connectionMock, schema, filename);
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 
 		const id = 'id';
 		const model = new Model({ _id: id, data: { prop1: 'prop1-value', prop2: 123 } });
@@ -370,7 +370,7 @@ describe('save', () => {
 
 	describe('success', () => {
 		test('should save and return new model instance with attribute based schemas', async () => {
-			const Model = compileModel(connectionMock, schema, filename);
+			const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 
 			const id = 'id';
 			const version = '1';
@@ -399,7 +399,7 @@ describe('save', () => {
 
 		test('should save and return new model instance with array based schemas', async () => {
 			const arraySchema = new Schema({ arrayProp: [{ type: 'string', path: 1 }] });
-			const Model = compileModel(connectionMock, arraySchema, filename);
+			const Model = compileModel(connectionMock, arraySchema, filename, mockDelimiters);
 
 			const id = 'id';
 			const version = '1';
@@ -425,7 +425,7 @@ describe('save', () => {
 
 		test('should save and return new model instance with array based schemas and sparse arrays', async () => {
 			const arraySchema = new Schema({ arrayProp: [{ type: 'string', path: 1 }] });
-			const Model = compileModel(connectionMock, arraySchema, filename);
+			const Model = compileModel(connectionMock, arraySchema, filename, mockDelimiters);
 
 			const id = 'id';
 			const version = '1';
@@ -451,7 +451,7 @@ describe('save', () => {
 
 		test('should save and return new model instance with nested array based schemas', async () => {
 			const arraySchema = new Schema({ nestedArrayProp: [[{ type: 'string', path: 1 }]] });
-			const Model = compileModel(connectionMock, arraySchema, filename);
+			const Model = compileModel(connectionMock, arraySchema, filename, mockDelimiters);
 
 			const id = 'id';
 			const version = '1';
@@ -492,7 +492,7 @@ describe('save', () => {
 
 		test('should save and return new model instance with nested array based schemas and sparse arrays', async () => {
 			const arraySchema = new Schema({ nestedArrayProp: [[{ type: 'string', path: 1 }]] });
-			const Model = compileModel(connectionMock, arraySchema, filename);
+			const Model = compileModel(connectionMock, arraySchema, filename, mockDelimiters);
 
 			const id = 'id';
 			const version = '1';

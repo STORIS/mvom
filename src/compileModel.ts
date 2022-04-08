@@ -5,7 +5,7 @@ import { DataValidationError } from './errors';
 import type { QueryConstructorOptions } from './Query';
 import Query, { type Filter } from './Query';
 import type Schema from './Schema';
-import type { GenericObject } from './types';
+import type { DbServerDelimiters, GenericObject } from './types';
 import { ensureArray } from './utils';
 
 // #region Types
@@ -37,6 +37,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 	connection: Connection,
 	schema: Schema | null,
 	file: string,
+	dbServerDelimiters: DbServerDelimiters,
 ) => {
 	connection.logMessage('debug', `creating new model for file ${file}`);
 
@@ -50,6 +51,9 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 		/** Schema that defines this model */
 		public static readonly schema = schema;
+
+		/** Database server delimiters */
+		static #dbServerDelimiters = dbServerDelimiters;
 
 		/** Document version hash */
 		public readonly __v: string | null;
@@ -67,9 +71,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			const { data, record, _id = null, __v = null } = options;
 
 			const mvRecord =
-				record != null
-					? Document.convertMvStringToArray(record, Model.connection.dbServerDelimiters)
-					: [];
+				record != null ? Document.convertMvStringToArray(record, Model.#dbServerDelimiters) : [];
 
 			const documentConstructorOptions: DocumentConstructorOptions = { data, record: mvRecord };
 			super(Model.schema, documentConstructorOptions);
@@ -259,7 +261,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 		/** Convert model instance to multivalue string */
 		#convertToMvString(): string {
-			const { am, vm, svm } = Model.connection.dbServerDelimiters;
+			const { am, vm, svm } = Model.#dbServerDelimiters;
 
 			const mvRecord = this.transformDocumentToRecord();
 
