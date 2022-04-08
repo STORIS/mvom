@@ -1,6 +1,6 @@
 import type { ModelConstructor } from './compileModel';
 import { InvalidParameterError } from './errors';
-import type { DbDocument, GenericObject } from './types';
+import type { DbDocument, DbSubroutineSetupOptions, GenericObject } from './types';
 
 // #region Types
 export interface QueryConstructorOptions {
@@ -99,7 +99,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 	}
 
 	/** Execute query */
-	public async exec(): Promise<QueryExecutionResult> {
+	public async exec(options: DbSubroutineSetupOptions = {}): Promise<QueryExecutionResult> {
 		let queryCommand = `select ${this.Model.file}`;
 		if (this.selection != null) {
 			queryCommand = `${queryCommand} with ${this.selection}`;
@@ -110,7 +110,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 
 		const projection = this.Model.schema?.transformPathsToDbPositions(this.projection) ?? [];
 
-		const options = {
+		const executionOptions = {
 			filename: this.Model.file,
 			queryCommand,
 			...(this.skip != null && { skip: this.skip }),
@@ -119,7 +119,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 		};
 
 		this.Model.connection.logMessage('verbose', `executing query "${queryCommand}"`);
-		const data = await this.Model.connection.executeDbFeature('find', options);
+		const data = await this.Model.connection.executeDbFeature('find', executionOptions, options);
 
 		return {
 			count: data.count,
