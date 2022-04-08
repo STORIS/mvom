@@ -3,7 +3,37 @@ subroutine mvom_setup(setupOptions)
 * Perform any needed environment setup
 
 com /S$MVOM/ S$MVOM.PROCESS
+com /S$MVOM/ S$MVOM.USER1, S$MVOM.USER2, S$MVOM.USER3, S$MVOM.USER4, S$MVOM.USER5
 S$MVOM.PROCESS = @TRUE
+
+gosub processUserDefinedOptions
 
 returnFromSub:
 return; * returning to caller
+
+processUserDefinedOptions: * process user defined options
+if udoGetProperty(setupOptions, 'userDefined', userDefined, type) then
+  return
+end
+
+if udoGetProperty(userDefined, 'option1', userDefined1, type) eq 0 then
+  S$MVOM.USER1 = userDefined1
+end
+
+if udoGetProperty(userDefined, 'option2', userDefined2, type) eq 0 then
+  S$MVOM.USER2 = userDefined2
+end
+
+if udoGetProperty(userDefined, 'option3', userDefined3, type) eq 0 then
+  S$MVOM.USER3 = userDefined3
+end
+
+if udoGetProperty(userDefined, 'option4', userDefined4, type) eq 0 then
+  S$MVOM.USER4 = userDefined4
+end
+
+if udoGetProperty(userDefined, 'option5', userDefined5, type) eq 0 then
+  S$MVOM.USER5 = userDefined5
+end
+
+return

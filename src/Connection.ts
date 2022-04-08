@@ -44,6 +44,7 @@ import type {
 	DbSubroutineInputOptionsMap,
 	DbSubroutineResponseTypes,
 	DbSubroutineResponseTypesMap,
+	DbSubroutineSetupOptions,
 	GenericObject,
 } from './types';
 import { dummyLogger } from './utils';
@@ -328,7 +329,7 @@ class Connection {
 	>(
 		feature: TFeature,
 		options: DbSubroutineInputOptionsMap[TFeature],
-		setupOptions: Record<string, never> = {},
+		setupOptions: DbSubroutineSetupOptions = {},
 		teardownOptions: Record<string, never> = {},
 	): Promise<DbSubroutineResponseTypesMap[TFeature]['output']> {
 		this.logMessage('debug', `executing database feature "${feature}"`);
