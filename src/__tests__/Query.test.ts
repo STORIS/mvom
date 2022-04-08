@@ -2,7 +2,7 @@ import { mock, mockDeep } from 'jest-mock-extended';
 import mockDelimiters from '#test/mockDelimiters';
 import type { ModelConstructor } from '../compileModel';
 import { InvalidParameterError } from '../errors';
-import type { SortCriteria } from '../Query';
+import type { QueryExecutionOptions, SortCriteria } from '../Query';
 import Query from '../Query';
 import type { DataTransformer, DbSubroutineOutputFind } from '../types';
 
@@ -1208,6 +1208,36 @@ describe('exec', () => {
 					limit,
 				},
 				undefined,
+			);
+		});
+
+		test('should add execution options if specified', async () => {
+			const propertyName = 'property-name';
+			const propertyValue = 'property-value';
+			const propertyDictionary = 'property-dictionary';
+			const selectionCritieria = {
+				[propertyName]: propertyValue,
+			};
+
+			// @ts-expect-error: Overriding mock
+			ModelConstructorMock.schema!.dictPaths = new Map([
+				[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
+			]);
+
+			const query = new Query(ModelConstructorMock, selectionCritieria);
+			const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
+			const executionOptions: QueryExecutionOptions = { userDefined };
+			expect(await query.exec(executionOptions)).toEqual(dbQueryResult);
+
+			const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue}"`;
+			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+				'find',
+				{
+					filename,
+					projection: [],
+					queryCommand: expectedQuery,
+				},
+				{ userDefined },
 			);
 		});
 	});
