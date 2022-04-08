@@ -244,10 +244,11 @@ class Connection {
 			});
 		}
 
+		this.status = ConnectionStatus.connected;
+
 		await this.getDbServerInfo(); // establish baseline for database server information
 
 		this.logMessage('info', 'connection opened');
-		this.status = ConnectionStatus.connected;
 	}
 
 	/** Deploy database features */
@@ -419,6 +420,16 @@ class Connection {
 
 	/** Get the db server information (date, time, etc.) */
 	private async getDbServerInfo() {
+		if (this.status !== ConnectionStatus.connected) {
+			this.logMessage(
+				'error',
+				'Cannot get database server info until database connection has been established',
+			);
+			throw new Error(
+				'Cannot get database server info until database connection has been established',
+			);
+		}
+
 		if (Date.now() > this.cacheExpiry) {
 			this.logMessage('debug', 'getting db server information');
 			const data = await this.executeDbFeature('getServerInfo', {});
