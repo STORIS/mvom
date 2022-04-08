@@ -106,6 +106,14 @@ interface ServerFeatureSet {
 	validFeatures: Map<ServerDependency, string>;
 	invalidFeatures: Set<ServerDependency>;
 }
+
+/** Multivalue database server information */
+interface ServerInfo {
+	/** +/- in milliseconds between database server time and local server time */
+	timeDrift: number;
+	/** Multivalue database server delimiters */
+	delimiters: DbServerDelimiters;
+}
 // #endregion
 
 /** A connection object */
@@ -115,9 +123,6 @@ class Connection {
 
 	/** Connection status */
 	public status: ConnectionStatus = ConnectionStatus.disconnected;
-
-	/** Multivalue database server delimiters */
-	public dbServerDelimiters?: DbServerDelimiters;
 
 	/** Database account name */
 	private readonly account: string;
@@ -137,8 +142,8 @@ class Connection {
 	/** Maximum age of the cache before it must be refreshed */
 	private readonly cacheMaxAge: number;
 
-	/** +/- in milliseconds between database server time and local server time */
-	private timeDrift = 0;
+	/** Multivalue database server information */
+	private dbServerInfo?: ServerInfo;
 
 	/** Axios instance */
 	private readonly axiosInstance: AxiosInstance;
@@ -351,20 +356,20 @@ class Connection {
 
 	/** Get the current ISOCalendarDate from the database */
 	public async getDbDate(): Promise<string> {
-		await this.getDbServerInfo();
-		return format(addMilliseconds(Date.now(), this.timeDrift), ISOCalendarDateFormat);
+		const { timeDrift } = await this.getDbServerInfo();
+		return format(addMilliseconds(Date.now(), timeDrift), ISOCalendarDateFormat);
 	}
 
 	/** Get the current ISOCalendarDateTime from the database */
 	public async getDbDateTime(): Promise<string> {
-		await this.getDbServerInfo();
-		return format(addMilliseconds(Date.now(), this.timeDrift), ISOCalendarDateTimeFormat);
+		const { timeDrift } = await this.getDbServerInfo();
+		return format(addMilliseconds(Date.now(), timeDrift), ISOCalendarDateTimeFormat);
 	}
 
 	/** Get the current ISOTime from the database */
 	public async getDbTime(): Promise<string> {
-		await this.getDbServerInfo();
-		return format(addMilliseconds(Date.now(), this.timeDrift), ISOTimeFormat);
+		const { timeDrift } = await this.getDbServerInfo();
+		return format(addMilliseconds(Date.now(), timeDrift), ISOTimeFormat);
 	}
 
 	/** Define a new model */
@@ -372,14 +377,17 @@ class Connection {
 		schema: Schema | null,
 		file: string,
 	): ModelConstructor {
-		if (this.status !== ConnectionStatus.connected || this.dbServerDelimiters == null) {
+		if (this.status !== ConnectionStatus.connected || this.dbServerInfo == null) {
 			this.logMessage(
 				'error',
 				'Cannot create model until database connection has been established',
 			);
 			throw new Error('Cannot create model until database connection has been established');
 		}
-		return compileModel<TSchema>(this, schema, file, this.dbServerDelimiters);
+
+		const { delimiters } = this.dbServerInfo;
+
+		return compileModel<TSchema>(this, schema, file, delimiters);
 	}
 
 	/** Log a message to logger including account name */
@@ -419,7 +427,7 @@ class Connection {
 	}
 
 	/** Get the db server information (date, time, etc.) */
-	private async getDbServerInfo() {
+	private async getDbServerInfo(): Promise<ServerInfo> {
 		if (this.status !== ConnectionStatus.connected) {
 			this.logMessage(
 				'error',
@@ -430,21 +438,26 @@ class Connection {
 			);
 		}
 
-		if (Date.now() > this.cacheExpiry) {
+		if (this.dbServerInfo == null || Date.now() > this.cacheExpiry) {
 			this.logMessage('debug', 'getting db server information');
 			const data = await this.executeDbFeature('getServerInfo', {});
 
 			const { date, time, delimiters } = data;
 
-			this.dbServerDelimiters = delimiters;
-
-			this.timeDrift = differenceInMilliseconds(
+			const timeDrift = differenceInMilliseconds(
 				addMilliseconds(addDays(mvEpoch, date), time),
 				Date.now(),
 			);
 
+			this.dbServerInfo = {
+				timeDrift,
+				delimiters,
+			};
+
 			this.cacheExpiry = Date.now() + this.cacheMaxAge * 1000;
 		}
+
+		return this.dbServerInfo;
 	}
 
 	/** Get the state of database server features */
