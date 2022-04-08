@@ -54,6 +54,7 @@ export type Filter<TSchema extends GenericObject = GenericObject> = {
 
 export type SortCriteria = [string, -1 | 1][];
 
+export type QueryExecutionOptions = DbSubroutineSetupOptions;
 export interface QueryExecutionResult {
 	/** Number of documents returned */
 	count: number;
@@ -99,7 +100,8 @@ class Query<TSchema extends GenericObject = GenericObject> {
 	}
 
 	/** Execute query */
-	public async exec(options: DbSubroutineSetupOptions = {}): Promise<QueryExecutionResult> {
+	public async exec(options: QueryExecutionOptions = {}): Promise<QueryExecutionResult> {
+		const { userDefined } = options;
 		let queryCommand = `select ${this.Model.file}`;
 		if (this.selection != null) {
 			queryCommand = `${queryCommand} with ${this.selection}`;
@@ -119,7 +121,11 @@ class Query<TSchema extends GenericObject = GenericObject> {
 		};
 
 		this.Model.connection.logMessage('verbose', `executing query "${queryCommand}"`);
-		const data = await this.Model.connection.executeDbFeature('find', executionOptions, options);
+		const data = await this.Model.connection.executeDbFeature(
+			'find',
+			executionOptions,
+			userDefined && { userDefined },
+		);
 
 		return {
 			count: data.count,

@@ -71,7 +71,11 @@ describe('deleteById', () => {
 		connectionMock.executeDbFeature.mockResolvedValue({ result: null });
 
 		expect(await Model.deleteById(id)).toBeNull();
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith('deleteById', { filename, id });
+		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+			'deleteById',
+			{ filename, id },
+			undefined,
+		);
 	});
 
 	test('should return new model instance from returned database record', async () => {
@@ -87,7 +91,11 @@ describe('deleteById', () => {
 		expect(model).toBeInstanceOf(Model);
 		expect(model._id).toBe(id);
 		expect(model.__v).toBe(version);
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith('deleteById', { filename, id });
+		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+			'deleteById',
+			{ filename, id },
+			undefined,
+		);
 	});
 });
 
@@ -117,11 +125,15 @@ describe('find', () => {
 		expect(document1.__v).toBe(version1);
 		expect(document2._id).toBe(id2);
 		expect(document2.__v).toBe(version2);
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith('find', {
-			filename,
-			projection: [],
-			queryCommand: `select ${filename}`,
-		});
+		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+			'find',
+			{
+				filename,
+				projection: [],
+				queryCommand: `select ${filename}`,
+			},
+			undefined,
+		);
 	});
 });
 
@@ -152,11 +164,15 @@ describe('findAndCount', () => {
 		expect(document1.__v).toBe(version1);
 		expect(document2._id).toBe(id2);
 		expect(document2.__v).toBe(version2);
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith('find', {
-			filename,
-			projection: [],
-			queryCommand: `select ${filename}`,
-		});
+		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+			'find',
+			{
+				filename,
+				projection: [],
+				queryCommand: `select ${filename}`,
+			},
+			undefined,
+		);
 	});
 });
 
@@ -175,11 +191,15 @@ describe('findById', () => {
 		expect(document).toBeInstanceOf(Model);
 		expect(document!._id).toBe(id1);
 		expect(document!.__v).toBe(version1);
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith('findById', {
-			filename,
-			id: id1,
-			projection: [],
-		});
+		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+			'findById',
+			{
+				filename,
+				id: id1,
+				projection: [],
+			},
+			undefined,
+		);
 	});
 
 	test('should return new model instance for returned database record when there is no schema', async () => {
@@ -195,11 +215,15 @@ describe('findById', () => {
 
 		expect(document).toBeInstanceOf(Model);
 		expect(document!._raw).toEqual(['attribute1', 'attribute2']);
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith('findById', {
-			filename,
-			id: id1,
-			projection: [],
-		});
+		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+			'findById',
+			{
+				filename,
+				id: id1,
+				projection: [],
+			},
+			undefined,
+		);
 	});
 
 	test('should return null if database record is not found', async () => {
@@ -213,11 +237,15 @@ describe('findById', () => {
 		const document = await Model.findById(id1);
 
 		expect(document).toBeNull();
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith('findById', {
-			filename,
-			id: id1,
-			projection: [],
-		});
+		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+			'findById',
+			{
+				filename,
+				id: id1,
+				projection: [],
+			},
+			undefined,
+		);
 	});
 });
 
@@ -246,11 +274,15 @@ describe('findByIds', () => {
 		expect(document1!.__v).toBe(version1);
 		expect(document2!._id).toBe(id2);
 		expect(document2!.__v).toBe(version2);
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith('findByIds', {
-			filename,
-			ids: [id1, id2],
-			projection: [],
-		});
+		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+			'findByIds',
+			{
+				filename,
+				ids: [id1, id2],
+				projection: [],
+			},
+			undefined,
+		);
 	});
 
 	test('should return new model instance for returned database record when there is no schema', async () => {
@@ -276,11 +308,15 @@ describe('findByIds', () => {
 
 		expect(document1!._raw).toEqual(['record1-attribute1', 'record1-attribute2']);
 		expect(document2!._raw).toEqual(['record2-attribute1', 'record2-attribute2']);
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith('findByIds', {
-			filename,
-			ids: [id1, id2],
-			projection: [],
-		});
+		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+			'findByIds',
+			{
+				filename,
+				ids: [id1, id2],
+				projection: [],
+			},
+			undefined,
+		);
 	});
 
 	test('should return null for each database record that is not found', async () => {
@@ -299,11 +335,15 @@ describe('findByIds', () => {
 		expect(document1).toBeNull();
 		expect(document2!._id).toBe(id2);
 		expect(document2!.__v).toBe(version2);
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith('findByIds', {
-			filename,
-			ids: [id1, id2],
-			projection: [],
-		});
+		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+			'findByIds',
+			{
+				filename,
+				ids: [id1, id2],
+				projection: [],
+			},
+			undefined,
+		);
 	});
 });
 
@@ -317,10 +357,14 @@ describe('readFileContentsById', () => {
 
 		const contents = await Model.readFileContentsById(id1);
 		expect(contents).toBe(mockResult);
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith('readFileContentsById', {
-			filename,
-			id: id1,
-		});
+		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+			'readFileContentsById',
+			{
+				filename,
+				id: id1,
+			},
+			undefined,
+		);
 	});
 });
 
@@ -357,15 +401,19 @@ describe('save', () => {
 		expect(error).not.toBeInstanceOf(NoErrorThrownError);
 		expect(error).toBeInstanceOf(Error);
 		expect(error.other).toEqual({ filename, _id: id });
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith('save', {
-			filename,
-			id,
-			__v: null,
-			record: `prop1-value${am}123`,
-			foreignKeyDefinitions: [
-				{ entityIds: ['prop1-value'], entityName: 'prop1', filename: 'FK_FILE' },
-			],
-		});
+		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+			'save',
+			{
+				filename,
+				id,
+				__v: null,
+				record: `prop1-value${am}123`,
+				foreignKeyDefinitions: [
+					{ entityIds: ['prop1-value'], entityName: 'prop1', filename: 'FK_FILE' },
+				],
+			},
+			undefined,
+		);
 	});
 
 	describe('success', () => {
@@ -386,15 +434,19 @@ describe('save', () => {
 			expect(result.__v).toBe(version);
 			expect(result.prop1).toBe('prop1-value');
 			expect(result.prop2).toBe(123);
-			expect(connectionMock.executeDbFeature).toHaveBeenCalledWith('save', {
-				filename,
-				id,
-				__v: null,
-				record: `prop1-value${am}123`,
-				foreignKeyDefinitions: [
-					{ entityIds: ['prop1-value'], entityName: 'prop1', filename: 'FK_FILE' },
-				],
-			});
+			expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+				'save',
+				{
+					filename,
+					id,
+					__v: null,
+					record: `prop1-value${am}123`,
+					foreignKeyDefinitions: [
+						{ entityIds: ['prop1-value'], entityName: 'prop1', filename: 'FK_FILE' },
+					],
+				},
+				undefined,
+			);
 		});
 
 		test('should save and return new model instance with array based schemas', async () => {
@@ -414,13 +466,17 @@ describe('save', () => {
 			expect(result._id).toBe(id);
 			expect(result.__v).toBe(version);
 			expect(result.arrayProp).toEqual(['val1', 'val2']);
-			expect(connectionMock.executeDbFeature).toHaveBeenCalledWith('save', {
-				filename,
-				id,
-				__v: null,
-				record: `val1${vm}val2`,
-				foreignKeyDefinitions: [],
-			});
+			expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+				'save',
+				{
+					filename,
+					id,
+					__v: null,
+					record: `val1${vm}val2`,
+					foreignKeyDefinitions: [],
+				},
+				undefined,
+			);
 		});
 
 		test('should save and return new model instance with array based schemas and sparse arrays', async () => {
@@ -440,13 +496,17 @@ describe('save', () => {
 			expect(result._id).toBe(id);
 			expect(result.__v).toBe(version);
 			expect(result.arrayProp).toEqual([null, 'val2']);
-			expect(connectionMock.executeDbFeature).toHaveBeenCalledWith('save', {
-				filename,
-				id,
-				__v: null,
-				record: `${vm}val2`,
-				foreignKeyDefinitions: [],
-			});
+			expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+				'save',
+				{
+					filename,
+					id,
+					__v: null,
+					record: `${vm}val2`,
+					foreignKeyDefinitions: [],
+				},
+				undefined,
+			);
 		});
 
 		test('should save and return new model instance with nested array based schemas', async () => {
@@ -481,13 +541,17 @@ describe('save', () => {
 				['val1-subVal1', 'val1-subVal2'],
 				['val2-subVal1', 'val2-subVal2'],
 			]);
-			expect(connectionMock.executeDbFeature).toHaveBeenCalledWith('save', {
-				filename,
-				id,
-				__v: null,
-				record: `val1-subVal1${svm}val1-subVal2${vm}val2-subVal1${svm}val2-subVal2`,
-				foreignKeyDefinitions: [],
-			});
+			expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+				'save',
+				{
+					filename,
+					id,
+					__v: null,
+					record: `val1-subVal1${svm}val1-subVal2${vm}val2-subVal1${svm}val2-subVal2`,
+					foreignKeyDefinitions: [],
+				},
+				undefined,
+			);
 		});
 
 		test('should save and return new model instance with nested array based schemas and sparse arrays', async () => {
@@ -522,13 +586,17 @@ describe('save', () => {
 				[null, 'val1-subVal2'],
 				['val2-subVal1', null],
 			]);
-			expect(connectionMock.executeDbFeature).toHaveBeenCalledWith('save', {
-				filename,
-				id,
-				__v: null,
-				record: `${svm}val1-subVal2${vm}val2-subVal1${svm}`,
-				foreignKeyDefinitions: [],
-			});
+			expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+				'save',
+				{
+					filename,
+					id,
+					__v: null,
+					record: `${svm}val1-subVal2${vm}val2-subVal1${svm}`,
+					foreignKeyDefinitions: [],
+				},
+				undefined,
+			);
 		});
 	});
 });
