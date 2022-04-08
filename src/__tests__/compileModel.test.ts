@@ -1,6 +1,13 @@
 import { mockDeep } from 'jest-mock-extended';
 import { getError, NoErrorThrownError } from '#test/helpers';
 import mockDelimiters from '#test/mockDelimiters';
+import type {
+	ModelDeleteByIdOptions,
+	ModelFindByIdOptions,
+	ModelFindOptions,
+	ModelReadFileContentsByIdOptions,
+	ModelSaveOptions,
+} from '../compileModel';
 import compileModel from '../compileModel';
 import type Connection from '../Connection';
 import { DataValidationError } from '../errors';
@@ -97,6 +104,22 @@ describe('deleteById', () => {
 			undefined,
 		);
 	});
+
+	test('should should pass setup options', async () => {
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
+
+		const id = 'id';
+		connectionMock.executeDbFeature.mockResolvedValue({ result: null });
+
+		const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
+		const options: ModelDeleteByIdOptions = { userDefined };
+		expect(await Model.deleteById(id, options)).toBeNull();
+		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+			'deleteById',
+			{ filename, id },
+			{ userDefined },
+		);
+	});
 });
 
 describe('find', () => {
@@ -133,6 +156,45 @@ describe('find', () => {
 				queryCommand: `select ${filename}`,
 			},
 			undefined,
+		);
+	});
+
+	test('should pass setup options', async () => {
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
+
+		const id1 = 'id1';
+		const version1 = '1';
+		const id2 = 'id2';
+		const version2 = '2';
+		connectionMock.executeDbFeature.mockResolvedValue({
+			count: 2,
+			documents: [
+				{ _id: id1, __v: version1, record: '' },
+				{ _id: id2, __v: version2, record: '' },
+			],
+		});
+
+		const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
+		const options: ModelFindOptions = { userDefined };
+
+		const documents = await Model.find({}, options);
+		documents.forEach((document) => {
+			expect(document).toBeInstanceOf(Model);
+		});
+
+		const [document1, document2] = documents;
+		expect(document1._id).toBe(id1);
+		expect(document1.__v).toBe(version1);
+		expect(document2._id).toBe(id2);
+		expect(document2.__v).toBe(version2);
+		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+			'find',
+			{
+				filename,
+				projection: [],
+				queryCommand: `select ${filename}`,
+			},
+			{ userDefined },
 		);
 	});
 });
@@ -172,6 +234,46 @@ describe('findAndCount', () => {
 				queryCommand: `select ${filename}`,
 			},
 			undefined,
+		);
+	});
+
+	test('should pass setup options', async () => {
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
+
+		const id1 = 'id1';
+		const version1 = '1';
+		const id2 = 'id2';
+		const version2 = '2';
+		connectionMock.executeDbFeature.mockResolvedValue({
+			count: 2,
+			documents: [
+				{ _id: id1, __v: version1, record: '' },
+				{ _id: id2, __v: version2, record: '' },
+			],
+		});
+
+		const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
+		const options: ModelFindOptions = { userDefined };
+
+		const { count, documents } = await Model.findAndCount({}, options);
+		expect(count).toBe(2);
+		documents.forEach((document) => {
+			expect(document).toBeInstanceOf(Model);
+		});
+
+		const [document1, document2] = documents;
+		expect(document1._id).toBe(id1);
+		expect(document1.__v).toBe(version1);
+		expect(document2._id).toBe(id2);
+		expect(document2.__v).toBe(version2);
+		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+			'find',
+			{
+				filename,
+				projection: [],
+				queryCommand: `select ${filename}`,
+			},
+			{ userDefined },
 		);
 	});
 });
@@ -245,6 +347,34 @@ describe('findById', () => {
 				projection: [],
 			},
 			undefined,
+		);
+	});
+
+	test('should pass setup options', async () => {
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
+
+		const id1 = 'id1';
+		const version1 = '1';
+		connectionMock.executeDbFeature.mockResolvedValue({
+			result: { _id: id1, __v: version1, record: '' },
+		});
+
+		const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
+		const options: ModelFindByIdOptions = { userDefined };
+
+		const document = await Model.findById(id1, options);
+
+		expect(document).toBeInstanceOf(Model);
+		expect(document!._id).toBe(id1);
+		expect(document!.__v).toBe(version1);
+		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+			'findById',
+			{
+				filename,
+				id: id1,
+				projection: [],
+			},
+			{ userDefined },
 		);
 	});
 });
@@ -345,6 +475,44 @@ describe('findByIds', () => {
 			undefined,
 		);
 	});
+
+	test('should pass setup options', async () => {
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
+
+		const id1 = 'id1';
+		const version1 = '1';
+		const id2 = 'id2';
+		const version2 = '2';
+		connectionMock.executeDbFeature.mockResolvedValue({
+			result: [
+				{ _id: id1, __v: version1, record: '' },
+				{ _id: id2, __v: version2, record: '' },
+			],
+		});
+
+		const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
+		const options: ModelFindByIdOptions = { userDefined };
+
+		const documents = await Model.findByIds([id1, id2], options);
+		documents.forEach((document) => {
+			expect(document).toBeInstanceOf(Model);
+		});
+
+		const [document1, document2] = documents;
+		expect(document1!._id).toBe(id1);
+		expect(document1!.__v).toBe(version1);
+		expect(document2!._id).toBe(id2);
+		expect(document2!.__v).toBe(version2);
+		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+			'findByIds',
+			{
+				filename,
+				ids: [id1, id2],
+				projection: [],
+			},
+			{ userDefined },
+		);
+	});
 });
 
 describe('readFileContentsById', () => {
@@ -364,6 +532,28 @@ describe('readFileContentsById', () => {
 				id: id1,
 			},
 			undefined,
+		);
+	});
+
+	test('should pass setup options', async () => {
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
+
+		const id1 = 'id1';
+		const mockResult = 'RWFzdGVyIEVnZwo=';
+		connectionMock.executeDbFeature.mockResolvedValue({ result: mockResult });
+
+		const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
+		const options: ModelReadFileContentsByIdOptions = { userDefined };
+
+		const contents = await Model.readFileContentsById(id1, options);
+		expect(contents).toBe(mockResult);
+		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+			'readFileContentsById',
+			{
+				filename,
+				id: id1,
+			},
+			{ userDefined },
 		);
 	});
 });
@@ -596,6 +786,42 @@ describe('save', () => {
 					foreignKeyDefinitions: [],
 				},
 				undefined,
+			);
+		});
+
+		test('should pass setup options', async () => {
+			const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
+
+			const id = 'id';
+			const version = '1';
+			const model = new Model({ _id: id, data: { prop1: 'prop1-value', prop2: 123 } });
+
+			connectionMock.executeDbFeature.mockResolvedValue({
+				result: { _id: id, __v: version, record: `prop1-value${am}123` },
+			});
+
+			const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
+			const options: ModelSaveOptions = { userDefined };
+
+			const result = await model.save(options);
+
+			expect(result).toBeInstanceOf(Model);
+			expect(result._id).toBe(id);
+			expect(result.__v).toBe(version);
+			expect(result.prop1).toBe('prop1-value');
+			expect(result.prop2).toBe(123);
+			expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+				'save',
+				{
+					filename,
+					id,
+					__v: null,
+					record: `prop1-value${am}123`,
+					foreignKeyDefinitions: [
+						{ entityIds: ['prop1-value'], entityName: 'prop1', filename: 'FK_FILE' },
+					],
+				},
+				{ userDefined },
 			);
 		});
 	});
