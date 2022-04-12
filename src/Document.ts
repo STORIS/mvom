@@ -2,7 +2,7 @@ import { assignIn, cloneDeep, get as getIn, set as setIn } from 'lodash';
 import { TransformDataError } from './errors';
 import ForeignKeyDbTransformer from './ForeignKeyDbTransformer';
 import type Schema from './Schema';
-import type { GenericObject, MvRecord } from './types';
+import type { DbServerDelimiters, GenericObject, MvRecord } from './types';
 
 // #region Types
 export interface DocumentConstructorOptions {
@@ -25,7 +25,7 @@ class Document {
 	public _raw?: MvRecord;
 
 	/** Array of any errors which occurred during transformation from the database */
-	public transformationErrors: TransformDataError[];
+	public _transformationErrors: TransformDataError[];
 
 	/** Schema instance which defined this document */
 	readonly #schema: Schema | null;
@@ -36,23 +36,79 @@ class Document {
 	/** Indicates whether this document is a subdocument of a composing parent */
 	readonly #isSubdocument: boolean;
 
-	public constructor(schema: Schema | null, options: DocumentConstructorOptions) {
+	protected constructor(schema: Schema | null, options: DocumentConstructorOptions) {
 		const { data = {}, record, isSubdocument = false } = options;
 
 		this.#schema = schema;
-		this.#record = [];
+		this.#record = record ?? [];
 		this.#isSubdocument = isSubdocument;
-		this.transformationErrors = [];
+		this._transformationErrors = [];
 
 		Object.defineProperties(this, {
-			transformationErrors: { configurable: false, enumerable: false, writable: false },
+			_transformationErrors: { configurable: false, enumerable: false, writable: false },
 		});
 
-		if (record != null) {
-			this.#transformRecordToDocument(record);
-		}
+		this.#transformRecordToDocument();
+
 		// load the data passed to constructor into document instance
 		assignIn(this, data);
+	}
+
+	/** Create a new Subdocument instance from a record array */
+	public static createSubdocumentFromRecord(schema: Schema, record: MvRecord): Document {
+		return new Document(schema, { record, isSubdocument: true });
+	}
+
+	/** Create a new Subdocument instance from data */
+	public static createSubdocumentFromData(schema: Schema, data: GenericObject): Document {
+		return new Document(schema, { data, isSubdocument: true });
+	}
+
+	/** Create a new Document instance from a record string */
+	public static createDocumentFromRecordString(
+		schema: Schema,
+		recordString: string,
+		dbServerDelimiters: DbServerDelimiters,
+	): Document {
+		const record = Document.convertMvStringToArray(recordString, dbServerDelimiters);
+
+		return new Document(schema, { record });
+	}
+
+	/** Convert a multivalue string to an array */
+	public static convertMvStringToArray(
+		recordString: string,
+		dbServerDelimiters: DbServerDelimiters,
+	): MvRecord {
+		const { am, vm, svm } = dbServerDelimiters;
+		const record: MvRecord =
+			recordString === ''
+				? []
+				: recordString.split(am).map((attribute) => {
+						if (attribute === '') {
+							return null;
+						}
+
+						const attributeArray = attribute.split(vm);
+						if (attributeArray.length === 1 && !attributeArray[0].includes(svm)) {
+							return attribute;
+						}
+
+						return attributeArray.map((value) => {
+							if (value === '') {
+								return null;
+							}
+
+							const valueArray = value.split(svm);
+							if (valueArray.length === 1) {
+								return value;
+							}
+
+							return valueArray.map((subvalue) => (subvalue === '' ? null : subvalue));
+						});
+				  });
+
+		return record;
 	}
 
 	/** Transform document structure to multivalue array structure */
@@ -154,10 +210,7 @@ class Document {
 	}
 
 	/** Apply schema structure using record to document instance */
-	#transformRecordToDocument(record: MvRecord) {
-		// hold on to the original to use as the baseline when saving
-		this.#record = record;
-
+	#transformRecordToDocument() {
 		const plainDocument =
 			this.#schema === null
 				? { _raw: this.#record }
@@ -169,7 +222,7 @@ class Document {
 							if (err instanceof TransformDataError) {
 								// if this was an error in data transformation, set the value to null and add to transformationErrors list
 								setValue = null;
-								this.transformationErrors.push(err);
+								this._transformationErrors.push(err);
 							} else {
 								// otherwise rethrow any other type of error
 								throw err;

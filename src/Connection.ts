@@ -40,6 +40,7 @@ import type {
 	DbActionResponseFeatureList,
 	DbActionSubroutineInputTypes,
 	DbFeatureResponseTypes,
+	DbServerDelimiters,
 	DbSubroutineInputOptionsMap,
 	DbSubroutineResponseTypes,
 	DbSubroutineResponseTypesMap,
@@ -90,6 +91,7 @@ export enum ConnectionStatus {
 	connected = 'connected',
 	connecting = 'connecting',
 }
+
 export interface DeployFeaturesOptions {
 	/**
 	 * Create directory when deploying features
@@ -103,6 +105,16 @@ type ServerDependency = keyof typeof serverDependencies;
 interface ServerFeatureSet {
 	validFeatures: Map<ServerDependency, string>;
 	invalidFeatures: Set<ServerDependency>;
+}
+
+/** Multivalue database server information */
+interface ServerInfo {
+	/** Time that the connection information cache will expire */
+	cacheExpiry: number;
+	/** +/- in milliseconds between database server time and local server time */
+	timeDrift: number;
+	/** Multivalue database server delimiters */
+	delimiters: DbServerDelimiters;
 }
 // #endregion
 
@@ -126,14 +138,11 @@ class Connection {
 		invalidFeatures: new Set(),
 	};
 
-	/** Time that the connection information cache will expire */
-	private cacheExpiry = 0;
-
 	/** Maximum age of the cache before it must be refreshed */
 	private readonly cacheMaxAge: number;
 
-	/** +/- in milliseconds between database server time and local server time */
-	private timeDrift = 0;
+	/** Multivalue database server information */
+	private dbServerInfo?: ServerInfo;
 
 	/** Axios instance */
 	private readonly axiosInstance: AxiosInstance;
@@ -170,6 +179,7 @@ class Connection {
 		this.logMessage('debug', 'creating new connection instance');
 	}
 
+	/** Create a connection */
 	public static createConnection(
 		/** URI of the MVIS which facilitates access to the mv database */
 		mvisUri: string,
@@ -238,10 +248,11 @@ class Connection {
 			});
 		}
 
+		this.status = ConnectionStatus.connected;
+
 		await this.getDbServerInfo(); // establish baseline for database server information
 
 		this.logMessage('info', 'connection opened');
-		this.status = ConnectionStatus.connected;
 	}
 
 	/** Deploy database features */
@@ -344,20 +355,20 @@ class Connection {
 
 	/** Get the current ISOCalendarDate from the database */
 	public async getDbDate(): Promise<string> {
-		await this.getDbServerInfo();
-		return format(addMilliseconds(Date.now(), this.timeDrift), ISOCalendarDateFormat);
+		const { timeDrift } = await this.getDbServerInfo();
+		return format(addMilliseconds(Date.now(), timeDrift), ISOCalendarDateFormat);
 	}
 
 	/** Get the current ISOCalendarDateTime from the database */
 	public async getDbDateTime(): Promise<string> {
-		await this.getDbServerInfo();
-		return format(addMilliseconds(Date.now(), this.timeDrift), ISOCalendarDateTimeFormat);
+		const { timeDrift } = await this.getDbServerInfo();
+		return format(addMilliseconds(Date.now(), timeDrift), ISOCalendarDateTimeFormat);
 	}
 
 	/** Get the current ISOTime from the database */
 	public async getDbTime(): Promise<string> {
-		await this.getDbServerInfo();
-		return format(addMilliseconds(Date.now(), this.timeDrift), ISOTimeFormat);
+		const { timeDrift } = await this.getDbServerInfo();
+		return format(addMilliseconds(Date.now(), timeDrift), ISOTimeFormat);
 	}
 
 	/** Define a new model */
@@ -365,14 +376,17 @@ class Connection {
 		schema: Schema | null,
 		file: string,
 	): ModelConstructor {
-		if (this.status !== ConnectionStatus.connected) {
+		if (this.status !== ConnectionStatus.connected || this.dbServerInfo == null) {
 			this.logMessage(
 				'error',
 				'Cannot create model until database connection has been established',
 			);
 			throw new Error('Cannot create model until database connection has been established');
 		}
-		return compileModel<TSchema>(this, schema, file);
+
+		const { delimiters } = this.dbServerInfo;
+
+		return compileModel<TSchema>(this, schema, file, delimiters);
 	}
 
 	/** Log a message to logger including account name */
@@ -412,20 +426,35 @@ class Connection {
 	}
 
 	/** Get the db server information (date, time, etc.) */
-	private async getDbServerInfo() {
-		if (Date.now() > this.cacheExpiry) {
+	private async getDbServerInfo(): Promise<ServerInfo> {
+		if (this.dbServerInfo == null || Date.now() > this.dbServerInfo.cacheExpiry) {
+			if (this.status !== ConnectionStatus.connected) {
+				this.logMessage(
+					'error',
+					'Cannot get database server info until database connection has been established',
+				);
+				throw new Error(
+					'Cannot get database server info until database connection has been established',
+				);
+			}
+
 			this.logMessage('debug', 'getting db server information');
-			const data = await this.executeDbFeature('getServerInfo', {});
+			const { date, time, delimiters } = await this.executeDbFeature('getServerInfo', {});
 
-			const { date, time } = data;
-
-			this.timeDrift = differenceInMilliseconds(
+			const timeDrift = differenceInMilliseconds(
 				addMilliseconds(addDays(mvEpoch, date), time),
 				Date.now(),
 			);
+			const cacheExpiry = Date.now() + this.cacheMaxAge * 1000;
 
-			this.cacheExpiry = Date.now() + this.cacheMaxAge * 1000;
+			this.dbServerInfo = {
+				cacheExpiry,
+				timeDrift,
+				delimiters,
+			};
 		}
+
+		return this.dbServerInfo;
 	}
 
 	/** Get the state of database server features */

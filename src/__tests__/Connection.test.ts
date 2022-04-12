@@ -6,6 +6,7 @@ import fs from 'fs-extra';
 import { mock } from 'jest-mock-extended';
 import { when } from 'jest-when';
 import { minVersion } from 'semver';
+import mockDelimiters from '#test/mockDelimiters';
 import { dependencies as serverDependencies } from '../.mvomrc.json';
 import type { CreateConnectionOptions, Logger } from '../Connection';
 import Connection, { ConnectionStatus } from '../Connection';
@@ -165,7 +166,9 @@ describe('open', () => {
 					}),
 				}),
 			)
-			.mockResolvedValue({ data: { output: { date: 19791, time: 43200000 } } });
+			.mockResolvedValue({
+				data: { output: { date: 19791, time: 43200000, delimiters: mockDelimiters } },
+			});
 
 		const connection = Connection.createConnection(mvisUri, account);
 
@@ -312,6 +315,7 @@ describe('executeDbFeature', () => {
 					output: {
 						date: 19791, // 2022-03-08
 						time: 43200000, // 12:00:00.000
+						delimiters: mockDelimiters,
 					},
 				},
 			});
@@ -338,8 +342,7 @@ describe('executeDbFeature', () => {
 			connection.executeDbFeature('save', {
 				filename,
 				id,
-				record: [],
-				clearAttributes: false,
+				record: '',
 				foreignKeyDefinitions: [],
 			}),
 		).rejects.toThrow(DbServerError);
@@ -370,8 +373,7 @@ describe('executeDbFeature', () => {
 			connection.executeDbFeature('save', {
 				filename,
 				id,
-				record: [],
-				clearAttributes: false,
+				record: '',
 				foreignKeyDefinitions: [],
 			}),
 		).rejects.toThrow(ForeignKeyValidationError);
@@ -402,8 +404,7 @@ describe('executeDbFeature', () => {
 			connection.executeDbFeature('save', {
 				filename,
 				id,
-				record: [],
-				clearAttributes: false,
+				record: '',
 				foreignKeyDefinitions: [],
 			}),
 		).rejects.toThrow(RecordLockedError);
@@ -434,8 +435,7 @@ describe('executeDbFeature', () => {
 			connection.executeDbFeature('save', {
 				filename,
 				id,
-				record: [],
-				clearAttributes: false,
+				record: '',
 				foreignKeyDefinitions: [],
 			}),
 		).rejects.toThrow(RecordVersionError);
@@ -466,8 +466,7 @@ describe('executeDbFeature', () => {
 			connection.executeDbFeature('save', {
 				filename,
 				id,
-				record: [],
-				clearAttributes: false,
+				record: '',
 				foreignKeyDefinitions: [],
 			}),
 		).rejects.toThrow(DbServerError);
@@ -496,8 +495,7 @@ describe('executeDbFeature', () => {
 			connection.executeDbFeature('save', {
 				filename,
 				id,
-				record: [],
-				clearAttributes: false,
+				record: '',
 				foreignKeyDefinitions: [],
 			}),
 		).rejects.toThrow(MvisError);
@@ -527,8 +525,7 @@ describe('executeDbFeature', () => {
 			connection.executeDbFeature('save', {
 				filename,
 				id,
-				record: [],
-				clearAttributes: false,
+				record: '',
 				foreignKeyDefinitions: [],
 			}),
 		).rejects.toThrow(TimeoutError);
@@ -558,8 +555,7 @@ describe('executeDbFeature', () => {
 			connection.executeDbFeature('save', {
 				filename,
 				id,
-				record: [],
-				clearAttributes: false,
+				record: '',
 				foreignKeyDefinitions: [],
 			}),
 		).rejects.toThrow(new UnknownError({ message: errMsg }));
@@ -588,8 +584,7 @@ describe('executeDbFeature', () => {
 			connection.executeDbFeature('save', {
 				filename,
 				id,
-				record: [],
-				clearAttributes: false,
+				record: '',
 				foreignKeyDefinitions: [],
 			}),
 		).rejects.toThrow(UnknownError);
@@ -603,6 +598,12 @@ describe('getDbDate', () => {
 
 	afterAll(() => {
 		jest.useRealTimers();
+	});
+
+	test('should throw an error if connection has not been opened', async () => {
+		const connection = Connection.createConnection(mvisUri, account);
+
+		await expect(connection.getDbDate()).rejects.toThrow();
 	});
 
 	test('should return current db server date if there is no time drift', async () => {
@@ -626,6 +627,7 @@ describe('getDbDate', () => {
 					output: {
 						date: 19791, // 2022-03-08
 						time: 43200000, // 12:00:00.000
+						delimiters: mockDelimiters,
 					},
 				},
 			});
@@ -660,6 +662,7 @@ describe('getDbDate', () => {
 					output: {
 						date: 19791, // 2022-03-08
 						time: 43200000, // 12:00:00.000
+						delimiters: mockDelimiters,
 					},
 				},
 			});
@@ -683,6 +686,12 @@ describe('getDbDateTime', () => {
 		jest.useRealTimers();
 	});
 
+	test('should throw an error if connection has not been opened', async () => {
+		const connection = Connection.createConnection(mvisUri, account);
+
+		await expect(connection.getDbDateTime()).rejects.toThrow();
+	});
+
 	test('should return current db server date and time if there is no time drift', async () => {
 		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
@@ -704,6 +713,7 @@ describe('getDbDateTime', () => {
 					output: {
 						date: 19791, // 2022-03-08
 						time: 43200000, // 12:00:00.000
+						delimiters: mockDelimiters,
 					},
 				},
 			});
@@ -738,6 +748,7 @@ describe('getDbDateTime', () => {
 					output: {
 						date: 19791, // 2022-03-08
 						time: 43200000, // 12:00:00.000
+						delimiters: mockDelimiters,
 					},
 				},
 			});
@@ -761,6 +772,12 @@ describe('getDbTime', () => {
 		jest.useRealTimers();
 	});
 
+	test('should throw an error if connection has not been opened', async () => {
+		const connection = Connection.createConnection(mvisUri, account);
+
+		await expect(connection.getDbTime()).rejects.toThrow();
+	});
+
 	test('should return current db server time if there is no time drift', async () => {
 		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
@@ -782,6 +799,7 @@ describe('getDbTime', () => {
 					output: {
 						date: 19791, // 2022-03-08
 						time: 43200000, // 12:00:00.000
+						delimiters: mockDelimiters,
 					},
 				},
 			});
@@ -816,6 +834,7 @@ describe('getDbTime', () => {
 					output: {
 						date: 19791, // 2022-03-08
 						time: 43200000, // 12:00:00.000
+						delimiters: mockDelimiters,
 					},
 				},
 			});
@@ -856,7 +875,9 @@ describe('model', () => {
 					}),
 				}),
 			)
-			.mockResolvedValue({ data: { output: { date: 19791, time: 43200000 } } });
+			.mockResolvedValue({
+				data: { output: { date: 19791, time: 43200000, delimiters: mockDelimiters } },
+			});
 
 		const connection = Connection.createConnection(mvisUri, account);
 		await connection.open();

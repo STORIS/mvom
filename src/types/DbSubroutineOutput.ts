@@ -1,10 +1,10 @@
 import type { DbActionResponse } from './DbFeature';
-import type { MvRecord } from '.';
+import type { DbServerDelimiters } from './Miscellaneous';
 
 export interface DbDocument {
 	_id: string;
 	__v: string | null;
-	record: MvRecord;
+	record: string;
 }
 
 export interface DbSubroutineOutputDeleteById {
@@ -42,6 +42,7 @@ export type DbActionResponseSubroutineReadFileContentsById =
 export interface DbSubroutineOutputGetServerInfo {
 	date: number;
 	time: number;
+	delimiters: DbServerDelimiters;
 }
 export type DbActionResponseSubroutineGetServerInfo =
 	DbActionResponse<DbSubroutineOutputGetServerInfo>;

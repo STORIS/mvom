@@ -1,5 +1,6 @@
 import { mockDeep } from 'jest-mock-extended';
 import { getError, NoErrorThrownError } from '#test/helpers';
+import mockDelimiters from '#test/mockDelimiters';
 import compileModel from '../compileModel';
 import type Connection from '../Connection';
 import { DataValidationError } from '../errors';
@@ -20,11 +21,13 @@ const schemaDefinition: SchemaDefinition = {
 const schema = new Schema(schemaDefinition);
 const filename = 'test.file';
 
+const { am, vm, svm } = mockDelimiters;
+
 describe('constructor', () => {
 	test('should log transformation errors if encountered during construction', () => {
-		const Model = compileModel(connectionMock, schema, filename);
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 
-		new Model({ record: [null, 'foo'] });
+		new Model({ record: `${am}'foo'` });
 
 		expect(connectionMock.logMessage).toHaveBeenCalledWith('warn', expect.anything());
 	});
@@ -32,8 +35,8 @@ describe('constructor', () => {
 
 describe('_id accessors', () => {
 	test('should only allow _id to be set a single time', () => {
-		const Model = compileModel(connectionMock, schema, filename);
-		const model = new Model({ record: [] });
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
+		const model = new Model({ record: '' });
 
 		model._id = 'test1';
 
@@ -43,8 +46,8 @@ describe('_id accessors', () => {
 	});
 
 	test('should return _id value after being set', () => {
-		const Model = compileModel(connectionMock, schema, filename);
-		const model = new Model({ record: [] });
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
+		const model = new Model({ record: '' });
 
 		expect(model._id).toBeNull();
 
@@ -53,8 +56,8 @@ describe('_id accessors', () => {
 	});
 
 	test('_id should be enumerable on own properties of Model', () => {
-		const Model = compileModel(connectionMock, schema, filename);
-		const model = new Model({ record: [] });
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
+		const model = new Model({ record: '' });
 
 		expect(Object.keys(model)).toContain('_id');
 	});
@@ -62,7 +65,7 @@ describe('_id accessors', () => {
 
 describe('deleteById', () => {
 	test('should return null if database returns null', async () => {
-		const Model = compileModel(connectionMock, schema, filename);
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 
 		const id = 'id';
 		connectionMock.executeDbFeature.mockResolvedValue({ result: null });
@@ -72,12 +75,12 @@ describe('deleteById', () => {
 	});
 
 	test('should return new model instance from returned database record', async () => {
-		const Model = compileModel(connectionMock, schema, filename);
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 
 		const id = 'id';
 		const version = '1';
 		connectionMock.executeDbFeature.mockResolvedValue({
-			result: { _id: id, __v: version, record: [] },
+			result: { _id: id, __v: version, record: '' },
 		});
 
 		const model = (await Model.deleteById(id))!;
@@ -90,7 +93,7 @@ describe('deleteById', () => {
 
 describe('find', () => {
 	test('should return new model instance for each returned database record', async () => {
-		const Model = compileModel(connectionMock, schema, filename);
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 
 		const id1 = 'id1';
 		const version1 = '1';
@@ -99,8 +102,8 @@ describe('find', () => {
 		connectionMock.executeDbFeature.mockResolvedValue({
 			count: 2,
 			documents: [
-				{ _id: id1, __v: version1, record: [] },
-				{ _id: id2, __v: version2, record: [] },
+				{ _id: id1, __v: version1, record: '' },
+				{ _id: id2, __v: version2, record: '' },
 			],
 		});
 
@@ -124,7 +127,7 @@ describe('find', () => {
 
 describe('findAndCount', () => {
 	test('should return new model instance for each returned database record', async () => {
-		const Model = compileModel(connectionMock, schema, filename);
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 
 		const id1 = 'id1';
 		const version1 = '1';
@@ -133,8 +136,8 @@ describe('findAndCount', () => {
 		connectionMock.executeDbFeature.mockResolvedValue({
 			count: 2,
 			documents: [
-				{ _id: id1, __v: version1, record: [] },
-				{ _id: id2, __v: version2, record: [] },
+				{ _id: id1, __v: version1, record: '' },
+				{ _id: id2, __v: version2, record: '' },
 			],
 		});
 
@@ -159,12 +162,12 @@ describe('findAndCount', () => {
 
 describe('findById', () => {
 	test('should return new model instance for returned database record', async () => {
-		const Model = compileModel(connectionMock, schema, filename);
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 
 		const id1 = 'id1';
 		const version1 = '1';
 		connectionMock.executeDbFeature.mockResolvedValue({
-			result: { _id: id1, __v: version1, record: [] },
+			result: { _id: id1, __v: version1, record: '' },
 		});
 
 		const document = await Model.findById(id1);
@@ -180,12 +183,12 @@ describe('findById', () => {
 	});
 
 	test('should return new model instance for returned database record when there is no schema', async () => {
-		const Model = compileModel(connectionMock, null, filename);
+		const Model = compileModel(connectionMock, null, filename, mockDelimiters);
 
 		const id1 = 'id1';
 		const version1 = '1';
 		connectionMock.executeDbFeature.mockResolvedValue({
-			result: { _id: id1, __v: version1, record: ['attribute1', 'attribute2'] },
+			result: { _id: id1, __v: version1, record: `attribute1${am}attribute2` },
 		});
 
 		const document = await Model.findById(id1);
@@ -200,7 +203,7 @@ describe('findById', () => {
 	});
 
 	test('should return null if database record is not found', async () => {
-		const Model = compileModel(connectionMock, schema, filename);
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 
 		const id1 = 'id1';
 		connectionMock.executeDbFeature.mockResolvedValue({
@@ -220,7 +223,7 @@ describe('findById', () => {
 
 describe('findByIds', () => {
 	test('should return new model instance for each returned database record', async () => {
-		const Model = compileModel(connectionMock, schema, filename);
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 
 		const id1 = 'id1';
 		const version1 = '1';
@@ -228,8 +231,8 @@ describe('findByIds', () => {
 		const version2 = '2';
 		connectionMock.executeDbFeature.mockResolvedValue({
 			result: [
-				{ _id: id1, __v: version1, record: [] },
-				{ _id: id2, __v: version2, record: [] },
+				{ _id: id1, __v: version1, record: '' },
+				{ _id: id2, __v: version2, record: '' },
 			],
 		});
 
@@ -251,7 +254,7 @@ describe('findByIds', () => {
 	});
 
 	test('should return new model instance for returned database record when there is no schema', async () => {
-		const Model = compileModel(connectionMock, null, filename);
+		const Model = compileModel(connectionMock, null, filename, mockDelimiters);
 
 		const id1 = 'id1';
 		const version1 = '1';
@@ -259,8 +262,8 @@ describe('findByIds', () => {
 		const version2 = '2';
 		connectionMock.executeDbFeature.mockResolvedValue({
 			result: [
-				{ _id: id1, __v: version1, record: ['record1-attribute1', 'record1-attribute2'] },
-				{ _id: id1, __v: version2, record: ['record2-attribute1', 'record2-attribute2'] },
+				{ _id: id1, __v: version1, record: `record1-attribute1${am}record1-attribute2` },
+				{ _id: id1, __v: version2, record: `record2-attribute1${am}record2-attribute2` },
 			],
 		});
 
@@ -281,13 +284,13 @@ describe('findByIds', () => {
 	});
 
 	test('should return null for each database record that is not found', async () => {
-		const Model = compileModel(connectionMock, schema, filename);
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 
 		const id1 = 'id1';
 		const id2 = 'id2';
 		const version2 = '2';
 		connectionMock.executeDbFeature.mockResolvedValue({
-			result: [null, { _id: id2, __v: version2, record: [] }],
+			result: [null, { _id: id2, __v: version2, record: '' }],
 		});
 
 		const documents = await Model.findByIds([id1, id2]);
@@ -306,7 +309,7 @@ describe('findByIds', () => {
 
 describe('readFileContentsById', () => {
 	test('should return string from database', async () => {
-		const Model = compileModel(connectionMock, schema, filename);
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 
 		const id1 = 'id1';
 		const mockResult = 'RWFzdGVyIEVnZwo=';
@@ -323,15 +326,15 @@ describe('readFileContentsById', () => {
 
 describe('save', () => {
 	test('should throw TypeError if _id is not set', async () => {
-		const Model = compileModel(connectionMock, schema, filename);
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 
-		const model = new Model({ record: [] });
+		const model = new Model({ record: '' });
 
 		await expect(model.save()).rejects.toThrow(TypeError);
 	});
 
 	test('should reject save if validation is not successful', async () => {
-		const Model = compileModel(connectionMock, schema, filename);
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 
 		const id = 'id';
 		const model = new Model({ _id: id, data: { prop1: 'prop1-value' } });
@@ -340,37 +343,8 @@ describe('save', () => {
 		await expect(model.save()).rejects.toThrow(DataValidationError);
 	});
 
-	test('should save and return new model instance', async () => {
-		const Model = compileModel(connectionMock, schema, filename);
-
-		const id = 'id';
-		const version = '1';
-		const model = new Model({ _id: id, data: { prop1: 'prop1-value', prop2: 123 } });
-
-		connectionMock.executeDbFeature.mockResolvedValue({
-			result: { _id: id, __v: version, record: ['prop1-value', 123] },
-		});
-		const result = await model.save();
-
-		expect(result).toBeInstanceOf(Model);
-		expect(result._id).toBe(id);
-		expect(result.__v).toBe(version);
-		expect(result.prop1).toBe('prop1-value');
-		expect(result.prop2).toBe(123);
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith('save', {
-			filename,
-			id,
-			__v: null,
-			record: ['prop1-value', '123'],
-			foreignKeyDefinitions: [
-				{ entityIds: ['prop1-value'], entityName: 'prop1', filename: 'FK_FILE' },
-			],
-			clearAttributes: false,
-		});
-	});
-
 	test('should catch, enrich, and rethrow errors returned from database operations', async () => {
-		const Model = compileModel(connectionMock, schema, filename);
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 
 		const id = 'id';
 		const model = new Model({ _id: id, data: { prop1: 'prop1-value', prop2: 123 } });
@@ -387,11 +361,174 @@ describe('save', () => {
 			filename,
 			id,
 			__v: null,
-			record: ['prop1-value', '123'],
+			record: `prop1-value${am}123`,
 			foreignKeyDefinitions: [
 				{ entityIds: ['prop1-value'], entityName: 'prop1', filename: 'FK_FILE' },
 			],
-			clearAttributes: false,
+		});
+	});
+
+	describe('success', () => {
+		test('should save and return new model instance with attribute based schemas', async () => {
+			const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
+
+			const id = 'id';
+			const version = '1';
+			const model = new Model({ _id: id, data: { prop1: 'prop1-value', prop2: 123 } });
+
+			connectionMock.executeDbFeature.mockResolvedValue({
+				result: { _id: id, __v: version, record: `prop1-value${am}123` },
+			});
+			const result = await model.save();
+
+			expect(result).toBeInstanceOf(Model);
+			expect(result._id).toBe(id);
+			expect(result.__v).toBe(version);
+			expect(result.prop1).toBe('prop1-value');
+			expect(result.prop2).toBe(123);
+			expect(connectionMock.executeDbFeature).toHaveBeenCalledWith('save', {
+				filename,
+				id,
+				__v: null,
+				record: `prop1-value${am}123`,
+				foreignKeyDefinitions: [
+					{ entityIds: ['prop1-value'], entityName: 'prop1', filename: 'FK_FILE' },
+				],
+			});
+		});
+
+		test('should save and return new model instance with array based schemas', async () => {
+			const arraySchema = new Schema({ arrayProp: [{ type: 'string', path: 1 }] });
+			const Model = compileModel(connectionMock, arraySchema, filename, mockDelimiters);
+
+			const id = 'id';
+			const version = '1';
+			const model = new Model({ _id: id, data: { arrayProp: ['val1', 'val2'] } });
+
+			connectionMock.executeDbFeature.mockResolvedValue({
+				result: { _id: id, __v: version, record: `val1${vm}val2` },
+			});
+			const result = await model.save();
+
+			expect(result).toBeInstanceOf(Model);
+			expect(result._id).toBe(id);
+			expect(result.__v).toBe(version);
+			expect(result.arrayProp).toEqual(['val1', 'val2']);
+			expect(connectionMock.executeDbFeature).toHaveBeenCalledWith('save', {
+				filename,
+				id,
+				__v: null,
+				record: `val1${vm}val2`,
+				foreignKeyDefinitions: [],
+			});
+		});
+
+		test('should save and return new model instance with array based schemas and sparse arrays', async () => {
+			const arraySchema = new Schema({ arrayProp: [{ type: 'string', path: 1 }] });
+			const Model = compileModel(connectionMock, arraySchema, filename, mockDelimiters);
+
+			const id = 'id';
+			const version = '1';
+			const model = new Model({ _id: id, data: { arrayProp: [null, 'val2'] } });
+
+			connectionMock.executeDbFeature.mockResolvedValue({
+				result: { _id: id, __v: version, record: `${vm}val2` },
+			});
+			const result = await model.save();
+
+			expect(result).toBeInstanceOf(Model);
+			expect(result._id).toBe(id);
+			expect(result.__v).toBe(version);
+			expect(result.arrayProp).toEqual([null, 'val2']);
+			expect(connectionMock.executeDbFeature).toHaveBeenCalledWith('save', {
+				filename,
+				id,
+				__v: null,
+				record: `${vm}val2`,
+				foreignKeyDefinitions: [],
+			});
+		});
+
+		test('should save and return new model instance with nested array based schemas', async () => {
+			const arraySchema = new Schema({ nestedArrayProp: [[{ type: 'string', path: 1 }]] });
+			const Model = compileModel(connectionMock, arraySchema, filename, mockDelimiters);
+
+			const id = 'id';
+			const version = '1';
+			const model = new Model({
+				_id: id,
+				data: {
+					nestedArrayProp: [
+						['val1-subVal1', 'val1-subVal2'],
+						['val2-subVal1', 'val2-subVal2'],
+					],
+				},
+			});
+
+			connectionMock.executeDbFeature.mockResolvedValue({
+				result: {
+					_id: id,
+					__v: version,
+					record: `val1-subVal1${svm}val1-subVal2${vm}val2-subVal1${svm}val2-subVal2`,
+				},
+			});
+			const result = await model.save();
+
+			expect(result).toBeInstanceOf(Model);
+			expect(result._id).toBe(id);
+			expect(result.__v).toBe(version);
+			expect(result.nestedArrayProp).toEqual([
+				['val1-subVal1', 'val1-subVal2'],
+				['val2-subVal1', 'val2-subVal2'],
+			]);
+			expect(connectionMock.executeDbFeature).toHaveBeenCalledWith('save', {
+				filename,
+				id,
+				__v: null,
+				record: `val1-subVal1${svm}val1-subVal2${vm}val2-subVal1${svm}val2-subVal2`,
+				foreignKeyDefinitions: [],
+			});
+		});
+
+		test('should save and return new model instance with nested array based schemas and sparse arrays', async () => {
+			const arraySchema = new Schema({ nestedArrayProp: [[{ type: 'string', path: 1 }]] });
+			const Model = compileModel(connectionMock, arraySchema, filename, mockDelimiters);
+
+			const id = 'id';
+			const version = '1';
+			const model = new Model({
+				_id: id,
+				data: {
+					nestedArrayProp: [
+						[null, 'val1-subVal2'],
+						['val2-subVal1', null],
+					],
+				},
+			});
+
+			connectionMock.executeDbFeature.mockResolvedValue({
+				result: {
+					_id: id,
+					__v: version,
+					record: `${svm}val1-subVal2${vm}val2-subVal1${svm}`,
+				},
+			});
+			const result = await model.save();
+
+			expect(result).toBeInstanceOf(Model);
+			expect(result._id).toBe(id);
+			expect(result.__v).toBe(version);
+			expect(result.nestedArrayProp).toEqual([
+				[null, 'val1-subVal2'],
+				['val2-subVal1', null],
+			]);
+			expect(connectionMock.executeDbFeature).toHaveBeenCalledWith('save', {
+				filename,
+				id,
+				__v: null,
+				record: `${svm}val1-subVal2${vm}val2-subVal1${svm}`,
+				foreignKeyDefinitions: [],
+			});
 		});
 	});
 });

@@ -44,7 +44,7 @@ describe('get', () => {
 	const embeddedType = new EmbeddedType(valueSchema);
 
 	test('should return a subdocument constructed from the provided record', () => {
-		const record: MvRecord = [null, 'foo', 1234];
+		const record: MvRecord = [null, 'foo', '1234'];
 		const document = embeddedType.get(record);
 
 		expect(document).toBeInstanceOf(Document);
@@ -63,7 +63,7 @@ describe('set', () => {
 
 	test('should return a record with the subdocument merged in', () => {
 		const originalRecord: MvRecord = ['unrelated'];
-		const value = new Document(valueSchema, { record: originalRecord, isSubdocument: true });
+		const value = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
 		value.prop1 = 'foo';
 		value.prop2 = 12.34;
 
@@ -82,10 +82,7 @@ describe('validate', () => {
 
 	test('should return an array of the errors encountered when validating the subdocument', async () => {
 		const originalRecord: MvRecord = ['unrelated'];
-		const value = new Document(valueSchema, {
-			record: originalRecord,
-			isSubdocument: true,
-		});
+		const value = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
 
 		const validationResults = await embeddedType.validate(value);
 		expect(validationResults).toHaveLength(2);
@@ -96,10 +93,7 @@ describe('validate', () => {
 
 	test('should return an empty array if no errors are encountered when validating the subdocument', async () => {
 		const originalRecord: MvRecord = ['unrelated'];
-		const value = new Document(valueSchema, {
-			record: originalRecord,
-			isSubdocument: true,
-		});
+		const value = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
 		value.prop1 = 'foo';
 		value.prop2 = 12.34;
 

@@ -1,5 +1,7 @@
 $basictype 'U'
 subroutine mvom_getServerInfo(options, output)
+{% include "./partials/udoConstants.njk" %}
+
 {% include "./partials/errorConstants.njk" %}
 
 if udoSetProperty(output, 'date', date()) then
@@ -8,6 +10,36 @@ if udoSetProperty(output, 'date', date()) then
 end
 
 if udoSetProperty(output, 'time', system(12)) then
+  call error_handler(ERROR_UDO, output)
+  go returnFromSub
+end
+
+if udoCreate(UDO_OBJECT, delimiters) then
+  call error_handler(ERROR_UDO, output)
+  go returnFromSub
+end
+
+if udoSetProperty(delimiters, 'rm', @rm) then
+  call error_handler(ERROR_UDO, output)
+  go returnFromSub
+end
+
+if udoSetProperty(delimiters, 'am', @am) then
+  call error_handler(ERROR_UDO, output)
+  go returnFromSub
+end
+
+if udoSetProperty(delimiters, 'vm', @vm) then
+  call error_handler(ERROR_UDO, output)
+  go returnFromSub
+end
+
+if udoSetProperty(delimiters, 'svm', @svm) then
+  call error_handler(ERROR_UDO, output)
+  go returnFromSub
+end
+
+if udoSetProperty(output, 'delimiters', delimiters) then
   call error_handler(ERROR_UDO, output)
   go returnFromSub
 end

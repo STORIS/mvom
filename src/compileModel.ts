@@ -5,7 +5,7 @@ import { DataValidationError } from './errors';
 import type { QueryConstructorOptions } from './Query';
 import Query, { type Filter } from './Query';
 import type Schema from './Schema';
-import type { GenericObject, MvRecord } from './types';
+import type { DbServerDelimiters, GenericObject } from './types';
 import { ensureArray } from './utils';
 
 // #region Types
@@ -13,7 +13,7 @@ export interface ModelConstructorOptions<TSchema extends GenericObject> {
 	_id?: string | null;
 	__v?: string | null;
 	data?: TSchema;
-	record?: MvRecord;
+	record?: string;
 }
 
 export type ModelConstructor = ReturnType<typeof compileModel>;
@@ -37,6 +37,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 	connection: Connection,
 	schema: Schema | null,
 	file: string,
+	dbServerDelimiters: DbServerDelimiters,
 ) => {
 	connection.logMessage('debug', `creating new model for file ${file}`);
 
@@ -51,38 +52,56 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 		/** Schema that defines this model */
 		public static readonly schema = schema;
 
+		/** Database server delimiters */
+		static #dbServerDelimiters = dbServerDelimiters;
+
 		/** Document version hash */
 		public readonly __v: string | null;
 
 		/** Id of model instance */
 		public _id!: string | null; // add definite assignment assertion since property is assigned through defineProperty
 
+		/** Original record string that model was generated from */
+		public readonly _originalRecordString: string | null;
+
 		/** Private id tracking property */
 		#_id: string | null;
 
 		public constructor(options: ModelConstructorOptions<TSchema>) {
 			const { data, record, _id = null, __v = null } = options;
-			const documentConstructorOptions: DocumentConstructorOptions = { data, record };
+
+			const mvRecord =
+				record != null ? Document.convertMvStringToArray(record, Model.#dbServerDelimiters) : [];
+
+			const documentConstructorOptions: DocumentConstructorOptions = { data, record: mvRecord };
 			super(Model.schema, documentConstructorOptions);
 
 			this.#_id = _id;
 			this.__v = __v;
+			this._originalRecordString = record ?? null;
 
-			Object.defineProperty(this, '_id', {
-				enumerable: true,
-				get: () => this.#_id,
-				set: (value) => {
-					if (this.#_id != null) {
-						throw new Error('_id value cannot be changed once set');
-					}
+			Object.defineProperties(this, {
+				_id: {
+					enumerable: true,
+					get: () => this.#_id,
+					set: (value) => {
+						if (this.#_id != null) {
+							throw new Error('_id value cannot be changed once set');
+						}
 
-					this.#_id = value;
+						this.#_id = value;
+					},
+				},
+				_originalRecordString: {
+					enumerable: false,
+					writable: false,
+					configurable: false,
 				},
 			});
 
 			Model.connection.logMessage('debug', `creating new instance of model for file ${Model.file}`);
 
-			this.transformationErrors.forEach((error) => {
+			this._transformationErrors.forEach((error) => {
 				// errors occurred while transforming data from multivalue format - log them
 				Model.connection.logMessage(
 					'warn',
@@ -104,7 +123,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 			const { _id, __v, record } = data.result;
 
-			return new Model({ _id, __v, record });
+			return Model.#createModelFromRecordString(record, _id, __v);
 		}
 
 		/** Find documents via query */
@@ -117,7 +136,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 			return documents.map((document) => {
 				const { _id, __v, record } = document;
-				return new Model({ _id, __v, record });
+				return Model.#createModelFromRecordString(record, _id, __v);
 			});
 		}
 
@@ -131,7 +150,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 			const models = documents.map((document) => {
 				const { _id, __v, record } = document;
-				return new Model({ _id, __v, record });
+				return Model.#createModelFromRecordString(record, _id, __v);
 			});
 
 			return {
@@ -158,7 +177,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 			const { _id, __v, record } = data.result;
 
-			return new Model({ _id, __v, record });
+			return Model.#createModelFromRecordString(record, _id, __v);
 		}
 
 		/** Find multiple documents by their ids */
@@ -195,6 +214,15 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			return data.result;
 		}
 
+		/** Create a new Model instance from a record string */
+		static #createModelFromRecordString(
+			recordString: string,
+			_id: string,
+			__v?: string | null,
+		): Model {
+			return new Model({ _id, __v, record: recordString });
+		}
+
 		/** Save a document to the database */
 		public async save(): Promise<Model> {
 			if (this._id == null) {
@@ -212,14 +240,13 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 					filename: Model.file,
 					id: this._id,
 					__v: this.__v,
-					record: this.transformDocumentToRecord(),
+					record: this.#convertToMvString(),
 					foreignKeyDefinitions: this.buildForeignKeyDefinitions(),
-					clearAttributes: Model.schema === null, // clears all attributes before writing new record
 				});
 
 				const { _id, __v, record } = data.result;
 
-				return new Model({ _id, __v, record });
+				return Model.#createModelFromRecordString(record, _id, __v);
 			} catch (err) {
 				// enrich caught error object with additional information and rethrow
 				err.other = {
@@ -230,6 +257,21 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 				throw err;
 			}
+		}
+
+		/** Convert model instance to multivalue string */
+		#convertToMvString(): string {
+			const { am, vm, svm } = Model.#dbServerDelimiters;
+
+			const mvRecord = this.transformDocumentToRecord();
+
+			return mvRecord
+				.map((attribute) =>
+					Array.isArray(attribute)
+						? attribute.map((value) => (Array.isArray(value) ? value.join(svm) : value)).join(vm)
+						: attribute,
+				)
+				.join(am);
 		}
 	};
 };

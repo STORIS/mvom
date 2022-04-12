@@ -31,7 +31,7 @@ class DocumentArrayType extends BaseSchemaType {
 			if (!isPlainObject(plainValue)) {
 				throw new TypeError('Cast value must be an object');
 			}
-			return new Document(this.valueSchema, { data: plainValue, isSubdocument: true });
+			return Document.createSubdocumentFromData(this.valueSchema, plainValue);
 		});
 	}
 
@@ -108,10 +108,8 @@ class DocumentArrayType extends BaseSchemaType {
 			if (subRecord.length === 0) {
 				return;
 			}
-			const subdocument = new Document(this.valueSchema, {
-				isSubdocument: true,
-				record: subRecord,
-			});
+			const subdocument = Document.createSubdocumentFromRecord(this.valueSchema, subRecord);
+
 			yield subdocument;
 			iteration += 1;
 		}

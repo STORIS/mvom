@@ -1,4 +1,5 @@
 import { mock, mockDeep } from 'jest-mock-extended';
+import mockDelimiters from '#test/mockDelimiters';
 import type { ModelConstructor } from '../compileModel';
 import { InvalidParameterError } from '../errors';
 import type { SortCriteria } from '../Query';
@@ -12,6 +13,8 @@ const filename = 'filename';
 ModelConstructorMock.file = filename;
 
 const dataTransformerMock = mock<DataTransformer>();
+
+const { am } = mockDelimiters;
 
 beforeEach(() => {
 	dataTransformerMock.transformToQuery.mockImplementation((val) => String(val));
@@ -139,7 +142,7 @@ describe('constructor', () => {
 describe('exec', () => {
 	const dbQueryResult: DbSubroutineOutputFind = {
 		count: 1,
-		documents: [{ _id: 'id', __v: '__v', record: ['foo', 'bar'] }],
+		documents: [{ _id: 'id', __v: '__v', record: `foo${am}bar` }],
 	};
 	beforeEach(() => {
 		ModelConstructorMock.connection.executeDbFeature.mockResolvedValue(dbQueryResult);
