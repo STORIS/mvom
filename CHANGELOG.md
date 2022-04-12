@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0-alpha.4] - 2022-04-12
+
+### Breaking changes
+
+- Change database I/O for records to use delimited strings instead of arrays ([#60](https://github.com/STORIS/mvom/pull/60))
+  - A new non-enumerable `_originalRecordString` property now exists on the Model instance
+  - Model instances can no longer be constructed from arrays. Delimited strings can be used instead.
+  - The `Document` constructor is now protected and should not be instantiated directly. Use of the static `createDocumentFromRecordString` should be used instead.
+
+### Added
+
+- Allow http/s agent to be passed to Connection ([#45](https://github.com/STORIS/mvom/pull/45))
+- Allow type information to be specified for dictionaries that are not part of the data definitions ([#53](https://github.com/STORIS/mvom/pull/53))
+
 ## [2.0.0-alpha.3] - 2022-03-22
 
 ### Fixed
@@ -346,7 +360,8 @@ We've graduated from Alpha to Beta! Semver has been updated so breaking vs. non-
 
 Initial alpha release of this library! Thanks for using it!
 
-[unreleased]: https://github.com/storis/mvom/compare/2.0.0-alpha.3...HEAD
+[unreleased]: https://github.com/storis/mvom/compare/2.0.0-alpha.4...HEAD
+[2.0.0-alpha.4]: https://github.com/storis/mvom/compare/2.0.0-alpha.3...2.0.0-alpha.4
 [2.0.0-alpha.3]: https://github.com/storis/mvom/compare/2.0.0-alpha.2...2.0.0-alpha.3
 [2.0.0-alpha.2]: https://github.com/storis/mvom/compare/2.0.0-alpha.1...2.0.0-alpha.2
 [2.0.0-alpha.1]: https://github.com/storis/mvom/compare/2.0.0-alpha.0...2.0.0-alpha.1
