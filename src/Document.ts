@@ -90,7 +90,7 @@ class Document {
 						}
 
 						const attributeArray = attribute.split(vm);
-						if (attributeArray.length === 1) {
+						if (attributeArray.length === 1 && !attributeArray[0].includes(svm)) {
 							return attribute;
 						}
 
