@@ -383,6 +383,36 @@ describe('createDocumentFromRecordString', () => {
 
 		expect(document.subdocumentArray).toEqual(expected);
 	});
+
+	test('should create a new document from the provided record string containing only values', () => {
+		const definition: SchemaDefinition = {
+			prop1: [{ type: 'string', path: '1' }],
+		};
+		const schema = new Schema(definition);
+
+		const document = Document.createDocumentFromRecordString(
+			schema,
+			`foo${vm}bar${vm}baz`,
+			mockDelimiters,
+		);
+
+		expect(document.prop1).toEqual(['foo', 'bar', 'baz']);
+	});
+
+	test('should create a new document from the provided record string containing only subvalues', () => {
+		const definition: SchemaDefinition = {
+			prop1: [[{ type: 'string', path: '1' }]],
+		};
+		const schema = new Schema(definition);
+
+		const document = Document.createDocumentFromRecordString(
+			schema,
+			`foo${svm}bar${svm}baz`,
+			mockDelimiters,
+		);
+
+		expect(document.prop1).toEqual([['foo', 'bar', 'baz']]);
+	});
 });
 
 describe('transformDocumentToRecord', () => {
