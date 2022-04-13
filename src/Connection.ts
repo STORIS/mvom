@@ -41,6 +41,7 @@ import type {
 	DbActionSubroutineInputTypes,
 	DbFeatureResponseTypes,
 	DbServerDelimiters,
+	DbServerLimits,
 	DbSubroutineInputOptionsMap,
 	DbSubroutineResponseTypes,
 	DbSubroutineResponseTypesMap,
@@ -116,6 +117,8 @@ interface ServerInfo {
 	timeDrift: number;
 	/** Multivalue database server delimiters */
 	delimiters: DbServerDelimiters;
+	/** Multivalue database server limits */
+	limits: DbServerLimits;
 }
 // #endregion
 
@@ -372,6 +375,12 @@ class Connection {
 		return format(addMilliseconds(Date.now(), timeDrift), ISOTimeFormat);
 	}
 
+	/** Get the multivalue database server limits */
+	public async getDbLimits(): Promise<DbServerLimits> {
+		const { limits } = await this.getDbServerInfo();
+		return limits;
+	}
+
 	/** Define a new model */
 	public model<TSchema extends GenericObject>(
 		schema: Schema | null,
@@ -440,7 +449,7 @@ class Connection {
 			}
 
 			this.logMessage('debug', 'getting db server information');
-			const { date, time, delimiters } = await this.executeDbFeature('getServerInfo', {});
+			const { date, time, delimiters, limits } = await this.executeDbFeature('getServerInfo', {});
 
 			const timeDrift = differenceInMilliseconds(
 				addMilliseconds(addDays(mvEpoch, date), time),
@@ -452,6 +461,7 @@ class Connection {
 				cacheExpiry,
 				timeDrift,
 				delimiters,
+				limits,
 			};
 		}
 
