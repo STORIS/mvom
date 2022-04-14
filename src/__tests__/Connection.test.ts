@@ -167,7 +167,14 @@ describe('open', () => {
 				}),
 			)
 			.mockResolvedValue({
-				data: { output: { date: 19791, time: 43200000, delimiters: mockDelimiters } },
+				data: {
+					output: {
+						date: 19791,
+						time: 43200000,
+						delimiters: mockDelimiters,
+						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
+					},
+				},
 			});
 
 		const connection = Connection.createConnection(mvisUri, account);
@@ -316,6 +323,7 @@ describe('executeDbFeature', () => {
 						date: 19791, // 2022-03-08
 						time: 43200000, // 12:00:00.000
 						delimiters: mockDelimiters,
+						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
 					},
 				},
 			});
@@ -628,6 +636,7 @@ describe('getDbDate', () => {
 						date: 19791, // 2022-03-08
 						time: 43200000, // 12:00:00.000
 						delimiters: mockDelimiters,
+						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
 					},
 				},
 			});
@@ -663,6 +672,7 @@ describe('getDbDate', () => {
 						date: 19791, // 2022-03-08
 						time: 43200000, // 12:00:00.000
 						delimiters: mockDelimiters,
+						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
 					},
 				},
 			});
@@ -714,6 +724,7 @@ describe('getDbDateTime', () => {
 						date: 19791, // 2022-03-08
 						time: 43200000, // 12:00:00.000
 						delimiters: mockDelimiters,
+						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
 					},
 				},
 			});
@@ -749,6 +760,7 @@ describe('getDbDateTime', () => {
 						date: 19791, // 2022-03-08
 						time: 43200000, // 12:00:00.000
 						delimiters: mockDelimiters,
+						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
 					},
 				},
 			});
@@ -800,6 +812,7 @@ describe('getDbTime', () => {
 						date: 19791, // 2022-03-08
 						time: 43200000, // 12:00:00.000
 						delimiters: mockDelimiters,
+						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
 					},
 				},
 			});
@@ -835,6 +848,7 @@ describe('getDbTime', () => {
 						date: 19791, // 2022-03-08
 						time: 43200000, // 12:00:00.000
 						delimiters: mockDelimiters,
+						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
 					},
 				},
 			});
@@ -876,7 +890,14 @@ describe('model', () => {
 				}),
 			)
 			.mockResolvedValue({
-				data: { output: { date: 19791, time: 43200000, delimiters: mockDelimiters } },
+				data: {
+					output: {
+						date: 19791,
+						time: 43200000,
+						delimiters: mockDelimiters,
+						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
+					},
+				},
 			});
 
 		const connection = Connection.createConnection(mvisUri, account);

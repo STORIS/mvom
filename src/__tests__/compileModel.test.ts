@@ -123,6 +123,14 @@ describe('deleteById', () => {
 });
 
 describe('find', () => {
+	beforeEach(() => {
+		connectionMock.getDbLimits.mockResolvedValue({
+			maxSort: 20,
+			maxWith: 512,
+			maxSentenceLength: 9247,
+		});
+	});
+
 	test('should return new model instance for each returned database record', async () => {
 		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 
@@ -200,6 +208,14 @@ describe('find', () => {
 });
 
 describe('findAndCount', () => {
+	beforeEach(() => {
+		connectionMock.getDbLimits.mockResolvedValue({
+			maxSort: 20,
+			maxWith: 512,
+			maxSentenceLength: 9247,
+		});
+	});
+
 	test('should return new model instance for each returned database record', async () => {
 		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 

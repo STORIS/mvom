@@ -5,7 +5,9 @@ interface QueryLimitErrorOptions {
 }
 
 class QueryLimitError extends BaseError {
-	public constructor({ message = 'Query exceeds database server limits' }: QueryLimitErrorOptions) {
+	public constructor({
+		message = 'Query exceeds database server limits',
+	}: QueryLimitErrorOptions = {}) {
 		const name = 'QueryLimitError';
 		super(message, name);
 	}

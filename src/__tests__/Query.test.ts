@@ -149,6 +149,14 @@ describe('exec', () => {
 	});
 
 	describe('single conditions', () => {
+		beforeEach(() => {
+			ModelConstructorMock.connection.getDbLimits.mockResolvedValue({
+				maxSort: 20,
+				maxWith: 512,
+				maxSentenceLength: 9247,
+			});
+		});
+
 		describe('implicit operators', () => {
 			test('should construct and execute query with equality condition', async () => {
 				const propertyName = 'property-name';
@@ -679,6 +687,14 @@ describe('exec', () => {
 	});
 
 	describe('multiple conditions', () => {
+		beforeEach(() => {
+			ModelConstructorMock.connection.getDbLimits.mockResolvedValue({
+				maxSort: 20,
+				maxWith: 512,
+				maxSentenceLength: 9247,
+			});
+		});
+
 		test('should join multiple implicit conditions with and', async () => {
 			const propertyName1 = 'property-name1';
 			const propertyValue1 = 'property-value1';
@@ -982,6 +998,14 @@ describe('exec', () => {
 	});
 
 	describe('sorting', () => {
+		beforeEach(() => {
+			ModelConstructorMock.connection.getDbLimits.mockResolvedValue({
+				maxSort: 20,
+				maxWith: 512,
+				maxSentenceLength: 9247,
+			});
+		});
+
 		test('should not add a sort if sort array is empty', async () => {
 			const propertyName = 'property-name';
 			const propertyValue = 'property-value';
@@ -1179,6 +1203,14 @@ describe('exec', () => {
 	});
 
 	describe('options', () => {
+		beforeEach(() => {
+			ModelConstructorMock.connection.getDbLimits.mockResolvedValue({
+				maxSort: 20,
+				maxWith: 512,
+				maxSentenceLength: 9247,
+			});
+		});
+
 		test('should add skip and limit if specified', async () => {
 			const propertyName = 'property-name';
 			const propertyValue = 'property-value';
