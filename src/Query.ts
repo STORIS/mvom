@@ -102,6 +102,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 		this.projection = projection ?? [];
 
 		this.selection = this.formatSelectionCriteria(selectionCriteria);
+		this.sortCriteria = sort;
 		this.sort = this.formatSortCriteria(sort);
 	}
 

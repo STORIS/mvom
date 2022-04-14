@@ -1,7 +1,7 @@
 import { mock, mockDeep } from 'jest-mock-extended';
 import mockDelimiters from '#test/mockDelimiters';
 import type { ModelConstructor } from '../compileModel';
-import { InvalidParameterError } from '../errors';
+import { InvalidParameterError, QueryLimitError } from '../errors';
 import type { QueryExecutionOptions, SortCriteria } from '../Query';
 import Query from '../Query';
 import type { DataTransformer, DbSubroutineOutputFind } from '../types';
@@ -1271,6 +1271,126 @@ describe('exec', () => {
 				},
 				{ userDefined },
 			);
+		});
+	});
+
+	describe('limits', () => {
+		test('should throw QueryLimitError if query length exceeds sentence length', async () => {
+			ModelConstructorMock.connection.getDbLimits.mockResolvedValue({
+				maxSort: 20,
+				maxWith: 512,
+				maxSentenceLength: 10,
+			});
+
+			const propertyName = 'property-name';
+			const propertyValue = 'property-value';
+			const propertyDictionary = 'property-dictionary';
+			const selectionCritieria = {
+				[propertyName]: propertyValue,
+			};
+
+			// @ts-expect-error: Overriding mock
+			ModelConstructorMock.schema!.dictPaths = new Map([
+				[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
+			]);
+
+			const query = new Query(ModelConstructorMock, selectionCritieria);
+			await expect(query.exec()).rejects.toThrow(QueryLimitError);
+		});
+
+		test('should throw QueryLimitError if sort criteria exceeds max sort limits', async () => {
+			ModelConstructorMock.connection.getDbLimits.mockResolvedValue({
+				maxSort: 2,
+				maxWith: 512,
+				maxSentenceLength: 9247,
+			});
+
+			const propertyName1 = 'property-name1';
+			const propertyValue1 = 'property-value1';
+			const propertyDictionary1 = 'property-dictionary1';
+			const propertyName2 = 'property-name2';
+			const propertyDictionary2 = 'property-dictionary2';
+			const propertyName3 = 'property-name3';
+			const propertyDictionary3 = 'property-dictionary3';
+
+			const selectionCritieria = {
+				[propertyName1]: propertyValue1,
+			};
+			const sortCriteria: SortCriteria = [
+				[propertyName1, 1],
+				[propertyName2, 1],
+				[propertyName3, 1],
+			];
+
+			// @ts-expect-error: Overriding mock
+			ModelConstructorMock.schema!.dictPaths = new Map([
+				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
+				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
+				[propertyName3, { dictionary: propertyDictionary3, dataTransformer: dataTransformerMock }],
+			]);
+
+			const query = new Query(ModelConstructorMock, selectionCritieria, { sort: sortCriteria });
+			await expect(query.exec()).rejects.toThrow(QueryLimitError);
+		});
+
+		test('should throw QueryLimitError if selection criteria exceeds max criteria limits', async () => {
+			ModelConstructorMock.connection.getDbLimits.mockResolvedValue({
+				maxSort: 20,
+				maxWith: 2,
+				maxSentenceLength: 9247,
+			});
+
+			const propertyName1 = 'property-name1';
+			const propertyValue1 = 'property-value1';
+			const propertyDictionary1 = 'property-dictionary1';
+			const propertyValue2 = 'property-value2';
+			const propertyName2 = 'property-name2';
+			const propertyDictionary2 = 'property-dictionary2';
+			const propertyName3 = 'property-name3';
+			const propertyValue3 = 'property-value3';
+			const propertyDictionary3 = 'property-dictionary3';
+
+			const selectionCritieria = {
+				[propertyName1]: propertyValue1,
+				[propertyName2]: propertyValue2,
+				[propertyName3]: propertyValue3,
+			};
+
+			// @ts-expect-error: Overriding mock
+			ModelConstructorMock.schema!.dictPaths = new Map([
+				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
+				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
+				[propertyName3, { dictionary: propertyDictionary3, dataTransformer: dataTransformerMock }],
+			]);
+
+			const query = new Query(ModelConstructorMock, selectionCritieria);
+			await expect(query.exec()).rejects.toThrow(QueryLimitError);
+		});
+
+		test('should throw QueryLimitError if selection criteria exceeds max criteria limits with array criteria', async () => {
+			ModelConstructorMock.connection.getDbLimits.mockResolvedValue({
+				maxSort: 20,
+				maxWith: 2,
+				maxSentenceLength: 9247,
+			});
+
+			const propertyName1 = 'property-name1';
+			const propertyValue1 = 'property-value1';
+			const propertyDictionary1 = 'property-dictionary1';
+			const propertyValue2 = 'property-value2';
+			const propertyValue3 = 'property-value3';
+
+			const selectionCritieria = {
+				[propertyName1]: [propertyValue1, propertyValue2, propertyValue3],
+			};
+
+			// @ts-expect-error: Overriding mock
+			ModelConstructorMock.schema!.dictPaths = new Map([
+				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
+			]);
+
+			const query = new Query(ModelConstructorMock, selectionCritieria);
+			await expect(query.exec()).rejects.toThrow(QueryLimitError);
 		});
 	});
 });

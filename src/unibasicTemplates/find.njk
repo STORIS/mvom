@@ -23,14 +23,6 @@ if udoGetProperty(options, 'projection', projection, type) then
   go returnFromSub
 end
 
-* Temporary length check on the query since this is the query limit we are most likely to exceed.
-* STORIS Rocket case 00656416 - exceeding a query limit does not set an error condition in @system.return.code
-* TODO CXM-2318 - Add handling to mvom to prevent queries that will exceed db server limits
-if charlen(queryCommand) > 9247 then
-  call error_handler(ERROR_QUERY, output)
-  go returnFromSub
-end
-
 * get the limit value (if any) from the options
 if udoGetProperty(options, 'limit', limit, type) then
   limit = ''
