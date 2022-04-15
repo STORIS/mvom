@@ -3,7 +3,7 @@
     "deleteById": "^2.0.0",
     "deploy": "^1.0.0",
     "entry": "^0.2.0",
-    "find": "^2.0.0",
+    "find": "^3.0.0",
     "findById": "^3.0.0",
     "findByIds": "^3.0.0",
     "readFileContentsById": "^1.0.0",
