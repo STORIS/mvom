@@ -323,7 +323,12 @@ class Query<TSchema extends GenericObject = GenericObject> {
 	private async validateQuery(query: string): Promise<void> {
 		const { maxSort, maxWith, maxSentenceLength } = await this.Model.connection.getDbLimits();
 
-		if (query.length > maxSentenceLength) {
+		/*
+      For some reason, UDTEXECUTE (which is used by this library) appears to have a sentence length limit which is one character
+      less than the sentence length limit used by EXECUTE.  The sentence length returned in the LIMIT values represent that of
+      EXECUTE and not UDTEXECUTE.  The below code reduces the length by 1 to accommodate for that discrepancy.
+    */
+		if (query.length > maxSentenceLength - 1) {
 			throw new QueryLimitError({
 				message: 'Query length exceeds maximum sentence length of database server',
 			});
