@@ -1,5 +1,5 @@
 import type { ModelConstructor } from './compileModel';
-import { InvalidParameterError } from './errors';
+import { InvalidParameterError, QueryLimitError } from './errors';
 import type { DbDocument, DbSubroutineSetupOptions, GenericObject } from './types';
 
 // #region Types
@@ -74,6 +74,9 @@ class Query<TSchema extends GenericObject = GenericObject> {
 	/** String to use as sort criteria in query */
 	private readonly sort: string | null;
 
+	/** Sort criteria passed to constructor */
+	private readonly sortCriteria?: SortCriteria;
+
 	/** Limit the result set to this number of items */
 	private readonly limit?: number | null;
 
@@ -82,6 +85,9 @@ class Query<TSchema extends GenericObject = GenericObject> {
 
 	/** Specify the projection attribute in result set */
 	private readonly projection: string[];
+
+	/** Number of conditions in the query */
+	private conditionCount = 0;
 
 	public constructor(
 		Model: ModelConstructor,
@@ -96,6 +102,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 		this.projection = projection ?? [];
 
 		this.selection = this.formatSelectionCriteria(selectionCriteria);
+		this.sortCriteria = sort;
 		this.sort = this.formatSortCriteria(sort);
 	}
 
@@ -109,6 +116,8 @@ class Query<TSchema extends GenericObject = GenericObject> {
 		if (this.sort != null) {
 			queryCommand = `${queryCommand} ${this.sort}`;
 		}
+
+		await this.validateQuery(queryCommand);
 
 		const projection = this.Model.schema?.transformPathsToDbPositions(this.projection) ?? [];
 
@@ -232,6 +241,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 
 	/** Format a conditional expression */
 	private formatCondition(property: string, operator: string, value: unknown): string {
+		this.conditionCount += 1;
 		const dictionaryId = this.getDictionaryId(property);
 		return `${dictionaryId} ${operator} ${this.formatConstant(property, value)}`;
 	}
@@ -307,6 +317,35 @@ class Query<TSchema extends GenericObject = GenericObject> {
 		}
 
 		return dictionaryTypeDetail.dataTransformer.transformToQuery(constant);
+	}
+
+	/** Validate the query before execution */
+	private async validateQuery(query: string): Promise<void> {
+		const { maxSort, maxWith, maxSentenceLength } = await this.Model.connection.getDbLimits();
+
+		/*
+      For some reason, UDTEXECUTE (which is used by this library) appears to have a sentence length limit which is one character
+      less than the sentence length limit used by EXECUTE.  The sentence length returned in the LIMIT values represent that of
+      EXECUTE and not UDTEXECUTE.  The below code reduces the length by 1 to accommodate for that discrepancy.
+    */
+		if (query.length > maxSentenceLength - 1) {
+			throw new QueryLimitError({
+				message: 'Query length exceeds maximum sentence length of database server',
+			});
+		}
+
+		if (this.sortCriteria != null && this.sortCriteria.length > maxSort) {
+			throw new QueryLimitError({
+				message: 'Query sort criteria exceeds maximum number of sort criteria of database server',
+			});
+		}
+
+		if (this.conditionCount > maxWith) {
+			throw new QueryLimitError({
+				message:
+					'Query condition count exceeds maximum number of query conditions of database server',
+			});
+		}
 	}
 }
 

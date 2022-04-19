@@ -1,5 +1,4 @@
 import type { DbActionResponse } from './DbFeature';
-import type { DbServerDelimiters } from './Miscellaneous';
 
 export interface DbDocument {
 	_id: string;
@@ -39,10 +38,31 @@ export interface DbSubroutineOutputReadFileContentsById {
 export type DbActionResponseSubroutineReadFileContentsById =
 	DbActionResponse<DbSubroutineOutputReadFileContentsById>;
 
+/** Characters which delimit strings on multivalue database server */
+export interface DbServerDelimiters {
+	/** Record mark */
+	rm: string;
+	/** Attribute mark */
+	am: string;
+	/** Value mark */
+	vm: string;
+	/** Subvalue mark */
+	svm: string;
+}
+/** Multivalue database server limits */
+export interface DbServerLimits {
+	/** Maximum number of sort criteria in a query */
+	maxSort: number;
+	/** Maximum number of conditions in a query */
+	maxWith: number;
+	/** Maximum length of a query */
+	maxSentenceLength: number;
+}
 export interface DbSubroutineOutputGetServerInfo {
 	date: number;
 	time: number;
 	delimiters: DbServerDelimiters;
+	limits: DbServerLimits;
 }
 export type DbActionResponseSubroutineGetServerInfo =
 	DbActionResponse<DbSubroutineOutputGetServerInfo>;

@@ -4,12 +4,12 @@ subroutine mvom_getServerInfo(options, output)
 
 {% include "./partials/errorConstants.njk" %}
 
-if udoSetProperty(output, 'date', date()) then
+if udoSetProperty(output, 'date', date(), UDO_NUMBER) then
   call error_handler(ERROR_UDO, output)
   go returnFromSub
 end
 
-if udoSetProperty(output, 'time', system(12)) then
+if udoSetProperty(output, 'time', system(12), UDO_NUMBER) then
   call error_handler(ERROR_UDO, output)
   go returnFromSub
 end
@@ -40,6 +40,44 @@ if udoSetProperty(delimiters, 'svm', @svm) then
 end
 
 if udoSetProperty(output, 'delimiters', delimiters) then
+  call error_handler(ERROR_UDO, output)
+  go returnFromSub
+end
+
+if udoCreate(UDO_OBJECT, limits) then
+  call error_handler(ERROR_UDO, output)
+  go returnFromSub
+end
+
+hush off
+udtexecute 'limit' returning errmsg capturing limitDetails
+hush on
+
+for limitDetailPosition = 1 to dcount(limitDetails, @am)
+  limitDetail = limitDetails<limitDetailPosition>
+  limitKey = field(limitDetail, ':', 1)
+  limitValue = oconv(field(limitDetail, '=', 2), 'MCN')
+
+  begin case
+    case limitKey eq 'U_MAXSORT'
+      if udoSetProperty(limits, 'maxSort', limitValue, UDO_NUMBER) then
+        call error_handler(ERROR_UDO, output)
+        go returnFromSub
+      end
+    case limitKey eq 'U_MAXWITH'
+      if udoSetProperty(limits, 'maxWith', limitValue, UDO_NUMBER) then
+        call error_handler(ERROR_UDO, output)
+        go returnFromSub
+      end
+    case limitKey eq 'U_SENTLEN'
+      if udoSetProperty(limits, 'maxSentenceLength', limitValue, UDO_NUMBER) then
+        call error_handler(ERROR_UDO, output)
+        go returnFromSub
+      end
+  end case
+next limitDetailPosition
+
+if udoSetProperty(output, 'limits', limits) then
   call error_handler(ERROR_UDO, output)
   go returnFromSub
 end

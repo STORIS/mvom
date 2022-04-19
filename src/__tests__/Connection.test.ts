@@ -167,7 +167,14 @@ describe('open', () => {
 				}),
 			)
 			.mockResolvedValue({
-				data: { output: { date: 19791, time: 43200000, delimiters: mockDelimiters } },
+				data: {
+					output: {
+						date: 19791,
+						time: 43200000,
+						delimiters: mockDelimiters,
+						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
+					},
+				},
 			});
 
 		const connection = Connection.createConnection(mvisUri, account);
@@ -316,6 +323,7 @@ describe('executeDbFeature', () => {
 						date: 19791, // 2022-03-08
 						time: 43200000, // 12:00:00.000
 						delimiters: mockDelimiters,
+						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
 					},
 				},
 			});
@@ -628,6 +636,7 @@ describe('getDbDate', () => {
 						date: 19791, // 2022-03-08
 						time: 43200000, // 12:00:00.000
 						delimiters: mockDelimiters,
+						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
 					},
 				},
 			});
@@ -663,6 +672,7 @@ describe('getDbDate', () => {
 						date: 19791, // 2022-03-08
 						time: 43200000, // 12:00:00.000
 						delimiters: mockDelimiters,
+						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
 					},
 				},
 			});
@@ -714,6 +724,7 @@ describe('getDbDateTime', () => {
 						date: 19791, // 2022-03-08
 						time: 43200000, // 12:00:00.000
 						delimiters: mockDelimiters,
+						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
 					},
 				},
 			});
@@ -749,6 +760,7 @@ describe('getDbDateTime', () => {
 						date: 19791, // 2022-03-08
 						time: 43200000, // 12:00:00.000
 						delimiters: mockDelimiters,
+						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
 					},
 				},
 			});
@@ -800,6 +812,7 @@ describe('getDbTime', () => {
 						date: 19791, // 2022-03-08
 						time: 43200000, // 12:00:00.000
 						delimiters: mockDelimiters,
+						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
 					},
 				},
 			});
@@ -835,6 +848,7 @@ describe('getDbTime', () => {
 						date: 19791, // 2022-03-08
 						time: 43200000, // 12:00:00.000
 						delimiters: mockDelimiters,
+						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
 					},
 				},
 			});
@@ -846,6 +860,48 @@ describe('getDbTime', () => {
 
 		const expected = '12:00:00.000';
 		expect(await connection.getDbTime()).toEqual(expected);
+	});
+});
+
+describe('getDbLimits', () => {
+	test('should throw an error if connection has not been opened', async () => {
+		const connection = Connection.createConnection(mvisUri, account);
+
+		await expect(connection.getDbLimits()).rejects.toThrow();
+	});
+
+	test('should return limit values returned by database server', async () => {
+		when<any, any[]>(mockedAxiosInstance.post)
+			.calledWith(
+				expect.any(String),
+				expect.objectContaining({ input: expect.objectContaining({ action: 'featureList' }) }),
+			)
+			.mockResolvedValue({ data: { output: { features: fullFeatureOutput } } })
+			.calledWith(
+				expect.any(String),
+				expect.objectContaining({
+					input: expect.objectContaining({
+						action: 'subroutine',
+						subroutineId: expect.stringContaining('getServerInfo'),
+					}),
+				}),
+			)
+			.mockResolvedValue({
+				data: {
+					output: {
+						date: 19791, // 2022-03-08
+						time: 43200000, // 12:00:00.000
+						delimiters: mockDelimiters,
+						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
+					},
+				},
+			});
+
+		const connection = Connection.createConnection(mvisUri, account);
+		await connection.open();
+
+		const expected = { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 };
+		expect(await connection.getDbLimits()).toEqual(expected);
 	});
 });
 
@@ -876,7 +932,14 @@ describe('model', () => {
 				}),
 			)
 			.mockResolvedValue({
-				data: { output: { date: 19791, time: 43200000, delimiters: mockDelimiters } },
+				data: {
+					output: {
+						date: 19791,
+						time: 43200000,
+						delimiters: mockDelimiters,
+						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
+					},
+				},
 			});
 
 		const connection = Connection.createConnection(mvisUri, account);
