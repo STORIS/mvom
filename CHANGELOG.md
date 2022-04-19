@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0-alpha.5] - 2022-04-19
+
+### Added
+
+- Allow user defined properties in Model methods. These will be stored in the `S$MVOM` named common area. ([#76](https://github.com/STORIS/mvom/pull/76))
+- Validate database server query limits prior to execution of query ([#79](https://github.com/STORIS/mvom/pull/79))
+
 ## [2.0.0-alpha.4] - 2022-04-12
 
 ### Breaking changes
@@ -360,7 +367,8 @@ We've graduated from Alpha to Beta! Semver has been updated so breaking vs. non-
 
 Initial alpha release of this library! Thanks for using it!
 
-[unreleased]: https://github.com/storis/mvom/compare/2.0.0-alpha.4...HEAD
+[unreleased]: https://github.com/storis/mvom/compare/2.0.0-alpha.5...HEAD
+[2.0.0-alpha.5]: https://github.com/storis/mvom/compare/2.0.0-alpha.4...2.0.0-alpha.5
 [2.0.0-alpha.4]: https://github.com/storis/mvom/compare/2.0.0-alpha.3...2.0.0-alpha.4
 [2.0.0-alpha.3]: https://github.com/storis/mvom/compare/2.0.0-alpha.2...2.0.0-alpha.3
 [2.0.0-alpha.2]: https://github.com/storis/mvom/compare/2.0.0-alpha.1...2.0.0-alpha.2
