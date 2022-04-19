@@ -7,7 +7,6 @@ import { mock } from 'jest-mock-extended';
 import { when } from 'jest-when';
 import { minVersion } from 'semver';
 import mockDelimiters from '#test/mockDelimiters';
-import { dependencies as serverDependencies } from '../.mvomrc.json';
 import type { CreateConnectionOptions, Logger } from '../Connection';
 import Connection, { ConnectionStatus } from '../Connection';
 import { dbErrors } from '../constants';
@@ -22,6 +21,7 @@ import {
 	TimeoutError,
 	UnknownError,
 } from '../errors';
+import { dependencies as serverDependencies } from '../manifest.json';
 
 jest.mock('axios');
 jest.mock('fs-extra');

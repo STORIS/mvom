@@ -5,7 +5,7 @@ import { DataValidationError } from './errors';
 import type { QueryConstructorOptions } from './Query';
 import Query, { type Filter } from './Query';
 import type Schema from './Schema';
-import type { DbServerDelimiters, GenericObject } from './types';
+import type { DbServerDelimiters, DbSubroutineUserDefinedOptions, GenericObject } from './types';
 import { ensureArray } from './utils';
 
 // #region Types
@@ -25,10 +25,17 @@ export interface ModelFindAndCountResult {
 	documents: InstanceType<ModelConstructor>[];
 }
 
-export interface ModelFindByIdOptions {
+export interface ModelDatabaseExecutionOptions {
+	userDefined?: DbSubroutineUserDefinedOptions;
+}
+export type ModelDeleteByIdOptions = ModelDatabaseExecutionOptions;
+export type ModelFindOptions = QueryConstructorOptions & ModelDatabaseExecutionOptions;
+export interface ModelFindByIdOptions extends ModelDatabaseExecutionOptions {
 	/** Array of projection properties */
 	projection?: string[];
 }
+export type ModelReadFileContentsByIdOptions = ModelDatabaseExecutionOptions;
+export type ModelSaveOptions = ModelDatabaseExecutionOptions;
 // #endregion
 
 /** Define a new model */
@@ -111,11 +118,20 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 		}
 
 		/** Delete a document */
-		public static async deleteById(id: string): Promise<Model | null> {
-			const data = await Model.connection.executeDbFeature('deleteById', {
-				filename: Model.file,
-				id,
-			});
+		public static async deleteById(
+			id: string,
+			options: ModelDeleteByIdOptions = {},
+		): Promise<Model | null> {
+			const { userDefined } = options;
+
+			const data = await Model.connection.executeDbFeature(
+				'deleteById',
+				{
+					filename: Model.file,
+					id,
+				},
+				userDefined && { userDefined },
+			);
 
 			if (data.result == null) {
 				return null;
@@ -129,10 +145,11 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 		/** Find documents via query */
 		public static async find(
 			selectionCriteria: Filter<TSchema> = {},
-			options: QueryConstructorOptions = {},
+			options: ModelFindOptions = {},
 		): Promise<Model[]> {
-			const query = new Query(Model, selectionCriteria, options);
-			const { documents } = await query.exec();
+			const { userDefined, ...queryConstructorOptions } = options;
+			const query = new Query(Model, selectionCriteria, queryConstructorOptions);
+			const { documents } = await query.exec(userDefined && { userDefined });
 
 			return documents.map((document) => {
 				const { _id, __v, record } = document;
@@ -143,10 +160,11 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 		/** Find documents via query, returning them along with a count */
 		public static async findAndCount(
 			selectionCriteria: Filter<TSchema> = {},
-			options: QueryConstructorOptions = {},
+			options: ModelFindOptions = {},
 		): Promise<ModelFindAndCountResult> {
-			const query = new Query(Model, selectionCriteria, options);
-			const { count, documents } = await query.exec();
+			const { userDefined, ...queryConstructorOptions } = options;
+			const query = new Query(Model, selectionCriteria, queryConstructorOptions);
+			const { count, documents } = await query.exec(userDefined && { userDefined });
 
 			const models = documents.map((document) => {
 				const { _id, __v, record } = document;
@@ -164,12 +182,16 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			id: string,
 			options: ModelFindByIdOptions = {},
 		): Promise<Model | null> {
-			const { projection = [] } = options;
-			const data = await Model.connection.executeDbFeature('findById', {
-				filename: Model.file,
-				id,
-				projection: Model.schema?.transformPathsToDbPositions(projection) ?? [],
-			});
+			const { projection = [], userDefined } = options;
+			const data = await Model.connection.executeDbFeature(
+				'findById',
+				{
+					filename: Model.file,
+					id,
+					projection: Model.schema?.transformPathsToDbPositions(projection) ?? [],
+				},
+				userDefined && { userDefined },
+			);
 
 			if (data.result == null) {
 				return null;
@@ -185,14 +207,18 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			ids: string | string[],
 			options: ModelFindByIdOptions = {},
 		): Promise<(Model | null)[]> {
-			const { projection = [] } = options;
+			const { projection = [], userDefined } = options;
 
 			const idsArray = ensureArray(ids);
-			const data = await Model.connection.executeDbFeature('findByIds', {
-				filename: Model.file,
-				ids: idsArray,
-				projection: Model.schema?.transformPathsToDbPositions(projection) ?? [],
-			});
+			const data = await Model.connection.executeDbFeature(
+				'findByIds',
+				{
+					filename: Model.file,
+					ids: idsArray,
+					projection: Model.schema?.transformPathsToDbPositions(projection) ?? [],
+				},
+				userDefined && { userDefined },
+			);
 
 			return data.result.map((dbResultItem) => {
 				if (dbResultItem == null) {
@@ -205,11 +231,19 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 		}
 
 		/** Read a DIR file type record directly from file system as Base64 string by its id */
-		public static async readFileContentsById(id: string): Promise<string> {
-			const data = await Model.connection.executeDbFeature('readFileContentsById', {
-				filename: Model.file,
-				id,
-			});
+		public static async readFileContentsById(
+			id: string,
+			options: ModelReadFileContentsByIdOptions = {},
+		): Promise<string> {
+			const { userDefined } = options;
+			const data = await Model.connection.executeDbFeature(
+				'readFileContentsById',
+				{
+					filename: Model.file,
+					id,
+				},
+				userDefined && { userDefined },
+			);
 
 			return data.result;
 		}
@@ -224,7 +258,8 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 		}
 
 		/** Save a document to the database */
-		public async save(): Promise<Model> {
+		public async save(options: ModelSaveOptions = {}): Promise<Model> {
+			const { userDefined } = options;
 			if (this._id == null) {
 				throw new TypeError('_id value must be set prior to saving');
 			}
@@ -236,13 +271,17 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			}
 
 			try {
-				const data = await Model.connection.executeDbFeature('save', {
-					filename: Model.file,
-					id: this._id,
-					__v: this.__v,
-					record: this.#convertToMvString(),
-					foreignKeyDefinitions: this.buildForeignKeyDefinitions(),
-				});
+				const data = await Model.connection.executeDbFeature(
+					'save',
+					{
+						filename: Model.file,
+						id: this._id,
+						__v: this.__v,
+						record: this.#convertToMvString(),
+						foreignKeyDefinitions: this.buildForeignKeyDefinitions(),
+					},
+					userDefined && { userDefined },
+				);
 
 				const { _id, __v, record } = data.result;
 

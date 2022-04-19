@@ -6,7 +6,6 @@ import axios from 'axios';
 import { addDays, addMilliseconds, differenceInMilliseconds, format } from 'date-fns';
 import fs from 'fs-extra';
 import semver from 'semver';
-import { dependencies as serverDependencies } from './.mvomrc.json';
 import compileModel, { type ModelConstructor } from './compileModel';
 import {
 	dbErrors,
@@ -26,6 +25,7 @@ import {
 	TimeoutError,
 	UnknownError,
 } from './errors';
+import { dependencies as serverDependencies } from './manifest.json';
 import type Schema from './Schema';
 import type {
 	DbActionInputCreateDir,
@@ -44,6 +44,7 @@ import type {
 	DbSubroutineInputOptionsMap,
 	DbSubroutineResponseTypes,
 	DbSubroutineResponseTypesMap,
+	DbSubroutineSetupOptions,
 	GenericObject,
 } from './types';
 import { dummyLogger } from './utils';
@@ -328,7 +329,7 @@ class Connection {
 	>(
 		feature: TFeature,
 		options: DbSubroutineInputOptionsMap[TFeature],
-		setupOptions: Record<string, never> = {},
+		setupOptions: DbSubroutineSetupOptions = {},
 		teardownOptions: Record<string, never> = {},
 	): Promise<DbSubroutineResponseTypesMap[TFeature]['output']> {
 		this.logMessage('debug', `executing database feature "${feature}"`);

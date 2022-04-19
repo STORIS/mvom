@@ -1,11 +1,23 @@
 import type { BuildForeignKeyDefinitionsResult } from '../Document';
 import type { GenericObject } from '.';
 
+export interface DbSubroutineUserDefinedOptions {
+	option1?: string;
+	option2?: string;
+	option3?: string;
+	option4?: string;
+	option5?: string;
+}
+
+export interface DbSubroutineSetupOptions {
+	userDefined?: DbSubroutineUserDefinedOptions;
+}
+
 export interface DbActionInputSubroutine<TSubroutineOptions extends GenericObject> {
 	action: 'subroutine';
 	subroutineId: string;
 	setupId: string;
-	setupOptions: Record<string, never>;
+	setupOptions: DbSubroutineSetupOptions;
 	teardownId: string;
 	teardownOptions: Record<string, never>;
 	options: TSubroutineOptions;
