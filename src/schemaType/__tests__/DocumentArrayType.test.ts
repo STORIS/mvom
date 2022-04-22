@@ -96,14 +96,14 @@ describe('get', () => {
 });
 
 describe('set', () => {
-	const definition: SchemaDefinition = {
-		prop1: { type: 'string', path: '2' },
-		prop2: { type: 'number', path: '3', dbDecimals: 2 },
-	};
-	const valueSchema = new Schema(definition);
-	const documentArrayType = new DocumentArrayType(valueSchema);
-
 	test('should return a record with the subdocument array merged in', () => {
+		const definition: SchemaDefinition = {
+			prop1: { type: 'string', path: '2' },
+			prop2: { type: 'number', path: '3', dbDecimals: 2 },
+		};
+		const valueSchema = new Schema(definition);
+		const documentArrayType = new DocumentArrayType(valueSchema);
+
 		const originalRecord: MvRecord = ['unrelated'];
 		const value1 = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
 		const value2 = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
@@ -117,7 +117,39 @@ describe('set', () => {
 		expect(record).toEqual(expected);
 	});
 
+	test('should return a record with the subdocument array merged in and clear existing extra subdocument', () => {
+		const definition: SchemaDefinition = {
+			prop1: { type: 'string', path: '2' },
+			prop2: { type: 'number', path: '3', dbDecimals: 2 },
+		};
+		const valueSchema = new Schema(definition);
+		const documentArrayType = new DocumentArrayType(valueSchema);
+
+		const originalRecord: MvRecord = [
+			'unrelated',
+			['cleared', 'cleared', 'cleared'],
+			['cleared', 'cleared', 'cleared'],
+		];
+		const value1 = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
+		const value2 = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
+		value1.prop1 = 'foo';
+		value1.prop2 = 1.23;
+		value2.prop1 = 'bar';
+		value2.prop2 = 4.56;
+
+		const record = documentArrayType.set(originalRecord, [value1, value2]);
+		const expected: MvRecord = ['unrelated', ['foo', 'bar'], ['123', '456']];
+		expect(record).toEqual(expected);
+	});
+
 	test('should return a record with the subdocument array merged in when the document has missing schema properties', () => {
+		const definition: SchemaDefinition = {
+			prop1: { type: 'string', path: '2' },
+			prop2: { type: 'number', path: '3', dbDecimals: 2 },
+		};
+		const valueSchema = new Schema(definition);
+		const documentArrayType = new DocumentArrayType(valueSchema);
+
 		const originalRecord: MvRecord = ['unrelated'];
 		const value1 = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
 		const value2 = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
@@ -126,6 +158,98 @@ describe('set', () => {
 
 		const record = documentArrayType.set(originalRecord, [value1, value2]);
 		const expected: MvRecord = ['unrelated', [null, 'bar'], ['123', null]];
+		expect(record).toEqual(expected);
+	});
+
+	test('should return a record with the subdocument array merged in when the schema definition is using multi-part paths', () => {
+		const definition: SchemaDefinition = {
+			prop1: { type: 'string', path: '2.1' },
+			prop2: { type: 'number', path: '2.2', dbDecimals: 2 },
+		};
+		const valueSchema = new Schema(definition);
+		const documentArrayType = new DocumentArrayType(valueSchema);
+
+		const originalRecord: MvRecord = ['unrelated'];
+		const value1 = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
+		const value2 = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
+		value1.prop1 = 'foo';
+		value1.prop2 = 1.23;
+		value2.prop1 = 'bar';
+		value2.prop2 = 4.56;
+
+		const record = documentArrayType.set(originalRecord, [value1, value2]);
+		const expected: MvRecord = [
+			'unrelated',
+			[
+				['foo', 'bar'],
+				['123', '456'],
+			],
+		];
+		expect(record).toEqual(expected);
+	});
+
+	test('should return a record with the subdocument array merged in when the schema definition is using multi-part paths and clear existing extra subdocument', () => {
+		const definition: SchemaDefinition = {
+			prop1: { type: 'string', path: '2.1' },
+			prop2: { type: 'number', path: '2.2', dbDecimals: 2 },
+		};
+		const valueSchema = new Schema(definition);
+		const documentArrayType = new DocumentArrayType(valueSchema);
+
+		const originalRecord: MvRecord = [
+			'unrelated',
+			[
+				['cleared', 'cleared', 'cleared'],
+				['cleared', 'cleared', 'cleared'],
+			],
+		];
+		const value1 = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
+		const value2 = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
+		value1.prop1 = 'foo';
+		value1.prop2 = 1.23;
+		value2.prop1 = 'bar';
+		value2.prop2 = 4.56;
+
+		const record = documentArrayType.set(originalRecord, [value1, value2]);
+		const expected: MvRecord = [
+			'unrelated',
+			[
+				['foo', 'bar'],
+				['123', '456'],
+			],
+		];
+		expect(record).toEqual(expected);
+	});
+
+	test('should return a record with the subdocument array merged in when subdocuments include arrays', () => {
+		const definition: SchemaDefinition = {
+			prop1: { type: 'string', path: '2' },
+			prop2: { type: 'number', path: '3', dbDecimals: 2 },
+			prop3: [{ type: 'string', path: '4' }],
+		};
+		const valueSchema = new Schema(definition);
+		const documentArrayType = new DocumentArrayType(valueSchema);
+
+		const originalRecord: MvRecord = ['unrelated'];
+		const value1 = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
+		const value2 = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
+		value1.prop1 = 'foo';
+		value1.prop2 = 1.23;
+		value1.prop3 = ['value1-pos0', 'value1-pos1'];
+		value2.prop1 = 'bar';
+		value2.prop2 = 4.56;
+		value2.prop3 = ['value2-pos0', 'value2-pos1'];
+
+		const record = documentArrayType.set(originalRecord, [value1, value2]);
+		const expected: MvRecord = [
+			'unrelated',
+			['foo', 'bar'],
+			['123', '456'],
+			[
+				['value1-pos0', 'value1-pos1'],
+				['value2-pos0', 'value2-pos1'],
+			],
+		];
 		expect(record).toEqual(expected);
 	});
 });
