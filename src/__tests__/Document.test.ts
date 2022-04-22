@@ -413,6 +413,30 @@ describe('createDocumentFromRecordString', () => {
 
 		expect(document.prop1).toEqual([['foo', 'bar', 'baz']]);
 	});
+
+	test('should create a new document from the provided record string using document arrays at subvalue positions', () => {
+		const definition: SchemaDefinition = {
+			subdocumentArray: [
+				{
+					prop1: { type: 'string', path: '1.1' },
+					prop2: { type: 'number', path: '1.2', dbDecimals: 2 },
+				},
+			],
+		};
+		const schema = new Schema(definition);
+
+		const document = Document.createDocumentFromRecordString(
+			schema,
+			`foo${svm}bar${vm}123${svm}456`,
+			mockDelimiters,
+		);
+
+		const expected = [
+			{ prop1: 'foo', prop2: 1.23 },
+			{ prop1: 'bar', prop2: 4.56 },
+		];
+		expect(document.subdocumentArray).toEqual(expected);
+	});
 });
 
 describe('transformDocumentToRecord', () => {
@@ -580,6 +604,34 @@ describe('transformDocumentToRecord', () => {
 		document.prop2 = 1.23;
 
 		const expected: MvRecord = [undefined, 'foo', undefined, '123'];
+		expect(document.transformDocumentToRecord()).toEqual(expected);
+	});
+
+	test('should transform document arrays at subvalue position', () => {
+		const definition: SchemaDefinition = {
+			subdocumentArray: [
+				{
+					prop1: { type: 'string', path: '1.1' },
+					prop2: { type: 'number', path: '1.2', dbDecimals: 2 },
+				},
+			],
+		};
+		const schema = new Schema(definition);
+
+		const data = {
+			subdocumentArray: [
+				{ prop1: 'foo', prop2: 1.23 },
+				{ prop1: 'bar', prop2: 4.56 },
+			],
+		};
+		const document = new DocumentSubclass(schema, { data });
+
+		const expected: MvRecord = [
+			[
+				['foo', 'bar'],
+				['123', '456'],
+			],
+		];
 		expect(document.transformDocumentToRecord()).toEqual(expected);
 	});
 });
