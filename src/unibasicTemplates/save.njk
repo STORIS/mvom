@@ -101,8 +101,8 @@ if fkValidationErrorCount > 0 then
   go closeReleaseAndReturnFromSub
 end
 
-* create empty projection array
-if udoCreate(UDO_ARRAY, projection) then
+* create null projection
+if udoCreate(UDO_NULL, projection) then
    call error_handler(ERROR_UDO, output)
    go closeAndReturnFromSub
 end

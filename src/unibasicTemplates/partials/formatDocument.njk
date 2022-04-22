@@ -6,21 +6,32 @@ subroutine format_document(record, recordId, projection, document, errorCode)
 
 errorCode = ''
 
-* get projection positions
+if udoGetType(projection, projectionType) then
+  errorCode = ERROR_UDO
+  go returnFromSub
+end
+
 projectionPositions = ''
-loop
-  statusCode = UDOArrayGetNextItem(projection, projectionPosition, type)
-  if statusCode eq UDO_ERROR then
-    * reach the end of the array
-    exit
-  end
-  if statusCode ne UDO_SUCCESS then
-    * any other possible error
-    errorCode = ERROR_UDO
-    go returnFromSub
-  end
-  projectionPositions<-1> = projectionPosition
-repeat
+useProjection = @false
+
+if projectionType eq UDO_ARRAY then
+  * get projection positions
+  useProjection = @true
+
+  loop
+    statusCode = UDOArrayGetNextItem(projection, projectionPosition, type)
+    if statusCode eq UDO_ERROR then
+      * reach the end of the array
+      exit
+    end
+    if statusCode ne UDO_SUCCESS then
+      * any other possible error
+      errorCode = ERROR_UDO
+      go returnFromSub
+    end
+    projectionPositions<-1> = projectionPosition
+  repeat
+end
 
 * create output document object
 if udoCreate(UDO_OBJECT, document) then
@@ -59,10 +70,9 @@ end else
   end
 end
 
-lastProjectionPosition = dcount(projectionPositions, @am)
-
-if (lastProjectionPosition > 0) then
+if useProjection then
   recordContents = ''
+  lastProjectionPosition = dcount(projectionPositions, @am)
   for position = 1 to lastProjectionPosition
     recordContents<position> = record<position>
   next position
