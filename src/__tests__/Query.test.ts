@@ -1393,4 +1393,44 @@ describe('exec', () => {
 			await expect(query.exec()).rejects.toThrow(QueryLimitError);
 		});
 	});
+
+	describe('projection', () => {
+		beforeEach(() => {
+			ModelConstructorMock.connection.getDbLimits.mockResolvedValue({
+				maxSort: 20,
+				maxWith: 512,
+				maxSentenceLength: 9247,
+			});
+		});
+
+		test('should add projection if specified', async () => {
+			const propertyName = 'property-name';
+			const propertyValue = 'property-value';
+			const propertyDictionary = 'property-dictionary';
+			const selectionCritieria = {
+				[propertyName]: propertyValue,
+			};
+
+			// @ts-expect-error: Overriding mock
+			ModelConstructorMock.schema!.dictPaths = new Map([
+				[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
+			]);
+			ModelConstructorMock.schema!.transformPathsToDbPositions.mockReturnValue([2]);
+
+			const projection = ['property-name'];
+			const query = new Query(ModelConstructorMock, selectionCritieria, { projection });
+			expect(await query.exec()).toEqual(dbQueryResult);
+
+			const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue}"`;
+			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+				'find',
+				{
+					filename,
+					projection: [2],
+					queryCommand: expectedQuery,
+				},
+				undefined,
+			);
+		});
+	});
 });
