@@ -17,12 +17,6 @@ if udoGetProperty(options, 'ids', recordIds, type) then
   go returnFromSub
 end
 
-* get the projections from the options
-if udoGetProperty(options, 'projection', projection, type) then
-  call error_handler(ERROR_MALFORMED_INPUT, output)
-  go returnFromSub
-end
-
 recordIdsCount = 0
 begin case
   case type ne UDO_ARRAY
@@ -35,6 +29,12 @@ end case
 
 * make sure the array of ids passed in wasn't empty
 if recordIdsCount eq 0 then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go returnFromSub
+end
+
+* get the projections from the options
+if udoGetProperty(options, 'projection', projection, type) then
   call error_handler(ERROR_MALFORMED_INPUT, output)
   go returnFromSub
 end
