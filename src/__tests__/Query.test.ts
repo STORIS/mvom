@@ -179,7 +179,7 @@ describe('exec', () => {
 					'find',
 					{
 						filename,
-						projection: [],
+						projection: null,
 						queryCommand: expectedQuery,
 					},
 					undefined,
@@ -208,7 +208,7 @@ describe('exec', () => {
 					'find',
 					{
 						filename,
-						projection: [],
+						projection: null,
 						queryCommand: expectedQuery,
 					},
 					undefined,
@@ -239,7 +239,7 @@ describe('exec', () => {
 					'find',
 					{
 						filename,
-						projection: [],
+						projection: null,
 						queryCommand: expectedQuery,
 					},
 					undefined,
@@ -268,7 +268,7 @@ describe('exec', () => {
 					'find',
 					{
 						filename,
-						projection: [],
+						projection: null,
 						queryCommand: expectedQuery,
 					},
 					undefined,
@@ -297,7 +297,7 @@ describe('exec', () => {
 					'find',
 					{
 						filename,
-						projection: [],
+						projection: null,
 						queryCommand: expectedQuery,
 					},
 					undefined,
@@ -326,7 +326,7 @@ describe('exec', () => {
 					'find',
 					{
 						filename,
-						projection: [],
+						projection: null,
 						queryCommand: expectedQuery,
 					},
 					undefined,
@@ -354,7 +354,7 @@ describe('exec', () => {
 					'find',
 					{
 						filename,
-						projection: [],
+						projection: null,
 						queryCommand: expectedQuery,
 					},
 					undefined,
@@ -383,7 +383,7 @@ describe('exec', () => {
 					'find',
 					{
 						filename,
-						projection: [],
+						projection: null,
 						queryCommand: expectedQuery,
 					},
 					undefined,
@@ -412,7 +412,7 @@ describe('exec', () => {
 					'find',
 					{
 						filename,
-						projection: [],
+						projection: null,
 						queryCommand: expectedQuery,
 					},
 					undefined,
@@ -441,7 +441,7 @@ describe('exec', () => {
 					'find',
 					{
 						filename,
-						projection: [],
+						projection: null,
 						queryCommand: expectedQuery,
 					},
 					undefined,
@@ -470,7 +470,7 @@ describe('exec', () => {
 					'find',
 					{
 						filename,
-						projection: [],
+						projection: null,
 						queryCommand: expectedQuery,
 					},
 					undefined,
@@ -499,7 +499,7 @@ describe('exec', () => {
 					'find',
 					{
 						filename,
-						projection: [],
+						projection: null,
 						queryCommand: expectedQuery,
 					},
 					undefined,
@@ -528,7 +528,7 @@ describe('exec', () => {
 					'find',
 					{
 						filename,
-						projection: [],
+						projection: null,
 						queryCommand: expectedQuery,
 					},
 					undefined,
@@ -557,7 +557,7 @@ describe('exec', () => {
 					'find',
 					{
 						filename,
-						projection: [],
+						projection: null,
 						queryCommand: expectedQuery,
 					},
 					undefined,
@@ -586,7 +586,7 @@ describe('exec', () => {
 					'find',
 					{
 						filename,
-						projection: [],
+						projection: null,
 						queryCommand: expectedQuery,
 					},
 					undefined,
@@ -615,7 +615,7 @@ describe('exec', () => {
 					'find',
 					{
 						filename,
-						projection: [],
+						projection: null,
 						queryCommand: expectedQuery,
 					},
 					undefined,
@@ -640,7 +640,7 @@ describe('exec', () => {
 					'find',
 					{
 						filename,
-						projection: [],
+						projection: null,
 						queryCommand: expectedQuery,
 					},
 					undefined,
@@ -675,7 +675,7 @@ describe('exec', () => {
 						'find',
 						{
 							filename,
-							projection: [],
+							projection: null,
 							queryCommand: expectedQuery,
 						},
 						undefined,
@@ -721,7 +721,7 @@ describe('exec', () => {
 				'find',
 				{
 					filename,
-					projection: [],
+					projection: null,
 					queryCommand: expectedQuery,
 				},
 				undefined,
@@ -760,7 +760,7 @@ describe('exec', () => {
 				'find',
 				{
 					filename,
-					projection: [],
+					projection: null,
 					queryCommand: expectedQuery,
 				},
 				undefined,
@@ -799,7 +799,7 @@ describe('exec', () => {
 				'find',
 				{
 					filename,
-					projection: [],
+					projection: null,
 					queryCommand: expectedQuery,
 				},
 				undefined,
@@ -847,7 +847,7 @@ describe('exec', () => {
 				'find',
 				{
 					filename,
-					projection: [],
+					projection: null,
 					queryCommand: expectedQuery,
 				},
 				undefined,
@@ -889,7 +889,7 @@ describe('exec', () => {
 				'find',
 				{
 					filename,
-					projection: [],
+					projection: null,
 					queryCommand: expectedQuery,
 				},
 				undefined,
@@ -924,7 +924,7 @@ describe('exec', () => {
 				'find',
 				{
 					filename,
-					projection: [],
+					projection: null,
 					queryCommand: expectedQuery,
 				},
 				undefined,
@@ -959,7 +959,7 @@ describe('exec', () => {
 				'find',
 				{
 					filename,
-					projection: [],
+					projection: null,
 					queryCommand: expectedQuery,
 				},
 				undefined,
@@ -989,7 +989,7 @@ describe('exec', () => {
 				'find',
 				{
 					filename,
-					projection: [],
+					projection: null,
 					queryCommand: expectedQuery,
 				},
 				undefined,
@@ -1028,7 +1028,7 @@ describe('exec', () => {
 				'find',
 				{
 					filename,
-					projection: [],
+					projection: null,
 					queryCommand: expectedQuery,
 				},
 				undefined,
@@ -1057,7 +1057,7 @@ describe('exec', () => {
 				'find',
 				{
 					filename,
-					projection: [],
+					projection: null,
 					queryCommand: expectedQuery,
 				},
 				undefined,
@@ -1086,7 +1086,7 @@ describe('exec', () => {
 				'find',
 				{
 					filename,
-					projection: [],
+					projection: null,
 					queryCommand: expectedQuery,
 				},
 				undefined,
@@ -1122,7 +1122,7 @@ describe('exec', () => {
 				'find',
 				{
 					filename,
-					projection: [],
+					projection: null,
 					queryCommand: expectedQuery,
 				},
 				undefined,
@@ -1158,7 +1158,7 @@ describe('exec', () => {
 				'find',
 				{
 					filename,
-					projection: [],
+					projection: null,
 					queryCommand: expectedQuery,
 				},
 				undefined,
@@ -1194,7 +1194,7 @@ describe('exec', () => {
 				'find',
 				{
 					filename,
-					projection: [],
+					projection: null,
 					queryCommand: expectedQuery,
 				},
 				undefined,
@@ -1234,7 +1234,7 @@ describe('exec', () => {
 				'find',
 				{
 					filename,
-					projection: [],
+					projection: null,
 					queryCommand: expectedQuery,
 					skip,
 					limit,
@@ -1266,7 +1266,7 @@ describe('exec', () => {
 				'find',
 				{
 					filename,
-					projection: [],
+					projection: null,
 					queryCommand: expectedQuery,
 				},
 				{ userDefined },

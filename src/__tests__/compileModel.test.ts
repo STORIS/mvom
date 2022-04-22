@@ -160,7 +160,7 @@ describe('find', () => {
 			'find',
 			{
 				filename,
-				projection: [],
+				projection: null,
 				queryCommand: `select ${filename}`,
 			},
 			undefined,
@@ -199,7 +199,7 @@ describe('find', () => {
 			'find',
 			{
 				filename,
-				projection: [],
+				projection: null,
 				queryCommand: `select ${filename}`,
 			},
 			{ userDefined },
@@ -246,7 +246,7 @@ describe('findAndCount', () => {
 			'find',
 			{
 				filename,
-				projection: [],
+				projection: null,
 				queryCommand: `select ${filename}`,
 			},
 			undefined,
@@ -286,7 +286,7 @@ describe('findAndCount', () => {
 			'find',
 			{
 				filename,
-				projection: [],
+				projection: null,
 				queryCommand: `select ${filename}`,
 			},
 			{ userDefined },
@@ -314,7 +314,7 @@ describe('findById', () => {
 			{
 				filename,
 				id: id1,
-				projection: [],
+				projection: null,
 			},
 			undefined,
 		);
@@ -338,7 +338,7 @@ describe('findById', () => {
 			{
 				filename,
 				id: id1,
-				projection: [],
+				projection: null,
 			},
 			undefined,
 		);
@@ -360,7 +360,7 @@ describe('findById', () => {
 			{
 				filename,
 				id: id1,
-				projection: [],
+				projection: null,
 			},
 			undefined,
 		);
@@ -388,7 +388,7 @@ describe('findById', () => {
 			{
 				filename,
 				id: id1,
-				projection: [],
+				projection: null,
 			},
 			{ userDefined },
 		);
@@ -425,7 +425,7 @@ describe('findByIds', () => {
 			{
 				filename,
 				ids: [id1, id2],
-				projection: [],
+				projection: null,
 			},
 			undefined,
 		);
@@ -459,7 +459,7 @@ describe('findByIds', () => {
 			{
 				filename,
 				ids: [id1, id2],
-				projection: [],
+				projection: null,
 			},
 			undefined,
 		);
@@ -486,7 +486,7 @@ describe('findByIds', () => {
 			{
 				filename,
 				ids: [id1, id2],
-				projection: [],
+				projection: null,
 			},
 			undefined,
 		);
@@ -524,7 +524,7 @@ describe('findByIds', () => {
 			{
 				filename,
 				ids: [id1, id2],
-				projection: [],
+				projection: null,
 			},
 			{ userDefined },
 		);
