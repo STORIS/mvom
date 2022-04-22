@@ -84,7 +84,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 	private readonly skip?: number | null;
 
 	/** Specify the projection attribute in result set */
-	private readonly projection: string[];
+	private readonly projection: string[] | null;
 
 	/** Number of conditions in the query */
 	private conditionCount = 0;
@@ -99,7 +99,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 		this.Model = Model;
 		this.limit = limit;
 		this.skip = skip;
-		this.projection = projection ?? [];
+		this.projection = projection ?? null;
 
 		this.selection = this.formatSelectionCriteria(selectionCriteria);
 		this.sortCriteria = sort;
@@ -119,7 +119,10 @@ class Query<TSchema extends GenericObject = GenericObject> {
 
 		await this.validateQuery(queryCommand);
 
-		const projection = this.Model.schema?.transformPathsToDbPositions(this.projection) ?? [];
+		const projection =
+			this.projection != null && this.Model.schema != null
+				? this.Model.schema.transformPathsToDbPositions(this.projection)
+				: null;
 
 		const executionOptions = {
 			filename: this.Model.file,

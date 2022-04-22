@@ -124,10 +124,10 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 		): Promise<Model | null> {
 			const { userDefined } = options;
 
-			const data = await Model.connection.executeDbFeature(
+			const data = await this.connection.executeDbFeature(
 				'deleteById',
 				{
-					filename: Model.file,
+					filename: this.file,
 					id,
 				},
 				userDefined && { userDefined },
@@ -139,7 +139,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 			const { _id, __v, record } = data.result;
 
-			return Model.#createModelFromRecordString(record, _id, __v);
+			return this.#createModelFromRecordString(record, _id, __v);
 		}
 
 		/** Find documents via query */
@@ -153,7 +153,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 			return documents.map((document) => {
 				const { _id, __v, record } = document;
-				return Model.#createModelFromRecordString(record, _id, __v);
+				return this.#createModelFromRecordString(record, _id, __v);
 			});
 		}
 
@@ -168,7 +168,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 			const models = documents.map((document) => {
 				const { _id, __v, record } = document;
-				return Model.#createModelFromRecordString(record, _id, __v);
+				return this.#createModelFromRecordString(record, _id, __v);
 			});
 
 			return {
@@ -182,13 +182,14 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			id: string,
 			options: ModelFindByIdOptions = {},
 		): Promise<Model | null> {
-			const { projection = [], userDefined } = options;
-			const data = await Model.connection.executeDbFeature(
+			const { projection, userDefined } = options;
+
+			const data = await this.connection.executeDbFeature(
 				'findById',
 				{
-					filename: Model.file,
+					filename: this.file,
 					id,
-					projection: Model.schema?.transformPathsToDbPositions(projection) ?? [],
+					projection: this.#formatProjection(projection),
 				},
 				userDefined && { userDefined },
 			);
@@ -199,7 +200,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 			const { _id, __v, record } = data.result;
 
-			return Model.#createModelFromRecordString(record, _id, __v);
+			return this.#createModelFromRecordString(record, _id, __v);
 		}
 
 		/** Find multiple documents by their ids */
@@ -207,15 +208,15 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			ids: string | string[],
 			options: ModelFindByIdOptions = {},
 		): Promise<(Model | null)[]> {
-			const { projection = [], userDefined } = options;
+			const { projection, userDefined } = options;
 
 			const idsArray = ensureArray(ids);
-			const data = await Model.connection.executeDbFeature(
+			const data = await this.connection.executeDbFeature(
 				'findByIds',
 				{
-					filename: Model.file,
+					filename: this.file,
 					ids: idsArray,
-					projection: Model.schema?.transformPathsToDbPositions(projection) ?? [],
+					projection: this.#formatProjection(projection),
 				},
 				userDefined && { userDefined },
 			);
@@ -236,10 +237,10 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			options: ModelReadFileContentsByIdOptions = {},
 		): Promise<string> {
 			const { userDefined } = options;
-			const data = await Model.connection.executeDbFeature(
+			const data = await this.connection.executeDbFeature(
 				'readFileContentsById',
 				{
-					filename: Model.file,
+					filename: this.file,
 					id,
 				},
 				userDefined && { userDefined },
@@ -255,6 +256,13 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			__v?: string | null,
 		): Model {
 			return new Model({ _id, __v, record: recordString });
+		}
+
+		/** Format projection option */
+		static #formatProjection(projection?: string[]): number[] | null {
+			return projection != null && this.schema != null
+				? this.schema.transformPathsToDbPositions(projection)
+				: null;
 		}
 
 		/** Save a document to the database */
