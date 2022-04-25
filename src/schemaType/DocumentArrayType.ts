@@ -1,4 +1,4 @@
-import { cloneDeep, isPlainObject, set as setIn } from 'lodash';
+import { cloneDeep, get as getIn, isPlainObject, set as setIn } from 'lodash';
 import Document from '../Document';
 import type { ForeignKeyDbDefinition } from '../ForeignKeyDbTransformer';
 import type Schema from '../Schema';
@@ -41,18 +41,19 @@ class DocumentArrayType extends BaseSchemaType {
 	}
 
 	/** Set specified document array value into mv record */
-	public set(originalRecord: MvRecord, setValue: Document[]): MvRecord {
+	public set(originalRecord: MvRecord, documents: Document[]): MvRecord {
 		const record = cloneDeep(originalRecord);
+		const mvPaths = this.valueSchema.getMvPaths();
 		// A subdocumentArray is always overwritten entirely so clear out all associated fields
-		this.valueSchema.getMvPaths().forEach((path) => {
+		mvPaths.forEach((path) => {
 			setIn(record, path, null);
 		});
-		setValue.forEach((subdocument, iteration) => {
+		documents.forEach((subdocument, iteration) => {
 			const subrecord = subdocument.transformDocumentToRecord();
-			subrecord.forEach((value, arrayPos) => {
-				if (typeof value !== 'undefined') {
-					setIn(record, [arrayPos, iteration], value);
-				}
+
+			mvPaths.forEach((path) => {
+				const value = getIn(subrecord, path, null);
+				setIn(record, path.concat(iteration), value);
 			});
 		});
 		return record;
