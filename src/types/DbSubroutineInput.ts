@@ -37,19 +37,19 @@ export interface DbSubroutineOptionsDeploy {
 export interface DbSubroutineOptionsFind {
 	filename: string;
 	queryCommand: string;
-	projection: number[];
+	projection: number[] | null;
 }
 
 export interface DbSubroutineOptionsFindById {
 	filename: string;
 	id: string;
-	projection: number[];
+	projection: number[] | null;
 }
 
 export interface DbSubroutineOptionsFindByIds {
 	filename: string;
 	ids: string[];
-	projection: number[];
+	projection: number[] | null;
 }
 
 export interface DbSubroutineOptionsReadFileContentsById {

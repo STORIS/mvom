@@ -160,7 +160,7 @@ describe('find', () => {
 			'find',
 			{
 				filename,
-				projection: [],
+				projection: null,
 				queryCommand: `select ${filename}`,
 			},
 			undefined,
@@ -199,7 +199,7 @@ describe('find', () => {
 			'find',
 			{
 				filename,
-				projection: [],
+				projection: null,
 				queryCommand: `select ${filename}`,
 			},
 			{ userDefined },
@@ -246,7 +246,7 @@ describe('findAndCount', () => {
 			'find',
 			{
 				filename,
-				projection: [],
+				projection: null,
 				queryCommand: `select ${filename}`,
 			},
 			undefined,
@@ -286,7 +286,7 @@ describe('findAndCount', () => {
 			'find',
 			{
 				filename,
-				projection: [],
+				projection: null,
 				queryCommand: `select ${filename}`,
 			},
 			{ userDefined },
@@ -314,7 +314,7 @@ describe('findById', () => {
 			{
 				filename,
 				id: id1,
-				projection: [],
+				projection: null,
 			},
 			undefined,
 		);
@@ -338,7 +338,7 @@ describe('findById', () => {
 			{
 				filename,
 				id: id1,
-				projection: [],
+				projection: null,
 			},
 			undefined,
 		);
@@ -360,7 +360,7 @@ describe('findById', () => {
 			{
 				filename,
 				id: id1,
-				projection: [],
+				projection: null,
 			},
 			undefined,
 		);
@@ -388,9 +388,35 @@ describe('findById', () => {
 			{
 				filename,
 				id: id1,
-				projection: [],
+				projection: null,
 			},
 			{ userDefined },
+		);
+	});
+
+	test('should provide projection if specified', async () => {
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
+
+		const id1 = 'id1';
+		const version1 = '1';
+		connectionMock.executeDbFeature.mockResolvedValue({
+			result: { _id: id1, __v: version1, record: '' },
+		});
+
+		const projection = ['prop2'];
+		const document = await Model.findById(id1, { projection });
+
+		expect(document).toBeInstanceOf(Model);
+		expect(document!._id).toBe(id1);
+		expect(document!.__v).toBe(version1);
+		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+			'findById',
+			{
+				filename,
+				id: id1,
+				projection: [2],
+			},
+			undefined,
 		);
 	});
 });
@@ -425,7 +451,7 @@ describe('findByIds', () => {
 			{
 				filename,
 				ids: [id1, id2],
-				projection: [],
+				projection: null,
 			},
 			undefined,
 		);
@@ -459,7 +485,7 @@ describe('findByIds', () => {
 			{
 				filename,
 				ids: [id1, id2],
-				projection: [],
+				projection: null,
 			},
 			undefined,
 		);
@@ -486,7 +512,7 @@ describe('findByIds', () => {
 			{
 				filename,
 				ids: [id1, id2],
-				projection: [],
+				projection: null,
 			},
 			undefined,
 		);
@@ -524,9 +550,45 @@ describe('findByIds', () => {
 			{
 				filename,
 				ids: [id1, id2],
-				projection: [],
+				projection: null,
 			},
 			{ userDefined },
+		);
+	});
+
+	test('should provide projection if specified', async () => {
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
+
+		const id1 = 'id1';
+		const version1 = '1';
+		const id2 = 'id2';
+		const version2 = '2';
+		connectionMock.executeDbFeature.mockResolvedValue({
+			result: [
+				{ _id: id1, __v: version1, record: '' },
+				{ _id: id2, __v: version2, record: '' },
+			],
+		});
+
+		const projection = ['prop2'];
+		const documents = await Model.findByIds([id1, id2], { projection });
+		documents.forEach((document) => {
+			expect(document).toBeInstanceOf(Model);
+		});
+
+		const [document1, document2] = documents;
+		expect(document1!._id).toBe(id1);
+		expect(document1!.__v).toBe(version1);
+		expect(document2!._id).toBe(id2);
+		expect(document2!.__v).toBe(version2);
+		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+			'findByIds',
+			{
+				filename,
+				ids: [id1, id2],
+				projection: [2],
+			},
+			undefined,
 		);
 	});
 });
