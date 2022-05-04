@@ -19,7 +19,7 @@ class ISOCalendarDateDataTransformer implements DataTransformer {
 		if (!Number.isInteger(castValue)) {
 			throw new TransformDataError({
 				transformClass: this.constructor.name,
-				transformValue: castValue,
+				transformValue: value,
 			});
 		}
 

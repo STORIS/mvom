@@ -31,7 +31,7 @@ class NumberDataTransformer implements DataTransformer {
 		if (!Number.isFinite(castValue)) {
 			throw new TransformDataError({
 				transformClass: this.constructor.name,
-				transformValue: castValue,
+				transformValue: value,
 			});
 		}
 

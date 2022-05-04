@@ -31,14 +31,14 @@ class ISOTimeDataTransformer implements DataTransformer {
 		if (!Number.isInteger(internalTime) || internalTime < 0) {
 			throw new TransformDataError({
 				transformClass: this.constructor.name,
-				transformValue: internalTime,
+				transformValue: value,
 			});
 		}
 
 		if (internalTime > 86400000 || (!this.isDbInMs && internalTime > 86400)) {
 			throw new TransformDataError({
 				transformClass: this.constructor.name,
-				transformValue: internalTime,
+				transformValue: value,
 			});
 		}
 
