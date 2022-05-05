@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0-alpha.6] - 2022-05-05
+
+### Breaking changes
+
+- Previously, specifying an empty projection array for Model database methods (e.g. `find`, `findById`) would behave the same as specifying no projection at all. This change adjusts that behavior so that specifying an empty projection array will instead return no data. ([#86](https://github.com/STORIS/mvom/pull/86))
+
+### Fixed
+
+- Corrected an issue with saving subdocument arrays defined with multipart paths where the resulting saved data would be formatted incorrectly in the database ([#85](https://github.com/STORIS/mvom/pull/85))
+- Added missing `@babel/runtime` dependency ([#105](https://github.com/STORIS/mvom/pull/105))
+- If a database value cannot be transformed, log the original value and not the value after a transformation attempt ([#106](https://github.com/STORIS/mvom/pull/106))
+
+### Added
+
 ## [2.0.0-alpha.5] - 2022-04-19
 
 ### Added
@@ -288,7 +302,7 @@ COM /S$MVOM/ S$MVOM.PROCESS
 
 - Nearly all dependencies and devDependencies have been updated to the latest versions
 - Db server tier errors can now be cast to error class instances. Errors due to record locking will now be cast to `RecordLockedError` and errors due to record version mismatches will be cast to `RecordVersionError`
-- Db server errors occuring during save will now enrich the error object with the filename and record id in the error object's `other` property
+- Db server errors occurring during save will now enrich the error object with the filename and record id in the error object's `other` property
 - All errors thrown from mvom will now contain a source property with a value of `mvom`
 
 ## [0.1.0] - 2018-08-10
@@ -367,7 +381,8 @@ We've graduated from Alpha to Beta! Semver has been updated so breaking vs. non-
 
 Initial alpha release of this library! Thanks for using it!
 
-[unreleased]: https://github.com/storis/mvom/compare/2.0.0-alpha.5...HEAD
+[unreleased]: https://github.com/storis/mvom/compare/2.0.0-alpha.6...HEAD
+[2.0.0-alpha.6]: https://github.com/storis/mvom/compare/2.0.0-alpha.5...2.0.0-alpha.6
 [2.0.0-alpha.5]: https://github.com/storis/mvom/compare/2.0.0-alpha.4...2.0.0-alpha.5
 [2.0.0-alpha.4]: https://github.com/storis/mvom/compare/2.0.0-alpha.3...2.0.0-alpha.4
 [2.0.0-alpha.3]: https://github.com/storis/mvom/compare/2.0.0-alpha.2...2.0.0-alpha.3
