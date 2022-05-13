@@ -19,8 +19,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added missing `@babel/runtime` dependency ([#105](https://github.com/STORIS/mvom/pull/105))
 - If a database value cannot be transformed, log the original value and not the value after a transformation attempt ([#106](https://github.com/STORIS/mvom/pull/106))
 
-### Added
-
 ## [2.0.0-alpha.5] - 2022-04-19
 
 ### Added
