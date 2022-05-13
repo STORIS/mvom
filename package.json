@@ -60,7 +60,7 @@
     "@babel/preset-typescript": "7.16.7",
     "@storis/eslint-config": "3.2.0",
     "@storis/prettier-config": "0.0.2",
-    "@storis/tsconfig": "0.0.2",
+    "@storis/tsconfig": "1.0.0",
     "@types/fs-extra": "9.0.13",
     "@types/jest": "27.5.1",
     "@types/jest-when": "3.5.0",
