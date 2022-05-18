@@ -6,9 +6,9 @@ const lightCodeTheme = require('prism-react-renderer/themes/github');
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-	title: 'My Site',
-	tagline: 'Dinosaurs are cool',
-	url: 'https://shawnmcknight.github.io/mvom/',
+	title: 'MVOM',
+	tagline: 'An ORM for Multivalue Databases and Node.js',
+	url: 'https://shawnmcknight.github.io',
 	baseUrl: '/mvom/',
 	onBrokenLinks: 'throw',
 	onBrokenMarkdownLinks: 'warn',
@@ -29,7 +29,7 @@ const config = {
 
 	presets: [
 		[
-			'classic',
+			'@docusaurus/preset-classic',
 			/** @type {import('@docusaurus/preset-classic').Options} */
 			({
 				docs: {
@@ -38,13 +38,12 @@ const config = {
 					// Remove this to remove the "edit this page" links.
 					editUrl:
 						'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
-				},
-				blog: {
-					showReadingTime: true,
-					// Please change this to your repo.
-					// Remove this to remove the "edit this page" links.
-					editUrl:
-						'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
+					lastVersion: 'current',
+					versions: {
+						current: {
+							label: '2.0.0-alpha.6',
+						},
+					},
 				},
 				theme: {
 					customCss: require.resolve('./src/css/custom.css'),
@@ -57,7 +56,7 @@ const config = {
 		/** @type {import('@docusaurus/preset-classic').ThemeConfig} */
 		({
 			navbar: {
-				title: 'My Site',
+				title: 'MVOM',
 				logo: {
 					alt: 'My Site Logo',
 					src: 'img/logo.svg',
@@ -67,9 +66,8 @@ const config = {
 						type: 'doc',
 						docId: 'intro',
 						position: 'left',
-						label: 'Tutorial',
+						label: 'Documentation',
 					},
-					{ to: '/blog', label: 'Blog', position: 'left' },
 					{
 						href: 'https://github.com/facebook/docusaurus',
 						label: 'GitHub',
@@ -120,7 +118,7 @@ const config = {
 						],
 					},
 				],
-				copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+				copyright: `Copyright © ${new Date().getFullYear()} STORIS, Inc. Built with Docusaurus.`,
 			},
 			prism: {
 				theme: lightCodeTheme,
