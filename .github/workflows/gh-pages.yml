@@ -1,9 +1,12 @@
 name: Deploy Docs to GitHub Pages
 
 on:
-  workflow_dispatch:
+  push:
     branches:
       - main
+    paths:
+      - '.github/workflows/gh-pages.yml'
+      - 'docs/**'
 
 jobs:
   deploy:
