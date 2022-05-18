@@ -9,7 +9,7 @@ const config = {
 	title: 'My Site',
 	tagline: 'Dinosaurs are cool',
 	url: 'https://shawnmcknight.github.io/mvom/',
-	baseUrl: '/mvom',
+	baseUrl: '/mvom/',
 	onBrokenLinks: 'throw',
 	onBrokenMarkdownLinks: 'warn',
 	favicon: 'img/favicon.ico',
