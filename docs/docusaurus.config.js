@@ -8,8 +8,8 @@ const lightCodeTheme = require('prism-react-renderer/themes/github');
 const config = {
 	title: 'My Site',
 	tagline: 'Dinosaurs are cool',
-	url: 'https://your-docusaurus-test-site.com',
-	baseUrl: '/',
+	url: 'https://shawnmcknight.github.io/mvom/',
+	baseUrl: '/mvom',
 	onBrokenLinks: 'throw',
 	onBrokenMarkdownLinks: 'warn',
 	favicon: 'img/favicon.ico',
