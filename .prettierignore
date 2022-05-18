@@ -5,3 +5,5 @@ node_modules
 dist
 # test coverage
 coverage
+# docusaurus build
+docs/.docusaurus
