@@ -13,7 +13,8 @@ const config = {
 	baseUrl: '/mvom/',
 	onBrokenLinks: 'throw',
 	onBrokenMarkdownLinks: 'warn',
-	favicon: 'img/favicon.ico',
+	// TODO: Add a favicon
+	// favicon: 'img/favicon.ico',
 
 	// GitHub pages deployment config.
 	// If you aren't using GitHub pages, you don't need these.
@@ -46,6 +47,7 @@ const config = {
 					},
 					remarkPlugins: [[npm2YarnPlugin, { sync: true }]],
 				},
+				blog: false,
 				theme: {
 					customCss: require.resolve('./src/css/custom.css'),
 				},
@@ -58,10 +60,11 @@ const config = {
 		({
 			navbar: {
 				title: 'MVOM',
-				logo: {
-					alt: 'My Site Logo',
-					src: 'img/logo.svg',
-				},
+				// TODO: Add a Logo
+				// logo: {
+				// 	alt: 'My Site Logo',
+				// 	src: 'img/logo.svg',
+				// },
 				items: [
 					{
 						type: 'doc',
@@ -76,7 +79,7 @@ const config = {
 					},
 					{
 						href: 'https://github.com/storis/mvom',
-						label: 'GitHub',
+						className: 'header-github-link',
 						position: 'right',
 					},
 				],
