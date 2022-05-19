@@ -7,7 +7,7 @@ module.exports = {
 
 	parserOptions: {
 		tsconfigRootDir: __dirname,
-		project: ['./tsconfig.eslint.json', './docs/tsconfig.eslint.json'],
+		project: ['./tsconfig.eslint.json', './website/tsconfig.eslint.json'],
 	},
 
 	rules: {
@@ -26,7 +26,7 @@ module.exports = {
 
 	overrides: [
 		{
-			files: ['./.*.js', './*.js', './docs/**/*.js'],
+			files: ['./.*.js', './*.js', './website/**/*.js'],
 			rules: {
 				// allow requires in config files
 				'@typescript-eslint/no-var-requires': 'off',

@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - '.github/workflows/gh-pages.yml'
-      - 'docs/**'
+      - 'website/**'
 
   workflow_dispatch:
 
@@ -20,7 +20,7 @@ jobs:
       group: ${{ github.workflow }}-${{ github.ref }}
     defaults:
       run:
-        working-directory: docs
+        working-directory: website
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3

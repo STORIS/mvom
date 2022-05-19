@@ -31,8 +31,8 @@ jobs:
           check-latest: true
           cache: 'npm'
       - run: npm ci
-      - name: install docs dependencies
-        working-directory: docs
+      - name: install website dependencies
+        working-directory: website
         run: npm ci
       - run: npm run lint:nocache
       - run: npm run typecheck
