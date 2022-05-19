@@ -1,6 +1,7 @@
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
+const npm2YarnPlugin = require('@docusaurus/remark-plugin-npm2yarn');
 const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 const lightCodeTheme = require('prism-react-renderer/themes/github');
 
@@ -36,14 +37,14 @@ const config = {
 					sidebarPath: require.resolve('./sidebars.js'),
 					// Please change this to your repo.
 					// Remove this to remove the "edit this page" links.
-					editUrl:
-						'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
+					editUrl: 'https://github.com/shawnmcknight/mvom/tree/main/',
 					lastVersion: 'current',
 					versions: {
 						current: {
 							label: '2.0.0-alpha.6',
 						},
 					},
+					remarkPlugins: [[npm2YarnPlugin, { sync: true }]],
 				},
 				theme: {
 					customCss: require.resolve('./src/css/custom.css'),
@@ -64,12 +65,17 @@ const config = {
 				items: [
 					{
 						type: 'doc',
-						docId: 'intro',
+						docId: 'Introduction/what_is_mvom',
 						position: 'left',
 						label: 'Documentation',
 					},
 					{
-						href: 'https://github.com/facebook/docusaurus',
+						type: 'docsVersion',
+						label: '2.0.0-alpha.6',
+						position: 'right',
+					},
+					{
+						href: 'https://github.com/storis/mvom',
 						label: 'GitHub',
 						position: 'right',
 					},
@@ -77,47 +83,6 @@ const config = {
 			},
 			footer: {
 				style: 'dark',
-				links: [
-					{
-						title: 'Docs',
-						items: [
-							{
-								label: 'Tutorial',
-								to: '/docs/intro',
-							},
-						],
-					},
-					{
-						title: 'Community',
-						items: [
-							{
-								label: 'Stack Overflow',
-								href: 'https://stackoverflow.com/questions/tagged/docusaurus',
-							},
-							{
-								label: 'Discord',
-								href: 'https://discordapp.com/invite/docusaurus',
-							},
-							{
-								label: 'Twitter',
-								href: 'https://twitter.com/docusaurus',
-							},
-						],
-					},
-					{
-						title: 'More',
-						items: [
-							{
-								label: 'Blog',
-								to: '/blog',
-							},
-							{
-								label: 'GitHub',
-								href: 'https://github.com/facebook/docusaurus',
-							},
-						],
-					},
-				],
 				copyright: `Copyright © ${new Date().getFullYear()} STORIS, Inc. Built with Docusaurus.`,
 			},
 			prism: {
