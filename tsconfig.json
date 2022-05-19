@@ -10,5 +10,5 @@
       "*": ["src/@types/overrides/*", "node_modules/*"]
     }
   },
-  "exclude": ["docs/*"]
+  "exclude": ["website/*"]
 }

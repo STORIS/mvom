@@ -6,4 +6,5 @@ dist
 # test coverage
 coverage
 # docusaurus build
-docs/.docusaurus
+website/.docusaurus
+website/build
