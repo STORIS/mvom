@@ -72,7 +72,7 @@ describe('createConnection', () => {
 	test('should construct complete base url for calls to mvis', () => {
 		Connection.createConnection(mvisUri, account);
 
-		const expected = new RegExp(`^${mvisUri}/${account}/subroutine/mvom_entry@\\d.\\d.\\d$`);
+		const expected = new RegExp(`^${mvisUri}/${account}/subroutine/mvom_entry@\\d+.\\d+.\\d+$`);
 
 		expect(mockedAxios.create).toHaveBeenCalledWith(
 			expect.objectContaining({
@@ -84,7 +84,7 @@ describe('createConnection', () => {
 	test('should construct complete base url for calls to mvis if trailing slash added to mvisUri', () => {
 		Connection.createConnection(`${mvisUri}/`, account);
 
-		const expected = new RegExp(`^${mvisUri}/${account}/subroutine/mvom_entry@\\d.\\d.\\d$`);
+		const expected = new RegExp(`^${mvisUri}/${account}/subroutine/mvom_entry@\\d+.\\d+.\\d+$`);
 
 		expect(mockedAxios.create).toHaveBeenCalledWith(
 			expect.objectContaining({
