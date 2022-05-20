@@ -5,7 +5,7 @@ title: Number
 
 # Number Schema Type
 
-The string schema type allows you to work with numeric values.
+The number schema type allows you to work with numeric values.
 
 ## Schema Definition Properties
 
