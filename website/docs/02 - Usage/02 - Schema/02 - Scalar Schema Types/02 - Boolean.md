@@ -9,13 +9,11 @@ The Boolean schema type allows you to work with boolean values.
 
 ## Schema Definition Properties
 
-| Property     | Type                 |     Mandatory      | Default | Description                                                            |
-| ------------ | -------------------- | :----------------: | ------- | ---------------------------------------------------------------------- |
-| `type`       | `"boolean"`          | :heavy_check_mark: |         | The type literal for a boolean schema type                             |
-| `path`       | `string` \| `number` | :heavy_check_mark: |         | The [path](../schema_basics#path-property) to the location of the data |
-| `dictionary` | `string`             |                    |         | The dictionary name to use for query conditionals for this property    |
-| `required`   | `boolean`            |                    | `false` | Indicate whether this property is mandatory                            |
-| `encrypted`  | `boolean`            |                    | `false` | Indicate whether this property should be encrypted                     |
+In addition to the [base schema definition properties](../schema_basics#properties-common-to-all-schema-definitions) the `boolean` type has the following additional properties:
+
+| Property | Type        |     Mandatory      | Default | Description                                |
+| -------- | ----------- | :----------------: | ------- | ------------------------------------------ |
+| `type`   | `"boolean"` | :heavy_check_mark: |         | The type literal for a boolean schema type |
 
 ## Formatting
 

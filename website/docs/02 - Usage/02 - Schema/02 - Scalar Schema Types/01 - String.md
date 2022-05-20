@@ -9,15 +9,13 @@ The string schema type is the simplest of the schema types supported by MVOM.
 
 ## Schema Definition Properties
 
-| Property     | Type                 |     Mandatory      | Default | Description                                                               |
-| ------------ | -------------------- | :----------------: | ------- | ------------------------------------------------------------------------- |
-| `type`       | `"string"`           | :heavy_check_mark: |         | The type literal for a string schema type                                 |
-| `path`       | `string` \| `number` | :heavy_check_mark: |         | The [path](../schema_basics#path-property) to the location of the data    |
-| `dictionary` | `string`             |                    |         | The dictionary name to use for query conditionals for this property       |
-| `required`   | `boolean`            |                    | `false` | Indicate whether this property is mandatory                               |
-| `encrypted`  | `boolean`            |                    | `false` | Indicate whether this property should be encrypted                        |
-| `enum`       | `string[]`           |                    |         | If specified, value will be validated against this list of allowed values |
-| `match`      | `RegExp`             |                    |         | If specified, value will be matched against this regular expression       |
+In addition to the [base schema definition properties](../schema_basics#properties-common-to-all-schema-definitions) the `string` type has the following additional properties:
+
+| Property | Type       |     Mandatory      | Default | Description                                                               |
+| -------- | ---------- | :----------------: | ------- | ------------------------------------------------------------------------- |
+| `type`   | `"string"` | :heavy_check_mark: |         | The type literal for a string schema type                                 |
+| `enum`   | `string[]` |                    |         | If specified, value will be validated against this list of allowed values |
+| `match`  | `RegExp`   |                    |         | If specified, value will be matched against this regular expression       |
 
 ## Formatting
 
