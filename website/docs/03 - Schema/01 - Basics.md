@@ -68,7 +68,7 @@ It's very likely that if you have data defined using subvalue based paths that t
 
 ### Optional Properties
 
-### Dictionary property
+#### Dictionary property
 
 The `dictionary` property indicates the MultiValue dictionary that is associated with the data indicated in the definition. It is used for the purposes of query execution. The `dictionary` property is necessary if you wish to use the property for conditionals in a query, but is otherwise optional.
 
