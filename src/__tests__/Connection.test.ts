@@ -29,7 +29,7 @@ const mockedAxios = axios as jest.Mocked<typeof axios>;
 const mockedAxiosInstance = mock<AxiosInstance>();
 const mockedFs = fs as jest.Mocked<typeof fs>;
 
-const mvisUri = 'mvisUri';
+const mvisUri = 'http://foo.bar.com';
 const account = 'account';
 
 const fullFeatureOutput = Object.entries(serverDependencies).map(
@@ -69,10 +69,27 @@ describe('createConnection', () => {
 		expect(Connection.createConnection(mvisUri, account)).toBeInstanceOf(Connection);
 	});
 
-	test('should include mvisUri and account in base url', () => {
+	test('should construct complete base url for calls to mvis', () => {
 		Connection.createConnection(mvisUri, account);
+
+		const expected = new RegExp(`^${mvisUri}/${account}/subroutine/mvom_entry@\\d.\\d.\\d$`);
+
 		expect(mockedAxios.create).toHaveBeenCalledWith(
-			expect.objectContaining({ baseURL: expect.stringContaining(`${mvisUri}/${account}`) }),
+			expect.objectContaining({
+				baseURL: expect.stringMatching(expected),
+			}),
+		);
+	});
+
+	test('should construct complete base url for calls to mvis if trailing slash added to mvisUri', () => {
+		Connection.createConnection(`${mvisUri}/`, account);
+
+		const expected = new RegExp(`^${mvisUri}/${account}/subroutine/mvom_entry@\\d.\\d.\\d$`);
+
+		expect(mockedAxios.create).toHaveBeenCalledWith(
+			expect.objectContaining({
+				baseURL: expect.stringMatching(expected),
+			}),
 		);
 	});
 
