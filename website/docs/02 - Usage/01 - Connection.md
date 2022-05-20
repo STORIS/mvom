@@ -5,7 +5,7 @@ title: Connection
 
 # Connection
 
-The first step to working with MVOM is to establish a connection to the database server via MVIS. Establishing a connection is facilitated via the `Connection` class which is exported from mvom as a named export.
+The first step to working with MVOM is to establish a connection to the database server via MVIS. Establishing a connection is facilitated via the `Connection` class which is exported from MVOM as a named export.
 
 ## Creating a connection
 
@@ -29,7 +29,7 @@ Connection.createConnection(mvisUri: string, account: string, options?: CreateCo
 
 | Property      | Type          | Default | Description                                                                                                 |
 | ------------- | ------------- | ------- | ----------------------------------------------------------------------------------------------------------- |
-| `logger`      | `Logger`      |         | An object implementing the [Logger](#logger-interface) interface, used for logging messages emitted by mvom |
+| `logger`      | `Logger`      |         | An object implementing the [Logger](#logger-interface) interface, used for logging messages emitted by MVOM |
 | `cacheMaxAge` | `number`      | `3600`  | The maximum age of cached connection information, such as the current database date                         |
 | `timeout`     | `number`      | `0`     | The request timeout in milliseconds (0 to disable)                                                          |
 | `httpAgent`   | `http.Agent`  |         | An `http.Agent` instance to use with http requests (recommended)                                            |
