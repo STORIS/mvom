@@ -19,10 +19,10 @@ constructor(definition: SchemaDefinition, options?: SchemaConstructorOptions): S
 
 ### Parameters
 
-| Parameter  | Type     | Description                                              |
-| ---------- | -------- | -------------------------------------------------------- |
-| definition | `object` | The [definition](#schema-definition) for the schema      |
-| options    | `object` | [Options object](#options-object-properties) (see below) |
+| Parameter  | Type     | Description                                         |
+| ---------- | -------- | --------------------------------------------------- |
+| definition | `object` | The [definition](#schema-definition) for the schema |
+| options    | `object` | [Options object](./schema_options) (see link)       |
 
 ## Schema Definition
 
