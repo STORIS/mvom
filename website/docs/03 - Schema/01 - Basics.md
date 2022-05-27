@@ -78,7 +78,7 @@ The `required` property indicates that a value must be present when saving. If t
 
 #### Encrypted
 
-The `encrypted` property indicates that a value should be encrypted on save and decrypted on access. See the encryption topic for more information.
+The `encrypted` property indicates that a value should be encrypted on save and decrypted on access. See the [encryption](./schema_encryption) topic for more information.
 
 ### Example
 
@@ -98,6 +98,8 @@ const schemaDefinition = {
   openBalance: { type: 'number', path: 2 },
   lastActivityDate: { type: 'ISOCalendarDate', path: 3 },
 };
+
+const schema = new Schema(schemaDefinition);
 ```
 
 More detailed examples will follow later in the discussion of the various schema types.

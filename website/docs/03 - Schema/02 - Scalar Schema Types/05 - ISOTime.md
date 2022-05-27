@@ -46,4 +46,6 @@ const schemaDefinition = {
     dbFormat: 's',
   },
 };
+
+const schema = new Schema(schemaDefinition);
 ```

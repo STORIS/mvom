@@ -35,4 +35,6 @@ const schemaDefinition = {
     required: true,
   },
 };
+
+const schema = new Schema(schemaDefinition);
 ```

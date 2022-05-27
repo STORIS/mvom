@@ -60,6 +60,8 @@ const schemaDefinition = {
     foreignKey: { file: 'ITEM', entityName: 'item' },
   },
 };
+
+const schema = new Schema(schemaDefinition);
 ```
 
 #### Delimited string foreign key validation
@@ -88,6 +90,8 @@ const schemaDefinition = {
     },
   },
 };
+
+const schema = new Schema(schemaDefinition);
 ```
 
 ## Example
@@ -102,4 +106,6 @@ const schemaDefinition = {
     enum: ['foo', 'bar', 'baz'],
   },
 };
+
+const schema = new Schema(schemaDefinition);
 ```

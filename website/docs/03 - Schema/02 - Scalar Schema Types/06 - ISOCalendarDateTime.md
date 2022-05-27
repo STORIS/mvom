@@ -50,4 +50,6 @@ const schemaDefinition = {
     dbFormat: 'ms',
   },
 };
+
+const schema = new Schema(schemaDefinition);
 ```

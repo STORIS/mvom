@@ -32,6 +32,8 @@ const schemaDefinition = {
     },
   ],
 };
+
+const schema = new Schema(schemaDefinition);
 ```
 
 ## Arrays from Multi-Subvalued Attributes
@@ -61,6 +63,8 @@ const schemaDefinition = {
     ],
   ],
 };
+
+const schema = new Schema(schemaDefinition);
 ```
 
 ## Arrays from Multi-Subvalued Values
@@ -94,4 +98,6 @@ const schemaDefinition = {
     required: true,
   },
 };
+
+const schema = new Schema(schemaDefinition);
 ```

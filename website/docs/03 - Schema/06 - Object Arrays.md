@@ -42,6 +42,8 @@ const schemaDefinition = {
     },
   ],
 };
+
+const schema = new Schema(schemaDefinition);
 ```
 
 The data format above would be transformed into an object-array in the following format:

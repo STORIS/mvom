@@ -35,4 +35,6 @@ const schemaDefinition = {
     dbDecimals: 2,
   },
 };
+
+const schema = new Schema(schemaDefinition);
 ```

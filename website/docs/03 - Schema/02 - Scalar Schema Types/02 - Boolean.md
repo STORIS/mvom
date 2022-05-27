@@ -40,4 +40,6 @@ const schemaDefinition = {
     dictionary: 'BOOLEAN_DICT',
   },
 };
+
+const schema = new Schema(schemaDefinition);
 ```

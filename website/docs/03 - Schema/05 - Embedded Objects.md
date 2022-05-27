@@ -40,6 +40,8 @@ const schemaDefinition = {
     path: 6,
   },
 };
+
+const schema = new Schema(schemaDefinition);
 ```
 
 This schema would transform into a data structure in the following format:
