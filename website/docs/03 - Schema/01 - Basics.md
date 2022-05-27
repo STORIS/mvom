@@ -1,9 +1,9 @@
 ---
 id: schema_basics
-title: Basics
+title: Schema Basics
 ---
 
-# Schema
+# Schema Basics
 
 The `Schema` class allows you to define your data definition for your MultiValue files. This definition is used to transform MultiValue data between the database and a JavaScript object. Additionally, it allows you to define data validation requirements to aid in ensuring data validity upon writing to the database.
 
