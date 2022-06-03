@@ -92,5 +92,5 @@ In the above example, `price` is the schema property which is being queried agai
 The query which will be executed on the MultiValue database is:
 
 ```
-SELECT ITEM WITH PRICE > "100"
+select ITEM with PRICE > "100"
 ```
