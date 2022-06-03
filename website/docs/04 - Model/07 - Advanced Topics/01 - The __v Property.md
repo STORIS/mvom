@@ -11,4 +11,4 @@ The `__v` property of a `Model` instance is a special internal value which indic
 
 The `__v` property is primarily used during save operations in order to ensure that the current state of the data has not changed since the `Model` was instantiated. In order to ensure data integrity, MVOM will reject saves where the contents of a record has changed between the time a `Model` instance was created and the time the record is written to disk. If MVOM detects that a record has changed it will abort the save attempt and throw a `DocumentVersionMismatchError`.
 
-Related: [Saving a Model](../Saving%20a%20Model.md)
+Related: [Saving a Model](../model_saving)

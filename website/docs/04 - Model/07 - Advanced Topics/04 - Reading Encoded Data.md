@@ -30,9 +30,9 @@ static readFileContentsById(id: string, options?: ModelReadFileContentsByIdOptio
 
 #### Options Object Properties
 
-| Property      | Type     | Description                                                                                                    |
-| ------------- | -------- | -------------------------------------------------------------------------------------------------------------- |
-| `userDefined` | `object` | The [user defined options](./Advanced%20Topics/model_user_defined_options) to pass to the database subroutines |
+| Property      | Type     | Description                                                                                |
+| ------------- | -------- | ------------------------------------------------------------------------------------------ |
+| `userDefined` | `object` | The [user defined options](model_user_defined_options) to pass to the database subroutines |
 
 ### Example
 
