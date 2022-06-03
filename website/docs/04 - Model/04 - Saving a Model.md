@@ -61,6 +61,16 @@ const updatedItem = await item.save();
 console.log(updatedItem.price); // outputs 899.99
 ```
 
+## Record Insertion Notes
+
+### Record Locks
+
+MVOM will reject any database insertions for a record that is currently locked (e.g. a `READU` statement). In this scenario, `save` will reject with a `RecordLockedError`.
+
+### Record Existence
+
+If a `save` operation is performed with a `Model` instance that was created via the `new` operator, the record with the ID corresponding to the `_id` property of the `Model` must not exist. If the record already exists, `save` will reject with a `DocumentVersionMismatchError`.
+
 ## Record Update Notes
 
 ### Handling of attributes which are not defined in the schema
