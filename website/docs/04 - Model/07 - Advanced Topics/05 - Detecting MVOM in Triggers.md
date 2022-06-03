@@ -16,3 +16,5 @@ COM /S$MVOM/ S$MVOM.PROCESS
 ```
 
 If `S$MVOM.PROCESS` is equal to `@TRUE` then it should be safe to assume that the trigger was fired as a result of MVOM writing the record.
+
+Related: [User Defined Options](model_user_defined_options)
