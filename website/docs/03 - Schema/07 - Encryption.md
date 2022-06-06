@@ -5,7 +5,7 @@ title: Encryption
 
 # Encryption
 
-MVOM supports optional transparent data encryption functionality within the schema definitions. MVOM does not provide any native support for encryption but does allow consumers to optionally specify encryption and decryption functions which must be implemented by the user. Encrypt functions are run prior to save operations and decrypt functions are run prior to read operations, resulting in the encryption and decryption processes being transparent to consumers.
+MVOM supports optional transparent data encryption functionality within the schema definitions. MVOM does not provide any native support for encryption but does allow consumers to optionally specify encryption and decryption functions which must be implemented by the user. Encrypt functions are run prior to save operations and decrypt functions are run subsequent to read operations, resulting in the encryption and decryption processes being transparent to consumers.
 
 ## Enabling encryption for a schema
 

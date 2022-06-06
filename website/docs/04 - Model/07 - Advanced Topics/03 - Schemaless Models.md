@@ -13,7 +13,7 @@ A `Model` instance that was created with a schema will have properties that matc
 
 The `_raw` property is fairly simple. After reading a record using a schemaless model, the `_raw` property will be populated with an array that matches the MultiValue data structure. Attributes will be converted to values of the array. If attributes contain values or the values contain subvalues, then the array will be multidimensional.
 
-Consumers can work with the `_raw` property of the `Model` instance as they would any other array. Upon saving the `_raw` property will be turned back into a MultiValue record by converting the array into attributes, values, and subvalues.
+Consumers can work with the `_raw` property of the `Model` instance as they would any other array. Upon saving, the `_raw` property will be turned back into a MultiValue record by converting the array into attributes, values, and subvalues.
 
 ## Example
 

@@ -204,7 +204,7 @@ select ITEM with (DESCRIPTION = "Bed" or DESCRIPTION = "Chair" or DESCRIPTION = 
 
 ### Implicit In Operator
 
-When querying for properties matching any of a list, it is not necessary to use the `$in` operator. The following query condition filter object format will implicitly assume in without the need for specifying the `$in` operator. This works similarly to the [implicit equality operator](#implicit-equality-operator) except the conditional value will be an array.
+When querying for properties matching any of a list, it is not necessary to use the `$in` operator. The following query condition filter object format will implicitly assume "in" without the need for specifying the `$in` operator. This works similarly to the [implicit equality operator](#implicit-equality-operator) except the conditional value will be an array.
 
 ```ts
 {

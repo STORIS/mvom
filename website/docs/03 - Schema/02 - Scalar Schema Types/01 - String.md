@@ -36,15 +36,15 @@ The `match` property allows you to specify a regular expression which will valid
 
 ## Validating foreign keys
 
-The `foreignKey` property allows for validation to ensure that the value is a foreign key to a record one or more file(s). If the value of the property is not a foreign key to at least one of the specified files then an error will be thrown when saving.
+The `foreignKey` property allows for validation to ensure that the value is a foreign key to a record of one or more file(s). If the value of the property is not a foreign key to at least one of the specified files then an error will be thrown when saving.
 
 ### Properties of foreign key validator
 
-| Property       | Type                   |     Mandatory      | Description                                                                                                                                                     |
-| -------------- | ---------------------- | :----------------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `file`         | `string` \| `string[]` | :heavy_check_mark: | The name of the file(s) in the MultiValue database to validate against.<br/>Foreign key validation will pass if the value is an id to _any_ of the listed files |
-| `entityName`   | `string`               | :heavy_check_mark: | A friendly name for the foreign entity being validated<br/>Used for validation errors only                                                                      |
-| `keysToIgnore` | `string[]`             |                    | A list of keys which will not be validated                                                                                                                      |
+| Property       | Type                   |     Mandatory      | Description                                                                                                                                                      |
+| -------------- | ---------------------- | :----------------: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `file`         | `string` \| `string[]` | :heavy_check_mark: | The name of the file(s) in the MultiValue database to validate against.<br/>Foreign key validation will pass if the value is an id to _any_ of the listed files. |
+| `entityName`   | `string`               | :heavy_check_mark: | A friendly name for the foreign entity being validated<br/>Used for validation errors only                                                                       |
+| `keysToIgnore` | `string[]`             |                    | A list of keys which will not be validated                                                                                                                       |
 
 #### Example
 

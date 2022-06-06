@@ -42,7 +42,7 @@ const schema = new Schema({...}, { dictionaries });
 
 #### Defining type information for dictionaries
 
-Although most data types can be used without any need to convert formatting (e.g. string or numeric types), some dictionary types have different internal and external representations such as date and boolean. For example, a boolean represented in the MultiValue database will be stored as `1` or `0` while in JavaScript it would be represented by `true` or `false`. For dictionaries added through schema definition, this conversion is performed implicitly since type information must be included in a schema definition. That is, a query issued using a schema defined `boolean` will automatically be converted from `true` to `1` and `false` to `0`.
+Although most data types can be used without any need to convert formatting (e.g. string or numeric types), some dictionary types have different internal and external representations such as date and boolean. For example, a boolean represented in the MultiValue database will be stored as `1` or `0` while in JavaScript it would be represented by `true` or `false`. For dictionaries added via a schema definition, this conversion is performed implicitly since type information must be included in a schema definition. That is, a query issued using a schema defined `boolean` will automatically be converted from `true` to `1` and `false` to `0`.
 
 However, using the simple key-value pairing convention indicated above, there is no mechanism to ascertain data types for the dictionaries. Therefore, an alternate format can be used where the value for each key is instead an object which allows for specification of a data type as well as additional meta information to allow for proper type casting.
 

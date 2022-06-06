@@ -59,7 +59,7 @@ open(): Promise<void>
 
 ### Example
 
-```ts title="src/makeConnection.ts"
+```ts
 import { Connection } from 'mvom';
 
 const mvisUri = 'http://foo.bar.com';
@@ -100,7 +100,7 @@ deployFeatures(sourceDir: string, options?: DeployFeaturesOptions)
 
 ### Example
 
-```ts title="src/makeConnection.ts"
+```ts
 import { Connection, InvalidServerFeaturesError } from 'mvom';
 
 const mvisUri = 'http://foo.bar.com';

@@ -10,7 +10,7 @@ In order to communicate to the MultiValue database, the following are required:
 1. [Rocket MultiValue Integration Server](https://www.rocketsoftware.com/products/rocket-multivalue-integration-server) (MVIS)
 2. Account created, configured, and operational in MVIS for use with the REST server functionality
    - Configuring an account is outside the scope of this documentation. Please consult the Rocket documentation for guidance on configuring an account in MVIS.
-3. A REST Server `Subroutine Resource` definition for the MVOM MultiValue server BASIC subroutine configured in MVIS.
+3. A REST Server `Subroutine Resource` definition for the MVOM MultiValue server BASIC subroutine configured in MVIS
 
 :::info
 MVOM was created before the MultiValue Integration Server Admin had an API available which allowed for configuration. In a future release, we will look to automate the manual process defined below.
@@ -36,7 +36,7 @@ The subroutine has two parameters -- one for input to the subroutine and one for
 |    1     | `input`  | `input`        | `json`    |
 |    2     | `output` | `output`       | `json`    |
 
-The subroutine name must be in the format of `mvom_entry@{{subroutine_version}}` with the `{{subroutine_version}}` being replaced by the version of the subroutine used by your version of MVOM. In the screenshot above, the version is `0.2.0`.
+The subroutine name must be in the format of `mvom_entry@{{subroutine_version}}` with the `{{subroutine_version}}` being replaced by the version of the subroutine used by your version of MVOM. In Figure 1 above, the version is `0.2.0`.
 
 ### How to find the subroutine version
 
@@ -84,7 +84,7 @@ The following needs to be set:
    - The BASIC source requires the case insensitive compilation flag (`-i`). MVOM recommends compiling with the cross-reference flag (`-d`) and the overwrite flag (`-o`) as well. The full recommendation is to set the compile options to `-i -d -o`.
 4. **Source Code**
 
-   - The MVOM distributable downloaded from `npmjs` includes the BASIC source code. To ensure you get the proper version of the code, we suggest opening the file from `node_modules/mvom/unibasic/entry.mvb` and copying and pasting the contents of that file into the source code text area.
+   - The MVOM distributable downloaded from [npm](https://www.npmjs.com/) includes the BASIC source code. To ensure you get the proper version of the code, we suggest opening the file from `node_modules/mvom/unibasic/entry.mvb` and copying and pasting the contents of that file into the source code text area.
 
    For MVOM release `2.0.0-alpha.6`, the source code is:
 

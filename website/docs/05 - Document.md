@@ -9,7 +9,7 @@ The `Document` class is the superclass of the `Model` class. Essentially a `Docu
 
 ## createDocumentFromRecordString Method
 
-The `Document` class exposes a static method `createDocumentFromRecordString`. This factory method allows for creation of a `Document` instance from a string of delimited data representing a MultiValue record. The returned value from this method will be a `Document` instance that has formatted that delimited string according to the schema.
+The `Document` class exposes a static method `createDocumentFromRecordString`. This factory method allows for creation of a `Document` instance from a string of delimited data representing a MultiValue record. The returned value from this method will be a `Document` instance which has formatted that delimited string according to the schema.
 
 If you ever have a need to construct an object from an MVOM `Schema` that did not originate from a `Model` then this method will prove useful.
 
