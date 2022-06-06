@@ -9,7 +9,7 @@ const lightCodeTheme = require('prism-react-renderer/themes/github');
 const config = {
 	title: 'MVOM',
 	tagline: 'An ORM for Multivalue Databases and Node.js',
-	url: 'https://shawnmcknight.github.io',
+	url: 'https://storis.github.io',
 	baseUrl: '/mvom/',
 	onBrokenLinks: 'throw',
 	onBrokenMarkdownLinks: 'warn',
@@ -18,7 +18,7 @@ const config = {
 
 	// GitHub pages deployment config.
 	// If you aren't using GitHub pages, you don't need these.
-	organizationName: 'shawnmcknight', // Usually your GitHub org/user name.
+	organizationName: 'STORIS', // Usually your GitHub org/user name.
 	projectName: 'mvom', // Usually your repo name.
 
 	// Even if you don't use internalization, you can use this field to set useful
@@ -38,7 +38,7 @@ const config = {
 					sidebarPath: require.resolve('./sidebars.js'),
 					// Please change this to your repo.
 					// Remove this to remove the "edit this page" links.
-					editUrl: 'https://github.com/shawnmcknight/mvom/tree/main/website',
+					editUrl: 'https://github.com/STORIS/mvom/tree/main/website',
 					lastVersion: 'current',
 					versions: {
 						current: {
