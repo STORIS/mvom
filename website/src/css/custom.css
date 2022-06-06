@@ -106,3 +106,7 @@ h6 {
 .myLineDecoration {
 	background-color: var(--code-line-decoration);
 }
+
+.figcaption-docs {
+	text-align: center;
+}
