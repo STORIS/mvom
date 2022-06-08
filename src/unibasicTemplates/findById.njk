@@ -1,6 +1,8 @@
 $basictype 'u'
 subroutine mvom_findById(options, output)
 * find and return a document given a filename and record id
+{% include "./partials/udoConstants.njk" %}
+
 {% include "./partials/errorConstants.njk" %}
 
 * get the filename from the options
