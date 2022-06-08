@@ -98,3 +98,7 @@ The query which will be executed on the MultiValue database is:
 ```
 select ITEM with PRICE > "100"
 ```
+
+:::tip
+If you provide a [logger](../../connection#logger-interface) to your `Connection`, the transformed MultiValue query will be passed to the `debug` method.
+:::
