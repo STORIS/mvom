@@ -13,25 +13,16 @@ export interface DbSubroutineSetupOptions {
 	userDefined?: DbSubroutineUserDefinedOptions;
 }
 
-export interface DbActionInputSubroutine<TSubroutineOptions extends GenericObject> {
-	action: 'subroutine';
+export interface DbActionInputSubroutine<TSubroutineInput extends GenericObject> {
 	subroutineId: string;
-	setupId: string;
 	setupOptions: DbSubroutineSetupOptions;
-	teardownId: string;
 	teardownOptions: Record<string, never>;
-	options: TSubroutineOptions;
+	subroutineInput: TSubroutineInput;
 }
 
 export interface DbSubroutineOptionsDeleteById {
 	filename: string;
 	id: string;
-}
-
-export interface DbSubroutineOptionsDeploy {
-	sourceDir: string;
-	source: string;
-	programName: string;
 }
 
 export interface DbSubroutineOptionsFind {
@@ -69,7 +60,6 @@ export interface DbSubroutineOptionsSave {
 
 export type DbActionSubroutineInputTypes = DbActionInputSubroutine<
 	| DbSubroutineOptionsDeleteById
-	| DbSubroutineOptionsDeploy
 	| DbSubroutineOptionsFind
 	| DbSubroutineOptionsFindById
 	| DbSubroutineOptionsFindByIds
@@ -79,7 +69,6 @@ export type DbActionSubroutineInputTypes = DbActionInputSubroutine<
 
 export interface DbSubroutineInputOptionsMap {
 	deleteById: DbSubroutineOptionsDeleteById;
-	deploy: DbSubroutineOptionsDeploy;
 	find: DbSubroutineOptionsFind;
 	findById: DbSubroutineOptionsFindById;
 	findByIds: DbSubroutineOptionsFindByIds;

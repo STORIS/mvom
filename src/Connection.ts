@@ -350,7 +350,7 @@ class Connection {
 			subroutineId: Connection.getServerProgramName(feature, featureVersion),
 			setupId: Connection.getServerProgramName('setup', setupVersion),
 			teardownId: Connection.getServerProgramName('teardown', teardownVersion),
-			options,
+			subroutineInput: options,
 			setupOptions,
 			teardownOptions,
 		};
