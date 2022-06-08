@@ -87,6 +87,7 @@ const schemaDefinition = {
     foreignKey: {
       0: { file: 'ITEM', entityName: 'item' },
       1: { file: 'LOCATION', entityName: 'location' },
+      splitCharacter: '*',
     },
   },
 };
