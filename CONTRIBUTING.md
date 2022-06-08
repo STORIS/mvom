@@ -58,29 +58,29 @@ git push -u origin HEAD
 
 The maintainers are monitoring for Pull Requests. We will review your Pull Request and either merge it, request changes to it, or close it with an explanation.
 
-#### Checks and how to fix them
+### Checks and how to fix them
 
 If any of the checks fails click on the _Details_
 link and review the logs of the build to find out why it failed. The following
 section gives an overview of what each check is responsible for.
 
-##### test:unit
+#### test:unit
 
 Ensures that code performs as expected under test scenarios.
 
-##### test:coverage
+#### test:coverage
 
 Monitors coverage of the tests. There is a strict policy of enforcing 100% code coverage. If something is not readily testable, the specific area can be ignored with an `istanbul ignore` comment, but an explanation of the rationale for ignoring should be included in the comment.
 
-##### typecheck
+#### typecheck
 
 Ensures that all TypeScript typings are valid and the TypeScript compiler does not encounter any errors.
 
-##### lint
+#### lint
 
 Ensures that code is styled according to the standards of the repository.
 
-###### prettier
+#### prettier
 
 Ensures that code is formatted according to the standards of the repository.
 

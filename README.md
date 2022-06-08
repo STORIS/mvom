@@ -2,7 +2,7 @@
 
 <div align="center">
 
-MVOM (**M**ulti**V**alue **O**bject **M**apper) is a library which provides the ability to access MultiValue databases (e.g. [Unidata](https://www.rocketsoftware.com/products/rocket-unidata-0), [Universe](https://www.rocketsoftware.com/products/rocket-universe-0)) using applications written for Node.js. It allows consumers to model MultiValue data with a declarative schema which transforms from MultiValue data structures to objects and allows for data validations on save.
+MVOM (**M**ulti**V**alue **O**bject **M**apper) is a library which provides the ability to access MultiValue databases (e.g. [Unidata](https://www.rocketsoftware.com/products/rocket-unidata-0), [Universe](https://www.rocketsoftware.com/products/rocket-universe-0)) using applications written for Node.js. It allows consumers to model MultiValue data with a declarative schema which transforms between MultiValue data structures and objects and allows for data validations on save.
 
 [![npm package](https://img.shields.io/npm/v/mvom/latest.svg)](https://www.npmjs.com/package/mvom)
 [![npm downloads](https://img.shields.io/npm/dm/mvom)](https://www.npmjs.com/package/mvom)
