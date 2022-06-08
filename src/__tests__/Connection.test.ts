@@ -618,7 +618,7 @@ describe('executeDbFeature', () => {
 
 describe('getDbDate', () => {
 	beforeAll(() => {
-		jest.useFakeTimers('modern');
+		jest.useFakeTimers();
 	});
 
 	afterAll(() => {
@@ -706,7 +706,7 @@ describe('getDbDate', () => {
 
 describe('getDbDateTime', () => {
 	beforeAll(() => {
-		jest.useFakeTimers('modern');
+		jest.useFakeTimers();
 	});
 
 	afterAll(() => {
@@ -794,7 +794,7 @@ describe('getDbDateTime', () => {
 
 describe('getDbTime', () => {
 	beforeAll(() => {
-		jest.useFakeTimers('modern');
+		jest.useFakeTimers();
 	});
 
 	afterAll(() => {
