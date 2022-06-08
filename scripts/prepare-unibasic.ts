@@ -31,7 +31,7 @@ const processFile = (filename: string): void => {
 		fs.writeFileSync(buildPath, env.render(filename, { dbErrors }));
 		console.log(`transformed ${filename} to ${buildPath}`);
 	} catch (err) {
-		console.log(`failed to transform ${filename} to ${buildPath}`);
+		console.log(`failed to transform ${filename} to ${buildPath} - ${err}`);
 		process.exit(1);
 	}
 };
