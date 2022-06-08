@@ -1,9 +1,8 @@
-$basictype 'u'
 subroutine mvom_save(options, output)
 * save a document given a filename, record id, and record contents
-{% include "./partials/udoConstants.njk" %}
+{% include "../../constants/udo.njk" %}
 
-{% include "./partials/errorConstants.njk" %}
+{% include "../../constants/error.njk" %}
 
 * get the filename from the options
 if udoGetProperty(options, 'filename', filename, type) then
@@ -140,9 +139,3 @@ close f.file on error null
 
 returnFromSub:
 return; * returning to caller
-
-{% include "./partials/formatDocument.njk" %}
-
-{% include "./partials/validateForeignKeys.njk" %}
-
-{% include "./partials/errorHandler.njk" %}

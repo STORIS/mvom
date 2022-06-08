@@ -1,7 +1,6 @@
-$basictype 'u'
 subroutine mvom_readFileContentsById(options, output)
 * find and return the file content as Base64 string given a filename and record id for a Directory file
-{% include "./partials/errorConstants.njk" %}
+{% include "../../constants/error.njk" %}
 
 * get the filename from the options
 if udoGetProperty(options, 'filename', filename, type) then
@@ -59,5 +58,3 @@ close f.voc on error null
 
 returnFromSub:
 return; * returning to caller
-
-{% include "./partials/errorHandler.njk" %}

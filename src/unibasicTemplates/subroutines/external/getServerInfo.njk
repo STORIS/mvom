@@ -1,8 +1,7 @@
-$basictype 'U'
 subroutine mvom_getServerInfo(options, output)
-{% include "./partials/udoConstants.njk" %}
+{% include "../../constants/udo.njk" %}
 
-{% include "./partials/errorConstants.njk" %}
+{% include "../../constants/error.njk" %}
 
 if udoSetProperty(output, 'date', date(), UDO_NUMBER) then
   call error_handler(ERROR_UDO, output)
@@ -84,4 +83,3 @@ end
 
 returnFromSub:
 return; * returning to caller
-{% include "./partials/errorHandler.njk" %}
