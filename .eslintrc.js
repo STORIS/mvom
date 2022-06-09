@@ -5,7 +5,10 @@ const baseNamingRules = baseRules['@typescript-eslint/naming-convention'].slice(
 module.exports = {
 	extends: ['@storis/eslint-config/nodejs'],
 
-	parserOptions: { tsconfigRootDir: __dirname, project: './tsconfig.eslint.json' },
+	parserOptions: {
+		tsconfigRootDir: __dirname,
+		project: ['./tsconfig.eslint.json', './website/tsconfig.eslint.json'],
+	},
 
 	rules: {
 		// set up naming convention rules
@@ -23,7 +26,7 @@ module.exports = {
 
 	overrides: [
 		{
-			files: ['./.*.js', './*.js'],
+			files: ['./.*.js', './*.js', './website/**/*.js'],
 			rules: {
 				// allow requires in config files
 				'@typescript-eslint/no-var-requires': 'off',
