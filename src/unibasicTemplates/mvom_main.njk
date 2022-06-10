@@ -51,7 +51,8 @@ end
 
 call mvom_setup(setupOptions)
 
-call @subroutineId(subroutineInput, output)
+subroutineName = 'mvom_':subroutineId
+call @subroutineName(subroutineInput, output)
 
 call mvom_teardown(teardownOptions)
 
