@@ -5,7 +5,6 @@ import axios from 'axios';
 import fs from 'fs-extra';
 import { mock } from 'jest-mock-extended';
 import { when } from 'jest-when';
-import { minVersion } from 'semver';
 import mockDelimiters from '#test/mockDelimiters';
 import type { CreateConnectionOptions, Logger } from '../Connection';
 import Connection, { ConnectionStatus } from '../Connection';
@@ -364,7 +363,7 @@ describe('executeDbFeature', () => {
 		const filename = 'filename';
 		const id = 'id';
 		await expect(
-			connection.executeDbFeature('save', {
+			connection.executeDbSubroutine('save', {
 				filename,
 				id,
 				record: '',
@@ -395,7 +394,7 @@ describe('executeDbFeature', () => {
 		const filename = 'filename';
 		const id = 'id';
 		await expect(
-			connection.executeDbFeature('save', {
+			connection.executeDbSubroutine('save', {
 				filename,
 				id,
 				record: '',
@@ -426,7 +425,7 @@ describe('executeDbFeature', () => {
 		const filename = 'filename';
 		const id = 'id';
 		await expect(
-			connection.executeDbFeature('save', {
+			connection.executeDbSubroutine('save', {
 				filename,
 				id,
 				record: '',
@@ -457,7 +456,7 @@ describe('executeDbFeature', () => {
 		const filename = 'filename';
 		const id = 'id';
 		await expect(
-			connection.executeDbFeature('save', {
+			connection.executeDbSubroutine('save', {
 				filename,
 				id,
 				record: '',
@@ -488,7 +487,7 @@ describe('executeDbFeature', () => {
 		const filename = 'filename';
 		const id = 'id';
 		await expect(
-			connection.executeDbFeature('save', {
+			connection.executeDbSubroutine('save', {
 				filename,
 				id,
 				record: '',
@@ -517,7 +516,7 @@ describe('executeDbFeature', () => {
 		const filename = 'filename';
 		const id = 'id';
 		await expect(
-			connection.executeDbFeature('save', {
+			connection.executeDbSubroutine('save', {
 				filename,
 				id,
 				record: '',
@@ -547,7 +546,7 @@ describe('executeDbFeature', () => {
 		const filename = 'filename';
 		const id = 'id';
 		await expect(
-			connection.executeDbFeature('save', {
+			connection.executeDbSubroutine('save', {
 				filename,
 				id,
 				record: '',
@@ -577,7 +576,7 @@ describe('executeDbFeature', () => {
 		const filename = 'filename';
 		const id = 'id';
 		await expect(
-			connection.executeDbFeature('save', {
+			connection.executeDbSubroutine('save', {
 				filename,
 				id,
 				record: '',
@@ -606,7 +605,7 @@ describe('executeDbFeature', () => {
 		const filename = 'filename';
 		const id = 'id';
 		await expect(
-			connection.executeDbFeature('save', {
+			connection.executeDbSubroutine('save', {
 				filename,
 				id,
 				record: '',
