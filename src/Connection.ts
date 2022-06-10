@@ -3,7 +3,6 @@ import type https from 'https';
 import type { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
 import axios from 'axios';
 import { addDays, addMilliseconds, differenceInMilliseconds, format } from 'date-fns';
-import semver from 'semver';
 import compileModel, { type ModelConstructor } from './compileModel';
 import {
 	dbErrors,
@@ -16,14 +15,12 @@ import {
 	DbServerError,
 	ForeignKeyValidationError,
 	InvalidParameterError,
-	InvalidServerFeaturesError,
 	MvisError,
 	RecordLockedError,
 	RecordVersionError,
 	TimeoutError,
 	UnknownError,
 } from './errors';
-import { dependencies as serverDependencies } from './manifest.json';
 import type Schema from './Schema';
 import type {
 	DbServerDelimiters,
@@ -83,21 +80,6 @@ export enum ConnectionStatus {
 	connecting = 'connecting',
 }
 
-export interface DeployFeaturesOptions {
-	/**
-	 * Create directory when deploying features
-	 * @defaultValue false
-	 */
-	createDir?: boolean;
-}
-
-type ServerDependency = keyof typeof serverDependencies;
-
-interface ServerFeatureSet {
-	validFeatures: Map<ServerDependency, string>;
-	invalidFeatures: Set<ServerDependency>;
-}
-
 /** Multivalue database server information */
 interface ServerInfo {
 	/** Time that the connection information cache will expire */
@@ -121,12 +103,6 @@ class Connection {
 
 	/** Logger instance used for diagnostic logging */
 	private readonly logger: Logger;
-
-	/** Object providing the current state of db server features and availability */
-	private serverFeatureSet: ServerFeatureSet = {
-		validFeatures: new Map(),
-		invalidFeatures: new Set(),
-	};
 
 	/** Maximum age of the cache before it must be refreshed */
 	private readonly cacheMaxAge: number;
@@ -156,10 +132,7 @@ class Connection {
 		this.logger = logger;
 		this.cacheMaxAge = cacheMaxAge;
 
-		const baseURL = new URL(
-			`${account}/subroutine/${Connection.getServerProgramName('entry')}`,
-			mvisUri,
-		).toString();
+		const baseURL = new URL(`${account}/subroutine`, mvisUri).toString();
 
 		this.axiosInstance = axios.create({
 			baseURL,
@@ -202,38 +175,21 @@ class Connection {
 		});
 	}
 
-	/** Return the packaged specific version number of a feature */
-	private static getFeatureVersion(feature: ServerDependency): string {
-		const featureVersion = semver.minVersion(serverDependencies[feature]);
-		/* istanbul ignore if: Cannot test without corrupting the feature dependency list */
-		if (featureVersion == null) {
-			throw new TypeError('Server feature dependency list is corrupted');
-		}
-
-		return featureVersion.version;
-	}
-
-	/** Get the exact name of a feature subroutine on the database server */
-	private static getServerProgramName(feature: ServerDependency, version?: string): string {
-		const featureVersion = version ?? Connection.getFeatureVersion(feature);
-		return `mvom_${feature}@${featureVersion}`;
-	}
-
 	/** Open a database connection */
 	public async open(): Promise<void> {
 		this.logMessage('info', 'opening connection');
 		this.status = ConnectionStatus.connecting;
 		// await this.getFeatureState();
 
-		if (this.serverFeatureSet.invalidFeatures.size > 0) {
-			// prevent connection attempt if features are invalid
-			this.logMessage('info', `invalid features found: ${this.serverFeatureSet.invalidFeatures}`);
-			this.logMessage('error', 'connection will not be opened');
-			this.status = ConnectionStatus.disconnected;
-			throw new InvalidServerFeaturesError({
-				invalidFeatures: Array.from(this.serverFeatureSet.invalidFeatures),
-			});
-		}
+		// if (this.serverFeatureSet.invalidFeatures.size > 0) {
+		// 	// prevent connection attempt if features are invalid
+		// 	this.logMessage('info', `invalid features found: ${this.serverFeatureSet.invalidFeatures}`);
+		// 	this.logMessage('error', 'connection will not be opened');
+		// 	this.status = ConnectionStatus.disconnected;
+		// 	throw new InvalidServerFeaturesError({
+		// 		invalidFeatures: Array.from(this.serverFeatureSet.invalidFeatures),
+		// 	});
+		// }
 
 		this.status = ConnectionStatus.connected;
 
@@ -253,11 +209,9 @@ class Connection {
 	): Promise<DbSubroutineResponseTypesMap[TFeature]['output']> {
 		this.logMessage('debug', `executing database feature "${feature}"`);
 
-		const featureVersion = this.serverFeatureSet.validFeatures.get(feature);
-
 		const data: DbSubroutinePayload<DbSubroutineInputOptionsMap[TFeature]> = {
 			// make sure to use the compatible server version of feature
-			subroutineId: Connection.getServerProgramName(feature, featureVersion),
+			subroutineId: feature,
 			subroutineInput: options,
 			setupOptions,
 			teardownOptions,
