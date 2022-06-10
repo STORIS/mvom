@@ -1,10 +1,8 @@
 import type http from 'http';
 import type https from 'https';
-import path from 'path';
 import type { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
 import axios from 'axios';
 import { addDays, addMilliseconds, differenceInMilliseconds, format } from 'date-fns';
-import fs from 'fs-extra';
 import semver from 'semver';
 import compileModel, { type ModelConstructor } from './compileModel';
 import {
@@ -28,18 +26,9 @@ import {
 import { dependencies as serverDependencies } from './manifest.json';
 import type Schema from './Schema';
 import type {
-	DbActionInputCreateDir,
-	DbActionInputDeploy,
-	DbActionInputFeatureList,
 	DbActionInputSubroutine,
-	DbActionInputTypes,
 	DbActionOutputErrorForeignKey,
-	DbActionResponseCreateDir,
-	DbActionResponseDeploy,
 	DbActionResponseError,
-	DbActionResponseFeatureList,
-	DbActionSubroutineInputTypes,
-	DbFeatureResponseTypes,
 	DbServerDelimiters,
 	DbServerLimits,
 	DbSubroutineInputOptionsMap,
@@ -124,9 +113,6 @@ interface ServerInfo {
 
 /** A connection object */
 class Connection {
-	/** File system path of the UniBasic source code */
-	private static readonly unibasicPath = path.resolve(path.join(__dirname, 'unibasic'));
-
 	/** Connection status */
 	public status: ConnectionStatus = ConnectionStatus.disconnected;
 
@@ -233,17 +219,11 @@ class Connection {
 		return `mvom_${feature}@${featureVersion}`;
 	}
 
-	/** Get the UniBasic source code for a given feature */
-	private static async getUnibasicSource(feature: ServerDependency): Promise<string> {
-		const filePath = path.join(Connection.unibasicPath, `${feature}.mvb`);
-		return fs.readFile(filePath, 'utf8');
-	}
-
 	/** Open a database connection */
 	public async open(): Promise<void> {
 		this.logMessage('info', 'opening connection');
 		this.status = ConnectionStatus.connecting;
-		await this.getFeatureState();
+		// await this.getFeatureState();
 
 		if (this.serverFeatureSet.invalidFeatures.size > 0) {
 			// prevent connection attempt if features are invalid
@@ -262,73 +242,6 @@ class Connection {
 		this.logMessage('info', 'connection opened');
 	}
 
-	/** Deploy database features */
-	public async deployFeatures(
-		sourceDir: string,
-		options: DeployFeaturesOptions = {},
-	): Promise<void> {
-		const { createDir = false } = options;
-
-		await this.getFeatureState();
-
-		if (this.serverFeatureSet.invalidFeatures.size === 0) {
-			// there aren't any invalid features to deploy
-			this.logMessage('debug', 'no missing features to deploy');
-			return;
-		}
-
-		this.logMessage('info', `deploying features to directory ${sourceDir}`);
-
-		if (createDir) {
-			// create deployment directory (if necessary)
-			this.logMessage('info', `creating deployment directory ${sourceDir}`);
-			const data: DbActionInputCreateDir = {
-				action: 'createDir',
-				dirName: sourceDir,
-			};
-			await this.executeDb(data);
-		}
-
-		const bootstrapFeatures: ServerDependency[] = ['deploy', 'setup', 'teardown'];
-		const bootstrapped = await Promise.all(
-			bootstrapFeatures.map(async (feature) => {
-				if (this.serverFeatureSet.validFeatures.has(feature)) {
-					return false;
-				}
-
-				this.logMessage('info', `deploying the "${feature}" feature to ${sourceDir}`);
-				const data: DbActionInputDeploy = {
-					action: 'deploy',
-					sourceDir,
-					source: await Connection.getUnibasicSource(feature),
-					programName: Connection.getServerProgramName(feature),
-				};
-
-				await this.executeDb(data);
-				return true;
-			}),
-		);
-
-		if (bootstrapped.includes(true)) {
-			// Bootstrap features needed for the deployment feature were installed, restart the deployment process
-			await this.deployFeatures(sourceDir, options);
-			return;
-		}
-
-		// deploy any other missing features
-		await Promise.all(
-			Array.from(this.serverFeatureSet.invalidFeatures).map(async (feature) => {
-				this.logMessage('info', `deploying ${feature} to ${sourceDir}`);
-				const executeDbFeatureOptions = {
-					sourceDir,
-					source: await Connection.getUnibasicSource(feature),
-					programName: Connection.getServerProgramName(feature),
-				};
-				await this.executeDbFeature('deploy', executeDbFeatureOptions);
-			}),
-		);
-	}
-
 	/** Execute a database feature */
 	public async executeDbFeature<
 		TFeature extends keyof (DbSubroutineInputOptionsMap & DbSubroutineResponseTypesMap),
@@ -341,15 +254,10 @@ class Connection {
 		this.logMessage('debug', `executing database feature "${feature}"`);
 
 		const featureVersion = this.serverFeatureSet.validFeatures.get(feature);
-		const setupVersion = this.serverFeatureSet.validFeatures.get('setup');
-		const teardownVersion = this.serverFeatureSet.validFeatures.get('teardown');
 
 		const data: DbActionInputSubroutine<DbSubroutineInputOptionsMap[TFeature]> = {
-			action: 'subroutine',
 			// make sure to use the compatible server version of feature
 			subroutineId: Connection.getServerProgramName(feature, featureVersion),
-			setupId: Connection.getServerProgramName('setup', setupVersion),
-			teardownId: Connection.getServerProgramName('teardown', teardownVersion),
 			subroutineInput: options,
 			setupOptions,
 			teardownOptions,
@@ -357,7 +265,22 @@ class Connection {
 
 		this.logMessage('debug', `executing database subroutine ${data.subroutineId}`);
 
-		return this.executeDb(data);
+		let response;
+		try {
+			response = await this.axiosInstance.post<DbSubroutineResponseTypes | DbActionResponseError>(
+				'',
+				{
+					input: data,
+				},
+			);
+		} catch (err) {
+			return axios.isAxiosError(err) ? this.handleAxiosError(err) : this.handleUnexpectedError(err);
+		}
+
+		this.handleDbServerError(response);
+
+		// return the relevant portion from the db server response
+		return response.data.output;
 	}
 
 	/** Get the current ISOCalendarDate from the database */
@@ -409,35 +332,6 @@ class Connection {
 		this.logger[level](formattedMessage);
 	}
 
-	/** Execute a database function remotely */
-	private async executeDb(
-		data: DbActionInputFeatureList,
-	): Promise<DbActionResponseFeatureList['output']>;
-	private async executeDb(
-		data: DbActionInputCreateDir,
-	): Promise<DbActionResponseCreateDir['output']>;
-	private async executeDb(data: DbActionInputDeploy): Promise<DbActionResponseDeploy['output']>;
-	private async executeDb(
-		data: DbActionSubroutineInputTypes,
-	): Promise<DbSubroutineResponseTypes['output']>;
-	private async executeDb(data: DbActionInputTypes): Promise<DbFeatureResponseTypes['output']> {
-		this.logMessage('debug', `executing database function with action "${data.action}"`);
-
-		let response;
-		try {
-			response = await this.axiosInstance.post<DbFeatureResponseTypes | DbActionResponseError>('', {
-				input: data,
-			});
-		} catch (err) {
-			return axios.isAxiosError(err) ? this.handleAxiosError(err) : this.handleUnexpectedError(err);
-		}
-
-		this.handleDbServerError(response);
-
-		// return the relevant portion from the db server response
-		return response.data.output;
-	}
-
 	/** Get the db server information (date, time, etc.) */
 	private async getDbServerInfo(): Promise<ServerInfo> {
 		if (this.dbServerInfo == null || Date.now() > this.dbServerInfo.cacheExpiry) {
@@ -471,76 +365,6 @@ class Connection {
 		return this.dbServerInfo;
 	}
 
-	/** Get the state of database server features */
-	private async getFeatureState() {
-		this.logMessage('debug', 'getting state of database server features');
-		const serverFeatures = await this.getServerFeatures();
-
-		this.serverFeatureSet = Object.entries(serverDependencies).reduce<ServerFeatureSet>(
-			(acc, entry) => {
-				const [dependencyName, dependencyVersion] = entry as [ServerDependency, string];
-
-				const featureVersions = serverFeatures.get(dependencyName);
-
-				if (featureVersions == null) {
-					// if the feature doesn't exist on the server then it is invalid
-					acc.invalidFeatures.add(dependencyName);
-					return acc;
-				}
-
-				const matchedVersion = semver.maxSatisfying(featureVersions, dependencyVersion);
-				if (matchedVersion == null) {
-					// no versions satisfy the requirement
-					acc.invalidFeatures.add(dependencyName);
-					return acc;
-				}
-
-				// return the match as a valid feature
-				acc.validFeatures.set(dependencyName, matchedVersion);
-				return acc;
-			},
-			{
-				validFeatures: new Map(),
-				invalidFeatures: new Set(),
-			},
-		);
-	}
-
-	/** Get a list of database server features */
-	private async getServerFeatures(): Promise<Map<string, string[]>> {
-		this.logger.debug(`getting list of features from database server`);
-		const data = { action: 'featureList' } as const;
-		const response = await this.executeDb(data);
-
-		return response.features.reduce((acc, feature) => {
-			const featureRegExp = /^mvom_(.*)@(\d\.\d\.\d.*$)/;
-
-			const match = featureRegExp.exec(feature);
-			if (match == null) {
-				// does not match the format of an mvom feature program
-				return acc;
-			}
-
-			const [, featureName, featureVersion] = match;
-
-			if (semver.valid(featureVersion) == null) {
-				// a valid feature will contain an @-version specification that uses semver
-				return acc;
-			}
-
-			this.logMessage(
-				'debug',
-				`feature "${featureName}" version "${featureVersion}" found on database server`,
-			);
-
-			const versions = acc.get(featureName) ?? [];
-			versions.push(featureVersion);
-
-			acc.set(featureName, versions);
-			return acc;
-		}, new Map<string, string[]>());
-	}
-
 	/**
 	 * Handle error from the database server
 	 * @throws {@link ForeignKeyValidationError} A foreign key constraint was violated
@@ -548,7 +372,7 @@ class Connection {
 	 * @throws {@link RecordVersionError} A record changed between being read and written and could not be updated
 	 * @throws {@link DbServerError} An error was encountered on the database server
 	 */
-	private handleDbServerError<TResponse extends DbFeatureResponseTypes>(
+	private handleDbServerError<TResponse extends DbSubroutineResponseTypes>(
 		response: AxiosResponse<TResponse | DbActionResponseError>,
 	): asserts response is AxiosResponse<TResponse> {
 		if (response.data.output == null) {

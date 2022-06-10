@@ -1,42 +1,40 @@
-import type { DbActionResponse } from './DbFeature';
-
 export interface DbDocument {
 	_id: string;
 	__v: string | null;
 	record: string;
 }
 
+export interface DbSubroutineResponse<TOutput> {
+	output: TOutput;
+}
+
 export interface DbSubroutineOutputDeleteById {
 	result: DbDocument | null;
 }
-export type DbActionResponseSubroutineDeleteById = DbActionResponse<DbSubroutineOutputDeleteById>;
-
-export interface DbSubroutineOutputDeploy {
-	deployed: string;
-}
-export type DbActionResponseSubroutineDeploy = DbActionResponse<DbSubroutineOutputDeploy>;
+export type DbActionResponseSubroutineDeleteById =
+	DbSubroutineResponse<DbSubroutineOutputDeleteById>;
 
 export interface DbSubroutineOutputFind {
 	count: number;
 	documents: DbDocument[];
 }
-export type DbActionResponseSubroutineFind = DbActionResponse<DbSubroutineOutputFind>;
+export type DbActionResponseSubroutineFind = DbSubroutineResponse<DbSubroutineOutputFind>;
 
 export interface DbSubroutineOutputFindById {
 	result: DbDocument | null;
 }
-export type DbActionResponseSubroutineFindById = DbActionResponse<DbSubroutineOutputFindById>;
+export type DbActionResponseSubroutineFindById = DbSubroutineResponse<DbSubroutineOutputFindById>;
 
 export interface DbSubroutineOutputFindByIds {
 	result: (DbDocument | null)[];
 }
-export type DbActionResponseSubroutineFindByIds = DbActionResponse<DbSubroutineOutputFindByIds>;
+export type DbActionResponseSubroutineFindByIds = DbSubroutineResponse<DbSubroutineOutputFindByIds>;
 
 export interface DbSubroutineOutputReadFileContentsById {
 	result: string;
 }
 export type DbActionResponseSubroutineReadFileContentsById =
-	DbActionResponse<DbSubroutineOutputReadFileContentsById>;
+	DbSubroutineResponse<DbSubroutineOutputReadFileContentsById>;
 
 /** Characters which delimit strings on multivalue database server */
 export interface DbServerDelimiters {
@@ -65,16 +63,15 @@ export interface DbSubroutineOutputGetServerInfo {
 	limits: DbServerLimits;
 }
 export type DbActionResponseSubroutineGetServerInfo =
-	DbActionResponse<DbSubroutineOutputGetServerInfo>;
+	DbSubroutineResponse<DbSubroutineOutputGetServerInfo>;
 
 export interface DbSubroutineOutputSave {
 	result: DbDocument;
 }
-export type DbActionResponseSubroutineSave = DbActionResponse<DbSubroutineOutputSave>;
+export type DbActionResponseSubroutineSave = DbSubroutineResponse<DbSubroutineOutputSave>;
 
 export type DbSubroutineResponseTypes =
 	| DbActionResponseSubroutineDeleteById
-	| DbActionResponseSubroutineDeploy
 	| DbActionResponseSubroutineFind
 	| DbActionResponseSubroutineFindById
 	| DbActionResponseSubroutineFindByIds
@@ -84,7 +81,6 @@ export type DbSubroutineResponseTypes =
 
 export interface DbSubroutineResponseTypesMap {
 	deleteById: DbActionResponseSubroutineDeleteById;
-	deploy: DbActionResponseSubroutineDeploy;
 	find: DbActionResponseSubroutineFind;
 	findById: DbActionResponseSubroutineFindById;
 	findByIds: DbActionResponseSubroutineFindByIds;
