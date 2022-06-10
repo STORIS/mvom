@@ -1,6 +1,5 @@
 subroutine mvom_getServerInfo(options, output)
 {% include "../../constants/udo.njk" %}
-
 {% include "../../constants/error.njk" %}
 
 if udoSetProperty(output, 'date', date(), UDO_NUMBER) then
