@@ -11,29 +11,28 @@ export interface DbSubroutineResponse<TOutput> {
 export interface DbSubroutineOutputDeleteById {
 	result: DbDocument | null;
 }
-export type DbActionResponseSubroutineDeleteById =
-	DbSubroutineResponse<DbSubroutineOutputDeleteById>;
+export type DbSubroutineResponseDeleteById = DbSubroutineResponse<DbSubroutineOutputDeleteById>;
 
 export interface DbSubroutineOutputFind {
 	count: number;
 	documents: DbDocument[];
 }
-export type DbActionResponseSubroutineFind = DbSubroutineResponse<DbSubroutineOutputFind>;
+export type DbSubroutineResponseFind = DbSubroutineResponse<DbSubroutineOutputFind>;
 
 export interface DbSubroutineOutputFindById {
 	result: DbDocument | null;
 }
-export type DbActionResponseSubroutineFindById = DbSubroutineResponse<DbSubroutineOutputFindById>;
+export type DbSubroutineResponseFindById = DbSubroutineResponse<DbSubroutineOutputFindById>;
 
 export interface DbSubroutineOutputFindByIds {
 	result: (DbDocument | null)[];
 }
-export type DbActionResponseSubroutineFindByIds = DbSubroutineResponse<DbSubroutineOutputFindByIds>;
+export type DbSubroutineResponseFindByIds = DbSubroutineResponse<DbSubroutineOutputFindByIds>;
 
 export interface DbSubroutineOutputReadFileContentsById {
 	result: string;
 }
-export type DbActionResponseSubroutineReadFileContentsById =
+export type DbSubroutineResponseReadFileContentsById =
 	DbSubroutineResponse<DbSubroutineOutputReadFileContentsById>;
 
 /** Characters which delimit strings on multivalue database server */
@@ -62,29 +61,29 @@ export interface DbSubroutineOutputGetServerInfo {
 	delimiters: DbServerDelimiters;
 	limits: DbServerLimits;
 }
-export type DbActionResponseSubroutineGetServerInfo =
+export type DbSubroutineResponseGetServerInfo =
 	DbSubroutineResponse<DbSubroutineOutputGetServerInfo>;
 
 export interface DbSubroutineOutputSave {
 	result: DbDocument;
 }
-export type DbActionResponseSubroutineSave = DbSubroutineResponse<DbSubroutineOutputSave>;
+export type DbSubroutineResponseSave = DbSubroutineResponse<DbSubroutineOutputSave>;
 
 export type DbSubroutineResponseTypes =
-	| DbActionResponseSubroutineDeleteById
-	| DbActionResponseSubroutineFind
-	| DbActionResponseSubroutineFindById
-	| DbActionResponseSubroutineFindByIds
-	| DbActionResponseSubroutineReadFileContentsById
-	| DbActionResponseSubroutineGetServerInfo
-	| DbActionResponseSubroutineSave;
+	| DbSubroutineResponseDeleteById
+	| DbSubroutineResponseFind
+	| DbSubroutineResponseFindById
+	| DbSubroutineResponseFindByIds
+	| DbSubroutineResponseReadFileContentsById
+	| DbSubroutineResponseGetServerInfo
+	| DbSubroutineResponseSave;
 
 export interface DbSubroutineResponseTypesMap {
-	deleteById: DbActionResponseSubroutineDeleteById;
-	find: DbActionResponseSubroutineFind;
-	findById: DbActionResponseSubroutineFindById;
-	findByIds: DbActionResponseSubroutineFindByIds;
-	readFileContentsById: DbActionResponseSubroutineReadFileContentsById;
-	getServerInfo: DbActionResponseSubroutineGetServerInfo;
-	save: DbActionResponseSubroutineSave;
+	deleteById: DbSubroutineResponseDeleteById;
+	find: DbSubroutineResponseFind;
+	findById: DbSubroutineResponseFindById;
+	findByIds: DbSubroutineResponseFindByIds;
+	readFileContentsById: DbSubroutineResponseReadFileContentsById;
+	getServerInfo: DbSubroutineResponseGetServerInfo;
+	save: DbSubroutineResponseSave;
 }
