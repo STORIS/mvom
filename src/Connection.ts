@@ -26,12 +26,12 @@ import {
 import { dependencies as serverDependencies } from './manifest.json';
 import type Schema from './Schema';
 import type {
-	DbActionInputSubroutine,
 	DbActionOutputErrorForeignKey,
 	DbActionResponseError,
 	DbServerDelimiters,
 	DbServerLimits,
 	DbSubroutineInputOptionsMap,
+	DbSubroutinePayload,
 	DbSubroutineResponseTypes,
 	DbSubroutineResponseTypesMap,
 	DbSubroutineSetupOptions,
@@ -255,7 +255,7 @@ class Connection {
 
 		const featureVersion = this.serverFeatureSet.validFeatures.get(feature);
 
-		const data: DbActionInputSubroutine<DbSubroutineInputOptionsMap[TFeature]> = {
+		const data: DbSubroutinePayload<DbSubroutineInputOptionsMap[TFeature]> = {
 			// make sure to use the compatible server version of feature
 			subroutineId: Connection.getServerProgramName(feature, featureVersion),
 			subroutineInput: options,
