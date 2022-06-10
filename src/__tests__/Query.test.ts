@@ -145,7 +145,7 @@ describe('exec', () => {
 		documents: [{ _id: 'id', __v: '__v', record: `foo${am}bar` }],
 	};
 	beforeEach(() => {
-		ModelConstructorMock.connection.executeDbFeature.mockResolvedValue(dbQueryResult);
+		ModelConstructorMock.connection.executeDbSubroutine.mockResolvedValue(dbQueryResult);
 	});
 
 	describe('single conditions', () => {
@@ -175,7 +175,7 @@ describe('exec', () => {
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue}"`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -204,7 +204,7 @@ describe('exec', () => {
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with (${propertyDictionary} = "${propertyValue1}" or ${propertyDictionary} = "${propertyValue2}")`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -235,7 +235,7 @@ describe('exec', () => {
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue}"`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -264,7 +264,7 @@ describe('exec', () => {
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} = '"${propertyValue}"'`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -293,7 +293,7 @@ describe('exec', () => {
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} = "'${propertyValue}'"`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -322,7 +322,7 @@ describe('exec', () => {
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with (${propertyDictionary} = "${propertyValue1}" or ${propertyDictionary} = "${propertyValue2}")`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -350,7 +350,7 @@ describe('exec', () => {
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue1}"`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -379,7 +379,7 @@ describe('exec', () => {
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} > "${propertyValue}"`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -408,7 +408,7 @@ describe('exec', () => {
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} >= "${propertyValue}"`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -437,7 +437,7 @@ describe('exec', () => {
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} < "${propertyValue}"`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -466,7 +466,7 @@ describe('exec', () => {
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} <= "${propertyValue}"`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -495,7 +495,7 @@ describe('exec', () => {
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} # "${propertyValue}"`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -524,7 +524,7 @@ describe('exec', () => {
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} like "...${propertyValue}..."`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -553,7 +553,7 @@ describe('exec', () => {
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} like "${propertyValue}..."`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -582,7 +582,7 @@ describe('exec', () => {
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} like "...${propertyValue}"`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -611,7 +611,7 @@ describe('exec', () => {
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with (${propertyDictionary} # "${propertyValue1}" and ${propertyDictionary} # "${propertyValue2}")`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -636,7 +636,7 @@ describe('exec', () => {
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename}`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -671,7 +671,7 @@ describe('exec', () => {
 					expect(await query.exec()).toEqual(dbQueryResult);
 
 					const expectedQuery = `select ${filename} with ${propertyDictionary} = "1"`;
-					expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+					expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 						'find',
 						{
 							filename,
@@ -717,7 +717,7 @@ describe('exec', () => {
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with (${propertyDictionary1} = "${propertyValue1}" and ${propertyDictionary2} = "${propertyValue2}")`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -756,7 +756,7 @@ describe('exec', () => {
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with (${propertyDictionary1} = "${propertyValue1}" and ${propertyDictionary2} = "${propertyValue2}")`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -795,7 +795,7 @@ describe('exec', () => {
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with (${propertyDictionary1} = "${propertyValue1}" or ${propertyDictionary2} = "${propertyValue2}")`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -843,7 +843,7 @@ describe('exec', () => {
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ((${propertyDictionary1} = "${propertyValue1}" and ${propertyDictionary2} = "${propertyValue2}") or ${propertyDictionary3} = "${propertyValue3}")`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -885,7 +885,7 @@ describe('exec', () => {
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ((${propertyDictionary1} = "${propertyValue1}" and ${propertyDictionary2} = "${propertyValue2}") or ${propertyDictionary3} = "${propertyValue3}")`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -920,7 +920,7 @@ describe('exec', () => {
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary1} = "${propertyValue1}"`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -955,7 +955,7 @@ describe('exec', () => {
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary1} = "${propertyValue1}"`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -985,7 +985,7 @@ describe('exec', () => {
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with (${propertyDictionary} >= "${propertyValue1}" and ${propertyDictionary} <= "${propertyValue2}")`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1024,7 +1024,7 @@ describe('exec', () => {
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue}"`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1053,7 +1053,7 @@ describe('exec', () => {
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue}" by ${propertyDictionary}`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1082,7 +1082,7 @@ describe('exec', () => {
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue}" by.dsnd ${propertyDictionary}`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1118,7 +1118,7 @@ describe('exec', () => {
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary1} = "${propertyValue1}" by ${propertyDictionary1} by ${propertyDictionary2}`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1154,7 +1154,7 @@ describe('exec', () => {
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary1} = "${propertyValue1}" by.dsnd ${propertyDictionary1} by.dsnd ${propertyDictionary2}`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1190,7 +1190,7 @@ describe('exec', () => {
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary1} = "${propertyValue1}" by.dsnd ${propertyDictionary1} by ${propertyDictionary2}`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1230,7 +1230,7 @@ describe('exec', () => {
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue}"`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1262,7 +1262,7 @@ describe('exec', () => {
 			expect(await query.exec(executionOptions)).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue}"`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1422,7 +1422,7 @@ describe('exec', () => {
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue}"`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,

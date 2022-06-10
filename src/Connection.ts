@@ -198,26 +198,23 @@ class Connection {
 		this.logMessage('info', 'connection opened');
 	}
 
-	/** Execute a database feature */
-	public async executeDbFeature<
-		TFeature extends keyof (DbSubroutineInputOptionsMap & DbSubroutineResponseTypesMap),
+	/** Execute a database subroutine */
+	public async executeDbSubroutine<
+		TSubroutineName extends keyof (DbSubroutineInputOptionsMap & DbSubroutineResponseTypesMap),
 	>(
-		feature: TFeature,
-		options: DbSubroutineInputOptionsMap[TFeature],
+		subroutineName: TSubroutineName,
+		options: DbSubroutineInputOptionsMap[TSubroutineName],
 		setupOptions: DbSubroutineSetupOptions = {},
 		teardownOptions: Record<string, never> = {},
-	): Promise<DbSubroutineResponseTypesMap[TFeature]['output']> {
-		this.logMessage('debug', `executing database feature "${feature}"`);
+	): Promise<DbSubroutineResponseTypesMap[TSubroutineName]['output']> {
+		this.logMessage('debug', `executing database subroutine "${subroutineName}"`);
 
-		const data: DbSubroutinePayload<DbSubroutineInputOptionsMap[TFeature]> = {
-			// make sure to use the compatible server version of feature
-			subroutineId: feature,
+		const data: DbSubroutinePayload<DbSubroutineInputOptionsMap[TSubroutineName]> = {
+			subroutineId: subroutineName,
 			subroutineInput: options,
 			setupOptions,
 			teardownOptions,
 		};
-
-		this.logMessage('debug', `executing database subroutine ${data.subroutineId}`);
 
 		let response;
 		try {
@@ -299,7 +296,10 @@ class Connection {
 			}
 
 			this.logMessage('debug', 'getting db server information');
-			const { date, time, delimiters, limits } = await this.executeDbFeature('getServerInfo', {});
+			const { date, time, delimiters, limits } = await this.executeDbSubroutine(
+				'getServerInfo',
+				{},
+			);
 
 			const timeDrift = differenceInMilliseconds(
 				addMilliseconds(addDays(mvEpoch, date), time),

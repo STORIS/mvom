@@ -124,7 +124,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 		): Promise<Model | null> {
 			const { userDefined } = options;
 
-			const data = await this.connection.executeDbFeature(
+			const data = await this.connection.executeDbSubroutine(
 				'deleteById',
 				{
 					filename: this.file,
@@ -184,7 +184,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 		): Promise<Model | null> {
 			const { projection, userDefined } = options;
 
-			const data = await this.connection.executeDbFeature(
+			const data = await this.connection.executeDbSubroutine(
 				'findById',
 				{
 					filename: this.file,
@@ -211,7 +211,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			const { projection, userDefined } = options;
 
 			const idsArray = ensureArray(ids);
-			const data = await this.connection.executeDbFeature(
+			const data = await this.connection.executeDbSubroutine(
 				'findByIds',
 				{
 					filename: this.file,
@@ -237,7 +237,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			options: ModelReadFileContentsByIdOptions = {},
 		): Promise<string> {
 			const { userDefined } = options;
-			const data = await this.connection.executeDbFeature(
+			const data = await this.connection.executeDbSubroutine(
 				'readFileContentsById',
 				{
 					filename: this.file,
@@ -279,7 +279,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			}
 
 			try {
-				const data = await Model.connection.executeDbFeature(
+				const data = await Model.connection.executeDbSubroutine(
 					'save',
 					{
 						filename: Model.file,

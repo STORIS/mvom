@@ -133,7 +133,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 		};
 
 		this.Model.connection.logMessage('verbose', `executing query "${queryCommand}"`);
-		const data = await this.Model.connection.executeDbFeature(
+		const data = await this.Model.connection.executeDbSubroutine(
 			'find',
 			executionOptions,
 			userDefined && { userDefined },

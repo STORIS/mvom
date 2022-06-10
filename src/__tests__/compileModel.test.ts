@@ -75,10 +75,10 @@ describe('deleteById', () => {
 		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 
 		const id = 'id';
-		connectionMock.executeDbFeature.mockResolvedValue({ result: null });
+		connectionMock.executeDbSubroutine.mockResolvedValue({ result: null });
 
 		expect(await Model.deleteById(id)).toBeNull();
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+		expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 			'deleteById',
 			{ filename, id },
 			undefined,
@@ -90,7 +90,7 @@ describe('deleteById', () => {
 
 		const id = 'id';
 		const version = '1';
-		connectionMock.executeDbFeature.mockResolvedValue({
+		connectionMock.executeDbSubroutine.mockResolvedValue({
 			result: { _id: id, __v: version, record: '' },
 		});
 
@@ -98,7 +98,7 @@ describe('deleteById', () => {
 		expect(model).toBeInstanceOf(Model);
 		expect(model._id).toBe(id);
 		expect(model.__v).toBe(version);
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+		expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 			'deleteById',
 			{ filename, id },
 			undefined,
@@ -109,12 +109,12 @@ describe('deleteById', () => {
 		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 
 		const id = 'id';
-		connectionMock.executeDbFeature.mockResolvedValue({ result: null });
+		connectionMock.executeDbSubroutine.mockResolvedValue({ result: null });
 
 		const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
 		const options: ModelDeleteByIdOptions = { userDefined };
 		expect(await Model.deleteById(id, options)).toBeNull();
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+		expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 			'deleteById',
 			{ filename, id },
 			{ userDefined },
@@ -138,7 +138,7 @@ describe('find', () => {
 		const version1 = '1';
 		const id2 = 'id2';
 		const version2 = '2';
-		connectionMock.executeDbFeature.mockResolvedValue({
+		connectionMock.executeDbSubroutine.mockResolvedValue({
 			count: 2,
 			documents: [
 				{ _id: id1, __v: version1, record: '' },
@@ -156,7 +156,7 @@ describe('find', () => {
 		expect(document1.__v).toBe(version1);
 		expect(document2._id).toBe(id2);
 		expect(document2.__v).toBe(version2);
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+		expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 			'find',
 			{
 				filename,
@@ -174,7 +174,7 @@ describe('find', () => {
 		const version1 = '1';
 		const id2 = 'id2';
 		const version2 = '2';
-		connectionMock.executeDbFeature.mockResolvedValue({
+		connectionMock.executeDbSubroutine.mockResolvedValue({
 			count: 2,
 			documents: [
 				{ _id: id1, __v: version1, record: '' },
@@ -195,7 +195,7 @@ describe('find', () => {
 		expect(document1.__v).toBe(version1);
 		expect(document2._id).toBe(id2);
 		expect(document2.__v).toBe(version2);
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+		expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 			'find',
 			{
 				filename,
@@ -223,7 +223,7 @@ describe('findAndCount', () => {
 		const version1 = '1';
 		const id2 = 'id2';
 		const version2 = '2';
-		connectionMock.executeDbFeature.mockResolvedValue({
+		connectionMock.executeDbSubroutine.mockResolvedValue({
 			count: 2,
 			documents: [
 				{ _id: id1, __v: version1, record: '' },
@@ -242,7 +242,7 @@ describe('findAndCount', () => {
 		expect(document1.__v).toBe(version1);
 		expect(document2._id).toBe(id2);
 		expect(document2.__v).toBe(version2);
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+		expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 			'find',
 			{
 				filename,
@@ -260,7 +260,7 @@ describe('findAndCount', () => {
 		const version1 = '1';
 		const id2 = 'id2';
 		const version2 = '2';
-		connectionMock.executeDbFeature.mockResolvedValue({
+		connectionMock.executeDbSubroutine.mockResolvedValue({
 			count: 2,
 			documents: [
 				{ _id: id1, __v: version1, record: '' },
@@ -282,7 +282,7 @@ describe('findAndCount', () => {
 		expect(document1.__v).toBe(version1);
 		expect(document2._id).toBe(id2);
 		expect(document2.__v).toBe(version2);
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+		expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 			'find',
 			{
 				filename,
@@ -300,7 +300,7 @@ describe('findById', () => {
 
 		const id1 = 'id1';
 		const version1 = '1';
-		connectionMock.executeDbFeature.mockResolvedValue({
+		connectionMock.executeDbSubroutine.mockResolvedValue({
 			result: { _id: id1, __v: version1, record: '' },
 		});
 
@@ -309,7 +309,7 @@ describe('findById', () => {
 		expect(document).toBeInstanceOf(Model);
 		expect(document!._id).toBe(id1);
 		expect(document!.__v).toBe(version1);
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+		expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 			'findById',
 			{
 				filename,
@@ -325,7 +325,7 @@ describe('findById', () => {
 
 		const id1 = 'id1';
 		const version1 = '1';
-		connectionMock.executeDbFeature.mockResolvedValue({
+		connectionMock.executeDbSubroutine.mockResolvedValue({
 			result: { _id: id1, __v: version1, record: `attribute1${am}attribute2` },
 		});
 
@@ -333,7 +333,7 @@ describe('findById', () => {
 
 		expect(document).toBeInstanceOf(Model);
 		expect(document!._raw).toEqual(['attribute1', 'attribute2']);
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+		expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 			'findById',
 			{
 				filename,
@@ -348,14 +348,14 @@ describe('findById', () => {
 		const Model = compileModel(connectionMock, schema, filename, mockDelimiters);
 
 		const id1 = 'id1';
-		connectionMock.executeDbFeature.mockResolvedValue({
+		connectionMock.executeDbSubroutine.mockResolvedValue({
 			result: null,
 		});
 
 		const document = await Model.findById(id1);
 
 		expect(document).toBeNull();
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+		expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 			'findById',
 			{
 				filename,
@@ -371,7 +371,7 @@ describe('findById', () => {
 
 		const id1 = 'id1';
 		const version1 = '1';
-		connectionMock.executeDbFeature.mockResolvedValue({
+		connectionMock.executeDbSubroutine.mockResolvedValue({
 			result: { _id: id1, __v: version1, record: '' },
 		});
 
@@ -383,7 +383,7 @@ describe('findById', () => {
 		expect(document).toBeInstanceOf(Model);
 		expect(document!._id).toBe(id1);
 		expect(document!.__v).toBe(version1);
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+		expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 			'findById',
 			{
 				filename,
@@ -399,7 +399,7 @@ describe('findById', () => {
 
 		const id1 = 'id1';
 		const version1 = '1';
-		connectionMock.executeDbFeature.mockResolvedValue({
+		connectionMock.executeDbSubroutine.mockResolvedValue({
 			result: { _id: id1, __v: version1, record: '' },
 		});
 
@@ -409,7 +409,7 @@ describe('findById', () => {
 		expect(document).toBeInstanceOf(Model);
 		expect(document!._id).toBe(id1);
 		expect(document!.__v).toBe(version1);
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+		expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 			'findById',
 			{
 				filename,
@@ -429,7 +429,7 @@ describe('findByIds', () => {
 		const version1 = '1';
 		const id2 = 'id2';
 		const version2 = '2';
-		connectionMock.executeDbFeature.mockResolvedValue({
+		connectionMock.executeDbSubroutine.mockResolvedValue({
 			result: [
 				{ _id: id1, __v: version1, record: '' },
 				{ _id: id2, __v: version2, record: '' },
@@ -446,7 +446,7 @@ describe('findByIds', () => {
 		expect(document1!.__v).toBe(version1);
 		expect(document2!._id).toBe(id2);
 		expect(document2!.__v).toBe(version2);
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+		expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 			'findByIds',
 			{
 				filename,
@@ -464,7 +464,7 @@ describe('findByIds', () => {
 		const version1 = '1';
 		const id2 = 'id2';
 		const version2 = '2';
-		connectionMock.executeDbFeature.mockResolvedValue({
+		connectionMock.executeDbSubroutine.mockResolvedValue({
 			result: [
 				{ _id: id1, __v: version1, record: `record1-attribute1${am}record1-attribute2` },
 				{ _id: id1, __v: version2, record: `record2-attribute1${am}record2-attribute2` },
@@ -480,7 +480,7 @@ describe('findByIds', () => {
 
 		expect(document1!._raw).toEqual(['record1-attribute1', 'record1-attribute2']);
 		expect(document2!._raw).toEqual(['record2-attribute1', 'record2-attribute2']);
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+		expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 			'findByIds',
 			{
 				filename,
@@ -497,7 +497,7 @@ describe('findByIds', () => {
 		const id1 = 'id1';
 		const id2 = 'id2';
 		const version2 = '2';
-		connectionMock.executeDbFeature.mockResolvedValue({
+		connectionMock.executeDbSubroutine.mockResolvedValue({
 			result: [null, { _id: id2, __v: version2, record: '' }],
 		});
 
@@ -507,7 +507,7 @@ describe('findByIds', () => {
 		expect(document1).toBeNull();
 		expect(document2!._id).toBe(id2);
 		expect(document2!.__v).toBe(version2);
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+		expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 			'findByIds',
 			{
 				filename,
@@ -525,7 +525,7 @@ describe('findByIds', () => {
 		const version1 = '1';
 		const id2 = 'id2';
 		const version2 = '2';
-		connectionMock.executeDbFeature.mockResolvedValue({
+		connectionMock.executeDbSubroutine.mockResolvedValue({
 			result: [
 				{ _id: id1, __v: version1, record: '' },
 				{ _id: id2, __v: version2, record: '' },
@@ -545,7 +545,7 @@ describe('findByIds', () => {
 		expect(document1!.__v).toBe(version1);
 		expect(document2!._id).toBe(id2);
 		expect(document2!.__v).toBe(version2);
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+		expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 			'findByIds',
 			{
 				filename,
@@ -563,7 +563,7 @@ describe('findByIds', () => {
 		const version1 = '1';
 		const id2 = 'id2';
 		const version2 = '2';
-		connectionMock.executeDbFeature.mockResolvedValue({
+		connectionMock.executeDbSubroutine.mockResolvedValue({
 			result: [
 				{ _id: id1, __v: version1, record: '' },
 				{ _id: id2, __v: version2, record: '' },
@@ -581,7 +581,7 @@ describe('findByIds', () => {
 		expect(document1!.__v).toBe(version1);
 		expect(document2!._id).toBe(id2);
 		expect(document2!.__v).toBe(version2);
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+		expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 			'findByIds',
 			{
 				filename,
@@ -599,11 +599,11 @@ describe('readFileContentsById', () => {
 
 		const id1 = 'id1';
 		const mockResult = 'RWFzdGVyIEVnZwo=';
-		connectionMock.executeDbFeature.mockResolvedValue({ result: mockResult });
+		connectionMock.executeDbSubroutine.mockResolvedValue({ result: mockResult });
 
 		const contents = await Model.readFileContentsById(id1);
 		expect(contents).toBe(mockResult);
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+		expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 			'readFileContentsById',
 			{
 				filename,
@@ -618,14 +618,14 @@ describe('readFileContentsById', () => {
 
 		const id1 = 'id1';
 		const mockResult = 'RWFzdGVyIEVnZwo=';
-		connectionMock.executeDbFeature.mockResolvedValue({ result: mockResult });
+		connectionMock.executeDbSubroutine.mockResolvedValue({ result: mockResult });
 
 		const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
 		const options: ModelReadFileContentsByIdOptions = { userDefined };
 
 		const contents = await Model.readFileContentsById(id1, options);
 		expect(contents).toBe(mockResult);
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+		expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 			'readFileContentsById',
 			{
 				filename,
@@ -662,14 +662,14 @@ describe('save', () => {
 		const model = new Model({ _id: id, data: { prop1: 'prop1-value', prop2: 123 } });
 
 		const err = new Error('Test error');
-		connectionMock.executeDbFeature.mockRejectedValue(err);
+		connectionMock.executeDbSubroutine.mockRejectedValue(err);
 
 		const error = await getError<Error & { other: GenericObject }>(async () => model.save());
 
 		expect(error).not.toBeInstanceOf(NoErrorThrownError);
 		expect(error).toBeInstanceOf(Error);
 		expect(error.other).toEqual({ filename, _id: id });
-		expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+		expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 			'save',
 			{
 				filename,
@@ -692,7 +692,7 @@ describe('save', () => {
 			const version = '1';
 			const model = new Model({ _id: id, data: { prop1: 'prop1-value', prop2: 123 } });
 
-			connectionMock.executeDbFeature.mockResolvedValue({
+			connectionMock.executeDbSubroutine.mockResolvedValue({
 				result: { _id: id, __v: version, record: `prop1-value${am}123` },
 			});
 			const result = await model.save();
@@ -702,7 +702,7 @@ describe('save', () => {
 			expect(result.__v).toBe(version);
 			expect(result.prop1).toBe('prop1-value');
 			expect(result.prop2).toBe(123);
-			expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+			expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 				'save',
 				{
 					filename,
@@ -725,7 +725,7 @@ describe('save', () => {
 			const version = '1';
 			const model = new Model({ _id: id, data: { arrayProp: ['val1', 'val2'] } });
 
-			connectionMock.executeDbFeature.mockResolvedValue({
+			connectionMock.executeDbSubroutine.mockResolvedValue({
 				result: { _id: id, __v: version, record: `val1${vm}val2` },
 			});
 			const result = await model.save();
@@ -734,7 +734,7 @@ describe('save', () => {
 			expect(result._id).toBe(id);
 			expect(result.__v).toBe(version);
 			expect(result.arrayProp).toEqual(['val1', 'val2']);
-			expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+			expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 				'save',
 				{
 					filename,
@@ -755,7 +755,7 @@ describe('save', () => {
 			const version = '1';
 			const model = new Model({ _id: id, data: { arrayProp: [null, 'val2'] } });
 
-			connectionMock.executeDbFeature.mockResolvedValue({
+			connectionMock.executeDbSubroutine.mockResolvedValue({
 				result: { _id: id, __v: version, record: `${vm}val2` },
 			});
 			const result = await model.save();
@@ -764,7 +764,7 @@ describe('save', () => {
 			expect(result._id).toBe(id);
 			expect(result.__v).toBe(version);
 			expect(result.arrayProp).toEqual([null, 'val2']);
-			expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+			expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 				'save',
 				{
 					filename,
@@ -793,7 +793,7 @@ describe('save', () => {
 				},
 			});
 
-			connectionMock.executeDbFeature.mockResolvedValue({
+			connectionMock.executeDbSubroutine.mockResolvedValue({
 				result: {
 					_id: id,
 					__v: version,
@@ -809,7 +809,7 @@ describe('save', () => {
 				['val1-subVal1', 'val1-subVal2'],
 				['val2-subVal1', 'val2-subVal2'],
 			]);
-			expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+			expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 				'save',
 				{
 					filename,
@@ -838,7 +838,7 @@ describe('save', () => {
 				},
 			});
 
-			connectionMock.executeDbFeature.mockResolvedValue({
+			connectionMock.executeDbSubroutine.mockResolvedValue({
 				result: {
 					_id: id,
 					__v: version,
@@ -854,7 +854,7 @@ describe('save', () => {
 				[null, 'val1-subVal2'],
 				['val2-subVal1', null],
 			]);
-			expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+			expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 				'save',
 				{
 					filename,
@@ -874,7 +874,7 @@ describe('save', () => {
 			const version = '1';
 			const model = new Model({ _id: id, data: { prop1: 'prop1-value', prop2: 123 } });
 
-			connectionMock.executeDbFeature.mockResolvedValue({
+			connectionMock.executeDbSubroutine.mockResolvedValue({
 				result: { _id: id, __v: version, record: `prop1-value${am}123` },
 			});
 
@@ -888,7 +888,7 @@ describe('save', () => {
 			expect(result.__v).toBe(version);
 			expect(result.prop1).toBe('prop1-value');
 			expect(result.prop2).toBe(123);
-			expect(connectionMock.executeDbFeature).toHaveBeenCalledWith(
+			expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 				'save',
 				{
 					filename,
