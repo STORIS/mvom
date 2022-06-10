@@ -26,12 +26,12 @@ import {
 import { dependencies as serverDependencies } from './manifest.json';
 import type Schema from './Schema';
 import type {
-	DbActionOutputErrorForeignKey,
-	DbActionResponseError,
 	DbServerDelimiters,
 	DbServerLimits,
 	DbSubroutineInputOptionsMap,
+	DbSubroutineOutputErrorForeignKey,
 	DbSubroutinePayload,
+	DbSubroutineResponseError,
 	DbSubroutineResponseTypes,
 	DbSubroutineResponseTypesMap,
 	DbSubroutineSetupOptions,
@@ -267,12 +267,11 @@ class Connection {
 
 		let response;
 		try {
-			response = await this.axiosInstance.post<DbSubroutineResponseTypes | DbActionResponseError>(
-				'',
-				{
-					input: data,
-				},
-			);
+			response = await this.axiosInstance.post<
+				DbSubroutineResponseTypes | DbSubroutineResponseError
+			>('', {
+				input: data,
+			});
 		} catch (err) {
 			return axios.isAxiosError(err) ? this.handleAxiosError(err) : this.handleUnexpectedError(err);
 		}
@@ -373,7 +372,7 @@ class Connection {
 	 * @throws {@link DbServerError} An error was encountered on the database server
 	 */
 	private handleDbServerError<TResponse extends DbSubroutineResponseTypes>(
-		response: AxiosResponse<TResponse | DbActionResponseError>,
+		response: AxiosResponse<TResponse | DbSubroutineResponseError>,
 	): asserts response is AxiosResponse<TResponse> {
 		if (response.data.output == null) {
 			// handle invalid response
@@ -387,7 +386,7 @@ class Connection {
 				case dbErrors.foreignKeyValidation.code:
 					this.logMessage('debug', 'foreign key violations found when saving record');
 					throw new ForeignKeyValidationError({
-						foreignKeyValidationErrors: (response.data.output as DbActionOutputErrorForeignKey)
+						foreignKeyValidationErrors: (response.data.output as DbSubroutineOutputErrorForeignKey)
 							.foreignKeyValidationErrors,
 					});
 				case dbErrors.recordLocked.code:

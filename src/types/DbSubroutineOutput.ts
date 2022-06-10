@@ -1,3 +1,5 @@
+import type { ForeignKeyValidationErrorData } from '../errors/ForeignKeyValidationError';
+
 export interface DbDocument {
 	_id: string;
 	__v: string | null;
@@ -87,3 +89,19 @@ export interface DbSubroutineResponseTypesMap {
 	getServerInfo: DbSubroutineResponseGetServerInfo;
 	save: DbSubroutineResponseSave;
 }
+
+export interface DbSubroutineOutputErrorBase {
+	errorCode: string;
+}
+export type DbSubroutineResponseErrorBase = DbSubroutineResponse<DbSubroutineOutputErrorBase>;
+
+export interface DbSubroutineOutputErrorForeignKey extends DbSubroutineOutputErrorBase {
+	errorCode: '14';
+	foreignKeyValidationErrors: ForeignKeyValidationErrorData[];
+}
+export type DbSubroutineResponseErrorForeignKey =
+	DbSubroutineResponse<DbSubroutineOutputErrorForeignKey>;
+
+export type DbSubroutineResponseError =
+	| DbSubroutineResponseErrorBase
+	| DbSubroutineResponseErrorForeignKey;
