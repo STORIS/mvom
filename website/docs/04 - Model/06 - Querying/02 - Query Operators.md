@@ -154,6 +154,10 @@ The query which will be executed on the MultiValue database is:
 select ITEM with DESCRIPTION like "...Bed..."
 ```
 
+:::caution
+Queries with the `$contains` operator cannot include single or double quotes (`'` or `"`) in the query constant value.
+:::
+
 ## Starts With Operator
 
 The starts with operator is `$startsWith`. This operator will find records where the property's value starts with the provided conditional value.
@@ -170,6 +174,10 @@ The query which will be executed on the MultiValue database is:
 select ITEM with DESCRIPTION like "Bed..."
 ```
 
+:::caution
+Queries with the `$startsWith` operator cannot include single or double quotes (`'` or `"`) in the query constant value.
+:::
+
 ## Ends With Operator
 
 The ends with operator is `$endsWith`. This operator will find records where the property's value ends with the provided conditional value.
@@ -185,6 +193,10 @@ The query which will be executed on the MultiValue database is:
 ```
 select ITEM with DESCRIPTION like "...Bed"
 ```
+
+:::caution
+Queries with the `$endsWith` operator cannot include single or double quotes (`'` or `"`) in the query constant value.
+:::
 
 ## In Operator
 

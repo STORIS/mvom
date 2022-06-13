@@ -170,10 +170,12 @@ class Connection {
 		this.logger = logger;
 		this.cacheMaxAge = cacheMaxAge;
 
-		const baseURL = new URL(
-			`${account}/subroutine/${Connection.getServerProgramName('entry')}`,
-			mvisUri,
-		).toString();
+		const url = new URL(mvisUri);
+		url.pathname = url.pathname.replace(
+			/\/?$/,
+			`/${account}/subroutine/${Connection.getServerProgramName('entry')}`,
+		);
+		const baseURL = url.toString();
 
 		this.axiosInstance = axios.create({
 			baseURL,

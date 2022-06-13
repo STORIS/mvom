@@ -29,7 +29,7 @@ const mockedAxios = axios as jest.Mocked<typeof axios>;
 const mockedAxiosInstance = mock<AxiosInstance>();
 const mockedFs = fs as jest.Mocked<typeof fs>;
 
-const mvisUri = 'http://foo.bar.com';
+const mvisUri = 'http://foo.bar.com/mvis';
 const account = 'account';
 
 const fullFeatureOutput = Object.entries(serverDependencies).map(
