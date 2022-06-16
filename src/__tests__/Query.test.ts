@@ -506,91 +506,232 @@ describe('exec', () => {
 				);
 			});
 
-			test('should construct and execute query with contains condition', async () => {
-				const propertyName = 'property-name';
-				const propertyValue = 'property-value';
-				const propertyDictionary = 'property-dictionary';
-				const selectionCritieria = {
-					[propertyName]: { $contains: propertyValue },
-				};
+			describe('contains condition', () => {
+				test('should construct and execute query with contains condition', async () => {
+					const propertyName = 'property-name';
+					const propertyValue = 'property-value';
+					const propertyDictionary = 'property-dictionary';
+					const selectionCritieria = {
+						[propertyName]: { $contains: propertyValue },
+					};
 
-				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([
-					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
-				]);
+					// @ts-expect-error: Overriding mock
+					ModelConstructorMock.schema!.dictPaths = new Map([
+						[
+							propertyName,
+							{ dictionary: propertyDictionary, dataTransformer: dataTransformerMock },
+						],
+					]);
 
-				const query = new Query(ModelConstructorMock, selectionCritieria);
+					const query = new Query(ModelConstructorMock, selectionCritieria);
 
-				expect(await query.exec()).toEqual(dbQueryResult);
+					expect(await query.exec()).toEqual(dbQueryResult);
 
-				const expectedQuery = `select ${filename} with ${propertyDictionary} like "...${propertyValue}..."`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
-					'find',
-					{
-						filename,
-						projection: null,
-						queryCommand: expectedQuery,
-					},
-					undefined,
-				);
+					const expectedQuery = `select ${filename} with ${propertyDictionary} like "...'${propertyValue}'..."`;
+					expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+						'find',
+						{
+							filename,
+							projection: null,
+							queryCommand: expectedQuery,
+						},
+						undefined,
+					);
+				});
+
+				test('should throw error if contains condition contains double quote', () => {
+					const propertyName = 'property-name';
+					const propertyValue = 'property-value"';
+					const propertyDictionary = 'property-dictionary';
+					const selectionCritieria = {
+						[propertyName]: { $contains: propertyValue },
+					};
+
+					// @ts-expect-error: Overriding mock
+					ModelConstructorMock.schema!.dictPaths = new Map([
+						[
+							propertyName,
+							{ dictionary: propertyDictionary, dataTransformer: dataTransformerMock },
+						],
+					]);
+
+					expect(() => {
+						new Query(ModelConstructorMock, selectionCritieria);
+					}).toThrow();
+				});
+
+				test('should throw error if contains condition contains single quote', () => {
+					const propertyName = 'property-name';
+					const propertyValue = "property-value'";
+					const propertyDictionary = 'property-dictionary';
+					const selectionCritieria = {
+						[propertyName]: { $contains: propertyValue },
+					};
+
+					// @ts-expect-error: Overriding mock
+					ModelConstructorMock.schema!.dictPaths = new Map([
+						[
+							propertyName,
+							{ dictionary: propertyDictionary, dataTransformer: dataTransformerMock },
+						],
+					]);
+
+					expect(() => {
+						new Query(ModelConstructorMock, selectionCritieria);
+					}).toThrow();
+				});
 			});
 
-			test('should construct and execute query with startsWith condition', async () => {
-				const propertyName = 'property-name';
-				const propertyValue = 'property-value';
-				const propertyDictionary = 'property-dictionary';
-				const selectionCritieria = {
-					[propertyName]: { $startsWith: propertyValue },
-				};
+			describe('startsWith condition', () => {
+				test('should construct and execute query with startsWith condition', async () => {
+					const propertyName = 'property-name';
+					const propertyValue = 'property-value';
+					const propertyDictionary = 'property-dictionary';
+					const selectionCritieria = {
+						[propertyName]: { $startsWith: propertyValue },
+					};
 
-				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([
-					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
-				]);
+					// @ts-expect-error: Overriding mock
+					ModelConstructorMock.schema!.dictPaths = new Map([
+						[
+							propertyName,
+							{ dictionary: propertyDictionary, dataTransformer: dataTransformerMock },
+						],
+					]);
 
-				const query = new Query(ModelConstructorMock, selectionCritieria);
+					const query = new Query(ModelConstructorMock, selectionCritieria);
 
-				expect(await query.exec()).toEqual(dbQueryResult);
+					expect(await query.exec()).toEqual(dbQueryResult);
 
-				const expectedQuery = `select ${filename} with ${propertyDictionary} like "${propertyValue}..."`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
-					'find',
-					{
-						filename,
-						projection: null,
-						queryCommand: expectedQuery,
-					},
-					undefined,
-				);
+					const expectedQuery = `select ${filename} with ${propertyDictionary} like "'${propertyValue}'..."`;
+					expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+						'find',
+						{
+							filename,
+							projection: null,
+							queryCommand: expectedQuery,
+						},
+						undefined,
+					);
+				});
+
+				test('should throw error if startsWith condition contains double quote', () => {
+					const propertyName = 'property-name';
+					const propertyValue = 'property-value"';
+					const propertyDictionary = 'property-dictionary';
+					const selectionCritieria = {
+						[propertyName]: { $startsWith: propertyValue },
+					};
+
+					// @ts-expect-error: Overriding mock
+					ModelConstructorMock.schema!.dictPaths = new Map([
+						[
+							propertyName,
+							{ dictionary: propertyDictionary, dataTransformer: dataTransformerMock },
+						],
+					]);
+
+					expect(() => {
+						new Query(ModelConstructorMock, selectionCritieria);
+					}).toThrow();
+				});
+
+				test('should throw error if startsWith condition contains single quote', () => {
+					const propertyName = 'property-name';
+					const propertyValue = "property-value'";
+					const propertyDictionary = 'property-dictionary';
+					const selectionCritieria = {
+						[propertyName]: { $startsWith: propertyValue },
+					};
+
+					// @ts-expect-error: Overriding mock
+					ModelConstructorMock.schema!.dictPaths = new Map([
+						[
+							propertyName,
+							{ dictionary: propertyDictionary, dataTransformer: dataTransformerMock },
+						],
+					]);
+
+					expect(() => {
+						new Query(ModelConstructorMock, selectionCritieria);
+					}).toThrow();
+				});
 			});
 
-			test('should construct and execute query with endsWith condition', async () => {
-				const propertyName = 'property-name';
-				const propertyValue = 'property-value';
-				const propertyDictionary = 'property-dictionary';
-				const selectionCritieria = {
-					[propertyName]: { $endsWith: propertyValue },
-				};
+			describe('endsWith condition', () => {
+				test('should construct and execute query with endsWith condition', async () => {
+					const propertyName = 'property-name';
+					const propertyValue = 'property-value';
+					const propertyDictionary = 'property-dictionary';
+					const selectionCritieria = {
+						[propertyName]: { $endsWith: propertyValue },
+					};
 
-				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([
-					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
-				]);
+					// @ts-expect-error: Overriding mock
+					ModelConstructorMock.schema!.dictPaths = new Map([
+						[
+							propertyName,
+							{ dictionary: propertyDictionary, dataTransformer: dataTransformerMock },
+						],
+					]);
 
-				const query = new Query(ModelConstructorMock, selectionCritieria);
+					const query = new Query(ModelConstructorMock, selectionCritieria);
 
-				expect(await query.exec()).toEqual(dbQueryResult);
+					expect(await query.exec()).toEqual(dbQueryResult);
 
-				const expectedQuery = `select ${filename} with ${propertyDictionary} like "...${propertyValue}"`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
-					'find',
-					{
-						filename,
-						projection: null,
-						queryCommand: expectedQuery,
-					},
-					undefined,
-				);
+					const expectedQuery = `select ${filename} with ${propertyDictionary} like "...'${propertyValue}'"`;
+					expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+						'find',
+						{
+							filename,
+							projection: null,
+							queryCommand: expectedQuery,
+						},
+						undefined,
+					);
+				});
+
+				test('should throw error if endsWith condition contains double quote', () => {
+					const propertyName = 'property-name';
+					const propertyValue = 'property-value"';
+					const propertyDictionary = 'property-dictionary';
+					const selectionCritieria = {
+						[propertyName]: { $endsWith: propertyValue },
+					};
+
+					// @ts-expect-error: Overriding mock
+					ModelConstructorMock.schema!.dictPaths = new Map([
+						[
+							propertyName,
+							{ dictionary: propertyDictionary, dataTransformer: dataTransformerMock },
+						],
+					]);
+
+					expect(() => {
+						new Query(ModelConstructorMock, selectionCritieria);
+					}).toThrow();
+				});
+
+				test('should throw error if endsWith condition contains single quote', () => {
+					const propertyName = 'property-name';
+					const propertyValue = "property-value'";
+					const propertyDictionary = 'property-dictionary';
+					const selectionCritieria = {
+						[propertyName]: { $endsWith: propertyValue },
+					};
+
+					// @ts-expect-error: Overriding mock
+					ModelConstructorMock.schema!.dictPaths = new Map([
+						[
+							propertyName,
+							{ dictionary: propertyDictionary, dataTransformer: dataTransformerMock },
+						],
+					]);
+
+					expect(() => {
+						new Query(ModelConstructorMock, selectionCritieria);
+					}).toThrow();
+				});
 			});
 
 			test('should construct and execute query with not in condition', async () => {
