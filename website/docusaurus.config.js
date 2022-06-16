@@ -74,7 +74,7 @@ const config = {
 					},
 					{
 						type: 'docsVersion',
-						label: '2.0.0-alpha.6',
+						label: '2.0.0-alpha.7',
 						position: 'right',
 					},
 					{
