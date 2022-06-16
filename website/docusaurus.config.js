@@ -92,6 +92,12 @@ const config = {
 				theme: lightCodeTheme,
 				darkTheme: darkCodeTheme,
 			},
+			algolia: {
+				appId: 'UD0JDGWB9I',
+				apiKey: 'e8179dd39c96308fa4aaeff9bea394e3', // this is public and can be committed
+				indexName: 'mvom',
+				contextualSearch: true,
+			},
 		}),
 };
 
