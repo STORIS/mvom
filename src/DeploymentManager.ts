@@ -2,7 +2,7 @@ import type http from 'http';
 import type https from 'https';
 import path from 'path';
 import axios from 'axios';
-import type { AxiosError, AxiosInstance, AxiosRequestHeaders, AxiosResponse } from 'axios';
+import type { AxiosInstance, AxiosRequestHeaders, AxiosResponse } from 'axios';
 import fs from 'fs-extra';
 import { InvalidParameterError } from './errors';
 import type { Logger } from './types';
@@ -31,6 +31,14 @@ interface DeploymentManagerConstructorOptions {
 	httpsAgent?: https.Agent;
 }
 
+export interface DeployOptions {
+	/**
+	 * Create directory when deploying
+	 * @defaultValue false
+	 */
+	createDir?: boolean;
+}
+
 interface AuthenticateResult {
 	Cookie: string;
 	'X-XSRF-TOKEN': string;
@@ -42,6 +50,30 @@ interface SubroutinesGetValue {
 	name: string;
 }
 type SubroutinesGetResult = Record<string, SubroutinesGetValue>;
+
+interface SubroutineParameterDetail {
+	name: string;
+	type: 'string' | 'json';
+	order: number;
+	dname: '';
+}
+interface SubroutineParameterDefinition {
+	name: '';
+	parameters: SubroutineParameterDetail[];
+}
+
+interface SubroutineCreate {
+	name: string;
+	parameter_count: number;
+	input: SubroutineParameterDefinition;
+	output: SubroutineParameterDefinition;
+	allowCompileAndCatalog?: boolean;
+	createSourceDir?: boolean;
+	sourceDir?: string;
+	catalogOptions?: string;
+	compileOptions?: string;
+	source?: string;
+}
 // #endregion
 
 class DeploymentManager {
@@ -139,6 +171,7 @@ class DeploymentManager {
 	public async validateDeployment(): Promise<boolean> {
 		const headers = await this.authenticate();
 
+		this.logger.debug('Fetching list of REST subroutines from MVIS Admin');
 		const { data: response } = await axios.get<SubroutinesGetResult>(
 			`manager/rest/${this.account}/subroutines`,
 			{ headers },
@@ -155,6 +188,37 @@ class DeploymentManager {
 		}
 
 		return isValid;
+	}
+
+	/** Deploy the MVOM main subroutine to MVIS */
+	public async deploy(sourceDir: string, options: DeployOptions = {}): Promise<void> {
+		const { createDir = false } = options;
+
+		const headers = await this.authenticate();
+
+		const sourcePath = path.join(DeploymentManager.unibasicPath, this.mainFileName);
+		this.logger.debug(`Reading unibasic source from ${sourcePath}`);
+		const source = await fs.readFile(sourcePath, 'utf8');
+
+		this.logger.debug(`Deploying ${this.subroutineName} to MVIS Admin`);
+		await axios.post<unknown, AxiosResponse, SubroutineCreate>(
+			`manager/rest/${this.account}/subroutine`,
+			{
+				name: this.subroutineName,
+				parameter_count: 2,
+				input: { name: '', parameters: [{ name: 'input', type: 'json', order: 1, dname: '' }] },
+				output: { name: '', parameters: [{ name: 'output', type: 'json', order: 2, dname: '' }] },
+				allowCompileAndCatalog: true,
+				createSourceDir: createDir,
+				sourceDir,
+				catalogOptions: 'force',
+				compileOptions: '-i -o -d',
+				source,
+			},
+			{ headers },
+		);
+
+		this.logger.debug(`${this.subroutineName} successfully deployed to MVIS Admin`);
 	}
 
 	/** Authenticate to MVIS admin and return headers needed for subsequent API calls */
