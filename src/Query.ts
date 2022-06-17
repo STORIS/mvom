@@ -197,11 +197,14 @@ class Query<TSchema extends GenericObject = GenericObject> {
 					case '$ne':
 						return this.formatCondition(queryProperty, '#', mvValue);
 					case '$contains':
-						return this.formatCondition(queryProperty, 'like', `...${mvValue}...`);
+						this.validateLikeCondition(mvValue);
+						return this.formatCondition(queryProperty, 'like', `...'${mvValue}'...`);
 					case '$startsWith':
-						return this.formatCondition(queryProperty, 'like', `${mvValue}...`);
+						this.validateLikeCondition(mvValue);
+						return this.formatCondition(queryProperty, 'like', `'${mvValue}'...`);
 					case '$endsWith':
-						return this.formatCondition(queryProperty, 'like', `...${mvValue}`);
+						this.validateLikeCondition(mvValue);
+						return this.formatCondition(queryProperty, 'like', `...'${mvValue}'`);
 					case '$in':
 						return this.formatConditionList(queryProperty, '=', mvValue, 'or');
 					case '$nin':
@@ -348,6 +351,18 @@ class Query<TSchema extends GenericObject = GenericObject> {
 				message:
 					'Query condition count exceeds maximum number of query conditions of database server',
 			});
+		}
+	}
+
+	/** Validate that a "like" condition does not contain quotes */
+	private validateLikeCondition(value: unknown): void {
+		const stringValue = String(value);
+
+		if (stringValue.includes(`'`) || stringValue.includes(`"`)) {
+			// cannot query if like condition has single or double quotes in it
+			throw new Error(
+				'$contains, $startsWith, and $endsWith queries cannot contain single or double quotes in the conditional value',
+			);
 		}
 	}
 }

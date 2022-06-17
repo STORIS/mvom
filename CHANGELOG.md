@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0-alpha.7] - 2022-06-13
+
+### Fixed
+
+- Fix an issue with `findById` where the UniBasic source code did not include the UDO constants which produced an uninitialized variable abort ([#157](https://github.com/STORIS/mvom/pull/157))
+- Handle construction of full MVIS URL more gracefully to avoid issues with trailing slashes ([#128](https://github.com/STORIS/mvom/pull/128) and [#166](https://github.com/STORIS/mvom/pull/166))
+- Fix an issue with `$contains`, `$startsWith`, and `$endsWith` queries where an unintended pattern match could be introduced into the query constant causing the query to return unexpected results ([#166](https://github.com/STORIS/mvom/pull/166))
+
+### Added
+
+- Add node 18 to the CI matrix ([#111](https://github.com/STORIS/mvom/pull/111))
+- Remove `@types/jest` from dependencies and update timers syntax to no longer specify `modern` ([#152](https://github.com/STORIS/mvom/pull/152))
+
+### Docs
+
+- Add documentation site and automate deployment of it to GitHub pages ([#151](https://github.com/STORIS/mvom/pull/151))
+
+### Meta
+
+- Update readme and create contributing guide and code of conduct ([#155](https://github.com/STORIS/mvom/pull/155))
+
 ## [2.0.0-alpha.6] - 2022-05-05
 
 ### Breaking changes
@@ -379,7 +400,8 @@ We've graduated from Alpha to Beta! Semver has been updated so breaking vs. non-
 
 Initial alpha release of this library! Thanks for using it!
 
-[unreleased]: https://github.com/storis/mvom/compare/2.0.0-alpha.6...HEAD
+[unreleased]: https://github.com/storis/mvom/compare/2.0.0-alpha.7...HEAD
+[2.0.0-alpha.7]: https://github.com/storis/mvom/compare/2.0.0-alpha.6...2.0.0-alpha.7
 [2.0.0-alpha.6]: https://github.com/storis/mvom/compare/2.0.0-alpha.5...2.0.0-alpha.6
 [2.0.0-alpha.5]: https://github.com/storis/mvom/compare/2.0.0-alpha.4...2.0.0-alpha.5
 [2.0.0-alpha.4]: https://github.com/storis/mvom/compare/2.0.0-alpha.3...2.0.0-alpha.4
