@@ -11,6 +11,7 @@ import {
 	ISOTimeFormat,
 	mvEpoch,
 } from './constants';
+import DeploymentManager from './DeploymentManager';
 import {
 	DbServerError,
 	ForeignKeyValidationError,
@@ -38,6 +39,12 @@ import type {
 import { dummyLogger } from './utils';
 
 // #region Types
+interface DeploymentOptions {
+	mvisAdminUri: string;
+	username: string;
+	password: string;
+}
+
 export interface CreateConnectionOptions {
 	/** Optional logger instance */
 	logger?: Logger;
@@ -56,6 +63,8 @@ export interface CreateConnectionOptions {
 	httpAgent?: http.Agent;
 	/** Optional https agent */
 	httpsAgent?: https.Agent;
+	/** Deployment Options */
+	deploymentOptions?: DeploymentOptions;
 }
 
 interface ConnectionConstructorOptions {
@@ -63,6 +72,8 @@ interface ConnectionConstructorOptions {
 	httpAgent?: http.Agent;
 	/** Optional https agent */
 	httpsAgent?: https.Agent;
+	/** Deployment Options */
+	deploymentOptions?: DeploymentOptions;
 }
 
 export enum ConnectionStatus {
@@ -105,6 +116,9 @@ class Connection {
 	/** Axios instance */
 	private readonly axiosInstance: AxiosInstance;
 
+	/** Deployment Manager instance */
+	private readonly deploymentManager?: DeploymentManager;
+
 	private constructor(
 		/** URI of the MVIS which facilitates access to the mv database */
 		mvisUri: string,
@@ -118,7 +132,7 @@ class Connection {
 		timeout: number,
 		options: ConnectionConstructorOptions,
 	) {
-		const { httpAgent, httpsAgent } = options;
+		const { httpAgent, httpsAgent, deploymentOptions } = options;
 
 		this.account = account;
 		this.logger = logger;
@@ -135,6 +149,23 @@ class Connection {
 			...(httpAgent && { httpAgent }),
 			...(httpsAgent && { httpsAgent }),
 		});
+
+		if (deploymentOptions != null) {
+			const { mvisAdminUri, username, password } = deploymentOptions;
+
+			this.deploymentManager = DeploymentManager.createDeploymentManager(
+				mvisAdminUri,
+				account,
+				username,
+				password,
+				{ httpAgent, httpsAgent },
+			);
+		} else {
+			this.logMessage(
+				'warn',
+				'Deployment options not specified -- deployment will not be available.',
+			);
+		}
 
 		this.logMessage('debug', 'creating new connection instance');
 	}
