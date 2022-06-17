@@ -33,19 +33,11 @@ import type {
 	DbSubroutineResponseTypesMap,
 	DbSubroutineSetupOptions,
 	GenericObject,
+	Logger,
 } from './types';
 import { dummyLogger } from './utils';
 
 // #region Types
-export interface Logger {
-	error(message: string): void;
-	warn(message: string): void;
-	info(message: string): void;
-	verbose(message: string): void;
-	debug(message: string): void;
-	silly(message: string): void;
-}
-
 export interface CreateConnectionOptions {
 	/** Optional logger instance */
 	logger?: Logger;
