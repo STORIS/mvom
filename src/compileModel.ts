@@ -2,6 +2,7 @@ import type Connection from './Connection';
 import type { DocumentConstructorOptions } from './Document';
 import Document from './Document';
 import { DataValidationError } from './errors';
+import type LogHandler from './LogHandler';
 import type { QueryConstructorOptions } from './Query';
 import Query, { type Filter } from './Query';
 import type Schema from './Schema';
@@ -45,8 +46,9 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 	schema: Schema | null,
 	file: string,
 	dbServerDelimiters: DbServerDelimiters,
+	logHandler: LogHandler,
 ) => {
-	connection.logMessage('debug', `creating new model for file ${file}`);
+	logHandler.log('debug', `creating new model for file ${file}`);
 
 	/** Model constructor */
 	return class Model extends Document {
@@ -58,6 +60,9 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 		/** Schema that defines this model */
 		public static readonly schema = schema;
+
+		/** Log handler instance */
+		public static readonly logHandler: LogHandler = logHandler;
 
 		/** Database server delimiters */
 		static #dbServerDelimiters = dbServerDelimiters;
@@ -106,11 +111,11 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 				},
 			});
 
-			Model.connection.logMessage('debug', `creating new instance of model for file ${Model.file}`);
+			Model.logHandler.log('debug', `creating new instance of model for file ${Model.file}`);
 
 			this._transformationErrors.forEach((error) => {
 				// errors occurred while transforming data from multivalue format - log them
-				Model.connection.logMessage(
+				Model.logHandler.log(
 					'warn',
 					`error transforming data -- file: ${Model.file}; _id: ${this._id}; class: ${error.transformClass}; value: ${error.transformValue}`,
 				);

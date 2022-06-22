@@ -5,13 +5,10 @@ import axios from 'axios';
 import type { AxiosInstance, AxiosRequestHeaders, AxiosResponse } from 'axios';
 import fs from 'fs-extra';
 import { InvalidParameterError } from './errors';
-import type { Logger } from './types';
-import { dummyLogger } from './utils';
+import type LogHandler from './LogHandler';
 
 // #region types
 export interface CreateDeploymentManagerOptions {
-	/** Optional logger instance */
-	logger?: Logger;
 	/**
 	 * Request timeout (ms)
 	 * 0 implies no timeout
@@ -90,7 +87,7 @@ class DeploymentManager {
 	private readonly account: string;
 
 	/** Logger instance used for diagnostic logging */
-	private readonly logger: Logger;
+	private readonly logHandler: LogHandler;
 
 	/** MVIS Admin authorization header */
 	private readonly authorization: string;
@@ -109,14 +106,14 @@ class DeploymentManager {
 		password: string,
 		/** Request timeout (ms) */
 		timeout: number,
-		/** Logger instance */
-		logger: Logger,
+		/** Log handler instance */
+		logHandler: LogHandler,
 		options: DeploymentManagerConstructorOptions = {},
 	) {
 		const { httpAgent, httpsAgent } = options;
 
 		this.account = account;
-		this.logger = logger;
+		this.logHandler = logHandler;
 		this.authorization = Buffer.from(`${username}:${password}`).toString('base64');
 
 		const url = new URL(mvisAdminUrl);
@@ -153,15 +150,17 @@ class DeploymentManager {
 		username: string,
 		/** MVIS Admin password */
 		password: string,
+		/** Log Handler */
+		logHandler: LogHandler,
 		options: CreateDeploymentManagerOptions = {},
 	): DeploymentManager {
-		const { logger = dummyLogger, timeout = 0, httpAgent, httpsAgent } = options;
+		const { timeout = 0, httpAgent, httpsAgent } = options;
 
 		if (!Number.isInteger(timeout)) {
 			throw new InvalidParameterError({ parameterName: 'timeout' });
 		}
 
-		return new DeploymentManager(mvisAdminUrl, account, username, password, timeout, logger, {
+		return new DeploymentManager(mvisAdminUrl, account, username, password, timeout, logHandler, {
 			httpAgent,
 			httpsAgent,
 		});
@@ -171,7 +170,7 @@ class DeploymentManager {
 	public async validateDeployment(): Promise<boolean> {
 		const headers = await this.authenticate();
 
-		this.logger.debug('Fetching list of REST subroutines from MVIS Admin');
+		this.logHandler.log('debug', 'Fetching list of REST subroutines from MVIS Admin');
 		const { data: response } = await axios.get<SubroutinesGetResult>(
 			`manager/rest/${this.account}/subroutines`,
 			{ headers },
@@ -182,9 +181,9 @@ class DeploymentManager {
 		);
 
 		if (isValid) {
-			this.logger.debug(`${this.subroutineName} is available for calling through MVIS`);
+			this.logHandler.log('debug', `${this.subroutineName} is available for calling through MVIS`);
 		} else {
-			this.logger.warn(`${this.subroutineName} is unavailable for calling through MVIS`);
+			this.logHandler.log('warn', `${this.subroutineName} is unavailable for calling through MVIS`);
 		}
 
 		return isValid;
@@ -197,10 +196,10 @@ class DeploymentManager {
 		const headers = await this.authenticate();
 
 		const sourcePath = path.join(DeploymentManager.unibasicPath, this.mainFileName);
-		this.logger.debug(`Reading unibasic source from ${sourcePath}`);
+		this.logHandler.log('debug', `Reading unibasic source from ${sourcePath}`);
 		const source = await fs.readFile(sourcePath, 'utf8');
 
-		this.logger.debug(`Deploying ${this.subroutineName} to MVIS Admin`);
+		this.logHandler.log('debug', `Deploying ${this.subroutineName} to MVIS Admin`);
 		await axios.post<unknown, AxiosResponse, SubroutineCreate>(
 			`manager/rest/${this.account}/subroutine`,
 			{
@@ -218,12 +217,12 @@ class DeploymentManager {
 			{ headers },
 		);
 
-		this.logger.debug(`${this.subroutineName} successfully deployed to MVIS Admin`);
+		this.logHandler.log('debug', `${this.subroutineName} successfully deployed to MVIS Admin`);
 	}
 
 	/** Authenticate to MVIS admin and return headers needed for subsequent API calls */
 	private async authenticate(): Promise<AuthenticateResult & AxiosRequestHeaders> {
-		this.logger.debug('Authenticating to MVIS Admin');
+		this.logHandler.log('debug', 'Authenticating to MVIS Admin');
 
 		const authResponse = await this.axiosInstance.get('user', {
 			headers: { authorization: `Basic ${this.authorization}` },
@@ -244,7 +243,7 @@ class DeploymentManager {
 		// ex: XSRF-TOKEN=3c2a0741-f1a5-4d52-9145-b508e4fbc845; Path=/
 		const xsrfToken = xsrfTokenCookie.split('=')[1].split(';')[0];
 
-		this.logger.debug('Successfully authenticated to MVIS admin');
+		this.logHandler.log('debug', 'Successfully authenticated to MVIS admin');
 
 		return {
 			Cookie: cookies.join('; '),
