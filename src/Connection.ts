@@ -251,9 +251,7 @@ class Connection {
 		try {
 			response = await this.axiosInstance.post<
 				DbSubroutineResponseTypes | DbSubroutineResponseError
-			>('', {
-				input: data,
-			});
+			>(this.deploymentManager.subroutineName, { input: data });
 		} catch (err) {
 			return axios.isAxiosError(err) ? this.handleAxiosError(err) : this.handleUnexpectedError(err);
 		}

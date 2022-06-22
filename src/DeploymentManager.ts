@@ -80,6 +80,9 @@ class DeploymentManager {
 	/** File system path of the UniBasic source code */
 	private static readonly unibasicPath = path.resolve(path.join(__dirname, 'unibasic'));
 
+	/** MVIS subroutine name */
+	public readonly subroutineName: string;
+
 	/** Axios instance */
 	private readonly axiosInstance: AxiosInstance;
 
@@ -94,9 +97,6 @@ class DeploymentManager {
 
 	/** Main file source code name */
 	private readonly mainFileName: string;
-
-	/** MVIS subroutine name */
-	private readonly subroutineName: string;
 
 	private constructor(
 		/** URL of the MVIS Admin */
