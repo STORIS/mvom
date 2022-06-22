@@ -154,7 +154,7 @@ class Connection {
 			account,
 			mvisAdminUsername,
 			mvisAdminPassword,
-			{ httpAgent, httpsAgent },
+			{ logger, timeout, httpAgent, httpsAgent },
 		);
 
 		this.logMessage('debug', 'creating new connection instance');
