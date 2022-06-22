@@ -8,11 +8,11 @@
     "node": ">=14.19"
   },
   "scripts": {
-    "build": "npm-run-all build:node build:prepare-unibasic build:copy-files build:declaration",
+    "build": "npm-run-all build:node build:unibasic build:copy-files build:declaration",
     "build:copy-files": "babel-node --extensions .ts,.js ./scripts/copy-files",
     "build:declaration": "tsc --project tsconfig.build.json --outDir ./dist",
     "build:node": "babel ./src --env-name build --out-dir ./dist --extensions .ts,.js",
-    "build:prepare-unibasic": "babel-node --extensions .ts,.js ./scripts/prepare-unibasic",
+    "build:unibasic": "babel-node --extensions .ts,.js ./scripts/prepare-unibasic",
     "clean": "npm run clean:build",
     "clean:build": "rimraf ./dist",
     "lint": "eslint . --ext cjs,mjs,js,ts,tsx --cache && echo \"eslint: no lint errors\"",

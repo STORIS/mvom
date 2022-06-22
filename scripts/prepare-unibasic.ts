@@ -5,7 +5,7 @@ import fs from 'fs-extra';
 import { render } from 'nunjucks';
 import { dbErrors } from '../src/constants';
 
-const inputFile = path.join(process.cwd(), 'src', 'unibasicTemplates', 'mvom_main.njk');
+const inputFile = path.join(process.cwd(), 'src', 'unibasicTemplates', 'main.njk');
 const outputDir = path.join(process.cwd(), 'dist', 'unibasic');
 
 /** Empty (or create) the output directory */
@@ -29,7 +29,7 @@ const processFile = (): void => {
 		const rendered = render(inputFile, { dbErrors });
 		try {
 			const hash = calculateHash(rendered);
-			const outputFile = `${path.parse(inputFile).name}@${hash}.mvb`;
+			const outputFile = `mvom_${path.parse(inputFile).name}@${hash}.mvb`;
 			const buildPath = path.join(outputDir, outputFile);
 			try {
 				fs.writeFileSync(buildPath, rendered);
