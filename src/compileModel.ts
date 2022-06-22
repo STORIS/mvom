@@ -62,10 +62,10 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 		public static readonly schema = schema;
 
 		/** Log handler instance */
-		public static readonly logHandler: LogHandler = logHandler;
+		static readonly #logHandler: LogHandler = logHandler;
 
 		/** Database server delimiters */
-		static #dbServerDelimiters = dbServerDelimiters;
+		static readonly #dbServerDelimiters = dbServerDelimiters;
 
 		/** Document version hash */
 		public readonly __v: string | null;
@@ -111,11 +111,11 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 				},
 			});
 
-			Model.logHandler.log('debug', `creating new instance of model for file ${Model.file}`);
+			Model.#logHandler.log('debug', `creating new instance of model for file ${Model.file}`);
 
 			this._transformationErrors.forEach((error) => {
 				// errors occurred while transforming data from multivalue format - log them
-				Model.logHandler.log(
+				Model.#logHandler.log(
 					'warn',
 					`error transforming data -- file: ${Model.file}; _id: ${this._id}; class: ${error.transformClass}; value: ${error.transformValue}`,
 				);
@@ -153,7 +153,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			options: ModelFindOptions = {},
 		): Promise<Model[]> {
 			const { userDefined, ...queryConstructorOptions } = options;
-			const query = new Query(Model, selectionCriteria, queryConstructorOptions);
+			const query = new Query(Model, selectionCriteria, Model.#logHandler, queryConstructorOptions);
 			const { documents } = await query.exec(userDefined && { userDefined });
 
 			return documents.map((document) => {
@@ -168,7 +168,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			options: ModelFindOptions = {},
 		): Promise<ModelFindAndCountResult> {
 			const { userDefined, ...queryConstructorOptions } = options;
-			const query = new Query(Model, selectionCriteria, queryConstructorOptions);
+			const query = new Query(Model, selectionCriteria, Model.#logHandler, queryConstructorOptions);
 			const { count, documents } = await query.exec(userDefined && { userDefined });
 
 			const models = documents.map((document) => {

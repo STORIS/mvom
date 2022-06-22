@@ -1,5 +1,6 @@
 import type { ModelConstructor } from './compileModel';
 import { InvalidParameterError, QueryLimitError } from './errors';
+import type LogHandler from './LogHandler';
 import type { DbDocument, DbSubroutineSetupOptions, GenericObject } from './types';
 
 // #region Types
@@ -68,6 +69,9 @@ class Query<TSchema extends GenericObject = GenericObject> {
 	/** Model constructor to use with query */
 	private readonly Model: ModelConstructor;
 
+	/** Log handler */
+	private readonly logHandler: LogHandler;
+
 	/** String to use as selection criteria in query */
 	private readonly selection: string | null;
 
@@ -92,11 +96,13 @@ class Query<TSchema extends GenericObject = GenericObject> {
 	public constructor(
 		Model: ModelConstructor,
 		selectionCriteria: Filter<TSchema>,
+		logHandler: LogHandler,
 		options: QueryConstructorOptions = {},
 	) {
 		const { sort, limit, skip, projection } = options;
 
 		this.Model = Model;
+		this.logHandler = logHandler;
 		this.limit = limit;
 		this.skip = skip;
 		this.projection = projection ?? null;
@@ -132,7 +138,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 			projection,
 		};
 
-		this.Model.logHandler.log('verbose', `executing query "${queryCommand}"`);
+		this.logHandler.log('verbose', `executing query "${queryCommand}"`);
 		const data = await this.Model.connection.executeDbSubroutine(
 			'find',
 			executionOptions,
