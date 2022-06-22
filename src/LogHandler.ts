@@ -1,4 +1,15 @@
-import type { Logger } from './types';
+interface LogFunction {
+	(message: string): void;
+}
+
+export interface Logger {
+	error: LogFunction;
+	warn: LogFunction;
+	info: LogFunction;
+	verbose: LogFunction;
+	debug: LogFunction;
+	silly: LogFunction;
+}
 
 /** Handle logging */
 class LogHandler {

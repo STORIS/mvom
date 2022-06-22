@@ -24,6 +24,7 @@ import {
 	TimeoutError,
 	UnknownError,
 } from './errors';
+import type { Logger } from './LogHandler';
 import LogHandler from './LogHandler';
 import type Schema from './Schema';
 import type {
@@ -40,18 +41,6 @@ import type {
 } from './types';
 
 // #region Types
-interface LogFunction {
-	(message: string): void;
-}
-
-export interface Logger {
-	error: LogFunction;
-	warn: LogFunction;
-	info: LogFunction;
-	verbose: LogFunction;
-	debug: LogFunction;
-	silly: LogFunction;
-}
 
 export interface CreateConnectionOptions {
 	/** Optional logger instance */
