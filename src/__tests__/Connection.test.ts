@@ -6,7 +6,7 @@ import fs from 'fs-extra';
 import { mock } from 'jest-mock-extended';
 import { when } from 'jest-when';
 import mockDelimiters from '#test/mockDelimiters';
-import type { CreateConnectionOptions, Logger } from '../Connection';
+import type { CreateConnectionOptions } from '../Connection';
 import Connection, { ConnectionStatus } from '../Connection';
 import { dbErrors } from '../constants';
 import {
@@ -23,21 +23,15 @@ import {
 import { dependencies as serverDependencies } from '../manifest.json';
 
 jest.mock('axios');
-jest.mock('fs-extra');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 const mockedAxiosInstance = mock<AxiosInstance>();
 const mockedFs = fs as jest.Mocked<typeof fs>;
 
-const mvisUri = 'http://foo.bar.com/mvis';
+const mvisUrl = 'http://foo.bar.com/mvis';
+const mvisAdminUrl = 'http://foo.bar.com/mvisAdmin';
+const mvisAdminUsername = 'username';
+const mvisAdminPassword = 'password';
 const account = 'account';
-
-const fullFeatureOutput = Object.entries(serverDependencies).map(
-	([dependencyName, dependencyVersion]) => {
-		const version = minVersion(dependencyVersion);
-		const fullFeatureName = `mvom_${dependencyName}@${version}`;
-		return fullFeatureName;
-	},
-);
 
 beforeEach(() => {
 	mockedAxios.create.mockReturnValue(mockedAxiosInstance);
@@ -50,7 +44,14 @@ describe('createConnection', () => {
 		};
 
 		expect(() => {
-			Connection.createConnection(mvisUri, account, options);
+			Connection.createConnection(
+				mvisUrl,
+				mvisAdminUrl,
+				mvisAdminUsername,
+				mvisAdminPassword,
+				account,
+				options,
+			);
 		}).toThrow(InvalidParameterError);
 	});
 
@@ -60,18 +61,39 @@ describe('createConnection', () => {
 		};
 
 		expect(() => {
-			Connection.createConnection(mvisUri, account, options);
+			Connection.createConnection(
+				mvisUrl,
+				mvisAdminUrl,
+				mvisAdminUsername,
+				mvisAdminPassword,
+				account,
+				options,
+			);
 		}).toThrow(InvalidParameterError);
 	});
 
 	test('should return a new Connection instance', () => {
-		expect(Connection.createConnection(mvisUri, account)).toBeInstanceOf(Connection);
+		expect(
+			Connection.createConnection(
+				mvisUrl,
+				mvisAdminUrl,
+				mvisAdminUsername,
+				mvisAdminPassword,
+				account,
+			),
+		).toBeInstanceOf(Connection);
 	});
 
 	test('should construct complete base url for calls to mvis', () => {
-		Connection.createConnection(mvisUri, account);
+		Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
 
-		const expected = new RegExp(`^${mvisUri}/${account}/subroutine/mvom_entry@\\d+.\\d+.\\d+$`);
+		const expected = new RegExp(`^${mvisUrl}/${account}/subroutine/mvom_entry@\\d+.\\d+.\\d+$`);
 
 		expect(mockedAxios.create).toHaveBeenCalledWith(
 			expect.objectContaining({
@@ -81,9 +103,15 @@ describe('createConnection', () => {
 	});
 
 	test('should construct complete base url for calls to mvis if trailing slash added to mvisUri', () => {
-		Connection.createConnection(`${mvisUri}/`, account);
+		Connection.createConnection(
+			`${mvisUrl}/`,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
 
-		const expected = new RegExp(`^${mvisUri}/${account}/subroutine/mvom_entry@\\d+.\\d+.\\d+$`);
+		const expected = new RegExp(`^${mvisUrl}/${account}/subroutine/mvom_entry@\\d+.\\d+.\\d+$`);
 
 		expect(mockedAxios.create).toHaveBeenCalledWith(
 			expect.objectContaining({
@@ -95,7 +123,14 @@ describe('createConnection', () => {
 	test('should allow for override of Logger', () => {
 		const loggerMock = mock<Logger>();
 
-		const connection = Connection.createConnection(mvisUri, account, { logger: loggerMock });
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+			{ logger: loggerMock },
+		);
 
 		const message = 'test message';
 		connection.logMessage('silly', message);
@@ -105,14 +140,28 @@ describe('createConnection', () => {
 	test('should allow for override of timeout', () => {
 		const timeout = 1;
 
-		Connection.createConnection(mvisUri, account, { timeout });
+		Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+			{ timeout },
+		);
 		expect(mockedAxios.create).toHaveBeenCalledWith(expect.objectContaining({ timeout }));
 	});
 
 	test('should allow for override of httpAgent', () => {
 		const httpAgentMock = mock<http.Agent>();
 
-		Connection.createConnection(mvisUri, account, { httpAgent: httpAgentMock });
+		Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+			{ httpAgent: httpAgentMock },
+		);
 		expect(mockedAxios.create).toHaveBeenCalledWith(
 			expect.objectContaining({ httpAgent: httpAgentMock }),
 		);
@@ -121,7 +170,14 @@ describe('createConnection', () => {
 	test('should allow for override of httpsAgent', () => {
 		const httpsAgentMock = mock<https.Agent>();
 
-		Connection.createConnection(mvisUri, account, { httpsAgent: httpsAgentMock });
+		Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+			{ httpsAgent: httpsAgentMock },
+		);
 		expect(mockedAxios.create).toHaveBeenCalledWith(
 			expect.objectContaining({ httpsAgent: httpsAgentMock }),
 		);
@@ -132,7 +188,13 @@ describe('open', () => {
 	test('should throw InvalidServerFeaturesError if any database features are missing', async () => {
 		mockedAxiosInstance.post.mockResolvedValue({ data: { output: { features: [] } } });
 
-		const connection = Connection.createConnection(mvisUri, account);
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
 
 		await expect(connection.open()).rejects.toThrow(InvalidServerFeaturesError);
 	});
@@ -142,7 +204,13 @@ describe('open', () => {
 			data: { output: { features: ['mvom_feature@foo.bar.baz', 'mvom_feature@1.1.1.leftover'] } },
 		});
 
-		const connection = Connection.createConnection(mvisUri, account);
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
 
 		await expect(connection.open()).rejects.toThrow(InvalidServerFeaturesError);
 	});
@@ -161,7 +229,13 @@ describe('open', () => {
 			data: { output: { features: featureOutput } },
 		});
 
-		const connection = Connection.createConnection(mvisUri, account);
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
 
 		await expect(connection.open()).rejects.toThrow(InvalidServerFeaturesError);
 	});
@@ -193,7 +267,13 @@ describe('open', () => {
 				},
 			});
 
-		const connection = Connection.createConnection(mvisUri, account);
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
 
 		await connection.open();
 		expect(connection.status).toBe(ConnectionStatus.connected);
@@ -209,7 +289,13 @@ describe('deployFeatures', () => {
 			)
 			.mockResolvedValue({ data: { output: { features: fullFeatureOutput } } });
 
-		const connection = Connection.createConnection(mvisUri, account);
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
 
 		const sourceDir = 'sourceDir';
 		await connection.deployFeatures(sourceDir);
@@ -248,7 +334,13 @@ describe('deployFeatures', () => {
 		// @ts-ignore: mock not respecting overload
 		mockedFs.readFile.mockResolvedValue(source);
 
-		const connection = Connection.createConnection(mvisUri, account);
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
 
 		const sourceDir = 'sourceDir';
 		await connection.deployFeatures(sourceDir, { createDir: true });
@@ -298,7 +390,13 @@ describe('deployFeatures', () => {
 		// @ts-ignore: mock not respecting overload
 		mockedFs.readFile.mockResolvedValue(source);
 
-		const connection = Connection.createConnection(mvisUri, account);
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
 
 		const sourceDir = 'sourceDir';
 		await connection.deployFeatures(sourceDir);
@@ -358,7 +456,13 @@ describe('executeDbFeature', () => {
 			)
 			.mockResolvedValue({ data: { output: null } });
 
-		const connection = Connection.createConnection(mvisUri, account);
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
 
 		const filename = 'filename';
 		const id = 'id';
@@ -389,7 +493,13 @@ describe('executeDbFeature', () => {
 				},
 			});
 
-		const connection = Connection.createConnection(mvisUri, account);
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
 
 		const filename = 'filename';
 		const id = 'id';
@@ -420,7 +530,13 @@ describe('executeDbFeature', () => {
 				},
 			});
 
-		const connection = Connection.createConnection(mvisUri, account);
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
 
 		const filename = 'filename';
 		const id = 'id';
@@ -451,7 +567,13 @@ describe('executeDbFeature', () => {
 				},
 			});
 
-		const connection = Connection.createConnection(mvisUri, account);
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
 
 		const filename = 'filename';
 		const id = 'id';
@@ -482,7 +604,13 @@ describe('executeDbFeature', () => {
 				},
 			});
 
-		const connection = Connection.createConnection(mvisUri, account);
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
 
 		const filename = 'filename';
 		const id = 'id';
@@ -511,7 +639,13 @@ describe('executeDbFeature', () => {
 			)
 			.mockRejectedValue(err);
 
-		const connection = Connection.createConnection(mvisUri, account);
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
 
 		const filename = 'filename';
 		const id = 'id';
@@ -541,7 +675,13 @@ describe('executeDbFeature', () => {
 			)
 			.mockRejectedValue(err);
 
-		const connection = Connection.createConnection(mvisUri, account);
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
 
 		const filename = 'filename';
 		const id = 'id';
@@ -571,7 +711,13 @@ describe('executeDbFeature', () => {
 			)
 			.mockRejectedValue(err);
 
-		const connection = Connection.createConnection(mvisUri, account);
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
 
 		const filename = 'filename';
 		const id = 'id';
@@ -600,7 +746,13 @@ describe('executeDbFeature', () => {
 			)
 			.mockRejectedValue(errMsg);
 
-		const connection = Connection.createConnection(mvisUri, account);
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
 
 		const filename = 'filename';
 		const id = 'id';
@@ -625,7 +777,13 @@ describe('getDbDate', () => {
 	});
 
 	test('should throw an error if connection has not been opened', async () => {
-		const connection = Connection.createConnection(mvisUri, account);
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
 
 		await expect(connection.getDbDate()).rejects.toThrow();
 	});
@@ -659,7 +817,13 @@ describe('getDbDate', () => {
 
 		jest.setSystemTime(new Date('2022-03-08T12:00:00.000'));
 
-		const connection = Connection.createConnection(mvisUri, account);
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
 		await connection.open();
 
 		const expected = '2022-03-08';
@@ -695,7 +859,13 @@ describe('getDbDate', () => {
 
 		jest.setSystemTime(new Date('2022-03-08T17:00:00.000'));
 
-		const connection = Connection.createConnection(mvisUri, account);
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
 		await connection.open();
 
 		const expected = '2022-03-08';
@@ -713,7 +883,13 @@ describe('getDbDateTime', () => {
 	});
 
 	test('should throw an error if connection has not been opened', async () => {
-		const connection = Connection.createConnection(mvisUri, account);
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
 
 		await expect(connection.getDbDateTime()).rejects.toThrow();
 	});
@@ -747,7 +923,13 @@ describe('getDbDateTime', () => {
 
 		jest.setSystemTime(new Date('2022-03-08T12:00:00.000'));
 
-		const connection = Connection.createConnection(mvisUri, account);
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
 		await connection.open();
 
 		const expected = '2022-03-08T12:00:00.000';
@@ -783,7 +965,13 @@ describe('getDbDateTime', () => {
 
 		jest.setSystemTime(new Date('2022-03-08T17:00:00.000'));
 
-		const connection = Connection.createConnection(mvisUri, account);
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
 		await connection.open();
 
 		const expected = '2022-03-08T12:00:00.000';
@@ -801,7 +989,13 @@ describe('getDbTime', () => {
 	});
 
 	test('should throw an error if connection has not been opened', async () => {
-		const connection = Connection.createConnection(mvisUri, account);
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
 
 		await expect(connection.getDbTime()).rejects.toThrow();
 	});
@@ -835,7 +1029,13 @@ describe('getDbTime', () => {
 
 		jest.setSystemTime(new Date('2022-03-08T12:00:00.000'));
 
-		const connection = Connection.createConnection(mvisUri, account);
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
 		await connection.open();
 
 		const expected = '12:00:00.000';
@@ -871,7 +1071,13 @@ describe('getDbTime', () => {
 
 		jest.setSystemTime(new Date('2022-03-08T17:00:00.000'));
 
-		const connection = Connection.createConnection(mvisUri, account);
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
 		await connection.open();
 
 		const expected = '12:00:00.000';
@@ -881,7 +1087,13 @@ describe('getDbTime', () => {
 
 describe('getDbLimits', () => {
 	test('should throw an error if connection has not been opened', async () => {
-		const connection = Connection.createConnection(mvisUri, account);
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
 
 		await expect(connection.getDbLimits()).rejects.toThrow();
 	});
@@ -913,7 +1125,13 @@ describe('getDbLimits', () => {
 				},
 			});
 
-		const connection = Connection.createConnection(mvisUri, account);
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
 		await connection.open();
 
 		const expected = { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 };
@@ -923,7 +1141,13 @@ describe('getDbLimits', () => {
 
 describe('model', () => {
 	test('should throw Error if connection has not been opened', () => {
-		const connection = Connection.createConnection(mvisUri, account);
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
 
 		const file = 'file';
 		expect(() => {
@@ -958,7 +1182,13 @@ describe('model', () => {
 				},
 			});
 
-		const connection = Connection.createConnection(mvisUri, account);
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
 		await connection.open();
 
 		const file = 'file';
