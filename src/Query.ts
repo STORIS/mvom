@@ -95,8 +95,8 @@ class Query<TSchema extends GenericObject = GenericObject> {
 
 	public constructor(
 		Model: ModelConstructor,
-		selectionCriteria: Filter<TSchema>,
 		logHandler: LogHandler,
+		selectionCriteria: Filter<TSchema>,
 		options: QueryConstructorOptions = {},
 	) {
 		const { sort, limit, skip, projection } = options;

@@ -152,7 +152,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			options: ModelFindOptions = {},
 		): Promise<Model[]> {
 			const { userDefined, ...queryConstructorOptions } = options;
-			const query = new Query(Model, selectionCriteria, Model.#logHandler, queryConstructorOptions);
+			const query = new Query(Model, Model.#logHandler, selectionCriteria, queryConstructorOptions);
 			const { documents } = await query.exec(userDefined && { userDefined });
 
 			return documents.map((document) => {
@@ -167,7 +167,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			options: ModelFindOptions = {},
 		): Promise<ModelFindAndCountResult> {
 			const { userDefined, ...queryConstructorOptions } = options;
-			const query = new Query(Model, selectionCriteria, Model.#logHandler, queryConstructorOptions);
+			const query = new Query(Model, Model.#logHandler, selectionCriteria, queryConstructorOptions);
 			const { count, documents } = await query.exec(userDefined && { userDefined });
 
 			const models = documents.map((document) => {
