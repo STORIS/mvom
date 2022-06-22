@@ -11,11 +11,13 @@ import {
 	ISOTimeFormat,
 	mvEpoch,
 } from './constants';
+import type { DeployOptions } from './DeploymentManager';
 import DeploymentManager from './DeploymentManager';
 import {
 	DbServerError,
 	ForeignKeyValidationError,
 	InvalidParameterError,
+	InvalidServerFeaturesError,
 	MvisError,
 	RecordLockedError,
 	RecordVersionError,
@@ -206,25 +208,25 @@ class Connection {
 		this.logMessage('info', 'opening connection');
 		this.status = ConnectionStatus.connecting;
 
-		await this.deploymentManager?.validateDeployment();
-
-		// await this.getFeatureState();
-
-		// if (this.serverFeatureSet.invalidFeatures.size > 0) {
-		// 	// prevent connection attempt if features are invalid
-		// 	this.logMessage('info', `invalid features found: ${this.serverFeatureSet.invalidFeatures}`);
-		// 	this.logMessage('error', 'connection will not be opened');
-		// 	this.status = ConnectionStatus.disconnected;
-		// 	throw new InvalidServerFeaturesError({
-		// 		invalidFeatures: Array.from(this.serverFeatureSet.invalidFeatures),
-		// 	});
-		// }
+		const isValid = await this.deploymentManager.validateDeployment();
+		if (!isValid) {
+			// prevent connection attempt if features are invalid
+			this.logMessage('info', 'MVIS has not been configured for use with MVOM');
+			this.logMessage('error', 'Connection will not be opened');
+			this.status = ConnectionStatus.disconnected;
+			throw new InvalidServerFeaturesError();
+		}
 
 		this.status = ConnectionStatus.connected;
 
 		await this.getDbServerInfo(); // establish baseline for database server information
 
 		this.logMessage('info', 'connection opened');
+	}
+
+	/** Deploy source code to MVIS & db server */
+	public async deploy(sourceDir: string, options: DeployOptions): Promise<void> {
+		return this.deploymentManager.deploy(sourceDir, options);
 	}
 
 	/** Execute a database subroutine */
