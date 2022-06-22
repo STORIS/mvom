@@ -99,8 +99,8 @@ class DeploymentManager {
 	private readonly subroutineName: string;
 
 	private constructor(
-		/** URI of the MVIS Admin */
-		mvisAdminUri: string,
+		/** URL of the MVIS Admin */
+		mvisAdminUrl: string,
 		/** Database account that will be administered will be used against */
 		account: string,
 		/** MVIS Admin username */
@@ -119,7 +119,7 @@ class DeploymentManager {
 		this.logger = logger;
 		this.authorization = Buffer.from(`${username}:${password}`).toString('base64');
 
-		const url = new URL(mvisAdminUri);
+		const url = new URL(mvisAdminUrl);
 		url.pathname = url.pathname.replace(/\/?$/, `/api/`);
 		const baseURL = url.toString();
 
@@ -145,8 +145,8 @@ class DeploymentManager {
 
 	/** Create a deployment manager */
 	public static createDeploymentManager(
-		/** URI of the MVIS Admin */
-		mvisAdminUri: string,
+		/** URL of the MVIS Admin */
+		mvisAdminUrl: string,
 		/** Database account that will be administered will be used against */
 		account: string,
 		/** MVIS Admin username */
@@ -161,7 +161,7 @@ class DeploymentManager {
 			throw new InvalidParameterError({ parameterName: 'timeout' });
 		}
 
-		return new DeploymentManager(mvisAdminUri, account, username, password, timeout, logger, {
+		return new DeploymentManager(mvisAdminUrl, account, username, password, timeout, logger, {
 			httpAgent,
 			httpsAgent,
 		});

@@ -39,11 +39,6 @@ import type {
 import { dummyLogger } from './utils';
 
 // #region Types
-interface DeploymentOptions {
-	mvisAdminUri: string;
-	username: string;
-	password: string;
-}
 
 export interface CreateConnectionOptions {
 	/** Optional logger instance */
@@ -63,8 +58,6 @@ export interface CreateConnectionOptions {
 	httpAgent?: http.Agent;
 	/** Optional https agent */
 	httpsAgent?: https.Agent;
-	/** Deployment Options */
-	deploymentOptions?: DeploymentOptions;
 }
 
 interface ConnectionConstructorOptions {
@@ -72,8 +65,6 @@ interface ConnectionConstructorOptions {
 	httpAgent?: http.Agent;
 	/** Optional https agent */
 	httpsAgent?: https.Agent;
-	/** Deployment Options */
-	deploymentOptions?: DeploymentOptions;
 }
 
 export enum ConnectionStatus {
@@ -117,11 +108,17 @@ class Connection {
 	private readonly axiosInstance: AxiosInstance;
 
 	/** Deployment Manager instance */
-	private readonly deploymentManager?: DeploymentManager;
+	private readonly deploymentManager: DeploymentManager;
 
 	private constructor(
-		/** URI of the MVIS which facilitates access to the mv database */
-		mvisUri: string,
+		/** URL of the MVIS which facilitates access to the mv database */
+		mvisUrl: string,
+		/** URL of the MVIS Admin */
+		mvisAdminUrl: string,
+		/** MVIS Admin Username */
+		mvisAdminUsername: string,
+		/** MVIS Admin Password */
+		mvisAdminPassword: string,
 		/** Database account that connection will be used against */
 		account: string,
 		/** Logger instance */
@@ -132,13 +129,13 @@ class Connection {
 		timeout: number,
 		options: ConnectionConstructorOptions,
 	) {
-		const { httpAgent, httpsAgent, deploymentOptions } = options;
+		const { httpAgent, httpsAgent } = options;
 
 		this.account = account;
 		this.logger = logger;
 		this.cacheMaxAge = cacheMaxAge;
 
-		const url = new URL(mvisUri);
+		const url = new URL(mvisUrl);
 		url.pathname = url.pathname.replace(/\/?$/, `/${account}/subroutine/`);
 		const baseURL = url.toString();
 
@@ -150,30 +147,27 @@ class Connection {
 			...(httpsAgent && { httpsAgent }),
 		});
 
-		if (deploymentOptions != null) {
-			const { mvisAdminUri, username, password } = deploymentOptions;
-
-			this.deploymentManager = DeploymentManager.createDeploymentManager(
-				mvisAdminUri,
-				account,
-				username,
-				password,
-				{ httpAgent, httpsAgent },
-			);
-		} else {
-			this.logMessage(
-				'warn',
-				'Deployment options not specified -- deployment will not be available.',
-			);
-		}
+		this.deploymentManager = DeploymentManager.createDeploymentManager(
+			mvisAdminUrl,
+			account,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			{ httpAgent, httpsAgent },
+		);
 
 		this.logMessage('debug', 'creating new connection instance');
 	}
 
 	/** Create a connection */
 	public static createConnection(
-		/** URI of the MVIS which facilitates access to the mv database */
-		mvisUri: string,
+		/** URL of the MVIS which facilitates access to the mv database */
+		mvisUrl: string,
+		/** URL of the MVIS Admin */
+		mvisAdminUrl: string,
+		/** MVIS Admin Username */
+		mvisAdminUsername: string,
+		/** MVIS Admin Password */
+		mvisAdminPassword: string,
 		/** Database account that connection will be used against */
 		account: string,
 		options: CreateConnectionOptions = {},
@@ -194,16 +188,26 @@ class Connection {
 			throw new InvalidParameterError({ parameterName: 'timeout' });
 		}
 
-		return new Connection(mvisUri, account, logger, cacheMaxAge, timeout, {
-			httpAgent,
-			httpsAgent,
-		});
+		return new Connection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+			logger,
+			cacheMaxAge,
+			timeout,
+			{ httpAgent, httpsAgent },
+		);
 	}
 
 	/** Open a database connection */
 	public async open(): Promise<void> {
 		this.logMessage('info', 'opening connection');
 		this.status = ConnectionStatus.connecting;
+
+		await this.deploymentManager?.validateDeployment();
+
 		// await this.getFeatureState();
 
 		// if (this.serverFeatureSet.invalidFeatures.size > 0) {
