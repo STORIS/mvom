@@ -63,8 +63,6 @@ export interface CreateConnectionOptions {
 }
 
 interface ConnectionConstructorOptions {
-	/** Optional logger instance */
-	logger?: Logger;
 	/** Optional http agent */
 	httpAgent?: http.Agent;
 	/** Optional https agent */
@@ -96,7 +94,7 @@ class Connection {
 	/** Connection status */
 	public status: ConnectionStatus = ConnectionStatus.disconnected;
 
-	/** Log handler */
+	/** Log handler instance used for diagnostic logging */
 	private readonly logHandler: LogHandler;
 
 	/** Maximum age of the cache before it must be refreshed */
@@ -114,25 +112,21 @@ class Connection {
 	private constructor(
 		/** URL of the MVIS which facilitates access to the mv database */
 		mvisUrl: string,
-		/** URL of the MVIS Admin */
-		mvisAdminUrl: string,
-		/** MVIS Admin Username */
-		mvisAdminUsername: string,
-		/** MVIS Admin Password */
-		mvisAdminPassword: string,
 		/** Database account that connection will be used against */
 		account: string,
 		/** Lifetime of cache of db server data (s) */
 		cacheMaxAge: number,
 		/** Request timeout (ms) */
 		timeout: number,
+		logHandler: LogHandler,
+		deploymentManager: DeploymentManager,
 		options: ConnectionConstructorOptions,
 	) {
-		const { logger, httpAgent, httpsAgent } = options;
+		const { httpAgent, httpsAgent } = options;
 
 		this.cacheMaxAge = cacheMaxAge;
-
-		this.logHandler = new LogHandler(account, logger);
+		this.logHandler = logHandler;
+		this.deploymentManager = deploymentManager;
 
 		const url = new URL(mvisUrl);
 		url.pathname = url.pathname.replace(/\/?$/, `/${account}/subroutine/`);
@@ -145,15 +139,6 @@ class Connection {
 			...(httpAgent && { httpAgent }),
 			...(httpsAgent && { httpsAgent }),
 		});
-
-		this.deploymentManager = DeploymentManager.createDeploymentManager(
-			mvisAdminUrl,
-			account,
-			mvisAdminUsername,
-			mvisAdminPassword,
-			this.logHandler,
-			{ timeout, httpAgent, httpsAgent },
-		);
 
 		this.logHandler.log('debug', 'creating new connection instance');
 	}
@@ -182,16 +167,21 @@ class Connection {
 			throw new InvalidParameterError({ parameterName: 'timeout' });
 		}
 
-		return new Connection(
-			mvisUrl,
+		const logHandler = new LogHandler(account, logger);
+
+		const deploymentManager = DeploymentManager.createDeploymentManager(
 			mvisAdminUrl,
+			account,
 			mvisAdminUsername,
 			mvisAdminPassword,
-			account,
-			cacheMaxAge,
-			timeout,
-			{ logger, httpAgent, httpsAgent },
+			logHandler,
+			{ timeout, httpAgent, httpsAgent },
 		);
+
+		return new Connection(mvisUrl, account, cacheMaxAge, timeout, logHandler, deploymentManager, {
+			httpAgent,
+			httpsAgent,
+		});
 	}
 
 	/** Open a database connection */

@@ -61,7 +61,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 		/** Schema that defines this model */
 		public static readonly schema = schema;
 
-		/** Log handler instance */
+		/** Log handler instance used for diagnostic logging */
 		static readonly #logHandler: LogHandler = logHandler;
 
 		/** Database server delimiters */

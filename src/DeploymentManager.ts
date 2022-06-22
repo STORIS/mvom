@@ -86,7 +86,7 @@ class DeploymentManager {
 	/** Database account name */
 	private readonly account: string;
 
-	/** Logger instance used for diagnostic logging */
+	/** Log handler instance used for diagnostic logging */
 	private readonly logHandler: LogHandler;
 
 	/** MVIS Admin authorization header */

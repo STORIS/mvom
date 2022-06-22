@@ -69,7 +69,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 	/** Model constructor to use with query */
 	private readonly Model: ModelConstructor;
 
-	/** Log handler */
+	/** Log handler instance used for diagnostic logging */
 	private readonly logHandler: LogHandler;
 
 	/** String to use as selection criteria in query */
