@@ -140,7 +140,7 @@ class Connection {
 			...(httpsAgent && { httpsAgent }),
 		});
 
-		this.logHandler.log('debug', 'creating new connection instance');
+		this.logHandler.debug('creating new connection instance');
 	}
 
 	/** Create a connection */
@@ -186,14 +186,14 @@ class Connection {
 
 	/** Open a database connection */
 	public async open(): Promise<void> {
-		this.logHandler.log('info', 'opening connection');
+		this.logHandler.info('opening connection');
 		this.status = ConnectionStatus.connecting;
 
 		const isValid = await this.deploymentManager.validateDeployment();
 		if (!isValid) {
 			// prevent connection attempt if features are invalid
-			this.logHandler.log('info', 'MVIS has not been configured for use with MVOM');
-			this.logHandler.log('error', 'Connection will not be opened');
+			this.logHandler.info('MVIS has not been configured for use with MVOM');
+			this.logHandler.error('Connection will not be opened');
 			this.status = ConnectionStatus.disconnected;
 			throw new InvalidServerFeaturesError();
 		}
@@ -202,7 +202,7 @@ class Connection {
 
 		await this.getDbServerInfo(); // establish baseline for database server information
 
-		this.logHandler.log('info', 'connection opened');
+		this.logHandler.info('connection opened');
 	}
 
 	/** Deploy source code to MVIS & db server */
@@ -219,7 +219,7 @@ class Connection {
 		setupOptions: DbSubroutineSetupOptions = {},
 		teardownOptions: Record<string, never> = {},
 	): Promise<DbSubroutineResponseTypesMap[TSubroutineName]['output']> {
-		this.logHandler.log('debug', `executing database subroutine "${subroutineName}"`);
+		this.logHandler.debug(`executing database subroutine "${subroutineName}"`);
 
 		const data: DbSubroutinePayload<DbSubroutineInputOptionsMap[TSubroutineName]> = {
 			subroutineId: subroutineName,
@@ -273,10 +273,7 @@ class Connection {
 		file: string,
 	): ModelConstructor {
 		if (this.status !== ConnectionStatus.connected || this.dbServerInfo == null) {
-			this.logHandler.log(
-				'error',
-				'Cannot create model until database connection has been established',
-			);
+			this.logHandler.error('Cannot create model until database connection has been established');
 			throw new Error('Cannot create model until database connection has been established');
 		}
 
@@ -289,8 +286,7 @@ class Connection {
 	private async getDbServerInfo(): Promise<ServerInfo> {
 		if (this.dbServerInfo == null || Date.now() > this.dbServerInfo.cacheExpiry) {
 			if (this.status !== ConnectionStatus.connected) {
-				this.logHandler.log(
-					'error',
+				this.logHandler.error(
 					'Cannot get database server info until database connection has been established',
 				);
 				throw new Error(
@@ -298,7 +294,7 @@ class Connection {
 				);
 			}
 
-			this.logHandler.log('debug', 'getting db server information');
+			this.logHandler.debug('getting db server information');
 			const { date, time, delimiters, limits } = await this.executeDbSubroutine(
 				'getServerInfo',
 				{},
@@ -333,7 +329,7 @@ class Connection {
 	): asserts response is AxiosResponse<TResponse> {
 		if (response.data.output == null) {
 			// handle invalid response
-			this.logHandler.log('error', 'Response from db server was malformed');
+			this.logHandler.error('Response from db server was malformed');
 			throw new DbServerError({ message: 'Response from db server was malformed' });
 		}
 
@@ -341,20 +337,19 @@ class Connection {
 			const errorCode = Number(response.data.output.errorCode);
 			switch (errorCode) {
 				case dbErrors.foreignKeyValidation.code:
-					this.logHandler.log('debug', 'foreign key violations found when saving record');
+					this.logHandler.debug('foreign key violations found when saving record');
 					throw new ForeignKeyValidationError({
 						foreignKeyValidationErrors: (response.data.output as DbSubroutineOutputErrorForeignKey)
 							.foreignKeyValidationErrors,
 					});
 				case dbErrors.recordLocked.code:
-					this.logHandler.log('debug', 'record locked when saving record');
+					this.logHandler.debug('record locked when saving record');
 					throw new RecordLockedError();
 				case dbErrors.recordVersion.code:
-					this.logHandler.log('debug', 'record version mismatch found when saving record');
+					this.logHandler.debug('record version mismatch found when saving record');
 					throw new RecordVersionError();
 				default:
-					this.logHandler.log(
-						'error',
+					this.logHandler.error(
 						`error code ${response.data.output.errorCode} occurred in database operation`,
 					);
 					throw new DbServerError({ errorCode: response.data.output.errorCode });
@@ -365,11 +360,11 @@ class Connection {
 	/** Handle an axios error */
 	private handleAxiosError(err: AxiosError): never {
 		if (err.code === 'ETIMEDOUT') {
-			this.logHandler.log('error', `Timeout error occurred in MVIS request: ${err.message}`);
+			this.logHandler.error(`Timeout error occurred in MVIS request: ${err.message}`);
 			throw new TimeoutError({ message: err.message });
 		}
 
-		this.logHandler.log('error', `Error occurred in MVIS request: ${err.message}`);
+		this.logHandler.error(`Error occurred in MVIS request: ${err.message}`);
 		throw new MvisError({
 			message: err.message,
 			mvisRequest: err.request,
@@ -380,11 +375,11 @@ class Connection {
 	/** Handle an unknown error */
 	private handleUnexpectedError(err: unknown): never {
 		if (err instanceof Error) {
-			this.logHandler.log('error', `Error occurred in MVIS request: ${err.message}`);
+			this.logHandler.error(`Error occurred in MVIS request: ${err.message}`);
 			throw new UnknownError({ message: err.message });
 		}
 
-		this.logHandler.log('error', 'Unknown error occurred in MVIS request');
+		this.logHandler.error('Unknown error occurred in MVIS request');
 		throw new UnknownError();
 	}
 }

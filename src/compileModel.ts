@@ -48,7 +48,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 	dbServerDelimiters: DbServerDelimiters,
 	logHandler: LogHandler,
 ) => {
-	logHandler.log('debug', `creating new model for file ${file}`);
+	logHandler.debug(`creating new model for file ${file}`);
 
 	/** Model constructor */
 	return class Model extends Document {
@@ -111,12 +111,11 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 				},
 			});
 
-			Model.#logHandler.log('debug', `creating new instance of model for file ${Model.file}`);
+			Model.#logHandler.debug(`creating new instance of model for file ${Model.file}`);
 
 			this._transformationErrors.forEach((error) => {
 				// errors occurred while transforming data from multivalue format - log them
-				Model.#logHandler.log(
-					'warn',
+				Model.#logHandler.warn(
 					`error transforming data -- file: ${Model.file}; _id: ${this._id}; class: ${error.transformClass}; value: ${error.transformValue}`,
 				);
 			});

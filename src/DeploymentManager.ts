@@ -170,7 +170,7 @@ class DeploymentManager {
 	public async validateDeployment(): Promise<boolean> {
 		const headers = await this.authenticate();
 
-		this.logHandler.log('debug', 'Fetching list of REST subroutines from MVIS Admin');
+		this.logHandler.debug('Fetching list of REST subroutines from MVIS Admin');
 		const { data: response } = await axios.get<SubroutinesGetResult>(
 			`manager/rest/${this.account}/subroutines`,
 			{ headers },
@@ -181,9 +181,9 @@ class DeploymentManager {
 		);
 
 		if (isValid) {
-			this.logHandler.log('debug', `${this.subroutineName} is available for calling through MVIS`);
+			this.logHandler.debug(`${this.subroutineName} is available for calling through MVIS`);
 		} else {
-			this.logHandler.log('warn', `${this.subroutineName} is unavailable for calling through MVIS`);
+			this.logHandler.warn(`${this.subroutineName} is unavailable for calling through MVIS`);
 		}
 
 		return isValid;
@@ -196,10 +196,10 @@ class DeploymentManager {
 		const headers = await this.authenticate();
 
 		const sourcePath = path.join(DeploymentManager.unibasicPath, this.mainFileName);
-		this.logHandler.log('debug', `Reading unibasic source from ${sourcePath}`);
+		this.logHandler.debug(`Reading unibasic source from ${sourcePath}`);
 		const source = await fs.readFile(sourcePath, 'utf8');
 
-		this.logHandler.log('debug', `Deploying ${this.subroutineName} to MVIS Admin`);
+		this.logHandler.debug(`Deploying ${this.subroutineName} to MVIS Admin`);
 		await axios.post<unknown, AxiosResponse, SubroutineCreate>(
 			`manager/rest/${this.account}/subroutine`,
 			{
@@ -217,12 +217,12 @@ class DeploymentManager {
 			{ headers },
 		);
 
-		this.logHandler.log('debug', `${this.subroutineName} successfully deployed to MVIS Admin`);
+		this.logHandler.debug(`${this.subroutineName} successfully deployed to MVIS Admin`);
 	}
 
 	/** Authenticate to MVIS admin and return headers needed for subsequent API calls */
 	private async authenticate(): Promise<AuthenticateResult & AxiosRequestHeaders> {
-		this.logHandler.log('debug', 'Authenticating to MVIS Admin');
+		this.logHandler.debug('Authenticating to MVIS Admin');
 
 		const authResponse = await this.axiosInstance.get('user', {
 			headers: { authorization: `Basic ${this.authorization}` },
@@ -243,7 +243,7 @@ class DeploymentManager {
 		// ex: XSRF-TOKEN=3c2a0741-f1a5-4d52-9145-b508e4fbc845; Path=/
 		const xsrfToken = xsrfTokenCookie.split('=')[1].split(';')[0];
 
-		this.logHandler.log('debug', 'Successfully authenticated to MVIS admin');
+		this.logHandler.debug('Successfully authenticated to MVIS admin');
 
 		return {
 			Cookie: cookies.join('; '),
