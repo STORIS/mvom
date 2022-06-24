@@ -20,9 +20,19 @@ import {
 	TimeoutError,
 	UnknownError,
 } from '../errors';
+import type { Logger } from '../LogHandler';
 import { dependencies as serverDependencies } from '../manifest.json';
 
 jest.mock('axios');
+
+const mockValidateDeployment = jest.fn();
+const mockDeploy = jest.fn();
+jest.mock('../DeploymentManager', () =>
+	jest
+		.fn()
+		.mockImplementation(() => ({ validateDeployment: mockValidateDeployment, deploy: mockDeploy })),
+);
+
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 const mockedAxiosInstance = mock<AxiosInstance>();
 const mockedFs = fs as jest.Mocked<typeof fs>;
@@ -133,7 +143,8 @@ describe('createConnection', () => {
 		);
 
 		const message = 'test message';
-		connection.logMessage('silly', message);
+		// @ts-expect-error: accessing private member in test
+		connection.logHandler.silly(message);
 		expect(loggerMock.silly).toHaveBeenCalledWith(`[${account}] ${message}`);
 	});
 
@@ -185,8 +196,8 @@ describe('createConnection', () => {
 });
 
 describe('open', () => {
-	test('should throw InvalidServerFeaturesError if any database features are missing', async () => {
-		mockedAxiosInstance.post.mockResolvedValue({ data: { output: { features: [] } } });
+	test('should throw InvalidServerFeaturesError if database features are missing', async () => {
+		mockValidateDeployment.mockResolvedValue(false);
 
 		const connection = Connection.createConnection(
 			mvisUrl,
