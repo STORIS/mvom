@@ -2,11 +2,17 @@
 import { createHash } from 'crypto';
 import path from 'path';
 import fs from 'fs-extra';
-import { render } from 'nunjucks';
+import nunjucks from 'nunjucks';
 import { dbErrors } from '../src/constants';
 
-const inputFile = path.join(process.cwd(), 'src', 'unibasicTemplates', 'main.njk');
+const inputDir = path.join(process.cwd(), 'src', 'unibasicTemplates');
+const inputFile = path.join(inputDir, 'main.njk');
 const outputDir = path.join(process.cwd(), 'dist', 'unibasic');
+
+const env = new nunjucks.Environment(new nunjucks.FileSystemLoader(inputDir), {
+	noCache: true,
+	trimBlocks: true,
+});
 
 /** Empty (or create) the output directory */
 const emptyOutputDir = () => {
@@ -26,7 +32,7 @@ const calculateHash = (data: string): string =>
 /** Process file */
 const processFile = (): void => {
 	try {
-		const rendered = render(inputFile, { dbErrors });
+		const rendered = env.render(inputFile, { dbErrors });
 		try {
 			const hash = calculateHash(rendered);
 			const outputFile = `mvom_${path.parse(inputFile).name}@${hash}.mvb`;
