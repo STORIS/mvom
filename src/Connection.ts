@@ -206,7 +206,7 @@ class Connection {
 	}
 
 	/** Deploy source code to MVIS & db server */
-	public async deploy(sourceDir: string, options: DeployOptions): Promise<void> {
+	public async deploy(sourceDir: string, options?: DeployOptions): Promise<void> {
 		return this.deploymentManager.deploy(sourceDir, options);
 	}
 
@@ -219,6 +219,15 @@ class Connection {
 		setupOptions: DbSubroutineSetupOptions = {},
 		teardownOptions: Record<string, never> = {},
 	): Promise<DbSubroutineResponseTypesMap[TSubroutineName]['output']> {
+		if (this.status !== ConnectionStatus.connected) {
+			this.logHandler.error(
+				'Cannot execute database features until database connection has been established',
+			);
+			throw new Error(
+				'Cannot execute database features until database connection has been established',
+			);
+		}
+
 		this.logHandler.debug(`executing database subroutine "${subroutineName}"`);
 
 		const data: DbSubroutinePayload<DbSubroutineInputOptionsMap[TSubroutineName]> = {
@@ -285,15 +294,6 @@ class Connection {
 	/** Get the db server information (date, time, etc.) */
 	private async getDbServerInfo(): Promise<ServerInfo> {
 		if (this.dbServerInfo == null || Date.now() > this.dbServerInfo.cacheExpiry) {
-			if (this.status !== ConnectionStatus.connected) {
-				this.logHandler.error(
-					'Cannot get database server info until database connection has been established',
-				);
-				throw new Error(
-					'Cannot get database server info until database connection has been established',
-				);
-			}
-
 			this.logHandler.debug('getting db server information');
 			const { date, time, delimiters, limits } = await this.executeDbSubroutine(
 				'getServerInfo',

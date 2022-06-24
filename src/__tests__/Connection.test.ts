@@ -2,13 +2,13 @@ import type http from 'http';
 import type https from 'https';
 import type { AxiosError, AxiosInstance } from 'axios';
 import axios from 'axios';
-import fs from 'fs-extra';
 import { mock } from 'jest-mock-extended';
 import { when } from 'jest-when';
 import mockDelimiters from '#test/mockDelimiters';
 import type { CreateConnectionOptions } from '../Connection';
 import Connection, { ConnectionStatus } from '../Connection';
 import { dbErrors } from '../constants';
+import type DeploymentManager from '../DeploymentManager';
 import {
 	DbServerError,
 	ForeignKeyValidationError,
@@ -21,21 +21,14 @@ import {
 	UnknownError,
 } from '../errors';
 import type { Logger } from '../LogHandler';
-import { dependencies as serverDependencies } from '../manifest.json';
 
 jest.mock('axios');
 
-const mockValidateDeployment = jest.fn();
-const mockDeploy = jest.fn();
-jest.mock('../DeploymentManager', () =>
-	jest
-		.fn()
-		.mockImplementation(() => ({ validateDeployment: mockValidateDeployment, deploy: mockDeploy })),
-);
+const mockDeploymentManager = mock<DeploymentManager>();
+jest.mock('../DeploymentManager', () => ({ createDeploymentManager: () => mockDeploymentManager }));
 
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 const mockedAxiosInstance = mock<AxiosInstance>();
-const mockedFs = fs as jest.Mocked<typeof fs>;
 
 const mvisUrl = 'http://foo.bar.com/mvis';
 const mvisAdminUrl = 'http://foo.bar.com/mvisAdmin';
@@ -103,7 +96,7 @@ describe('createConnection', () => {
 			account,
 		);
 
-		const expected = new RegExp(`^${mvisUrl}/${account}/subroutine/mvom_entry@\\d+.\\d+.\\d+$`);
+		const expected = `${mvisUrl}/${account}/subroutine/`;
 
 		expect(mockedAxios.create).toHaveBeenCalledWith(
 			expect.objectContaining({
@@ -121,7 +114,7 @@ describe('createConnection', () => {
 			account,
 		);
 
-		const expected = new RegExp(`^${mvisUrl}/${account}/subroutine/mvom_entry@\\d+.\\d+.\\d+$`);
+		const expected = `${mvisUrl}/${account}/subroutine/`;
 
 		expect(mockedAxios.create).toHaveBeenCalledWith(
 			expect.objectContaining({
@@ -197,48 +190,7 @@ describe('createConnection', () => {
 
 describe('open', () => {
 	test('should throw InvalidServerFeaturesError if database features are missing', async () => {
-		mockValidateDeployment.mockResolvedValue(false);
-
-		const connection = Connection.createConnection(
-			mvisUrl,
-			mvisAdminUrl,
-			mvisAdminUsername,
-			mvisAdminPassword,
-			account,
-		);
-
-		await expect(connection.open()).rejects.toThrow(InvalidServerFeaturesError);
-	});
-
-	test('should ignore database features with improper formatting and throw InvalidServerFeaturesError', async () => {
-		mockedAxiosInstance.post.mockResolvedValue({
-			data: { output: { features: ['mvom_feature@foo.bar.baz', 'mvom_feature@1.1.1.leftover'] } },
-		});
-
-		const connection = Connection.createConnection(
-			mvisUrl,
-			mvisAdminUrl,
-			mvisAdminUsername,
-			mvisAdminPassword,
-			account,
-		);
-
-		await expect(connection.open()).rejects.toThrow(InvalidServerFeaturesError);
-	});
-
-	test('should throw InvalidServerFeaturesError if backend feature version is not semver compatible with required version', async () => {
-		const featureOutput = Object.entries(serverDependencies).map(
-			([dependencyName, dependencyVersion], idx) => {
-				// set version of first dependency to something that will guarantee incompatibility
-				const version = idx === 0 ? '0.0.0' : minVersion(dependencyVersion);
-				const fullFeatureName = `mvom_${dependencyName}@${version}`;
-				return fullFeatureName;
-			},
-		);
-
-		mockedAxiosInstance.post.mockResolvedValue({
-			data: { output: { features: featureOutput } },
-		});
+		mockDeploymentManager.validateDeployment.mockResolvedValue(false);
 
 		const connection = Connection.createConnection(
 			mvisUrl,
@@ -252,17 +204,13 @@ describe('open', () => {
 	});
 
 	test('should open new connection', async () => {
+		mockDeploymentManager.validateDeployment.mockResolvedValue(true);
+
 		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
-				expect.any(String),
-				expect.objectContaining({ input: expect.objectContaining({ action: 'featureList' }) }),
-			)
-			.mockResolvedValue({ data: { output: { features: fullFeatureOutput } } })
-			.calledWith(
-				expect.any(String),
+				expect.anything(),
 				expect.objectContaining({
 					input: expect.objectContaining({
-						action: 'subroutine',
 						subroutineId: expect.stringContaining('getServerInfo'),
 					}),
 				}),
@@ -291,14 +239,9 @@ describe('open', () => {
 	});
 });
 
-describe('deployFeatures', () => {
-	test('should not deploy any features if feature state is valid', async () => {
-		when<any, any[]>(mockedAxiosInstance.post)
-			.calledWith(
-				expect.any(String),
-				expect.objectContaining({ input: expect.objectContaining({ action: 'featureList' }) }),
-			)
-			.mockResolvedValue({ data: { output: { features: fullFeatureOutput } } });
+describe('deploy', () => {
+	test('should call the deployment manager deploy method without options', async () => {
+		const sourceDir = 'sourceDir';
 
 		const connection = Connection.createConnection(
 			mvisUrl,
@@ -308,42 +251,14 @@ describe('deployFeatures', () => {
 			account,
 		);
 
-		const sourceDir = 'sourceDir';
-		await connection.deployFeatures(sourceDir);
+		await connection.deploy(sourceDir);
 
-		expect(mockedAxiosInstance.post).toHaveBeenCalledTimes(1); // only a single call to get the feature state
+		expect(mockDeploymentManager.deploy).toHaveBeenCalledWith(sourceDir, undefined);
 	});
 
-	test('should create directory and deploy missing features', async () => {
-		const missingFeatureName = Object.keys(serverDependencies).shift()!;
-
-		const featureOutput = fullFeatureOutput.slice(1); // remove the first feature from the list
-
-		when<any, any[]>(mockedAxiosInstance.post)
-			.calledWith(
-				expect.any(String),
-				expect.objectContaining({ input: expect.objectContaining({ action: 'featureList' }) }),
-			)
-			.mockResolvedValue({ data: { output: { features: featureOutput } } })
-			.calledWith(
-				expect.any(String),
-				expect.objectContaining({ input: expect.objectContaining({ action: 'createDir' }) }),
-			)
-			.mockResolvedValue({ data: { output: {} } })
-			.calledWith(
-				expect.any(String),
-				expect.objectContaining({
-					input: expect.objectContaining({
-						action: 'subroutine',
-						subroutineId: expect.stringContaining('deploy'),
-					}),
-				}),
-			)
-			.mockResolvedValue({ data: { output: { deployed: missingFeatureName } } });
-
-		const source = 'some unibasic source code';
-		// @ts-ignore: mock not respecting overload
-		mockedFs.readFile.mockResolvedValue(source);
+	test('should call the deployment manager deploy method with options', async () => {
+		const sourceDir = 'sourceDir';
+		const options = { createDir: true };
 
 		const connection = Connection.createConnection(
 			mvisUrl,
@@ -353,91 +268,21 @@ describe('deployFeatures', () => {
 			account,
 		);
 
-		const sourceDir = 'sourceDir';
-		await connection.deployFeatures(sourceDir, { createDir: true });
-		expect(mockedAxiosInstance.post).toHaveBeenCalledWith(
-			expect.any(String),
-			expect.objectContaining({ input: expect.objectContaining({ action: 'createDir' }) }),
-		);
-		expect(mockedAxiosInstance.post).toHaveBeenCalledWith(
-			expect.any(String),
-			expect.objectContaining({
-				input: expect.objectContaining({
-					action: 'subroutine',
-					subroutineId: expect.stringContaining('deploy'),
-					options: expect.objectContaining({
-						sourceDir,
-						source,
-						programName: expect.stringContaining(missingFeatureName),
-					}),
-				}),
-			}),
-		);
-	});
+		await connection.deploy(sourceDir, options);
 
-	test('should deploy bootstrapped features', async () => {
-		const featureOutput = Object.entries(serverDependencies)
-			.filter(([dependencyName]) => dependencyName !== 'setup') // remove setup bootstrapped dependency
-			.map(([dependencyName, dependencyVersion]) => {
-				const version = minVersion(dependencyVersion);
-				const fullFeatureName = `mvom_${dependencyName}@${version}`;
-				return fullFeatureName;
-			});
-
-		when<any, any[]>(mockedAxiosInstance.post)
-			.calledWith(
-				expect.any(String),
-				expect.objectContaining({ input: expect.objectContaining({ action: 'featureList' }) }),
-			)
-			.mockResolvedValueOnce({ data: { output: { features: featureOutput } } })
-			.mockResolvedValueOnce({ data: { output: { features: fullFeatureOutput } } })
-			.calledWith(
-				expect.any(String),
-				expect.objectContaining({ input: expect.objectContaining({ action: 'deploy' }) }),
-			)
-			.mockResolvedValue({ data: { output: { deployed: 'setup' } } });
-
-		const source = 'some unibasic source code';
-		// @ts-ignore: mock not respecting overload
-		mockedFs.readFile.mockResolvedValue(source);
-
-		const connection = Connection.createConnection(
-			mvisUrl,
-			mvisAdminUrl,
-			mvisAdminUsername,
-			mvisAdminPassword,
-			account,
-		);
-
-		const sourceDir = 'sourceDir';
-		await connection.deployFeatures(sourceDir);
-		expect(mockedAxiosInstance.post).toHaveBeenCalledWith(
-			expect.any(String),
-			expect.objectContaining({
-				input: expect.objectContaining({
-					action: 'deploy',
-					sourceDir,
-					source,
-					programName: expect.stringContaining('setup'),
-				}),
-			}),
-		);
+		expect(mockDeploymentManager.deploy).toHaveBeenCalledWith(sourceDir, options);
 	});
 });
 
-describe('executeDbFeature', () => {
+describe('executeDbSubroutine', () => {
 	beforeEach(() => {
+		mockDeploymentManager.validateDeployment.mockResolvedValue(true);
+
 		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
-				expect.any(String),
-				expect.objectContaining({ input: expect.objectContaining({ action: 'featureList' }) }),
-			)
-			.mockResolvedValue({ data: { output: { features: fullFeatureOutput } } })
-			.calledWith(
-				expect.any(String),
+				expect.anything(),
 				expect.objectContaining({
 					input: expect.objectContaining({
-						action: 'subroutine',
 						subroutineId: expect.stringContaining('getServerInfo'),
 					}),
 				}),
@@ -454,19 +299,7 @@ describe('executeDbFeature', () => {
 			});
 	});
 
-	test('should throw DbServerError if response payload has a null output', async () => {
-		when<any, any[]>(mockedAxiosInstance.post)
-			.calledWith(
-				expect.any(String),
-				expect.objectContaining({
-					input: expect.objectContaining({
-						action: 'subroutine',
-						subroutineId: expect.stringContaining('save'),
-					}),
-				}),
-			)
-			.mockResolvedValue({ data: { output: null } });
-
+	test('should reject if database connection has not been opened', async () => {
 		const connection = Connection.createConnection(
 			mvisUrl,
 			mvisAdminUrl,
@@ -484,16 +317,48 @@ describe('executeDbFeature', () => {
 				record: '',
 				foreignKeyDefinitions: [],
 			}),
+		).rejects.toThrow();
+	});
+
+	test('should throw DbServerError if response payload has a null output', async () => {
+		when<any, any[]>(mockedAxiosInstance.post)
+			.calledWith(
+				expect.anything(),
+				expect.objectContaining({
+					input: expect.objectContaining({
+						subroutineId: expect.stringContaining('save'),
+					}),
+				}),
+			)
+			.mockResolvedValue({ data: { output: null } });
+
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
+		await connection.open();
+
+		const filename = 'filename';
+		const id = 'id';
+		await expect(
+			connection.executeDbSubroutine('save', {
+				filename,
+				id,
+				record: '',
+				foreignKeyDefinitions: [],
+			}),
 		).rejects.toThrow(DbServerError);
 	});
 
 	test('should throw ForeignKeyValidationError when that code is returned from db', async () => {
 		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
-				expect.any(String),
+				expect.anything(),
 				expect.objectContaining({
 					input: expect.objectContaining({
-						action: 'subroutine',
 						subroutineId: expect.stringContaining('save'),
 					}),
 				}),
@@ -511,6 +376,7 @@ describe('executeDbFeature', () => {
 			mvisAdminPassword,
 			account,
 		);
+		await connection.open();
 
 		const filename = 'filename';
 		const id = 'id';
@@ -527,10 +393,9 @@ describe('executeDbFeature', () => {
 	test('should throw RecordLockedError when that code is returned from db', async () => {
 		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
-				expect.any(String),
+				expect.anything(),
 				expect.objectContaining({
 					input: expect.objectContaining({
-						action: 'subroutine',
 						subroutineId: expect.stringContaining('save'),
 					}),
 				}),
@@ -548,6 +413,7 @@ describe('executeDbFeature', () => {
 			mvisAdminPassword,
 			account,
 		);
+		await connection.open();
 
 		const filename = 'filename';
 		const id = 'id';
@@ -564,10 +430,9 @@ describe('executeDbFeature', () => {
 	test('should throw RecordVersionError when that code is returned from db', async () => {
 		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
-				expect.any(String),
+				expect.anything(),
 				expect.objectContaining({
 					input: expect.objectContaining({
-						action: 'subroutine',
 						subroutineId: expect.stringContaining('save'),
 					}),
 				}),
@@ -585,6 +450,7 @@ describe('executeDbFeature', () => {
 			mvisAdminPassword,
 			account,
 		);
+		await connection.open();
 
 		const filename = 'filename';
 		const id = 'id';
@@ -601,10 +467,9 @@ describe('executeDbFeature', () => {
 	test('should throw DbServerError for other returned codes', async () => {
 		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
-				expect.any(String),
+				expect.anything(),
 				expect.objectContaining({
 					input: expect.objectContaining({
-						action: 'subroutine',
 						subroutineId: expect.stringContaining('save'),
 					}),
 				}),
@@ -622,6 +487,7 @@ describe('executeDbFeature', () => {
 			mvisAdminPassword,
 			account,
 		);
+		await connection.open();
 
 		const filename = 'filename';
 		const id = 'id';
@@ -640,10 +506,9 @@ describe('executeDbFeature', () => {
 		mockedAxios.isAxiosError.mockReturnValue(true);
 		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
-				expect.any(String),
+				expect.anything(),
 				expect.objectContaining({
 					input: expect.objectContaining({
-						action: 'subroutine',
 						subroutineId: expect.stringContaining('save'),
 					}),
 				}),
@@ -657,6 +522,7 @@ describe('executeDbFeature', () => {
 			mvisAdminPassword,
 			account,
 		);
+		await connection.open();
 
 		const filename = 'filename';
 		const id = 'id';
@@ -676,10 +542,9 @@ describe('executeDbFeature', () => {
 		mockedAxios.isAxiosError.mockReturnValue(true);
 		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
-				expect.any(String),
+				expect.anything(),
 				expect.objectContaining({
 					input: expect.objectContaining({
-						action: 'subroutine',
 						subroutineId: expect.stringContaining('save'),
 					}),
 				}),
@@ -693,6 +558,7 @@ describe('executeDbFeature', () => {
 			mvisAdminPassword,
 			account,
 		);
+		await connection.open();
 
 		const filename = 'filename';
 		const id = 'id';
@@ -712,10 +578,9 @@ describe('executeDbFeature', () => {
 		mockedAxios.isAxiosError.mockReturnValue(false);
 		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
-				expect.any(String),
+				expect.anything(),
 				expect.objectContaining({
 					input: expect.objectContaining({
-						action: 'subroutine',
 						subroutineId: expect.stringContaining('save'),
 					}),
 				}),
@@ -729,6 +594,7 @@ describe('executeDbFeature', () => {
 			mvisAdminPassword,
 			account,
 		);
+		await connection.open();
 
 		const filename = 'filename';
 		const id = 'id';
@@ -747,10 +613,9 @@ describe('executeDbFeature', () => {
 		mockedAxios.isAxiosError.mockReturnValue(false);
 		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
-				expect.any(String),
+				expect.anything(),
 				expect.objectContaining({
 					input: expect.objectContaining({
-						action: 'subroutine',
 						subroutineId: expect.stringContaining('save'),
 					}),
 				}),
@@ -764,6 +629,7 @@ describe('executeDbFeature', () => {
 			mvisAdminPassword,
 			account,
 		);
+		await connection.open();
 
 		const filename = 'filename';
 		const id = 'id';
@@ -783,34 +649,20 @@ describe('getDbDate', () => {
 		jest.useFakeTimers();
 	});
 
-	afterAll(() => {
-		jest.useRealTimers();
+	beforeEach(() => {
+		mockDeploymentManager.validateDeployment.mockResolvedValue(true);
 	});
 
-	test('should throw an error if connection has not been opened', async () => {
-		const connection = Connection.createConnection(
-			mvisUrl,
-			mvisAdminUrl,
-			mvisAdminUsername,
-			mvisAdminPassword,
-			account,
-		);
-
-		await expect(connection.getDbDate()).rejects.toThrow();
+	afterAll(() => {
+		jest.useRealTimers();
 	});
 
 	test('should return current db server date if there is no time drift', async () => {
 		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
-				expect.any(String),
-				expect.objectContaining({ input: expect.objectContaining({ action: 'featureList' }) }),
-			)
-			.mockResolvedValue({ data: { output: { features: fullFeatureOutput } } })
-			.calledWith(
-				expect.any(String),
+				expect.anything(),
 				expect.objectContaining({
 					input: expect.objectContaining({
-						action: 'subroutine',
 						subroutineId: expect.stringContaining('getServerInfo'),
 					}),
 				}),
@@ -844,15 +696,9 @@ describe('getDbDate', () => {
 	test('should return current db server date when there is time drift', async () => {
 		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
-				expect.any(String),
-				expect.objectContaining({ input: expect.objectContaining({ action: 'featureList' }) }),
-			)
-			.mockResolvedValue({ data: { output: { features: fullFeatureOutput } } })
-			.calledWith(
-				expect.any(String),
+				expect.anything(),
 				expect.objectContaining({
 					input: expect.objectContaining({
-						action: 'subroutine',
 						subroutineId: expect.stringContaining('getServerInfo'),
 					}),
 				}),
@@ -889,34 +735,20 @@ describe('getDbDateTime', () => {
 		jest.useFakeTimers();
 	});
 
-	afterAll(() => {
-		jest.useRealTimers();
+	beforeEach(() => {
+		mockDeploymentManager.validateDeployment.mockResolvedValue(true);
 	});
 
-	test('should throw an error if connection has not been opened', async () => {
-		const connection = Connection.createConnection(
-			mvisUrl,
-			mvisAdminUrl,
-			mvisAdminUsername,
-			mvisAdminPassword,
-			account,
-		);
-
-		await expect(connection.getDbDateTime()).rejects.toThrow();
+	afterAll(() => {
+		jest.useRealTimers();
 	});
 
 	test('should return current db server date and time if there is no time drift', async () => {
 		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
-				expect.any(String),
-				expect.objectContaining({ input: expect.objectContaining({ action: 'featureList' }) }),
-			)
-			.mockResolvedValue({ data: { output: { features: fullFeatureOutput } } })
-			.calledWith(
-				expect.any(String),
+				expect.anything(),
 				expect.objectContaining({
 					input: expect.objectContaining({
-						action: 'subroutine',
 						subroutineId: expect.stringContaining('getServerInfo'),
 					}),
 				}),
@@ -950,15 +782,9 @@ describe('getDbDateTime', () => {
 	test('should return current db server date and time when there is time drift', async () => {
 		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
-				expect.any(String),
-				expect.objectContaining({ input: expect.objectContaining({ action: 'featureList' }) }),
-			)
-			.mockResolvedValue({ data: { output: { features: fullFeatureOutput } } })
-			.calledWith(
-				expect.any(String),
+				expect.anything(),
 				expect.objectContaining({
 					input: expect.objectContaining({
-						action: 'subroutine',
 						subroutineId: expect.stringContaining('getServerInfo'),
 					}),
 				}),
@@ -995,34 +821,20 @@ describe('getDbTime', () => {
 		jest.useFakeTimers();
 	});
 
-	afterAll(() => {
-		jest.useRealTimers();
+	beforeEach(() => {
+		mockDeploymentManager.validateDeployment.mockResolvedValue(true);
 	});
 
-	test('should throw an error if connection has not been opened', async () => {
-		const connection = Connection.createConnection(
-			mvisUrl,
-			mvisAdminUrl,
-			mvisAdminUsername,
-			mvisAdminPassword,
-			account,
-		);
-
-		await expect(connection.getDbTime()).rejects.toThrow();
+	afterAll(() => {
+		jest.useRealTimers();
 	});
 
 	test('should return current db server time if there is no time drift', async () => {
 		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
-				expect.any(String),
-				expect.objectContaining({ input: expect.objectContaining({ action: 'featureList' }) }),
-			)
-			.mockResolvedValue({ data: { output: { features: fullFeatureOutput } } })
-			.calledWith(
-				expect.any(String),
+				expect.anything(),
 				expect.objectContaining({
 					input: expect.objectContaining({
-						action: 'subroutine',
 						subroutineId: expect.stringContaining('getServerInfo'),
 					}),
 				}),
@@ -1056,15 +868,9 @@ describe('getDbTime', () => {
 	test('should return current db server time when there is time drift', async () => {
 		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
-				expect.any(String),
-				expect.objectContaining({ input: expect.objectContaining({ action: 'featureList' }) }),
-			)
-			.mockResolvedValue({ data: { output: { features: fullFeatureOutput } } })
-			.calledWith(
-				expect.any(String),
+				expect.anything(),
 				expect.objectContaining({
 					input: expect.objectContaining({
-						action: 'subroutine',
 						subroutineId: expect.stringContaining('getServerInfo'),
 					}),
 				}),
@@ -1097,30 +903,16 @@ describe('getDbTime', () => {
 });
 
 describe('getDbLimits', () => {
-	test('should throw an error if connection has not been opened', async () => {
-		const connection = Connection.createConnection(
-			mvisUrl,
-			mvisAdminUrl,
-			mvisAdminUsername,
-			mvisAdminPassword,
-			account,
-		);
-
-		await expect(connection.getDbLimits()).rejects.toThrow();
+	beforeEach(() => {
+		mockDeploymentManager.validateDeployment.mockResolvedValue(true);
 	});
 
 	test('should return limit values returned by database server', async () => {
 		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
-				expect.any(String),
-				expect.objectContaining({ input: expect.objectContaining({ action: 'featureList' }) }),
-			)
-			.mockResolvedValue({ data: { output: { features: fullFeatureOutput } } })
-			.calledWith(
-				expect.any(String),
+				expect.anything(),
 				expect.objectContaining({
 					input: expect.objectContaining({
-						action: 'subroutine',
 						subroutineId: expect.stringContaining('getServerInfo'),
 					}),
 				}),
@@ -1167,17 +959,13 @@ describe('model', () => {
 	});
 
 	test('should return compiled model', async () => {
+		mockDeploymentManager.validateDeployment.mockResolvedValue(true);
+
 		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
-				expect.any(String),
-				expect.objectContaining({ input: expect.objectContaining({ action: 'featureList' }) }),
-			)
-			.mockResolvedValue({ data: { output: { features: fullFeatureOutput } } })
-			.calledWith(
-				expect.any(String),
+				expect.anything(),
 				expect.objectContaining({
 					input: expect.objectContaining({
-						action: 'subroutine',
 						subroutineId: expect.stringContaining('getServerInfo'),
 					}),
 				}),
