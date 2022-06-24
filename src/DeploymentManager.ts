@@ -193,6 +193,12 @@ class DeploymentManager {
 	public async deploy(sourceDir: string, options: DeployOptions = {}): Promise<void> {
 		const { createDir = false } = options;
 
+		const isValid = await this.validateDeployment();
+		if (isValid) {
+			// if mvis is already configured for use with mvom, do not deploy
+			return;
+		}
+
 		const headers = await this.authenticate();
 
 		const sourcePath = path.join(DeploymentManager.unibasicPath, this.mainFileName);
