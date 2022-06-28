@@ -205,7 +205,9 @@ class DeploymentManager {
 		this.logHandler.debug(`Reading unibasic source from ${sourcePath}`);
 		const source = await fs.readFile(sourcePath, 'utf8');
 
-		this.logHandler.debug(`Deploying ${this.subroutineName} to MVIS Admin`);
+		this.logHandler.debug(
+			`Creating REST subroutine definition for ${this.subroutineName} in MVIS Admin`,
+		);
 		await this.axiosInstance.post<unknown, AxiosResponse, SubroutineCreate>(
 			`manager/rest/${this.account}/subroutine`,
 			{
@@ -222,8 +224,14 @@ class DeploymentManager {
 			},
 			{ headers },
 		);
+		this.logHandler.debug(`${this.subroutineName} successfully created in MVIS Admin`);
 
-		this.logHandler.debug(`${this.subroutineName} successfully deployed to MVIS Admin`);
+		this.logHandler.debug(`Compiling and cataloging ${this.subroutineName} on database server`);
+		await this.axiosInstance.get(
+			`manager/rest/${this.account}/loadsubroutine/${this.subroutineName}`,
+			{ headers },
+		);
+		this.logHandler.debug(`Compiled ${this.subroutineName} on database server`);
 	}
 
 	/** Authenticate to MVIS admin and return headers needed for subsequent API calls */
