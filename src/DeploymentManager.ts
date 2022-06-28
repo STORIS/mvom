@@ -171,7 +171,7 @@ class DeploymentManager {
 		const headers = await this.authenticate();
 
 		this.logHandler.debug('Fetching list of REST subroutines from MVIS Admin');
-		const { data: response } = await axios.get<SubroutinesGetResult>(
+		const { data: response } = await this.axiosInstance.get<SubroutinesGetResult>(
 			`manager/rest/${this.account}/subroutines`,
 			{ headers },
 		);
@@ -206,7 +206,7 @@ class DeploymentManager {
 		const source = await fs.readFile(sourcePath, 'utf8');
 
 		this.logHandler.debug(`Deploying ${this.subroutineName} to MVIS Admin`);
-		await axios.post<unknown, AxiosResponse, SubroutineCreate>(
+		await this.axiosInstance.post<unknown, AxiosResponse, SubroutineCreate>(
 			`manager/rest/${this.account}/subroutine`,
 			{
 				name: this.subroutineName,
