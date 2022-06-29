@@ -108,7 +108,7 @@ class DeploymentManager {
 		timeout: number,
 		/** Log handler instance */
 		logHandler: LogHandler,
-		options: DeploymentManagerConstructorOptions = {},
+		options: DeploymentManagerConstructorOptions,
 	) {
 		const { httpAgent, httpsAgent } = options;
 
