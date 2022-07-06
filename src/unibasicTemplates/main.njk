@@ -1,0 +1,82 @@
+$basictype 'U'
+subroutine mvom_main(inputSerialized, outputSerialized)
+{% include "./constants/udo.njk" %}
+{% include "./constants/error.njk" %}
+
+* eliminate all terminal output
+hush on
+
+* ensure a clean slate
+clearselect all
+clearsql
+
+* create output object
+if udoCreate(UDO_OBJECT, output) then
+  * in the event of an error in the creation of the output object, there is little we can do except fatally abort
+  return; * returning to caller
+end
+
+* create input object
+if udoRead(inputSerialized, UDOFORMAT_JSON, input) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go response
+end
+
+* ensure compact serialized json
+if udoSetOption(UDOOPTION_OUTPUTMODE, UDO_OUTPUT_COMPACT) then
+  call error_handler(ERROR_UDO, output)
+  go response
+end
+
+* call specified subroutine
+if udoGetProperty(input, 'subroutineId', subroutineId, type) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go response
+end
+
+if udoGetProperty(input, 'subroutineInput', subroutineInput, type) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go response
+end
+
+if udoGetProperty(input, 'setupOptions', setupOptions, type) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go response
+end
+
+if udoGetProperty(input, 'teardownOptions', teardownOptions, type) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go response
+end
+
+call mvom_setup(setupOptions)
+
+subroutineName = 'mvom_':subroutineId
+call @subroutineName(subroutineInput, output)
+
+call mvom_teardown(teardownOptions)
+
+response:
+  * if an error occurs in serializing the output object it will likely result in a fatal error
+  * there is little else we can do here except let that fatal error occur
+  x = udoWrite(output, UDOFORMAT_JSON, outputSerialized)
+
+  * if an error occurs in freeing the memory space for the objects, we will ignore it as there is little else that can be done
+  x = udoFree(output)
+  x = udoFree(input)
+
+  return; * returning to caller
+
+{% include "./subroutines/internal/errorHandler.njk" %}
+{% include "./subroutines/internal/formatDocument.njk" %}
+{% include "./subroutines/internal/setup.njk" %}
+{% include "./subroutines/internal/teardown.njk" %}
+{% include "./subroutines/internal/validateForeignKeys.njk" %}
+
+{% include "./subroutines/external/deleteById.njk" %}
+{% include "./subroutines/external/find.njk" %}
+{% include "./subroutines/external/findById.njk" %}
+{% include "./subroutines/external/findByIds.njk" %}
+{% include "./subroutines/external/getServerInfo.njk" %}
+{% include "./subroutines/external/readFileContentsById.njk" %}
+{% include "./subroutines/external/save.njk" %}

@@ -2,6 +2,7 @@ import { mock, mockDeep } from 'jest-mock-extended';
 import mockDelimiters from '#test/mockDelimiters';
 import type { ModelConstructor } from '../compileModel';
 import { InvalidParameterError, QueryLimitError } from '../errors';
+import type LogHandler from '../LogHandler';
 import type { QueryExecutionOptions, SortCriteria } from '../Query';
 import Query from '../Query';
 import type { DataTransformer, DbSubroutineOutputFind } from '../types';
@@ -13,6 +14,7 @@ const filename = 'filename';
 ModelConstructorMock.file = filename;
 
 const dataTransformerMock = mock<DataTransformer>();
+const logHandlerMock = mock<LogHandler>();
 
 const { am } = mockDelimiters;
 
@@ -38,7 +40,7 @@ describe('constructor', () => {
 			]);
 
 			expect(() => {
-				new Query(ModelConstructorMock, selectionCritieria);
+				new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 			}).toThrow(TypeError);
 		});
 
@@ -58,7 +60,7 @@ describe('constructor', () => {
 			]);
 
 			expect(() => {
-				new Query(ModelConstructorMock, selectionCritieria);
+				new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 			}).toThrow(TypeError);
 		});
 
@@ -78,7 +80,7 @@ describe('constructor', () => {
 			]);
 
 			expect(() => {
-				new Query(ModelConstructorMock, selectionCritieria);
+				new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 			}).toThrow(TypeError);
 		});
 
@@ -98,7 +100,7 @@ describe('constructor', () => {
 			]);
 
 			expect(() => {
-				new Query(ModelConstructorMock, selectionCritieria);
+				new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 			}).toThrow(InvalidParameterError);
 		});
 
@@ -118,7 +120,7 @@ describe('constructor', () => {
 			]);
 
 			expect(() => {
-				new Query(ModelConstructorMock, selectionCritieria);
+				new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 			}).toThrow(Error);
 		});
 
@@ -133,7 +135,7 @@ describe('constructor', () => {
 			ModelConstructorMock.schema!.dictPaths = new Map();
 
 			expect(() => {
-				new Query(ModelConstructorMock, selectionCritieria);
+				new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 			}).toThrow(InvalidParameterError);
 		});
 	});
@@ -145,7 +147,7 @@ describe('exec', () => {
 		documents: [{ _id: 'id', __v: '__v', record: `foo${am}bar` }],
 	};
 	beforeEach(() => {
-		ModelConstructorMock.connection.executeDbFeature.mockResolvedValue(dbQueryResult);
+		ModelConstructorMock.connection.executeDbSubroutine.mockResolvedValue(dbQueryResult);
 	});
 
 	describe('single conditions', () => {
@@ -171,11 +173,11 @@ describe('exec', () => {
 					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 				]);
 
-				const query = new Query(ModelConstructorMock, selectionCritieria);
+				const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue}"`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -200,11 +202,11 @@ describe('exec', () => {
 					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 				]);
 
-				const query = new Query(ModelConstructorMock, selectionCritieria);
+				const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with (${propertyDictionary} = "${propertyValue1}" or ${propertyDictionary} = "${propertyValue2}")`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -230,12 +232,12 @@ describe('exec', () => {
 					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 				]);
 
-				const query = new Query(ModelConstructorMock, selectionCritieria);
+				const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue}"`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -259,12 +261,12 @@ describe('exec', () => {
 					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 				]);
 
-				const query = new Query(ModelConstructorMock, selectionCritieria);
+				const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} = '"${propertyValue}"'`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -288,12 +290,12 @@ describe('exec', () => {
 					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 				]);
 
-				const query = new Query(ModelConstructorMock, selectionCritieria);
+				const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} = "'${propertyValue}'"`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -318,11 +320,11 @@ describe('exec', () => {
 					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 				]);
 
-				const query = new Query(ModelConstructorMock, selectionCritieria);
+				const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with (${propertyDictionary} = "${propertyValue1}" or ${propertyDictionary} = "${propertyValue2}")`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -346,11 +348,11 @@ describe('exec', () => {
 					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 				]);
 
-				const query = new Query(ModelConstructorMock, selectionCritieria);
+				const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue1}"`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -374,12 +376,12 @@ describe('exec', () => {
 					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 				]);
 
-				const query = new Query(ModelConstructorMock, selectionCritieria);
+				const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} > "${propertyValue}"`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -403,12 +405,12 @@ describe('exec', () => {
 					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 				]);
 
-				const query = new Query(ModelConstructorMock, selectionCritieria);
+				const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} >= "${propertyValue}"`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -432,12 +434,12 @@ describe('exec', () => {
 					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 				]);
 
-				const query = new Query(ModelConstructorMock, selectionCritieria);
+				const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} < "${propertyValue}"`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -461,12 +463,12 @@ describe('exec', () => {
 					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 				]);
 
-				const query = new Query(ModelConstructorMock, selectionCritieria);
+				const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} <= "${propertyValue}"`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -490,12 +492,12 @@ describe('exec', () => {
 					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 				]);
 
-				const query = new Query(ModelConstructorMock, selectionCritieria);
+				const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} # "${propertyValue}"`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -523,12 +525,12 @@ describe('exec', () => {
 						],
 					]);
 
-					const query = new Query(ModelConstructorMock, selectionCritieria);
+					const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 
 					expect(await query.exec()).toEqual(dbQueryResult);
 
 					const expectedQuery = `select ${filename} with ${propertyDictionary} like "...'${propertyValue}'..."`;
-					expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+					expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 						'find',
 						{
 							filename,
@@ -556,7 +558,7 @@ describe('exec', () => {
 					]);
 
 					expect(() => {
-						new Query(ModelConstructorMock, selectionCritieria);
+						new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 					}).toThrow();
 				});
 
@@ -577,7 +579,7 @@ describe('exec', () => {
 					]);
 
 					expect(() => {
-						new Query(ModelConstructorMock, selectionCritieria);
+						new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 					}).toThrow();
 				});
 			});
@@ -599,12 +601,12 @@ describe('exec', () => {
 						],
 					]);
 
-					const query = new Query(ModelConstructorMock, selectionCritieria);
+					const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 
 					expect(await query.exec()).toEqual(dbQueryResult);
 
 					const expectedQuery = `select ${filename} with ${propertyDictionary} like "'${propertyValue}'..."`;
-					expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+					expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 						'find',
 						{
 							filename,
@@ -632,7 +634,7 @@ describe('exec', () => {
 					]);
 
 					expect(() => {
-						new Query(ModelConstructorMock, selectionCritieria);
+						new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 					}).toThrow();
 				});
 
@@ -653,7 +655,7 @@ describe('exec', () => {
 					]);
 
 					expect(() => {
-						new Query(ModelConstructorMock, selectionCritieria);
+						new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 					}).toThrow();
 				});
 			});
@@ -675,12 +677,12 @@ describe('exec', () => {
 						],
 					]);
 
-					const query = new Query(ModelConstructorMock, selectionCritieria);
+					const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 
 					expect(await query.exec()).toEqual(dbQueryResult);
 
 					const expectedQuery = `select ${filename} with ${propertyDictionary} like "...'${propertyValue}'"`;
-					expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+					expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 						'find',
 						{
 							filename,
@@ -708,7 +710,7 @@ describe('exec', () => {
 					]);
 
 					expect(() => {
-						new Query(ModelConstructorMock, selectionCritieria);
+						new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 					}).toThrow();
 				});
 
@@ -729,7 +731,7 @@ describe('exec', () => {
 					]);
 
 					expect(() => {
-						new Query(ModelConstructorMock, selectionCritieria);
+						new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 					}).toThrow();
 				});
 			});
@@ -748,11 +750,11 @@ describe('exec', () => {
 					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 				]);
 
-				const query = new Query(ModelConstructorMock, selectionCritieria);
+				const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with (${propertyDictionary} # "${propertyValue1}" and ${propertyDictionary} # "${propertyValue2}")`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -773,11 +775,11 @@ describe('exec', () => {
 					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 				]);
 
-				const query = new Query(ModelConstructorMock, selectionCritieria);
+				const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename}`;
-				expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -807,12 +809,12 @@ describe('exec', () => {
 
 					dataTransformerMock.transformToQuery.mockReturnValue('1');
 
-					const query = new Query(ModelConstructorMock, selectionCritieria);
+					const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 
 					expect(await query.exec()).toEqual(dbQueryResult);
 
 					const expectedQuery = `select ${filename} with ${propertyDictionary} = "1"`;
-					expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+					expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 						'find',
 						{
 							filename,
@@ -854,11 +856,11 @@ describe('exec', () => {
 				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, selectionCritieria);
+			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with (${propertyDictionary1} = "${propertyValue1}" and ${propertyDictionary2} = "${propertyValue2}")`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -893,11 +895,11 @@ describe('exec', () => {
 				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, selectionCritieria);
+			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with (${propertyDictionary1} = "${propertyValue1}" and ${propertyDictionary2} = "${propertyValue2}")`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -932,11 +934,11 @@ describe('exec', () => {
 				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, selectionCritieria);
+			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with (${propertyDictionary1} = "${propertyValue1}" or ${propertyDictionary2} = "${propertyValue2}")`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -980,11 +982,11 @@ describe('exec', () => {
 				[propertyName3, { dictionary: propertyDictionary3, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, selectionCritieria);
+			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ((${propertyDictionary1} = "${propertyValue1}" and ${propertyDictionary2} = "${propertyValue2}") or ${propertyDictionary3} = "${propertyValue3}")`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1022,11 +1024,11 @@ describe('exec', () => {
 				[propertyName3, { dictionary: propertyDictionary3, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, selectionCritieria);
+			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ((${propertyDictionary1} = "${propertyValue1}" and ${propertyDictionary2} = "${propertyValue2}") or ${propertyDictionary3} = "${propertyValue3}")`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1057,11 +1059,11 @@ describe('exec', () => {
 				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, selectionCritieria);
+			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary1} = "${propertyValue1}"`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1092,11 +1094,11 @@ describe('exec', () => {
 				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, selectionCritieria);
+			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary1} = "${propertyValue1}"`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1121,12 +1123,12 @@ describe('exec', () => {
 				[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, selectionCritieria);
+			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with (${propertyDictionary} >= "${propertyValue1}" and ${propertyDictionary} <= "${propertyValue2}")`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1161,11 +1163,13 @@ describe('exec', () => {
 				[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, selectionCritieria, { sort: sortCriteria });
+			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria, {
+				sort: sortCriteria,
+			});
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue}"`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1190,11 +1194,13 @@ describe('exec', () => {
 				[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, selectionCritieria, { sort: sortCriteria });
+			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria, {
+				sort: sortCriteria,
+			});
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue}" by ${propertyDictionary}`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1219,11 +1225,13 @@ describe('exec', () => {
 				[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, selectionCritieria, { sort: sortCriteria });
+			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria, {
+				sort: sortCriteria,
+			});
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue}" by.dsnd ${propertyDictionary}`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1255,11 +1263,13 @@ describe('exec', () => {
 				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, selectionCritieria, { sort: sortCriteria });
+			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria, {
+				sort: sortCriteria,
+			});
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary1} = "${propertyValue1}" by ${propertyDictionary1} by ${propertyDictionary2}`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1291,11 +1301,13 @@ describe('exec', () => {
 				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, selectionCritieria, { sort: sortCriteria });
+			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria, {
+				sort: sortCriteria,
+			});
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary1} = "${propertyValue1}" by.dsnd ${propertyDictionary1} by.dsnd ${propertyDictionary2}`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1327,11 +1339,13 @@ describe('exec', () => {
 				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, selectionCritieria, { sort: sortCriteria });
+			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria, {
+				sort: sortCriteria,
+			});
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary1} = "${propertyValue1}" by.dsnd ${propertyDictionary1} by ${propertyDictionary2}`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1367,11 +1381,14 @@ describe('exec', () => {
 				[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, selectionCritieria, { skip, limit });
+			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria, {
+				skip,
+				limit,
+			});
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue}"`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1397,13 +1414,13 @@ describe('exec', () => {
 				[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, selectionCritieria);
+			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 			const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
 			const executionOptions: QueryExecutionOptions = { userDefined };
 			expect(await query.exec(executionOptions)).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue}"`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1435,7 +1452,7 @@ describe('exec', () => {
 				[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, selectionCritieria);
+			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 			await expect(query.exec()).rejects.toThrow(QueryLimitError);
 		});
 
@@ -1470,7 +1487,9 @@ describe('exec', () => {
 				[propertyName3, { dictionary: propertyDictionary3, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, selectionCritieria, { sort: sortCriteria });
+			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria, {
+				sort: sortCriteria,
+			});
 			await expect(query.exec()).rejects.toThrow(QueryLimitError);
 		});
 
@@ -1504,7 +1523,7 @@ describe('exec', () => {
 				[propertyName3, { dictionary: propertyDictionary3, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, selectionCritieria);
+			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 			await expect(query.exec()).rejects.toThrow(QueryLimitError);
 		});
 
@@ -1530,7 +1549,7 @@ describe('exec', () => {
 				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, selectionCritieria);
+			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 			await expect(query.exec()).rejects.toThrow(QueryLimitError);
 		});
 	});
@@ -1559,11 +1578,13 @@ describe('exec', () => {
 			ModelConstructorMock.schema!.transformPathsToDbPositions.mockReturnValue([2]);
 
 			const projection = ['property-name'];
-			const query = new Query(ModelConstructorMock, selectionCritieria, { projection });
+			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria, {
+				projection,
+			});
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue}"`;
-			expect(ModelConstructorMock.connection.executeDbFeature).toHaveBeenCalledWith(
+			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,

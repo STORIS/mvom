@@ -2,6 +2,7 @@ import type Connection from './Connection';
 import type { DocumentConstructorOptions } from './Document';
 import Document from './Document';
 import { DataValidationError } from './errors';
+import type LogHandler from './LogHandler';
 import type { QueryConstructorOptions } from './Query';
 import Query, { type Filter } from './Query';
 import type Schema from './Schema';
@@ -45,8 +46,9 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 	schema: Schema | null,
 	file: string,
 	dbServerDelimiters: DbServerDelimiters,
+	logHandler: LogHandler,
 ) => {
-	connection.logMessage('debug', `creating new model for file ${file}`);
+	logHandler.debug(`creating new model for file ${file}`);
 
 	/** Model constructor */
 	return class Model extends Document {
@@ -59,8 +61,11 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 		/** Schema that defines this model */
 		public static readonly schema = schema;
 
+		/** Log handler instance used for diagnostic logging */
+		static readonly #logHandler: LogHandler = logHandler;
+
 		/** Database server delimiters */
-		static #dbServerDelimiters = dbServerDelimiters;
+		static readonly #dbServerDelimiters = dbServerDelimiters;
 
 		/** Document version hash */
 		public readonly __v: string | null;
@@ -106,12 +111,11 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 				},
 			});
 
-			Model.connection.logMessage('debug', `creating new instance of model for file ${Model.file}`);
+			Model.#logHandler.debug(`creating new instance of model for file ${Model.file}`);
 
 			this._transformationErrors.forEach((error) => {
 				// errors occurred while transforming data from multivalue format - log them
-				Model.connection.logMessage(
-					'warn',
+				Model.#logHandler.warn(
 					`error transforming data -- file: ${Model.file}; _id: ${this._id}; class: ${error.transformClass}; value: ${error.transformValue}`,
 				);
 			});
@@ -124,7 +128,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 		): Promise<Model | null> {
 			const { userDefined } = options;
 
-			const data = await this.connection.executeDbFeature(
+			const data = await this.connection.executeDbSubroutine(
 				'deleteById',
 				{
 					filename: this.file,
@@ -148,7 +152,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			options: ModelFindOptions = {},
 		): Promise<Model[]> {
 			const { userDefined, ...queryConstructorOptions } = options;
-			const query = new Query(Model, selectionCriteria, queryConstructorOptions);
+			const query = new Query(Model, Model.#logHandler, selectionCriteria, queryConstructorOptions);
 			const { documents } = await query.exec(userDefined && { userDefined });
 
 			return documents.map((document) => {
@@ -163,7 +167,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			options: ModelFindOptions = {},
 		): Promise<ModelFindAndCountResult> {
 			const { userDefined, ...queryConstructorOptions } = options;
-			const query = new Query(Model, selectionCriteria, queryConstructorOptions);
+			const query = new Query(Model, Model.#logHandler, selectionCriteria, queryConstructorOptions);
 			const { count, documents } = await query.exec(userDefined && { userDefined });
 
 			const models = documents.map((document) => {
@@ -184,7 +188,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 		): Promise<Model | null> {
 			const { projection, userDefined } = options;
 
-			const data = await this.connection.executeDbFeature(
+			const data = await this.connection.executeDbSubroutine(
 				'findById',
 				{
 					filename: this.file,
@@ -211,7 +215,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			const { projection, userDefined } = options;
 
 			const idsArray = ensureArray(ids);
-			const data = await this.connection.executeDbFeature(
+			const data = await this.connection.executeDbSubroutine(
 				'findByIds',
 				{
 					filename: this.file,
@@ -237,7 +241,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			options: ModelReadFileContentsByIdOptions = {},
 		): Promise<string> {
 			const { userDefined } = options;
-			const data = await this.connection.executeDbFeature(
+			const data = await this.connection.executeDbSubroutine(
 				'readFileContentsById',
 				{
 					filename: this.file,
@@ -279,7 +283,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			}
 
 			try {
-				const data = await Model.connection.executeDbFeature(
+				const data = await Model.connection.executeDbSubroutine(
 					'save',
 					{
 						filename: Model.file,

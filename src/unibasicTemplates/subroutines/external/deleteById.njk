@@ -1,9 +1,7 @@
-$basictype 'u'
-subroutine mvom_findById(options, output)
-* find and return a document given a filename and record id
-{% include "./partials/udoConstants.njk" %}
-
-{% include "./partials/errorConstants.njk" %}
+subroutine mvom_deleteById(options, output)
+* delete a document given a filename and record id
+{% include "../../constants/udo.njk" %}
+{% include "../../constants/error.njk" %}
 
 * get the filename from the options
 if udoGetProperty(options, 'filename', filename, type) then
@@ -13,12 +11,6 @@ end
 
 * get the recordId from the options
 if udoGetProperty(options, 'id', recordId, type) then
-  call error_handler(ERROR_MALFORMED_INPUT, output)
-  go returnFromSub
-end
-
-* get the projections from the options
-if udoGetProperty(options, 'projection', projection, type) then
   call error_handler(ERROR_MALFORMED_INPUT, output)
   go returnFromSub
 end
@@ -33,10 +25,25 @@ end else
 end
 
 * read the record from the file
-read record from f.file, recordId on error
+readu record from f.file, recordId on error
   call error_handler(ERROR_RECORD_READ, output)
   go closeAndReturnFromSub
+end locked
+  call error_handler(ERROR_RECORD_LOCKED, output)
+  go closeAndReturnFromSub
 end then
+  * delete record
+  delete f.file, recordId on error
+    call error_handler(ERROR_RECORD_DELETE, output)
+    go closeReleaseAndReturnFromSub
+  end
+
+  * create null projection
+  if udoCreate(UDO_NULL, projection) then
+    call error_handler(ERROR_UDO, output)
+    go closeReleaseAndReturnFromSub
+  end
+
   * format the record into an object structure
   call format_document(record, recordId, projection, document, errorCode)
   if errorCode then
@@ -44,6 +51,9 @@ end then
     go closeAndReturnFromSub
   end
 end else
+  * release unnecessary lock
+  release f.file, recordId on error null
+
   * create a null udo handle to assign as document
   if udoCreate(UDO_NULL, document) then
     errorCode = ERROR_UDO
@@ -59,7 +69,11 @@ if udoSetProperty(output, 'result', document) then
   go returnFromSub
 end
 
-go returnFromSub;* skip close behavior
+go returnFromSub;* skip close and release behaviors
+
+closeReleaseAndReturnFromSub:
+release f.file, recordId on error null
+* fall through to close and return
 
 closeAndReturnFromSub:
 close f.file on error null
@@ -67,7 +81,3 @@ close f.file on error null
 
 returnFromSub:
 return; * returning to caller
-
-{% include "./partials/formatDocument.njk" %}
-
-{% include "./partials/errorHandler.njk" %}

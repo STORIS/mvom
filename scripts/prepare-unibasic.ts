@@ -1,10 +1,12 @@
 /* eslint-disable no-console */
+import { createHash } from 'crypto';
 import path from 'path';
 import fs from 'fs-extra';
 import nunjucks from 'nunjucks';
 import { dbErrors } from '../src/constants';
 
 const inputDir = path.join(process.cwd(), 'src', 'unibasicTemplates');
+const inputFile = path.join(inputDir, 'main.njk');
 const outputDir = path.join(process.cwd(), 'dist', 'unibasic');
 
 const env = new nunjucks.Environment(new nunjucks.FileSystemLoader(inputDir), {
@@ -23,33 +25,35 @@ const emptyOutputDir = () => {
 	}
 };
 
-/** Process file */
-const processFile = (filename: string): void => {
-	const outputFile = `${path.parse(filename).name}.mvb`;
-	const buildPath = path.join(outputDir, outputFile);
-	try {
-		fs.writeFileSync(buildPath, env.render(filename, { dbErrors }));
-		console.log(`transformed ${filename} to ${buildPath}`);
-	} catch (err) {
-		console.log(`failed to transform ${filename} to ${buildPath}`);
-		process.exit(1);
-	}
-};
+/** Calculate a hash for the file */
+const calculateHash = (data: string): string =>
+	createHash('shake256', { outputLength: 4 }).update(data).digest('hex');
 
-/** Build UniBasic files from Nunjucks templates */
-const buildFromTemplates = (): void => {
+/** Process file */
+const processFile = (): void => {
 	try {
-		fs.readdirSync(inputDir)
-			.filter((file) => fs.statSync(path.join(inputDir, file)).isFile())
-			.forEach((inputFile) => {
-				processFile(inputFile);
-			});
+		const rendered = env.render(inputFile, { dbErrors });
+		try {
+			const hash = calculateHash(rendered);
+			const outputFile = `mvom_${path.parse(inputFile).name}@${hash}.mvb`;
+			const buildPath = path.join(outputDir, outputFile);
+			try {
+				fs.writeFileSync(buildPath, rendered);
+				console.log(`transformed ${inputFile} to ${buildPath}`);
+			} catch (err) {
+				console.error(`failed to transform ${inputFile} to ${buildPath} - ${err}`);
+				process.exit(1);
+			}
+		} catch (err) {
+			console.error(`failed to calculate the hash for ${inputFile} - ${err}`);
+			process.exit(1);
+		}
 	} catch (err) {
-		console.log(`failed to transform files from ${inputDir}`);
+		console.error(`failed to render ${inputFile} - ${err}`);
 		process.exit(1);
 	}
 };
 
 // launch preparation tasks
 emptyOutputDir();
-buildFromTemplates();
+processFile();

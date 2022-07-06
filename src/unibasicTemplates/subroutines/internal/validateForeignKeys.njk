@@ -2,9 +2,9 @@ subroutine validate_foreign_keys(fkDefinitions, fkValidationErrors, errorCode)
 * Validate foreign keys
 * This routine will not set an errorCode for a foreign key validation. Instead it will return an array of fkValidationErrors
 * Callers should check errorCode first. Then check the length of the fkValidationErrors array.
-{% include "./udoConstants.njk" %}
+{% include "../../constants/udo.njk" %}
 
-{% include "./errorConstants.njk" %}
+{% include "../../constants/error.njk" %}
 
 errorCode = ''
 

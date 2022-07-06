@@ -13,53 +13,44 @@ export interface DbSubroutineSetupOptions {
 	userDefined?: DbSubroutineUserDefinedOptions;
 }
 
-export interface DbActionInputSubroutine<TSubroutineOptions extends GenericObject> {
-	action: 'subroutine';
+export interface DbSubroutinePayload<TSubroutineInput extends GenericObject> {
 	subroutineId: string;
-	setupId: string;
 	setupOptions: DbSubroutineSetupOptions;
-	teardownId: string;
 	teardownOptions: Record<string, never>;
-	options: TSubroutineOptions;
+	subroutineInput: TSubroutineInput;
 }
 
-export interface DbSubroutineOptionsDeleteById {
+export interface DbSubroutineInputDeleteById {
 	filename: string;
 	id: string;
 }
 
-export interface DbSubroutineOptionsDeploy {
-	sourceDir: string;
-	source: string;
-	programName: string;
-}
-
-export interface DbSubroutineOptionsFind {
+export interface DbSubroutineInputFind {
 	filename: string;
 	queryCommand: string;
 	projection: number[] | null;
 }
 
-export interface DbSubroutineOptionsFindById {
+export interface DbSubroutineInputFindById {
 	filename: string;
 	id: string;
 	projection: number[] | null;
 }
 
-export interface DbSubroutineOptionsFindByIds {
+export interface DbSubroutineInputFindByIds {
 	filename: string;
 	ids: string[];
 	projection: number[] | null;
 }
 
-export interface DbSubroutineOptionsReadFileContentsById {
+export interface DbSubroutineInputReadFileContentsById {
 	filename: string;
 	id: string;
 }
 
-export type DbSubroutineOptionsGetServerInfo = Record<string, never>;
+export type DbSubroutineInputGetServerInfo = Record<string, never>;
 
-export interface DbSubroutineOptionsSave {
+export interface DbSubroutineInputSave {
 	filename: string;
 	id: string;
 	__v?: string | null;
@@ -67,23 +58,21 @@ export interface DbSubroutineOptionsSave {
 	foreignKeyDefinitions: BuildForeignKeyDefinitionsResult[];
 }
 
-export type DbActionSubroutineInputTypes = DbActionInputSubroutine<
-	| DbSubroutineOptionsDeleteById
-	| DbSubroutineOptionsDeploy
-	| DbSubroutineOptionsFind
-	| DbSubroutineOptionsFindById
-	| DbSubroutineOptionsFindByIds
-	| DbSubroutineOptionsReadFileContentsById
-	| DbSubroutineOptionsGetServerInfo
+export type DbActionSubroutineInputTypes = DbSubroutinePayload<
+	| DbSubroutineInputDeleteById
+	| DbSubroutineInputFind
+	| DbSubroutineInputFindById
+	| DbSubroutineInputFindByIds
+	| DbSubroutineInputReadFileContentsById
+	| DbSubroutineInputGetServerInfo
 >;
 
 export interface DbSubroutineInputOptionsMap {
-	deleteById: DbSubroutineOptionsDeleteById;
-	deploy: DbSubroutineOptionsDeploy;
-	find: DbSubroutineOptionsFind;
-	findById: DbSubroutineOptionsFindById;
-	findByIds: DbSubroutineOptionsFindByIds;
-	readFileContentsById: DbSubroutineOptionsReadFileContentsById;
-	getServerInfo: DbSubroutineOptionsGetServerInfo;
-	save: DbSubroutineOptionsSave;
+	deleteById: DbSubroutineInputDeleteById;
+	find: DbSubroutineInputFind;
+	findById: DbSubroutineInputFindById;
+	findByIds: DbSubroutineInputFindByIds;
+	readFileContentsById: DbSubroutineInputReadFileContentsById;
+	getServerInfo: DbSubroutineInputGetServerInfo;
+	save: DbSubroutineInputSave;
 }

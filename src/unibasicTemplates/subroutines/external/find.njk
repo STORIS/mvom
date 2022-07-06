@@ -1,9 +1,7 @@
-$basictype 'u'
 subroutine mvom_find(options, output)
 * find and return a list of documents using query parameters
-{% include "./partials/udoConstants.njk" %}
-
-{% include "./partials/errorConstants.njk" %}
+{% include "../../constants/udo.njk" %}
+{% include "../../constants/error.njk" %}
 
 * get the filename from the options
 if udoGetProperty(options, 'filename', filename, type) then
@@ -102,7 +100,3 @@ close f.file on error null
 
 returnFromSub:
 return; * returning to caller
-
-{% include "./partials/formatDocument.njk" %}
-
-{% include "./partials/errorHandler.njk" %}
