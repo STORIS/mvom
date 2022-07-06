@@ -48,6 +48,10 @@ interface SubroutinesGetValue {
 }
 type SubroutinesGetResult = Record<string, SubroutinesGetValue>;
 
+interface CatalogProgramsResult {
+	ctlgprograms: string[];
+}
+
 interface SubroutineParameterDetail {
 	name: string;
 	type: 'string' | 'json';
@@ -71,6 +75,8 @@ interface SubroutineCreate {
 	compileOptions?: string;
 	source?: string;
 }
+
+type AuthenticationHeaders = AuthenticateResult & AxiosRequestHeaders;
 // #endregion
 
 class DeploymentManager {
@@ -170,15 +176,12 @@ class DeploymentManager {
 	public async validateDeployment(): Promise<boolean> {
 		const headers = await this.authenticate();
 
-		this.logHandler.debug('Fetching list of REST subroutines from MVIS Admin');
-		const { data: response } = await this.axiosInstance.get<SubroutinesGetResult>(
-			`manager/rest/${this.account}/subroutines`,
-			{ headers },
-		);
+		const [isRestDefinitionValid, isCatalogValid] = await Promise.all([
+			this.validateRestDefinition(headers),
+			this.validateCatalog(headers),
+		]);
 
-		const isValid = Object.values(response).some(
-			(subroutine) => subroutine.name === this.subroutineName,
-		);
+		const isValid = isRestDefinitionValid && isCatalogValid;
 
 		if (isValid) {
 			this.logHandler.debug(`${this.subroutineName} is available for calling through MVIS`);
@@ -193,49 +196,24 @@ class DeploymentManager {
 	public async deploy(sourceDir: string, options: DeployOptions = {}): Promise<void> {
 		const { createDir = false } = options;
 
-		const isValid = await this.validateDeployment();
-		if (isValid) {
-			// if mvis is already configured for use with mvom, do not deploy
-			return;
-		}
-
 		const headers = await this.authenticate();
 
-		const sourcePath = path.join(DeploymentManager.unibasicPath, this.mainFileName);
-		this.logHandler.debug(`Reading unibasic source from ${sourcePath}`);
-		const source = await fs.readFile(sourcePath, 'utf8');
+		const [isRestDefinitionValid, isCatalogValid] = await Promise.all([
+			this.validateRestDefinition(headers),
+			this.validateCatalog(headers),
+		]);
 
-		this.logHandler.debug(
-			`Creating REST subroutine definition for ${this.subroutineName} in MVIS Admin`,
-		);
-		await this.axiosInstance.post<unknown, AxiosResponse, SubroutineCreate>(
-			`manager/rest/${this.account}/subroutine`,
-			{
-				name: this.subroutineName,
-				parameter_count: 2,
-				input: { name: '', parameters: [{ name: 'input', type: 'json', order: 1, dname: '' }] },
-				output: { name: '', parameters: [{ name: 'output', type: 'json', order: 2, dname: '' }] },
-				allowCompileAndCatalog: true,
-				createSourceDir: createDir,
-				sourceDir,
-				catalogOptions: 'force',
-				compileOptions: '-i -o -d',
-				source,
-			},
-			{ headers },
-		);
-		this.logHandler.debug(`${this.subroutineName} successfully created in MVIS Admin`);
+		if (!isRestDefinitionValid) {
+			await this.createRestDefinition(headers, sourceDir, createDir);
+		}
 
-		this.logHandler.debug(`Compiling and cataloging ${this.subroutineName} on database server`);
-		await this.axiosInstance.get(
-			`manager/rest/${this.account}/loadsubroutine/${this.subroutineName}`,
-			{ headers },
-		);
-		this.logHandler.debug(`Compiled ${this.subroutineName} on database server`);
+		if (!isCatalogValid) {
+			await this.deploySubroutine(headers);
+		}
 	}
 
 	/** Authenticate to MVIS admin and return headers needed for subsequent API calls */
-	private async authenticate(): Promise<AuthenticateResult & AxiosRequestHeaders> {
+	private async authenticate(): Promise<AuthenticationHeaders> {
 		this.logHandler.debug('Authenticating to MVIS Admin');
 
 		const authResponse = await this.axiosInstance.get('user', {
@@ -263,6 +241,72 @@ class DeploymentManager {
 			Cookie: cookies.join('; '),
 			'X-XSRF-TOKEN': xsrfToken,
 		};
+	}
+
+	/** Validate the presence of the REST subroutine definition */
+	private async validateRestDefinition(headers: AuthenticationHeaders): Promise<boolean> {
+		this.logHandler.debug('Fetching list of REST subroutines from MVIS Admin');
+		const { data: response } = await this.axiosInstance.get<SubroutinesGetResult>(
+			`manager/rest/${this.account}/subroutines`,
+			{ headers },
+		);
+
+		return Object.values(response).some((subroutine) => subroutine.name === this.subroutineName);
+	}
+
+	/** Validate that the MVOM subroutine is cataloged */
+	private async validateCatalog(headers: AuthenticationHeaders): Promise<boolean> {
+		this.logHandler.debug('Fetching list of cataloged subroutines from MVIS Admin');
+		const {
+			data: { ctlgprograms },
+		} = await this.axiosInstance.get<CatalogProgramsResult>(
+			`manager/rest/${this.account}/subroutines`,
+			{ headers },
+		);
+
+		return ctlgprograms.includes(this.subroutineName);
+	}
+
+	/** Create MVIS REST Definition */
+	private async createRestDefinition(
+		headers: AuthenticationHeaders,
+		sourceDir: string,
+		createDir: boolean,
+	): Promise<void> {
+		const sourcePath = path.join(DeploymentManager.unibasicPath, this.mainFileName);
+		this.logHandler.debug(`Reading unibasic source from ${sourcePath}`);
+		const source = await fs.readFile(sourcePath, 'utf8');
+
+		this.logHandler.debug(
+			`Creating REST subroutine definition for ${this.subroutineName} in MVIS Admin`,
+		);
+		await this.axiosInstance.post<unknown, AxiosResponse, SubroutineCreate>(
+			`manager/rest/${this.account}/subroutine`,
+			{
+				name: this.subroutineName,
+				parameter_count: 2,
+				input: { name: '', parameters: [{ name: 'input', type: 'json', order: 1, dname: '' }] },
+				output: { name: '', parameters: [{ name: 'output', type: 'json', order: 2, dname: '' }] },
+				allowCompileAndCatalog: true,
+				createSourceDir: createDir,
+				sourceDir,
+				catalogOptions: 'force',
+				compileOptions: '-i -o -d',
+				source,
+			},
+			{ headers },
+		);
+		this.logHandler.debug(`${this.subroutineName} successfully created in MVIS Admin`);
+	}
+
+	/** Deploy subroutine to database server */
+	private async deploySubroutine(headers: AuthenticationHeaders) {
+		this.logHandler.debug(`Compiling and cataloging ${this.subroutineName} on database server`);
+		await this.axiosInstance.get(
+			`manager/rest/${this.account}/loadsubroutine/${this.subroutineName}`,
+			{ headers },
+		);
+		this.logHandler.debug(`Compiled ${this.subroutineName} on database server`);
 	}
 }
 
