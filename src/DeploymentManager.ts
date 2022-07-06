@@ -260,7 +260,7 @@ class DeploymentManager {
 		const {
 			data: { ctlgprograms },
 		} = await this.axiosInstance.get<CatalogProgramsResult>(
-			`manager/rest/${this.account}/subroutines`,
+			`manager/rest/${this.account}/ctlgprograms`,
 			{ headers },
 		);
 
