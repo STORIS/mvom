@@ -181,7 +181,9 @@ describe('validateDeployment', () => {
 				headers: { 'set-cookie': ['XSRF-TOKEN=3c2a0741-f1a5-4d52-9145-b508e4fbc845; Path=/'] },
 			})
 			.calledWith(`manager/rest/${account}/subroutines`, expect.anything())
-			.mockResolvedValue({ data: {} });
+			.mockResolvedValue({ data: {} })
+			.calledWith(`manager/rest/${account}/ctlgprograms`, expect.anything())
+			.mockResolvedValue({ data: { ctlgprograms: [subroutineName] } });
 
 		const deploymentManager = DeploymentManager.createDeploymentManager(
 			mvisAdminUrl,
@@ -192,16 +194,52 @@ describe('validateDeployment', () => {
 		);
 
 		expect(await deploymentManager.validateDeployment()).toBe(false);
-		expect(mockedAxiosInstance.get).toHaveBeenCalledTimes(2);
+		expect(mockedAxiosInstance.get).toHaveBeenCalledTimes(3);
 		expect(mockedAxiosInstance.get).toHaveBeenCalledWith('user', {
 			headers: { authorization: `Basic ${expectedAuthorization}` },
 		});
 		expect(mockedAxiosInstance.get).toHaveBeenCalledWith(`manager/rest/${account}/subroutines`, {
 			headers: { Cookie: expectedCookie, 'X-XSRF-TOKEN': expectedXsrfToken },
 		});
+		expect(mockedAxiosInstance.get).toHaveBeenCalledWith(`manager/rest/${account}/ctlgprograms`, {
+			headers: { Cookie: expectedCookie, 'X-XSRF-TOKEN': expectedXsrfToken },
+		});
 	});
 
-	test('should return true if mvom main subroutine has a definition', async () => {
+	test('should return false if mvom main subroutine is not cataloged', async () => {
+		when<any, any[]>(mockedAxiosInstance.get)
+			.calledWith('user', expect.anything())
+			.mockResolvedValue({
+				data: {},
+				headers: { 'set-cookie': ['XSRF-TOKEN=3c2a0741-f1a5-4d52-9145-b508e4fbc845; Path=/'] },
+			})
+			.calledWith(`manager/rest/${account}/subroutines`, expect.anything())
+			.mockResolvedValue({ data: { subroutineName: { name: subroutineName } } })
+			.calledWith(`manager/rest/${account}/ctlgprograms`, expect.anything())
+			.mockResolvedValue({ data: { ctlgprograms: [] } });
+
+		const deploymentManager = DeploymentManager.createDeploymentManager(
+			mvisAdminUrl,
+			account,
+			username,
+			password,
+			logHandler,
+		);
+
+		expect(await deploymentManager.validateDeployment()).toBe(false);
+		expect(mockedAxiosInstance.get).toHaveBeenCalledTimes(3);
+		expect(mockedAxiosInstance.get).toHaveBeenCalledWith('user', {
+			headers: { authorization: `Basic ${expectedAuthorization}` },
+		});
+		expect(mockedAxiosInstance.get).toHaveBeenCalledWith(`manager/rest/${account}/subroutines`, {
+			headers: { Cookie: expectedCookie, 'X-XSRF-TOKEN': expectedXsrfToken },
+		});
+		expect(mockedAxiosInstance.get).toHaveBeenCalledWith(`manager/rest/${account}/ctlgprograms`, {
+			headers: { Cookie: expectedCookie, 'X-XSRF-TOKEN': expectedXsrfToken },
+		});
+	});
+
+	test('should return true if mvom main subroutine has a definition and is cataloged', async () => {
 		when<any, any[]>(mockedAxiosInstance.get)
 			.calledWith('user', expect.anything())
 			.mockResolvedValue({
@@ -209,7 +247,9 @@ describe('validateDeployment', () => {
 				headers: { 'set-cookie': [expectedCookie] },
 			})
 			.calledWith(`manager/rest/${account}/subroutines`, expect.anything())
-			.mockResolvedValue({ data: { subroutineName: { name: subroutineName } } });
+			.mockResolvedValue({ data: { subroutineName: { name: subroutineName } } })
+			.calledWith(`manager/rest/${account}/ctlgprograms`, expect.anything())
+			.mockResolvedValue({ data: { ctlgprograms: [subroutineName] } });
 
 		const deploymentManager = DeploymentManager.createDeploymentManager(
 			mvisAdminUrl,
@@ -220,18 +260,21 @@ describe('validateDeployment', () => {
 		);
 
 		expect(await deploymentManager.validateDeployment()).toBe(true);
-		expect(mockedAxiosInstance.get).toHaveBeenCalledTimes(2);
+		expect(mockedAxiosInstance.get).toHaveBeenCalledTimes(3);
 		expect(mockedAxiosInstance.get).toHaveBeenCalledWith('user', {
 			headers: { authorization: `Basic ${expectedAuthorization}` },
 		});
 		expect(mockedAxiosInstance.get).toHaveBeenCalledWith(`manager/rest/${account}/subroutines`, {
 			headers: { Cookie: expectedCookie, 'X-XSRF-TOKEN': expectedXsrfToken },
 		});
+		expect(mockedAxiosInstance.get).toHaveBeenCalledWith(`manager/rest/${account}/ctlgprograms`, {
+			headers: { Cookie: expectedCookie, 'X-XSRF-TOKEN': expectedXsrfToken },
+		});
 	});
 });
 
 describe('deploy', () => {
-	test('should not deploy if REST subroutine definition is already present', async () => {
+	test('should not create or deploy if REST subroutine definition is already present and subroutine is cataloged', async () => {
 		when<any, any[]>(mockedAxiosInstance.get)
 			.calledWith('user', expect.anything())
 			.mockResolvedValue({
@@ -239,7 +282,9 @@ describe('deploy', () => {
 				headers: { 'set-cookie': [expectedCookie] },
 			})
 			.calledWith(`manager/rest/${account}/subroutines`, expect.anything())
-			.mockResolvedValue({ data: { subroutineName: { name: subroutineName } } });
+			.mockResolvedValue({ data: { subroutineName: { name: subroutineName } } })
+			.calledWith(`manager/rest/${account}/ctlgprograms`, expect.anything())
+			.mockResolvedValue({ data: { ctlgprograms: [subroutineName] } });
 
 		const deploymentManager = DeploymentManager.createDeploymentManager(
 			mvisAdminUrl,
@@ -252,11 +297,14 @@ describe('deploy', () => {
 		const sourceDir = 'source_directory';
 
 		await deploymentManager.deploy(sourceDir);
-		expect(mockedAxiosInstance.get).toHaveBeenCalledTimes(2);
+		expect(mockedAxiosInstance.get).toHaveBeenCalledTimes(3);
 		expect(mockedAxiosInstance.get).toHaveBeenCalledWith('user', {
 			headers: { authorization: `Basic ${expectedAuthorization}` },
 		});
 		expect(mockedAxiosInstance.get).toHaveBeenCalledWith(`manager/rest/${account}/subroutines`, {
+			headers: { Cookie: expectedCookie, 'X-XSRF-TOKEN': expectedXsrfToken },
+		});
+		expect(mockedAxiosInstance.get).toHaveBeenCalledWith(`manager/rest/${account}/ctlgprograms`, {
 			headers: { Cookie: expectedCookie, 'X-XSRF-TOKEN': expectedXsrfToken },
 		});
 	});
@@ -269,7 +317,9 @@ describe('deploy', () => {
 				headers: { 'set-cookie': [expectedCookie] },
 			})
 			.calledWith(`manager/rest/${account}/subroutines`, expect.anything())
-			.mockResolvedValue({ data: {} });
+			.mockResolvedValue({ data: {} })
+			.calledWith(`manager/rest/${account}/ctlgprograms`, expect.anything())
+			.mockResolvedValue({ data: { ctlgprograms: [] } });
 
 		const source = 'source code';
 		// @ts-ignore: mock not respecting overload
@@ -291,6 +341,9 @@ describe('deploy', () => {
 			headers: { authorization: `Basic ${expectedAuthorization}` },
 		});
 		expect(mockedAxiosInstance.get).toHaveBeenCalledWith(`manager/rest/${account}/subroutines`, {
+			headers: { Cookie: expectedCookie, 'X-XSRF-TOKEN': expectedXsrfToken },
+		});
+		expect(mockedAxiosInstance.get).toHaveBeenCalledWith(`manager/rest/${account}/ctlgprograms`, {
 			headers: { Cookie: expectedCookie, 'X-XSRF-TOKEN': expectedXsrfToken },
 		});
 		expect(mockedAxiosInstance.get).toHaveBeenCalledWith(
@@ -325,7 +378,9 @@ describe('deploy', () => {
 				headers: { 'set-cookie': [expectedCookie] },
 			})
 			.calledWith(`manager/rest/${account}/subroutines`, expect.anything())
-			.mockResolvedValue({ data: {} });
+			.mockResolvedValue({ data: {} })
+			.calledWith(`manager/rest/${account}/ctlgprograms`, expect.anything())
+			.mockResolvedValue({ data: { ctlgprograms: [] } });
 
 		const source = 'source code';
 		// @ts-ignore: mock not respecting overload
@@ -349,6 +404,9 @@ describe('deploy', () => {
 		expect(mockedAxiosInstance.get).toHaveBeenCalledWith(`manager/rest/${account}/subroutines`, {
 			headers: { Cookie: expectedCookie, 'X-XSRF-TOKEN': expectedXsrfToken },
 		});
+		expect(mockedAxiosInstance.get).toHaveBeenCalledWith(`manager/rest/${account}/ctlgprograms`, {
+			headers: { Cookie: expectedCookie, 'X-XSRF-TOKEN': expectedXsrfToken },
+		});
 		expect(mockedAxiosInstance.get).toHaveBeenCalledWith(
 			`manager/rest/${account}/loadsubroutine/${subroutineName}`,
 			{ headers: { Cookie: expectedCookie, 'X-XSRF-TOKEN': expectedXsrfToken } },
@@ -364,6 +422,108 @@ describe('deploy', () => {
 				output: { name: '', parameters: [{ name: 'output', type: 'json', order: 2, dname: '' }] },
 				allowCompileAndCatalog: true,
 				createSourceDir: true,
+				sourceDir,
+				catalogOptions: 'force',
+				compileOptions: '-i -o -d',
+				source,
+			},
+			{ headers: { Cookie: expectedCookie, 'X-XSRF-TOKEN': expectedXsrfToken } },
+		);
+	});
+
+	test('should compile/catalog subroutine if REST definition is present but subroutine is not cataloged', async () => {
+		when<any, any[]>(mockedAxiosInstance.get)
+			.calledWith('user', expect.anything())
+			.mockResolvedValue({
+				data: {},
+				headers: { 'set-cookie': [expectedCookie] },
+			})
+			.calledWith(`manager/rest/${account}/subroutines`, expect.anything())
+			.mockResolvedValue({ data: { subroutineName: { name: subroutineName } } })
+			.calledWith(`manager/rest/${account}/ctlgprograms`, expect.anything())
+			.mockResolvedValue({ data: { ctlgprograms: [] } });
+
+		const source = 'source code';
+		// @ts-ignore: mock not respecting overload
+		mockedFs.readFile.mockResolvedValue(source);
+
+		const deploymentManager = DeploymentManager.createDeploymentManager(
+			mvisAdminUrl,
+			account,
+			username,
+			password,
+			logHandler,
+		);
+
+		const sourceDir = 'source_directory';
+
+		await deploymentManager.deploy(sourceDir);
+		expect(mockedAxiosInstance.get).toHaveBeenCalledTimes(4);
+		expect(mockedAxiosInstance.get).toHaveBeenCalledWith('user', {
+			headers: { authorization: `Basic ${expectedAuthorization}` },
+		});
+		expect(mockedAxiosInstance.get).toHaveBeenCalledWith(`manager/rest/${account}/subroutines`, {
+			headers: { Cookie: expectedCookie, 'X-XSRF-TOKEN': expectedXsrfToken },
+		});
+		expect(mockedAxiosInstance.get).toHaveBeenCalledWith(`manager/rest/${account}/ctlgprograms`, {
+			headers: { Cookie: expectedCookie, 'X-XSRF-TOKEN': expectedXsrfToken },
+		});
+		expect(mockedAxiosInstance.get).toHaveBeenCalledWith(
+			`manager/rest/${account}/loadsubroutine/${subroutineName}`,
+			{ headers: { Cookie: expectedCookie, 'X-XSRF-TOKEN': expectedXsrfToken } },
+		);
+
+		expect(mockedAxiosInstance.post).not.toHaveBeenCalled();
+	});
+
+	test('should deploy REST subroutine definition but not compile/catalog subroutine if REST definition is not present but subroutine is cataloged', async () => {
+		when<any, any[]>(mockedAxiosInstance.get)
+			.calledWith('user', expect.anything())
+			.mockResolvedValue({
+				data: {},
+				headers: { 'set-cookie': [expectedCookie] },
+			})
+			.calledWith(`manager/rest/${account}/subroutines`, expect.anything())
+			.mockResolvedValue({ data: {} })
+			.calledWith(`manager/rest/${account}/ctlgprograms`, expect.anything())
+			.mockResolvedValue({ data: { ctlgprograms: [subroutineName] } });
+
+		const source = 'source code';
+		// @ts-ignore: mock not respecting overload
+		mockedFs.readFile.mockResolvedValue(source);
+
+		const deploymentManager = DeploymentManager.createDeploymentManager(
+			mvisAdminUrl,
+			account,
+			username,
+			password,
+			logHandler,
+		);
+
+		const sourceDir = 'source_directory';
+
+		await deploymentManager.deploy(sourceDir);
+		expect(mockedAxiosInstance.get).toHaveBeenCalledTimes(3);
+		expect(mockedAxiosInstance.get).toHaveBeenCalledWith('user', {
+			headers: { authorization: `Basic ${expectedAuthorization}` },
+		});
+		expect(mockedAxiosInstance.get).toHaveBeenCalledWith(`manager/rest/${account}/subroutines`, {
+			headers: { Cookie: expectedCookie, 'X-XSRF-TOKEN': expectedXsrfToken },
+		});
+		expect(mockedAxiosInstance.get).toHaveBeenCalledWith(`manager/rest/${account}/ctlgprograms`, {
+			headers: { Cookie: expectedCookie, 'X-XSRF-TOKEN': expectedXsrfToken },
+		});
+
+		expect(mockedAxiosInstance.post).toHaveBeenCalledTimes(1);
+		expect(mockedAxiosInstance.post).toHaveBeenCalledWith(
+			`manager/rest/${account}/subroutine`,
+			{
+				name: subroutineName,
+				parameter_count: 2,
+				input: { name: '', parameters: [{ name: 'input', type: 'json', order: 1, dname: '' }] },
+				output: { name: '', parameters: [{ name: 'output', type: 'json', order: 2, dname: '' }] },
+				allowCompileAndCatalog: true,
+				createSourceDir: false,
 				sourceDir,
 				catalogOptions: 'force',
 				compileOptions: '-i -o -d',
