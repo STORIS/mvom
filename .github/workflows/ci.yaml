@@ -31,12 +31,9 @@ jobs:
           check-latest: true
           cache: 'npm'
       - run: npm ci
-      - name: install website dependencies
-        working-directory: website
-        run: npm ci
-      - run: npm run lint:nocache
-      - run: npm run typecheck
-      - run: npm run prettier
+      - run: npm run lint:nocache --workspaces --if-present
+      - run: npm run typecheck --workspaces --if-present
+      - run: npm run prettier --workspaces --if-present
 
   test:
     runs-on: ubuntu-latest
@@ -53,4 +50,4 @@ jobs:
           check-latest: true
           cache: 'npm'
       - run: npm ci
-      - run: npm run test:ci
+      - run: npm run test:ci --workspaces --if-present
