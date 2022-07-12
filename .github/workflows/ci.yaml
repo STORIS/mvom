@@ -49,5 +49,6 @@ jobs:
           node-version: ${{ matrix.node }}
           check-latest: true
           cache: 'npm'
+      - run: npm install -g npm@8
       - run: npm ci
       - run: npm run test:ci --workspaces --if-present
