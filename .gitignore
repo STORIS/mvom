@@ -2,3 +2,4 @@ node_modules
 debug.log
 lcov.info
 npm-debug.log
+.eslintcache
