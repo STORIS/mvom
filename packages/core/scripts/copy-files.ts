@@ -4,6 +4,7 @@ import fse from 'fs-extra';
 
 /** Build output path */
 const buildPath = path.resolve(process.cwd(), './dist');
+const rootPath = path.resolve(process.cwd(), '..', '..');
 
 /** Create a minimal package.json file in the build folder */
 const createPackageFile = async (): Promise<void> => {
@@ -26,8 +27,9 @@ const createPackageFile = async (): Promise<void> => {
 
 /** Copy the specified file to the build folder */
 const copyFile = async (fileName: string): Promise<void> => {
+	const source = path.resolve(rootPath, fileName);
 	const target = path.resolve(buildPath, path.basename(fileName));
-	await fse.copy(fileName, target);
+	await fse.copy(source, target);
 
 	console.log(`Copied ${fileName} to ${target}`);
 };
