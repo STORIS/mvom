@@ -34,8 +34,6 @@
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "2.0.0-beta.22",
-    "@storis/eslint-config": "4.0.0",
-    "@storis/prettier-config": "1.0.0",
     "@tsconfig/docusaurus": "1.0.6",
     "@typescript-eslint/eslint-plugin": "5.30.6",
     "@typescript-eslint/parser": "5.30.6",
