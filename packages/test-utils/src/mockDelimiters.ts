@@ -1,6 +1,4 @@
-import type { DbServerDelimiters } from '../src/types';
-
-const mockDelimiters: DbServerDelimiters = {
+const mockDelimiters = {
 	rm: String.fromCharCode(255),
 	am: String.fromCharCode(254),
 	vm: String.fromCharCode(253),

@@ -1,4 +1,4 @@
-import mockDelimiters from '#test/mockDelimiters';
+import { mockDelimiters } from 'test-utils';
 import type { BuildForeignKeyDefinitionsResult, DocumentConstructorOptions } from '../Document';
 import Document from '../Document';
 import { TransformDataError } from '../errors';

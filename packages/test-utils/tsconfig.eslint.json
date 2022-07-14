@@ -4,12 +4,10 @@
   },
   "extends": "./tsconfig.json",
   "include": [
-    "src/**/*", // source folder
-    "scripts/**/*", // scripts folder
+    "**/*.ts",
     "./.*.cjs", // root commonjs files
     "./.*.mjs", // root esm files
     "./*.js", // root javascript files
-    "./.*.js", // root javascript config files
-    "__mocks__/**/*" // jest mocks
+    "./.*.js" // root javascript config files
   ]
 }

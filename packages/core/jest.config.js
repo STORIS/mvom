@@ -1,5 +1,8 @@
 module.exports = {
 	testEnvironment: 'node',
+	transform: {
+		'\\.[jt]sx?$': ['babel-jest', { rootMode: 'upward' }],
+	},
 	resetMocks: true, // clear history and reset behavior of mocks between each test
 	restoreMocks: true, // restore initial behavior of mocked functions
 	testPathIgnorePatterns: ['/node_modules/', '/dist/'], // ignore dist folder

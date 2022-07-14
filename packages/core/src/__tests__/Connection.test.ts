@@ -4,7 +4,7 @@ import type { AxiosError, AxiosInstance } from 'axios';
 import axios from 'axios';
 import { mock } from 'jest-mock-extended';
 import { when } from 'jest-when';
-import mockDelimiters from '#test/mockDelimiters';
+import { mockDelimiters } from 'test-utils';
 import type { CreateConnectionOptions } from '../Connection';
 import Connection, { ConnectionStatus } from '../Connection';
 import { dbErrors } from '../constants';

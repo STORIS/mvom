@@ -1,5 +1,5 @@
 import { mock, mockDeep } from 'jest-mock-extended';
-import mockDelimiters from '#test/mockDelimiters';
+import { mockDelimiters } from 'test-utils';
 import type { ModelConstructor } from '../compileModel';
 import { InvalidParameterError, QueryLimitError } from '../errors';
 import type LogHandler from '../LogHandler';

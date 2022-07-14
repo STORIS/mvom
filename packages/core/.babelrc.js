@@ -1,5 +1,5 @@
 module.exports = {
-	ignore: ['**/*.d.ts'],
+	extends: '../../babel.config.js',
 	env: {
 		build: {
 			ignore: ['**/*.test.ts', '**/__mocks__/**'],
@@ -7,17 +7,4 @@ module.exports = {
 		},
 		debug: { sourceMaps: 'inline', retainLines: true },
 	},
-	presets: [['@babel/env', { targets: { node: 'current' } }], '@babel/typescript'],
-	plugins: [
-		['@babel/plugin-transform-runtime'],
-		[
-			'module-resolver',
-			{
-				extensions: ['.ts'],
-				alias: {
-					'#test': './test',
-				},
-			},
-		],
-	],
 };
