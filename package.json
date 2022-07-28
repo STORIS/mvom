@@ -63,7 +63,7 @@
     "@types/fs-extra": "9.0.13",
     "@types/jest-when": "3.5.2",
     "@types/lodash": "4.14.182",
-    "@types/node": "16.11.45",
+    "@types/node": "16.11.46",
     "@types/nunjucks": "3.2.1",
     "@typescript-eslint/eslint-plugin": "5.31.0",
     "@typescript-eslint/parser": "5.31.0",
