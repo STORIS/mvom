@@ -1,5 +1,6 @@
 import type http from 'http';
 import type https from 'https';
+import { Mutex } from 'async-mutex';
 import type { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
 import axios from 'axios';
 import { addDays, addMilliseconds, differenceInMilliseconds, format } from 'date-fns';
@@ -110,6 +111,9 @@ class Connection {
 	/** Deployment Manager instance */
 	private readonly deploymentManager: DeploymentManager;
 
+	/** Mutex on acquiring server information */
+	private readonly serverInfoMutex: Mutex;
+
 	private constructor(
 		/** URL of the MVIS which facilitates access to the mv database */
 		mvisUrl: string,
@@ -140,6 +144,8 @@ class Connection {
 			...(httpAgent && { httpAgent }),
 			...(httpsAgent && { httpsAgent }),
 		});
+
+		this.serverInfoMutex = new Mutex();
 
 		this.logHandler.debug('creating new connection instance');
 	}
@@ -299,28 +305,31 @@ class Connection {
 
 	/** Get the db server information (date, time, etc.) */
 	private async getDbServerInfo(): Promise<ServerInfo> {
-		if (this.dbServerInfo == null || Date.now() > this.dbServerInfo.cacheExpiry) {
-			this.logHandler.debug('getting db server information');
-			const { date, time, delimiters, limits } = await this.executeDbSubroutine(
-				'getServerInfo',
-				{},
-			);
+		// set a mutex on acquiring server information so multiple simultaneous requests are not modifying the cache
+		return this.serverInfoMutex.runExclusive(async () => {
+			if (this.dbServerInfo == null || Date.now() > this.dbServerInfo.cacheExpiry) {
+				this.logHandler.debug('getting db server information');
+				const { date, time, delimiters, limits } = await this.executeDbSubroutine(
+					'getServerInfo',
+					{},
+				);
 
-			const timeDrift = differenceInMilliseconds(
-				addMilliseconds(addDays(mvEpoch, date), time),
-				Date.now(),
-			);
-			const cacheExpiry = Date.now() + this.cacheMaxAge * 1000;
+				const timeDrift = differenceInMilliseconds(
+					addMilliseconds(addDays(mvEpoch, date), time),
+					Date.now(),
+				);
+				const cacheExpiry = Date.now() + this.cacheMaxAge * 1000;
 
-			this.dbServerInfo = {
-				cacheExpiry,
-				timeDrift,
-				delimiters,
-				limits,
-			};
-		}
+				this.dbServerInfo = {
+					cacheExpiry,
+					timeDrift,
+					delimiters,
+					limits,
+				};
+			}
 
-		return this.dbServerInfo;
+			return this.dbServerInfo;
+		});
 	}
 
 	/**
