@@ -14,6 +14,7 @@ import {
 import type { DeployOptions } from './DeploymentManager';
 import DeploymentManager from './DeploymentManager';
 import {
+	ConnectionError,
 	DbServerError,
 	ForeignKeyValidationError,
 	InvalidParameterError,
@@ -186,6 +187,11 @@ class Connection {
 
 	/** Open a database connection */
 	public async open(): Promise<void> {
+		if (this.status !== ConnectionStatus.disconnected) {
+			this.logHandler.error('Connection is not closed');
+			throw new ConnectionError({ message: 'Connection is not closed' });
+		}
+
 		this.logHandler.info('opening connection');
 		this.status = ConnectionStatus.connecting;
 

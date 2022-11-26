@@ -10,6 +10,7 @@ import Connection, { ConnectionStatus } from '../Connection';
 import { dbErrors } from '../constants';
 import type DeploymentManager from '../DeploymentManager';
 import {
+	ConnectionError,
 	DbServerError,
 	ForeignKeyValidationError,
 	InvalidParameterError,
@@ -189,6 +190,20 @@ describe('createConnection', () => {
 });
 
 describe('open', () => {
+	test('should throw ConnectionError if connection is not closed', async () => {
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
+
+		connection.status = ConnectionStatus.connecting;
+
+		await expect(connection.open()).rejects.toThrow(ConnectionError);
+	});
+
 	test('should throw InvalidServerFeaturesError if database features are missing', async () => {
 		mockDeploymentManager.validateDeployment.mockResolvedValue(false);
 
