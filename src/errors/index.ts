@@ -1,3 +1,4 @@
+export { default as ConnectionError } from './ConnectionError';
 export { default as DataValidationError } from './DataValidationError';
 export { default as DbServerError } from './DbServerError';
 export { default as ForeignKeyValidationError } from './ForeignKeyValidationError';
