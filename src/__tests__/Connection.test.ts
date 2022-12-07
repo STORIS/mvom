@@ -390,7 +390,7 @@ describe('executeDbSubroutine', () => {
 		).rejects.toThrow(ForeignKeyValidationError);
 	});
 
-	test('should throw RecordLockedError when that code is returned from db', async () => {
+	test('should throw RecordLockedError when that code is returned from db during a save', async () => {
 		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
 				expect.anything(),
@@ -423,6 +423,41 @@ describe('executeDbSubroutine', () => {
 				id,
 				record: '',
 				foreignKeyDefinitions: [],
+			}),
+		).rejects.toThrow(RecordLockedError);
+	});
+
+	test('should throw RecordLockedError when that code is returned from db during a delete', async () => {
+		when<any, any[]>(mockedAxiosInstance.post)
+			.calledWith(
+				expect.anything(),
+				expect.objectContaining({
+					input: expect.objectContaining({
+						subroutineId: expect.stringContaining('deleteById'),
+					}),
+				}),
+			)
+			.mockResolvedValue({
+				data: {
+					output: { errorCode: dbErrors.recordLocked.code },
+				},
+			});
+
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
+		await connection.open();
+
+		const filename = 'filename';
+		const id = 'id';
+		await expect(
+			connection.executeDbSubroutine('deleteById', {
+				filename,
+				id,
 			}),
 		).rejects.toThrow(RecordLockedError);
 	});

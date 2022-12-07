@@ -279,7 +279,11 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			// validate data prior to saving
 			const validationErrors = await this.validate();
 			if (validationErrors.size > 0) {
-				throw new DataValidationError({ validationErrors });
+				throw new DataValidationError({
+					validationErrors,
+					filename: Model.file,
+					recordId: this._id,
+				});
 			}
 
 			try {
