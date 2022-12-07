@@ -10,6 +10,7 @@ import Connection, { ConnectionStatus } from '../Connection';
 import { dbErrors } from '../constants';
 import type DeploymentManager from '../DeploymentManager';
 import {
+	ConnectionError,
 	DbServerError,
 	ForeignKeyValidationError,
 	InvalidParameterError,
@@ -189,6 +190,20 @@ describe('createConnection', () => {
 });
 
 describe('open', () => {
+	test('should throw ConnectionError if connection is not closed', async () => {
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
+
+		connection.status = ConnectionStatus.connecting;
+
+		await expect(connection.open()).rejects.toThrow(ConnectionError);
+	});
+
 	test('should throw InvalidServerFeaturesError if database features are missing', async () => {
 		mockDeploymentManager.validateDeployment.mockResolvedValue(false);
 
@@ -813,6 +828,154 @@ describe('getDbDateTime', () => {
 
 		const expected = '2022-03-08T12:00:00.000';
 		expect(await connection.getDbDateTime()).toEqual(expected);
+	});
+
+	test('should return calculated db server date and time when using cached server info', async () => {
+		when<any, any[]>(mockedAxiosInstance.post)
+			.calledWith(
+				expect.anything(),
+				expect.objectContaining({
+					input: expect.objectContaining({
+						subroutineId: expect.stringContaining('getServerInfo'),
+					}),
+				}),
+			)
+			.mockResolvedValue({
+				data: {
+					output: {
+						date: 19791, // 2022-03-08
+						time: 43200000, // 12:00:00.000
+						delimiters: mockDelimiters,
+						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
+					},
+				},
+			});
+
+		jest.setSystemTime(new Date('2022-03-08T12:00:00.000'));
+
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
+		await connection.open();
+
+		jest.setSystemTime(new Date('2022-03-08T13:00:00.000')); // 1 hour elapsed; still within 6 hour ttl
+
+		const expected = '2022-03-08T13:00:00.000';
+		expect(await connection.getDbDateTime()).toEqual(expected);
+		expect(mockedAxiosInstance.post).toHaveBeenCalledTimes(1);
+	});
+
+	test('should return calculated db server date and time when cache has expired', async () => {
+		when<any, any[]>(mockedAxiosInstance.post)
+			.calledWith(
+				expect.anything(),
+				expect.objectContaining({
+					input: expect.objectContaining({
+						subroutineId: expect.stringContaining('getServerInfo'),
+					}),
+				}),
+			)
+			.mockResolvedValueOnce({
+				data: {
+					output: {
+						date: 19791, // 2022-03-08
+						time: 43200000, // 12:00:00.000
+						delimiters: mockDelimiters,
+						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
+					},
+				},
+			})
+			.mockResolvedValueOnce({
+				data: {
+					output: {
+						date: 19791, // 2022-03-08
+						time: 68400000, // 19:00:00.000
+						delimiters: mockDelimiters,
+						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
+					},
+				},
+			});
+
+		jest.setSystemTime(new Date('2022-03-08T12:00:00.000'));
+
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
+		await connection.open();
+
+		jest.setSystemTime(new Date('2022-03-08T19:00:00.000')); // 7 hours elapsed; beyond ttl
+
+		const expected = '2022-03-08T19:00:00.000';
+		expect(await connection.getDbDateTime()).toEqual(expected);
+		expect(mockedAxiosInstance.post).toHaveBeenCalledTimes(2);
+	});
+
+	test('should only call the db server once when cache has expired and multiple parallel requests are made', async () => {
+		when<any, any[]>(mockedAxiosInstance.post)
+			.calledWith(
+				expect.anything(),
+				expect.objectContaining({
+					input: expect.objectContaining({
+						subroutineId: expect.stringContaining('getServerInfo'),
+					}),
+				}),
+			)
+			.mockResolvedValueOnce({
+				data: {
+					output: {
+						date: 19791, // 2022-03-08
+						time: 43200000, // 12:00:00.000
+						delimiters: mockDelimiters,
+						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
+					},
+				},
+			})
+			.mockResolvedValueOnce({
+				data: {
+					output: {
+						date: 19791, // 2022-03-08
+						time: 68400000, // 19:00:00.000
+						delimiters: mockDelimiters,
+						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
+					},
+				},
+			});
+
+		jest.setSystemTime(new Date('2022-03-08T12:00:00.000'));
+
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
+		await connection.open();
+
+		jest.setSystemTime(new Date('2022-03-08T19:00:00.000')); // 7 hours elapsed; beyond ttl
+
+		const expected = '2022-03-08T19:00:00.000';
+		expect(await connection.getDbDateTime()).toEqual(expected);
+
+		const results = await Promise.all([
+			connection.getDbDateTime(),
+			connection.getDbDateTime(),
+			connection.getDbDateTime(),
+		]);
+
+		results.forEach((result) => {
+			expect(result).toEqual(expected);
+		});
+
+		expect(mockedAxiosInstance.post).toHaveBeenCalledTimes(2); // once at connection creation and once for all of the parallel requests
 	});
 });
 
