@@ -30,6 +30,7 @@ import type Schema from './Schema';
 import type {
 	DbServerDelimiters,
 	DbServerLimits,
+	DbSubroutineInputDeleteById,
 	DbSubroutineInputOptionsMap,
 	DbSubroutineInputSave,
 	DbSubroutineOutputErrorForeignKey,
@@ -357,8 +358,7 @@ class Connection {
 					});
 				}
 				case dbErrors.recordLocked.code: {
-					// We could receive a record locked error from a delete as well but both option types have a filename and id
-					const { filename, id } = options as DbSubroutineInputSave;
+					const { filename, id } = options as DbSubroutineInputSave | DbSubroutineInputDeleteById;
 					if (subroutineName === 'deleteById') {
 						this.logHandler.debug(`record locked when deleting record ${id} from ${filename}`);
 					} else {
