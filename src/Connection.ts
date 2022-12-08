@@ -32,7 +32,9 @@ import type Schema from './Schema';
 import type {
 	DbServerDelimiters,
 	DbServerLimits,
+	DbSubroutineInputDeleteById,
 	DbSubroutineInputOptionsMap,
+	DbSubroutineInputSave,
 	DbSubroutineOutputErrorForeignKey,
 	DbSubroutinePayload,
 	DbSubroutineResponseError,
@@ -258,7 +260,7 @@ class Connection {
 			return axios.isAxiosError(err) ? this.handleAxiosError(err) : this.handleUnexpectedError(err);
 		}
 
-		this.handleDbServerError(response);
+		this.handleDbServerError(response, subroutineName, options);
 
 		// return the relevant portion from the db server response
 		return response.data.output;
@@ -339,33 +341,56 @@ class Connection {
 	 * @throws {@link RecordVersionError} A record changed between being read and written and could not be updated
 	 * @throws {@link DbServerError} An error was encountered on the database server
 	 */
-	private handleDbServerError<TResponse extends DbSubroutineResponseTypes>(
+	private handleDbServerError<
+		TResponse extends DbSubroutineResponseTypes,
+		TSubroutineName extends keyof (DbSubroutineInputOptionsMap & DbSubroutineResponseTypesMap),
+	>(
 		response: AxiosResponse<TResponse | DbSubroutineResponseError>,
+		subroutineName: TSubroutineName,
+		options: DbSubroutineInputOptionsMap[TSubroutineName],
 	): asserts response is AxiosResponse<TResponse> {
 		if (response.data.output == null) {
 			// handle invalid response
-			this.logHandler.error('Response from db server was malformed');
-			throw new DbServerError({ message: 'Response from db server was malformed' });
+			this.logHandler.error(`Response from db server was malformed when calling ${subroutineName}`);
+			throw new DbServerError({
+				message: `Response from db server was malformed when calling ${subroutineName}`,
+			});
 		}
 
 		if ('errorCode' in response.data.output) {
 			const errorCode = Number(response.data.output.errorCode);
 			switch (errorCode) {
-				case dbErrors.foreignKeyValidation.code:
-					this.logHandler.debug('foreign key violations found when saving record');
+				case dbErrors.foreignKeyValidation.code: {
+					const { filename, id } = options as DbSubroutineInputSave;
+					this.logHandler.debug(
+						`foreign key violations found when saving record ${id} to ${filename}`,
+					);
 					throw new ForeignKeyValidationError({
 						foreignKeyValidationErrors: (response.data.output as DbSubroutineOutputErrorForeignKey)
 							.foreignKeyValidationErrors,
+						filename,
+						recordId: id,
 					});
-				case dbErrors.recordLocked.code:
-					this.logHandler.debug('record locked when saving record');
-					throw new RecordLockedError();
-				case dbErrors.recordVersion.code:
-					this.logHandler.debug('record version mismatch found when saving record');
-					throw new RecordVersionError();
+				}
+				case dbErrors.recordLocked.code: {
+					const { filename, id } = options as DbSubroutineInputSave | DbSubroutineInputDeleteById;
+					if (subroutineName === 'deleteById') {
+						this.logHandler.debug(`record locked when deleting record ${id} from ${filename}`);
+					} else {
+						this.logHandler.debug(`record locked when saving record ${id} to ${filename}`);
+					}
+					throw new RecordLockedError({ filename, recordId: id });
+				}
+				case dbErrors.recordVersion.code: {
+					const { filename, id } = options as DbSubroutineInputSave;
+					this.logHandler.debug(
+						`record version mismatch found when saving record ${id} to ${filename}`,
+					);
+					throw new RecordVersionError({ filename, recordId: id });
+				}
 				default:
 					this.logHandler.error(
-						`error code ${response.data.output.errorCode} occurred in database operation`,
+						`error code ${response.data.output.errorCode} occurred in database operation when calling ${subroutineName}`,
 					);
 					throw new DbServerError({ errorCode: response.data.output.errorCode });
 			}
