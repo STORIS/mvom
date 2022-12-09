@@ -119,8 +119,8 @@ write record on f.file, recordId on error
     case statusCode eq STATUS_WRITE_DUPLICATE_INDEX
       call error_handler(ERROR_RECORD_WRITE_DUPLICATE_INDEX, output)
     case 1
-      * Unknown error status code - use the generic write error code
-      call error_handler(ERROR_RECORD_WRITE, output)
+      * Unknown error status code
+      call error_handler(ERROR_RECORD_WRITE_UNKNOWN, output)
   end case
 
   go closeAndReturnFromSub

@@ -28,6 +28,7 @@ const dbErrors: Record<string, DbError> = {
 		code: 18,
 		message: 'Record write rejected due to violating duplicate index constraint',
 	},
+	recordWriteUnknown: { code: 19, message: 'Unknown error writing database record' },
 };
 
 export default dbErrors;
