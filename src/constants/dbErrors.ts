@@ -19,13 +19,13 @@ const dbErrors: Record<string, DbError> = {
 	digestHash: { code: 13, message: 'Error in constructing digest hash' },
 	foreignKeyValidation: { code: 14, message: 'Foreign key validation error' },
 	fileEncodeBase64: { code: 15, message: 'Error in encoding the file as Base64 string' },
-	recordWriteTriggerConstraint: { code: 15, message: 'Record write rejected by trigger' },
+	recordWriteTriggerConstraint: { code: 16, message: 'Record write rejected by trigger' },
 	recordWriteTriggerError: {
-		code: 16,
+		code: 17,
 		message: 'Error writing database record due to trigger error',
 	},
 	recordWriteDuplicateIndex: {
-		code: 17,
+		code: 18,
 		message: 'Record write rejected due to violating duplicate index constraint',
 	},
 };
