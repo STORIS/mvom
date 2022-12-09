@@ -2,6 +2,7 @@ subroutine mvom_save(options, output)
 * save a document given a filename, record id, and record contents
 {% include "../../constants/udo.njk" %}
 {% include "../../constants/error.njk" %}
+{% include "../../constants/status.njk" %}
 
 * get the filename from the options
 if udoGetProperty(options, 'filename', filename, type) then
@@ -107,7 +108,21 @@ end
 
 * write out record
 write record on f.file, recordId on error
-  call error_handler(ERROR_RECORD_WRITE, output)
+  stat = status()
+  begin case
+    case stat eq STATUS_WRITE_SYSTEM_ERROR
+      call error_handler(ERROR_RECORD_WRITE, output)
+    case stat eq STATUS_WRITE_TRIGGER_CONSTRAINT
+      call error_handler(ERROR_RECORD_WRITE_TRIGGER_CONSTRAINT, output)
+    case stat eq STATUS_WRITE_TRIGGER_ERROR
+      call error_handler(ERROR_RECORD_WRITE_TRIGGER_ERROR, output)
+    case stat eq STATUS_WRITE_DUPLICATE_INDEX
+      call error_handler(ERROR_RECORD_WRITE_DUPLICATE_INDEX, output)
+    case 1
+      * Unknown error status code - use the generic write error code
+      call error_handler(ERROR_RECORD_WRITE, output)
+  end case
+
   go closeAndReturnFromSub
 end
 
