@@ -73,12 +73,7 @@ interface ConnectionConstructorOptions {
 	httpsAgent?: https.Agent;
 }
 
-export enum ConnectionStatus {
-	// convert to enum when transitioning class to TS
-	disconnected = 'disconnected',
-	connected = 'connected',
-	connecting = 'connecting',
-}
+export type ConnectionStatus = 'disconnected' | 'connected' | 'connecting';
 
 /** Multivalue database server information */
 interface ServerInfo {
@@ -96,7 +91,7 @@ interface ServerInfo {
 /** A connection object */
 class Connection {
 	/** Connection status */
-	public status: ConnectionStatus = ConnectionStatus.disconnected;
+	public status: ConnectionStatus = 'disconnected';
 
 	/** Log handler instance used for diagnostic logging */
 	private readonly logHandler: LogHandler;
@@ -195,24 +190,24 @@ class Connection {
 
 	/** Open a database connection */
 	public async open(): Promise<void> {
-		if (this.status !== ConnectionStatus.disconnected) {
+		if (this.status !== 'disconnected') {
 			this.logHandler.error('Connection is not closed');
 			throw new ConnectionError({ message: 'Connection is not closed' });
 		}
 
 		this.logHandler.info('opening connection');
-		this.status = ConnectionStatus.connecting;
+		this.status = 'connecting';
 
 		const isValid = await this.deploymentManager.validateDeployment();
 		if (!isValid) {
 			// prevent connection attempt if features are invalid
 			this.logHandler.info('MVIS has not been configured for use with MVOM');
 			this.logHandler.error('Connection will not be opened');
-			this.status = ConnectionStatus.disconnected;
+			this.status = 'disconnected';
 			throw new InvalidServerFeaturesError();
 		}
 
-		this.status = ConnectionStatus.connected;
+		this.status = 'connected';
 
 		await this.getDbServerInfo(); // establish baseline for database server information
 
@@ -233,7 +228,7 @@ class Connection {
 		setupOptions: DbSubroutineSetupOptions = {},
 		teardownOptions: Record<string, never> = {},
 	): Promise<DbSubroutineResponseTypesMap[TSubroutineName]['output']> {
-		if (this.status !== ConnectionStatus.connected) {
+		if (this.status !== 'connected') {
 			this.logHandler.error(
 				'Cannot execute database features until database connection has been established',
 			);
@@ -295,7 +290,7 @@ class Connection {
 		schema: Schema | null,
 		file: string,
 	): ModelConstructor {
-		if (this.status !== ConnectionStatus.connected || this.dbServerInfo == null) {
+		if (this.status !== 'connected' || this.dbServerInfo == null) {
 			this.logHandler.error('Cannot create model until database connection has been established');
 			throw new Error('Cannot create model until database connection has been established');
 		}

@@ -6,7 +6,7 @@ import { mock } from 'jest-mock-extended';
 import { when } from 'jest-when';
 import mockDelimiters from '#test/mockDelimiters';
 import type { CreateConnectionOptions } from '../Connection';
-import Connection, { ConnectionStatus } from '../Connection';
+import Connection from '../Connection';
 import { dbErrors } from '../constants';
 import type DeploymentManager from '../DeploymentManager';
 import {
@@ -199,7 +199,7 @@ describe('open', () => {
 			account,
 		);
 
-		connection.status = ConnectionStatus.connecting;
+		connection.status = 'connecting';
 
 		await expect(connection.open()).rejects.toThrow(ConnectionError);
 	});
@@ -250,7 +250,7 @@ describe('open', () => {
 		);
 
 		await connection.open();
-		expect(connection.status).toBe(ConnectionStatus.connected);
+		expect(connection.status).toBe('connected');
 	});
 });
 
