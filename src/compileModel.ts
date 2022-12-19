@@ -28,6 +28,7 @@ export interface ModelFindAndCountResult {
 
 export interface ModelDatabaseExecutionOptions {
 	userDefined?: DbSubroutineUserDefinedOptions;
+	requestId?: string;
 }
 export type ModelDeleteByIdOptions = ModelDatabaseExecutionOptions;
 export type ModelFindOptions = QueryConstructorOptions & ModelDatabaseExecutionOptions;
@@ -126,7 +127,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			id: string,
 			options: ModelDeleteByIdOptions = {},
 		): Promise<Model | null> {
-			const { userDefined } = options;
+			const { userDefined, requestId } = options;
 
 			const data = await this.connection.executeDbSubroutine(
 				'deleteById',
@@ -134,7 +135,10 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 					filename: this.file,
 					id,
 				},
-				userDefined && { userDefined },
+				{
+					...(requestId && { requestId }),
+					...(userDefined && { userDefined }),
+				},
 			);
 
 			if (data.result == null) {
@@ -151,9 +155,12 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			selectionCriteria: Filter<TSchema> = {},
 			options: ModelFindOptions = {},
 		): Promise<Model[]> {
-			const { userDefined, ...queryConstructorOptions } = options;
+			const { userDefined, requestId, ...queryConstructorOptions } = options;
 			const query = new Query(Model, Model.#logHandler, selectionCriteria, queryConstructorOptions);
-			const { documents } = await query.exec(userDefined && { userDefined });
+			const { documents } = await query.exec({
+				...(userDefined && { userDefined }),
+				...(requestId && { requestId }),
+			});
 
 			return documents.map((document) => {
 				const { _id, __v, record } = document;
@@ -166,9 +173,12 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			selectionCriteria: Filter<TSchema> = {},
 			options: ModelFindOptions = {},
 		): Promise<ModelFindAndCountResult> {
-			const { userDefined, ...queryConstructorOptions } = options;
+			const { userDefined, requestId, ...queryConstructorOptions } = options;
 			const query = new Query(Model, Model.#logHandler, selectionCriteria, queryConstructorOptions);
-			const { count, documents } = await query.exec(userDefined && { userDefined });
+			const { count, documents } = await query.exec({
+				...(userDefined && { userDefined }),
+				...(requestId && { requestId }),
+			});
 
 			const models = documents.map((document) => {
 				const { _id, __v, record } = document;
@@ -186,7 +196,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			id: string,
 			options: ModelFindByIdOptions = {},
 		): Promise<Model | null> {
-			const { projection, userDefined } = options;
+			const { projection, userDefined, requestId } = options;
 
 			const data = await this.connection.executeDbSubroutine(
 				'findById',
@@ -195,7 +205,10 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 					id,
 					projection: this.#formatProjection(projection),
 				},
-				userDefined && { userDefined },
+				{
+					...(userDefined && { userDefined }),
+					...(requestId && { requestId }),
+				},
 			);
 
 			if (data.result == null) {
@@ -212,7 +225,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			ids: string | string[],
 			options: ModelFindByIdOptions = {},
 		): Promise<(Model | null)[]> {
-			const { projection, userDefined } = options;
+			const { projection, requestId, userDefined } = options;
 
 			const idsArray = ensureArray(ids);
 			const data = await this.connection.executeDbSubroutine(
@@ -222,7 +235,10 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 					ids: idsArray,
 					projection: this.#formatProjection(projection),
 				},
-				userDefined && { userDefined },
+				{
+					...(userDefined && { userDefined }),
+					...(requestId && { requestId }),
+				},
 			);
 
 			return data.result.map((dbResultItem) => {
@@ -240,14 +256,17 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			id: string,
 			options: ModelReadFileContentsByIdOptions = {},
 		): Promise<string> {
-			const { userDefined } = options;
+			const { requestId, userDefined } = options;
 			const data = await this.connection.executeDbSubroutine(
 				'readFileContentsById',
 				{
 					filename: this.file,
 					id,
 				},
-				userDefined && { userDefined },
+				{
+					...(userDefined && { userDefined }),
+					...(requestId && { requestId }),
+				},
 			);
 
 			return data.result;
@@ -271,7 +290,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 		/** Save a document to the database */
 		public async save(options: ModelSaveOptions = {}): Promise<Model> {
-			const { userDefined } = options;
+			const { requestId, userDefined } = options;
 			if (this._id == null) {
 				throw new TypeError('_id value must be set prior to saving');
 			}
@@ -296,7 +315,10 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 						record: this.#convertToMvString(),
 						foreignKeyDefinitions: this.buildForeignKeyDefinitions(),
 					},
-					userDefined && { userDefined },
+					{
+						...(userDefined && { userDefined }),
+						...(requestId && { requestId }),
+					},
 				);
 
 				const { _id, __v, record } = data.result;

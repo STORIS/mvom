@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import type http from 'http';
 import type https from 'https';
 import { Mutex } from 'async-mutex';
@@ -86,6 +87,19 @@ interface ServerInfo {
 	/** Multivalue database server limits */
 	limits: DbServerLimits;
 }
+
+interface DbServerInfoOptions {
+	requestId?: string;
+}
+
+export type GetDbDateOptions = DbServerInfoOptions;
+
+export type GetDbDateTimeOptions = DbServerInfoOptions;
+
+export type GetDbTimeOptions = DbServerInfoOptions;
+
+export type GetDbLimitsOptions = DbServerInfoOptions;
+
 // #endregion
 
 /** A connection object */
@@ -238,11 +252,10 @@ class Connection {
 		}
 
 		this.logHandler.debug(`executing database subroutine "${subroutineName}"`);
-
 		const data: DbSubroutinePayload<DbSubroutineInputOptionsMap[TSubroutineName]> = {
 			subroutineId: subroutineName,
 			subroutineInput: options,
-			setupOptions,
+			setupOptions: { ...setupOptions, requestId: setupOptions.requestId ?? crypto.randomUUID() },
 			teardownOptions,
 		};
 
@@ -262,26 +275,26 @@ class Connection {
 	}
 
 	/** Get the current ISOCalendarDate from the database */
-	public async getDbDate(): Promise<string> {
-		const { timeDrift } = await this.getDbServerInfo();
+	public async getDbDate({ requestId }: GetDbDateOptions = {}): Promise<string> {
+		const { timeDrift } = await this.getDbServerInfo({ requestId });
 		return format(addMilliseconds(Date.now(), timeDrift), ISOCalendarDateFormat);
 	}
 
 	/** Get the current ISOCalendarDateTime from the database */
-	public async getDbDateTime(): Promise<string> {
-		const { timeDrift } = await this.getDbServerInfo();
+	public async getDbDateTime({ requestId }: GetDbDateTimeOptions = {}): Promise<string> {
+		const { timeDrift } = await this.getDbServerInfo({ requestId });
 		return format(addMilliseconds(Date.now(), timeDrift), ISOCalendarDateTimeFormat);
 	}
 
 	/** Get the current ISOTime from the database */
-	public async getDbTime(): Promise<string> {
-		const { timeDrift } = await this.getDbServerInfo();
+	public async getDbTime({ requestId }: GetDbTimeOptions = {}): Promise<string> {
+		const { timeDrift } = await this.getDbServerInfo({ requestId });
 		return format(addMilliseconds(Date.now(), timeDrift), ISOTimeFormat);
 	}
 
 	/** Get the multivalue database server limits */
-	public async getDbLimits(): Promise<DbServerLimits> {
-		const { limits } = await this.getDbServerInfo();
+	public async getDbLimits({ requestId }: GetDbLimitsOptions = {}): Promise<DbServerLimits> {
+		const { limits } = await this.getDbServerInfo({ requestId });
 		return limits;
 	}
 
@@ -301,7 +314,7 @@ class Connection {
 	}
 
 	/** Get the db server information (date, time, etc.) */
-	private async getDbServerInfo(): Promise<ServerInfo> {
+	private async getDbServerInfo({ requestId }: DbServerInfoOptions = {}): Promise<ServerInfo> {
 		// set a mutex on acquiring server information so multiple simultaneous requests are not modifying the cache
 		return this.serverInfoMutex.runExclusive(async () => {
 			if (this.dbServerInfo == null || Date.now() > this.dbServerInfo.cacheExpiry) {
@@ -309,6 +322,9 @@ class Connection {
 				const { date, time, delimiters, limits } = await this.executeDbSubroutine(
 					'getServerInfo',
 					{},
+					{
+						...(requestId && { requestId }),
+					},
 				);
 
 				const timeDrift = differenceInMilliseconds(

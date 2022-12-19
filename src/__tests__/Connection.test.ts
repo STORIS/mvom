@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import type http from 'http';
 import type https from 'https';
 import type { AxiosError, AxiosInstance } from 'axios';
@@ -24,6 +25,7 @@ import {
 import type { Logger } from '../LogHandler';
 
 jest.mock('axios');
+jest.mock('crypto');
 
 const mockDeploymentManager = mock<DeploymentManager>();
 jest.mock('../DeploymentManager', () => ({ createDeploymentManager: () => mockDeploymentManager }));
@@ -312,6 +314,51 @@ describe('executeDbSubroutine', () => {
 					},
 				},
 			});
+	});
+
+	test('should generate a request id if not provided as a setup option', async () => {
+		(crypto.randomUUID as jest.Mock).mockReturnValue('uuid');
+
+		when<any, any[]>(mockedAxiosInstance.post)
+			.calledWith(
+				expect.anything(),
+				expect.objectContaining({
+					input: expect.objectContaining({
+						subroutineId: expect.stringContaining('getServerInfo'),
+					}),
+				}),
+			)
+			.mockResolvedValue({
+				data: {
+					output: {
+						date: 19791, // 2022-03-08
+						time: 43200000, // 12:00:00.000
+						delimiters: mockDelimiters,
+						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
+					},
+				},
+			});
+
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
+
+		await connection.open();
+		await connection.executeDbSubroutine('getServerInfo', {});
+		expect(mockedAxiosInstance.post).toHaveBeenCalledWith(expect.anything(), {
+			input: {
+				subroutineId: 'getServerInfo',
+				subroutineInput: {},
+				setupOptions: {
+					requestId: 'uuid',
+				},
+				teardownOptions: {},
+			},
+		});
 	});
 
 	test('should reject if database connection has not been opened', async () => {

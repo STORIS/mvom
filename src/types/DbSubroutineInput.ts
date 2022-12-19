@@ -11,6 +11,7 @@ export interface DbSubroutineUserDefinedOptions {
 
 export interface DbSubroutineSetupOptions {
 	userDefined?: DbSubroutineUserDefinedOptions;
+	requestId?: string;
 }
 
 export interface DbSubroutinePayload<TSubroutineInput extends GenericObject> {

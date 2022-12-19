@@ -3,7 +3,13 @@ subroutine mvom_setup(setupOptions)
 
 com /S$MVOM/ S$MVOM.PROCESS
 com /S$MVOM/ S$MVOM.USER1, S$MVOM.USER2, S$MVOM.USER3, S$MVOM.USER4, S$MVOM.USER5
+com /S$MVOM/ S$MVOM.REQUEST.ID
+
 S$MVOM.PROCESS = @TRUE
+
+if udoGetProperty(setupOptions, 'requestId', requestId, type) eq 0 then
+  S$MVOM.REQUEST.ID = requestId
+end
 
 gosub processUserDefinedOptions
 
