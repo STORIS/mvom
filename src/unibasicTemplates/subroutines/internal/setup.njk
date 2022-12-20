@@ -1,20 +1,41 @@
 subroutine mvom_setup(setupOptions)
 * Perform any needed environment setup
-
-com /S$MVOM/ S$MVOM.PROCESS
-com /S$MVOM/ S$MVOM.USER1, S$MVOM.USER2, S$MVOM.USER3, S$MVOM.USER4, S$MVOM.USER5
-com /S$MVOM/ S$MVOM.REQUEST.ID
+{% include "../../common/mvom.njk" %}
 
 S$MVOM.PROCESS = @TRUE
 
-if udoGetProperty(setupOptions, 'requestId', requestId, type) eq 0 then
-  S$MVOM.REQUEST.ID = requestId
-end
-
+gosub configureLogging
 gosub processUserDefinedOptions
 
 returnFromSub:
 return; * returning to caller
+
+configureLogging: * configure como logging
+if udoGetProperty(setupOptions, 'requestId', requestId, type) eq 0 then
+  S$MVOM.REQUEST.ID = requestId
+end
+
+if udoGetProperty(setupOptions, 'comoLogging', comoLogging, type) eq 0 then
+  if comoLogging = '' then
+    S$MVOM.COMO.LOGGING = 'off'
+  end else
+    S$MVOM.COMO.LOGGING = comoLogging
+  end
+
+  if S$MVOM.COMO.LOGGING eq 'on' or S$MVOM.COMO.LOGGGING eq 'onError' then
+    S$MVOM.COMO.LOG.KEY = 'mvom':'-':S$MVOM.REQUEST.ID
+  end
+
+  if S$MVOM.COMO.LOGGING eq 'on' then
+    hush off
+    execute 'COMO APPEND ':S$MVOM.COMO.LOG.KEY
+    crt S$MVOM.REQUEST.ID
+    crt oconv(date(), 'd4/')
+    crt oconv(system(12) / 1000, 'mts')
+  end
+end
+
+return
 
 processUserDefinedOptions: * process user defined options
 if udoGetProperty(setupOptions, 'userDefined', userDefined, type) then

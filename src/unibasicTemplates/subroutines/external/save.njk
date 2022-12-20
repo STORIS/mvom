@@ -3,6 +3,7 @@ subroutine mvom_save(options, output)
 {% include "../../constants/udo.njk" %}
 {% include "../../constants/error.njk" %}
 {% include "../../constants/status.njk" %}
+{% include "../../common/mvom.njk" %}
 
 * get the filename from the options
 if udoGetProperty(options, 'filename', filename, type) then
@@ -106,8 +107,23 @@ if udoCreate(UDO_NULL, projection) then
    go closeAndReturnFromSub
 end
 
+
 * write out record
+writeAttempt = 1
+write_record:
+
 write record on f.file, recordId on error
+  * A write can fail for many system related reasons. These will all return a status of 1 but in many cases the real reason will print out to stderr
+  * If configured to do so turn on como logging and replay the write.
+  if S$MVOM.COMO.LOGGING eq 'onSaveError' and writeAttempt eq 1 then
+    writeAttempt = 2
+    execute 'COMO APPEND ':S$MVOM.COMO.LOG.KEY
+    crt S$MVOM.REQUEST.ID
+    crt oconv(date(), 'd4/')
+    crt oconv(system(12) / 1000, 'mts')
+    go write_record
+  end
+
   statusCode = status()
   begin case
     case statusCode eq STATUS_WRITE_SYSTEM_ERROR

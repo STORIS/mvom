@@ -65,6 +65,8 @@ export interface CreateConnectionOptions {
 	httpAgent?: http.Agent;
 	/** Optional https agent */
 	httpsAgent?: https.Agent;
+	/** Como log settings - defaults to off */
+	comoLogging?: 'on' | 'off' | 'onSaveError';
 }
 
 interface ConnectionConstructorOptions {
@@ -72,6 +74,8 @@ interface ConnectionConstructorOptions {
 	httpAgent?: http.Agent;
 	/** Optional https agent */
 	httpsAgent?: https.Agent;
+	/** Como log settings - defaults to off */
+	comoLogging?: 'on' | 'off' | 'onSaveError';
 }
 
 export type ConnectionStatus = 'disconnected' | 'connected' | 'connecting';
@@ -88,17 +92,22 @@ interface ServerInfo {
 	limits: DbServerLimits;
 }
 
-interface DbServerInfoOptions {
+interface RequestOptions {
+	comoLogging?: 'on' | 'off' | 'onSaveError';
 	requestId?: string;
 }
 
-export type GetDbDateOptions = DbServerInfoOptions;
+export type OpenOptions = RequestOptions;
 
-export type GetDbDateTimeOptions = DbServerInfoOptions;
+export type DbServerInfoOptions = RequestOptions;
 
-export type GetDbTimeOptions = DbServerInfoOptions;
+export type GetDbDateOptions = RequestOptions;
 
-export type GetDbLimitsOptions = DbServerInfoOptions;
+export type GetDbDateTimeOptions = RequestOptions;
+
+export type GetDbTimeOptions = RequestOptions;
+
+export type GetDbLimitsOptions = RequestOptions;
 
 // #endregion
 
@@ -106,6 +115,9 @@ export type GetDbLimitsOptions = DbServerInfoOptions;
 class Connection {
 	/** Connection status */
 	public status: ConnectionStatus = 'disconnected';
+
+	/** Server-side como logging status */
+	public comoLogging;
 
 	/** Log handler instance used for diagnostic logging */
 	private readonly logHandler: LogHandler;
@@ -138,11 +150,12 @@ class Connection {
 		deploymentManager: DeploymentManager,
 		options: ConnectionConstructorOptions,
 	) {
-		const { httpAgent, httpsAgent } = options;
+		const { httpAgent, httpsAgent, comoLogging = 'off' } = options;
 
 		this.cacheMaxAge = cacheMaxAge;
 		this.logHandler = logHandler;
 		this.deploymentManager = deploymentManager;
+		this.comoLogging = comoLogging;
 
 		const url = new URL(mvisUrl);
 		url.pathname = url.pathname.replace(/\/?$/, `/${account}/subroutine/`);
@@ -175,7 +188,7 @@ class Connection {
 		account: string,
 		options: CreateConnectionOptions = {},
 	): Connection {
-		const { logger, cacheMaxAge = 3600, timeout = 0, httpAgent, httpsAgent } = options;
+		const { logger, cacheMaxAge = 3600, timeout = 0, httpAgent, httpsAgent, comoLogging } = options;
 
 		if (!Number.isInteger(cacheMaxAge)) {
 			throw new InvalidParameterError({ parameterName: 'cacheMaxAge' });
@@ -199,11 +212,12 @@ class Connection {
 		return new Connection(mvisUrl, account, cacheMaxAge, timeout, logHandler, deploymentManager, {
 			httpAgent,
 			httpsAgent,
+			comoLogging,
 		});
 	}
 
 	/** Open a database connection */
-	public async open(): Promise<void> {
+	public async open({ comoLogging, requestId }: OpenOptions = {}): Promise<void> {
 		if (this.status !== 'disconnected') {
 			this.logHandler.error('Connection is not closed');
 			throw new ConnectionError({ message: 'Connection is not closed' });
@@ -223,7 +237,7 @@ class Connection {
 
 		this.status = 'connected';
 
-		await this.getDbServerInfo(); // establish baseline for database server information
+		await this.getDbServerInfo({ comoLogging, requestId }); // establish baseline for database server information
 
 		this.logHandler.info('connection opened');
 	}
@@ -255,7 +269,11 @@ class Connection {
 		const data: DbSubroutinePayload<DbSubroutineInputOptionsMap[TSubroutineName]> = {
 			subroutineId: subroutineName,
 			subroutineInput: options,
-			setupOptions: { ...setupOptions, requestId: setupOptions.requestId ?? crypto.randomUUID() },
+			setupOptions: {
+				...setupOptions,
+				requestId: setupOptions.requestId ?? crypto.randomUUID(),
+				comoLogging: setupOptions.comoLogging ?? this.comoLogging,
+			},
 			teardownOptions,
 		};
 
@@ -275,26 +293,32 @@ class Connection {
 	}
 
 	/** Get the current ISOCalendarDate from the database */
-	public async getDbDate({ requestId }: GetDbDateOptions = {}): Promise<string> {
-		const { timeDrift } = await this.getDbServerInfo({ requestId });
+	public async getDbDate({ comoLogging, requestId }: GetDbDateOptions = {}): Promise<string> {
+		const { timeDrift } = await this.getDbServerInfo({ comoLogging, requestId });
 		return format(addMilliseconds(Date.now(), timeDrift), ISOCalendarDateFormat);
 	}
 
 	/** Get the current ISOCalendarDateTime from the database */
-	public async getDbDateTime({ requestId }: GetDbDateTimeOptions = {}): Promise<string> {
-		const { timeDrift } = await this.getDbServerInfo({ requestId });
+	public async getDbDateTime({
+		comoLogging,
+		requestId,
+	}: GetDbDateTimeOptions = {}): Promise<string> {
+		const { timeDrift } = await this.getDbServerInfo({ comoLogging, requestId });
 		return format(addMilliseconds(Date.now(), timeDrift), ISOCalendarDateTimeFormat);
 	}
 
 	/** Get the current ISOTime from the database */
-	public async getDbTime({ requestId }: GetDbTimeOptions = {}): Promise<string> {
-		const { timeDrift } = await this.getDbServerInfo({ requestId });
+	public async getDbTime({ comoLogging, requestId }: GetDbTimeOptions = {}): Promise<string> {
+		const { timeDrift } = await this.getDbServerInfo({ comoLogging, requestId });
 		return format(addMilliseconds(Date.now(), timeDrift), ISOTimeFormat);
 	}
 
 	/** Get the multivalue database server limits */
-	public async getDbLimits({ requestId }: GetDbLimitsOptions = {}): Promise<DbServerLimits> {
-		const { limits } = await this.getDbServerInfo({ requestId });
+	public async getDbLimits({
+		comoLogging,
+		requestId,
+	}: GetDbLimitsOptions = {}): Promise<DbServerLimits> {
+		const { limits } = await this.getDbServerInfo({ comoLogging, requestId });
 		return limits;
 	}
 
@@ -314,7 +338,10 @@ class Connection {
 	}
 
 	/** Get the db server information (date, time, etc.) */
-	private async getDbServerInfo({ requestId }: DbServerInfoOptions = {}): Promise<ServerInfo> {
+	private async getDbServerInfo({
+		requestId,
+		comoLogging,
+	}: DbServerInfoOptions = {}): Promise<ServerInfo> {
 		// set a mutex on acquiring server information so multiple simultaneous requests are not modifying the cache
 		return this.serverInfoMutex.runExclusive(async () => {
 			if (this.dbServerInfo == null || Date.now() > this.dbServerInfo.cacheExpiry) {
@@ -324,6 +351,7 @@ class Connection {
 					{},
 					{
 						...(requestId && { requestId }),
+						...(comoLogging && { comoLogging }),
 					},
 				);
 
