@@ -66,7 +66,7 @@ export interface CreateConnectionOptions {
 	/** Optional https agent */
 	httpsAgent?: https.Agent;
 	/** Como log settings - defaults to off */
-	comoLogging?: 'on' | 'off' | 'onSaveError';
+	comoLogging?: 'on' | 'off' | 'onError';
 }
 
 interface ConnectionConstructorOptions {
@@ -75,7 +75,7 @@ interface ConnectionConstructorOptions {
 	/** Optional https agent */
 	httpsAgent?: https.Agent;
 	/** Como log settings - defaults to off */
-	comoLogging?: 'on' | 'off' | 'onSaveError';
+	comoLogging?: 'on' | 'off' | 'onError';
 }
 
 export type ConnectionStatus = 'disconnected' | 'connected' | 'connecting';
@@ -93,7 +93,7 @@ interface ServerInfo {
 }
 
 interface RequestOptions {
-	comoLogging?: 'on' | 'off' | 'onSaveError';
+	comoLogging?: 'on' | 'off' | 'onError';
 	requestId?: string;
 }
 

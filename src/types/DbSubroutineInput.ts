@@ -10,7 +10,7 @@ export interface DbSubroutineUserDefinedOptions {
 }
 
 export interface DbSubroutineSetupOptions {
-	comoLogging?: 'on' | 'off' | 'onSaveError';
+	comoLogging?: 'on' | 'off' | 'onError';
 	userDefined?: DbSubroutineUserDefinedOptions;
 	requestId?: string;
 }
