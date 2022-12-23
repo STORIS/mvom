@@ -58,7 +58,7 @@ call @subroutineName(subroutineInput, output)
 call mvom_teardown(teardownOptions)
 
 response:
-  if S$MVOM.COMO.LOG.KEY ne 0 then
+  if S$MVOM.COMO.LOG.KEY ne '' then
     if udoSetProperty(output, 'comoLogKey', S$MVOM.COMO.LOG.KEY) then
       call error_handler(ERROR_UDO, output)
     end
