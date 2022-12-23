@@ -39,45 +39,67 @@ if udoGetProperty(options, 'foreignKeyDefinitions', fkDefinitions, type) then
 end
 
 * open the file
-open filename to f.file on error
-  call error_handler(ERROR_FILE_OPEN, output)
-  go returnFromSub
-end else
-  call error_handler(ERROR_FILE_OPEN, output)
-  go returnFromSub
-end
-
-* read and lock record from the file
-readu originalRecord from f.file, recordId on error
-  call error_handler(ERROR_RECORD_READ, output)
-  go closeAndReturnFromSub
-end locked
-  call error_handler(ERROR_RECORD_LOCKED, output)
-  go closeAndReturnFromSub
-end then
-  if originalRecord eq '' then
-    * empty record
-    originalRecordHash = ''
-  end else
-    if digest('MD5', originalRecord, 1, originalRecordHash) then
-      errorCode = ERROR_DIGEST_HASH
-      go closeReleaseAndReturnFromSub
+openAttempt = 1
+loop
+  open filename to f.file on error
+    if S$MVOM.COMO.LOGGING eq 'onError' and openAttempt eq 1 then
+      openAttempt += 1
+      call init_como_log('save')
+      continue
     end
 
-    originalRecordHash = oconv(originalRecordHash, 'MX0C')
+    call error_handler(ERROR_FILE_OPEN, output)
+    go returnFromSub
+  end else
+    call error_handler(ERROR_FILE_OPEN, output)
+    go returnFromSub
   end
 
-  if originalRecordHash ne recordHash then
-    call error_handler(ERROR_RECORD_VERSION, output)
-    go closeReleaseAndReturnFromSub
+  exit
+repeat
+
+* read and lock record from the file
+readAttempt = 1
+loop
+  readu originalRecord from f.file, recordId on error
+    if S$MVOM.COMO.LOGGING eq 'onError' and readAttempt eq 1 then
+    readAttempt += 1
+      call init_como_log('save')
+      continue
+    end
+
+    call error_handler(ERROR_RECORD_READ, output)
+    go closeAndReturnFromSub
+  end locked
+    call error_handler(ERROR_RECORD_LOCKED, output)
+    go closeAndReturnFromSub
+  end then
+    if originalRecord eq '' then
+      * empty record
+      originalRecordHash = ''
+    end else
+      if digest('MD5', originalRecord, 1, originalRecordHash) then
+        errorCode = ERROR_DIGEST_HASH
+        go closeReleaseAndReturnFromSub
+      end
+
+      originalRecordHash = oconv(originalRecordHash, 'MX0C')
+    end
+
+    if originalRecordHash ne recordHash then
+      call error_handler(ERROR_RECORD_VERSION, output)
+      go closeReleaseAndReturnFromSub
+    end
+  end else
+    if recordHash ne '' then
+      * this record existed previously, reject the save
+      call error_handler(ERROR_RECORD_VERSION, output)
+      go closeReleaseAndReturnFromSub
+    end
   end
-end else
-  if recordHash ne '' then
-    * this record existed previously, reject the save
-    call error_handler(ERROR_RECORD_VERSION, output)
-    go closeReleaseAndReturnFromSub
-  end
-end
+
+  exit
+repeat
 
 * validate any foreign keys before updating
 call validate_foreign_keys(fkDefinitions, fkValidationErrors, errorCode)
@@ -107,40 +129,38 @@ if udoCreate(UDO_NULL, projection) then
    go closeAndReturnFromSub
 end
 
-
 * write out record
 writeAttempt = 1
-write_record:
+loop
+  write record on f.file, recordId on error
+    * A write can fail for many system related reasons. These will all return a status of 1 but in many cases the real reason will print out to stderr
+    * If configured to do so turn on como logging and replay the write.
+    if S$MVOM.COMO.LOGGING eq 'onError' and writeAttempt eq 1 then
+      writeAttempt += 1
+      call init_como_log('save')
+      continue
+    end
 
-write record on f.file, recordId on error
-  * A write can fail for many system related reasons. These will all return a status of 1 but in many cases the real reason will print out to stderr
-  * If configured to do so turn on como logging and replay the write.
-  if S$MVOM.COMO.LOGGING eq 'onSaveError' and writeAttempt eq 1 then
-    writeAttempt = 2
-    execute 'COMO APPEND ':S$MVOM.COMO.LOG.KEY
-    crt S$MVOM.REQUEST.ID
-    crt oconv(date(), 'd4/')
-    crt oconv(system(12) / 1000, 'mts')
-    go write_record
+    statusCode = status()
+    begin case
+      case statusCode eq STATUS_WRITE_SYSTEM_ERROR
+        call error_handler(ERROR_RECORD_WRITE, output)
+      case statusCode eq STATUS_WRITE_TRIGGER_CONSTRAINT
+        call error_handler(ERROR_RECORD_WRITE_TRIGGER_CONSTRAINT, output)
+      case statusCode eq STATUS_WRITE_TRIGGER_ERROR
+        call error_handler(ERROR_RECORD_WRITE_TRIGGER_ERROR, output)
+      case statusCode eq STATUS_WRITE_DUPLICATE_INDEX
+        call error_handler(ERROR_RECORD_WRITE_DUPLICATE_INDEX, output)
+      case 1
+        * Unknown error status code
+        call error_handler(ERROR_RECORD_WRITE_UNKNOWN, output)
+    end case
+
+    go closeAndReturnFromSub
   end
 
-  statusCode = status()
-  begin case
-    case statusCode eq STATUS_WRITE_SYSTEM_ERROR
-      call error_handler(ERROR_RECORD_WRITE, output)
-    case statusCode eq STATUS_WRITE_TRIGGER_CONSTRAINT
-      call error_handler(ERROR_RECORD_WRITE_TRIGGER_CONSTRAINT, output)
-    case statusCode eq STATUS_WRITE_TRIGGER_ERROR
-      call error_handler(ERROR_RECORD_WRITE_TRIGGER_ERROR, output)
-    case statusCode eq STATUS_WRITE_DUPLICATE_INDEX
-      call error_handler(ERROR_RECORD_WRITE_DUPLICATE_INDEX, output)
-    case 1
-      * Unknown error status code
-      call error_handler(ERROR_RECORD_WRITE_UNKNOWN, output)
-  end case
-
-  go closeAndReturnFromSub
-end
+  exit
+repeat
 
 close f.file on error null
 
