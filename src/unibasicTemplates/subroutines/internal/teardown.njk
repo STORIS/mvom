@@ -1,5 +1,10 @@
 subroutine mvom_teardown(teardownOptions)
 * Perform any needed environment teardown
+{% include "../../common/mvom.njk" %}
+
+if S$MVOM.COMO.LOGGING ne 'off' then
+  execute 'COMO OFF ':S$MVOM.COMO.LOG.KEY
+end
 
 clearcommon /S$MVOM/
 

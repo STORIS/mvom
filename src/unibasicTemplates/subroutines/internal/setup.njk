@@ -11,10 +11,11 @@ returnFromSub:
 return; * returning to caller
 
 configureLogging: * configure como logging
+S$MVOM.REQUEST.ID = ''
+S$MVOM.COMO.LOGGING = 'off'
+
 if udoGetProperty(setupOptions, 'requestId', requestId, type) eq 0 then
   S$MVOM.REQUEST.ID = requestId
-end else
-  S$MVOM.REQUEST.ID = ''
 end
 
 if udoGetProperty(setupOptions, 'comoLogging', comoLogging, type) eq 0 then
@@ -27,8 +28,6 @@ if udoGetProperty(setupOptions, 'comoLogging', comoLogging, type) eq 0 then
   if S$MVOM.COMO.LOGGING eq 'on' then
     call init_como_log(subroutineId)
   end
-end else
-  S$MVOM.COMO.LOGGING = 'off'
 end
 
 return
