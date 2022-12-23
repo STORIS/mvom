@@ -1,0 +1,14 @@
+subroutine init_como_log(subroutineName)
+* turn on como logging and log some basic information
+
+{% include "../../common/mvom.njk" %}
+
+* hush must be off so that all terminal output is captured
+hush off
+execute 'COMO APPEND ':S$MVOM.COMO.LOG.KEY
+crt subroutineName
+crt S$MVOM.REQUEST.ID
+crt oconv(date(), 'd4/')
+crt oconv(system(12) / 1000, 'mts')
+
+return
