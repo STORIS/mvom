@@ -94,7 +94,7 @@ interface ServerInfo {
 
 interface RequestOptions {
 	comoLogging?: 'on' | 'off' | 'onError';
-	requestId?: string;
+	requestId?: string | null;
 }
 
 export type OpenOptions = RequestOptions;
