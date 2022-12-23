@@ -49,7 +49,10 @@ end
 
 hush off
 udtexecute 'limit' returning errmsg capturing limitDetails
-hush on
+if S$MVOM.COMO.LOGGING ne 'on' then
+  * If como logging was turned on then hush was already off and must stay off so all output is captured
+  hush on
+end
 
 for limitDetailPosition = 1 to dcount(limitDetails, @am)
   limitDetail = limitDetails<limitDetailPosition>
