@@ -53,6 +53,7 @@ end
 call mvom_setup(setupOptions, subroutineId)
 if udoSetProperty(output, 'comoLogKey', S$MVOM.COMO.LOG.KEY) then
   call error_handler(ERROR_UDO, output)
+  go response
 end
 
 subroutineName = 'mvom_':subroutineId
