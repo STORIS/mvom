@@ -397,6 +397,7 @@ class Connection {
 		}
 
 		if ('errorCode' in response.data.output) {
+			const { comoLogId } = response.data.output;
 			const errorCode = Number(response.data.output.errorCode);
 			switch (errorCode) {
 				case dbErrors.foreignKeyValidation.code: {
@@ -409,6 +410,7 @@ class Connection {
 							.foreignKeyValidationErrors,
 						filename,
 						recordId: id,
+						comoLogId,
 					});
 				}
 				case dbErrors.recordLocked.code: {
@@ -418,20 +420,20 @@ class Connection {
 					} else {
 						this.logHandler.debug(`record locked when saving record ${id} to ${filename}`);
 					}
-					throw new RecordLockedError({ filename, recordId: id });
+					throw new RecordLockedError({ filename, recordId: id, comoLogId });
 				}
 				case dbErrors.recordVersion.code: {
 					const { filename, id } = options as DbSubroutineInputSave;
 					this.logHandler.debug(
 						`record version mismatch found when saving record ${id} to ${filename}`,
 					);
-					throw new RecordVersionError({ filename, recordId: id });
+					throw new RecordVersionError({ filename, recordId: id, comoLogId });
 				}
 				default:
 					this.logHandler.error(
 						`error code ${response.data.output.errorCode} occurred in database operation when calling ${subroutineName}`,
 					);
-					throw new DbServerError({ errorCode: response.data.output.errorCode });
+					throw new DbServerError({ errorCode: response.data.output.errorCode, comoLogId });
 			}
 		}
 	}

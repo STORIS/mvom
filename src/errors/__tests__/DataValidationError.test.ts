@@ -4,7 +4,7 @@ const validationErrors = new Map([['foo', 'foo']]);
 const filename = 'filename';
 const recordId = 'recordId';
 
-test('should instantiate error with expected instance properties', (): void => {
+test('should instantiate error with expected instance properties', () => {
 	const error = new DataValidationError({ validationErrors, filename, recordId });
 	const expected = {
 		name: 'DataValidationError',
@@ -16,7 +16,7 @@ test('should instantiate error with expected instance properties', (): void => {
 	expect(error).toMatchObject(expected);
 });
 
-test('should allow for override of message', (): void => {
+test('should allow for override of message', () => {
 	const message = 'foo';
 	const error = new DataValidationError({
 		message,

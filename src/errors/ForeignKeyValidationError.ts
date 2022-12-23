@@ -10,6 +10,7 @@ interface ForeignKeyValidationErrorConstructorOptions {
 	foreignKeyValidationErrors: ForeignKeyValidationErrorData[];
 	filename: string;
 	recordId: string;
+	comoLogId?: string | null;
 }
 
 /** Error thrown when foreign key violations encountered when saving a document */
@@ -21,11 +22,14 @@ class ForeignKeyValidationError extends BaseError {
 
 	public readonly recordId: string;
 
+	public readonly comoLogId: string | null;
+
 	public constructor({
 		message = 'Foreign key violation(s) encountered while saving',
 		foreignKeyValidationErrors,
 		filename,
 		recordId,
+		comoLogId,
 	}: ForeignKeyValidationErrorConstructorOptions) {
 		const name = 'ForeignKeyValidationError';
 		super(message, name);
@@ -33,6 +37,7 @@ class ForeignKeyValidationError extends BaseError {
 		this.foreignKeyValidationErrors = foreignKeyValidationErrors;
 		this.filename = filename;
 		this.recordId = recordId;
+		this.comoLogId = comoLogId ?? null;
 	}
 }
 

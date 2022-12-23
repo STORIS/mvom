@@ -1,6 +1,6 @@
 import MvisError from '../MvisError';
 
-test('should instantiate error with expected instance properties', (): void => {
+test('should instantiate error with expected instance properties', () => {
 	const error = new MvisError();
 	const expected = {
 		name: 'MvisError',
@@ -11,7 +11,7 @@ test('should instantiate error with expected instance properties', (): void => {
 	expect(error).toMatchObject(expected);
 });
 
-test('should allow for override of message', (): void => {
+test('should allow for override of message', () => {
 	const message = 'foo';
 	const error = new MvisError({
 		message,
@@ -19,7 +19,7 @@ test('should allow for override of message', (): void => {
 	expect(error.message).toEqual(message);
 });
 
-test('should allow for override of mvisRequest', (): void => {
+test('should allow for override of mvisRequest', () => {
 	const mvisRequest = { foo: 'foo' };
 	const error = new MvisError({
 		mvisRequest,
@@ -27,7 +27,7 @@ test('should allow for override of mvisRequest', (): void => {
 	expect(error.mvisRequest).toEqual(mvisRequest);
 });
 
-test('should allow for override of mvisResponse', (): void => {
+test('should allow for override of mvisResponse', () => {
 	const mvisResponse = { foo: 'foo' };
 	const error = new MvisError({
 		mvisResponse,

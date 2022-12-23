@@ -3,7 +3,7 @@ subroutine mvom_teardown(teardownOptions)
 {% include "../../common/mvom.njk" %}
 
 if S$MVOM.COMO.LOGGING ne 'off' then
-  execute 'COMO OFF ':S$MVOM.COMO.LOG.KEY
+  execute 'COMO OFF ':S$MVOM.COMO.LOG.ID
 end
 
 clearcommon /S$MVOM/

@@ -4,6 +4,7 @@ interface RecordLockedErrorConstructorOptions {
 	message?: string;
 	filename: string;
 	recordId: string;
+	comoLogId?: string | null;
 }
 
 /** Error thrown when an error occurs due to a record being locked which prevented update */
@@ -12,16 +13,20 @@ class RecordLockedError extends BaseError {
 
 	public readonly recordId: string;
 
+	public readonly comoLogId: string | null;
+
 	public constructor({
 		message = 'Record is locked and cannot be updated',
 		filename,
 		recordId,
+		comoLogId,
 	}: RecordLockedErrorConstructorOptions) {
 		const name = 'RecordLockedError';
 		super(message, name);
 
 		this.filename = filename;
 		this.recordId = recordId;
+		this.comoLogId = comoLogId ?? null;
 	}
 }
 

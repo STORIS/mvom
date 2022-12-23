@@ -51,7 +51,7 @@ if udoGetProperty(input, 'teardownOptions', teardownOptions, type) then
 end
 
 call mvom_setup(setupOptions, subroutineId)
-if udoSetProperty(output, 'comoLogKey', S$MVOM.COMO.LOG.KEY) then
+if udoSetProperty(output, 'comoLogId', 'O_':S$MVOM.COMO.LOG.ID) then
   call error_handler(ERROR_UDO, output)
   go response
 end

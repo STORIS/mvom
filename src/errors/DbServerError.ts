@@ -1,11 +1,15 @@
 import { dbErrors } from '../constants';
 import BaseError from './BaseError';
 
-interface DbServerErrorConstructorOptionsMessage {
+interface DbServerErrorConstructorOptionsBase {
+	comoLogId?: string | null;
+}
+
+interface DbServerErrorConstructorOptionsMessage extends DbServerErrorConstructorOptionsBase {
 	message: string;
 }
 
-interface DbServerErrorConstructorOptionsCode {
+interface DbServerErrorConstructorOptionsCode extends DbServerErrorConstructorOptionsBase {
 	errorCode: number | string;
 }
 
@@ -15,6 +19,8 @@ type DbServerErrorConstructorOptions =
 
 /** Error thrown when an error is encountered on the database server */
 class DbServerError extends BaseError {
+	public readonly comoLogId: string | null;
+
 	public constructor(options: DbServerErrorConstructorOptions) {
 		const name = 'DbServerError';
 
@@ -25,6 +31,8 @@ class DbServerError extends BaseError {
 						?.message ?? 'Unknown database server error';
 
 		super(message, name);
+
+		this.comoLogId = options.comoLogId ?? null;
 	}
 }
 

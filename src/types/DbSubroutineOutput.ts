@@ -10,28 +10,32 @@ export interface DbSubroutineResponse<TOutput> {
 	output: TOutput;
 }
 
-export interface DbSubroutineOutputDeleteById {
+interface DbSubroutineBaseOutput {
+	comoLogId?: string | null;
+}
+
+export interface DbSubroutineOutputDeleteById extends DbSubroutineBaseOutput {
 	result: DbDocument | null;
 }
 export type DbSubroutineResponseDeleteById = DbSubroutineResponse<DbSubroutineOutputDeleteById>;
 
-export interface DbSubroutineOutputFind {
+export interface DbSubroutineOutputFind extends DbSubroutineBaseOutput {
 	count: number;
 	documents: DbDocument[];
 }
 export type DbSubroutineResponseFind = DbSubroutineResponse<DbSubroutineOutputFind>;
 
-export interface DbSubroutineOutputFindById {
+export interface DbSubroutineOutputFindById extends DbSubroutineBaseOutput {
 	result: DbDocument | null;
 }
 export type DbSubroutineResponseFindById = DbSubroutineResponse<DbSubroutineOutputFindById>;
 
-export interface DbSubroutineOutputFindByIds {
+export interface DbSubroutineOutputFindByIds extends DbSubroutineBaseOutput {
 	result: (DbDocument | null)[];
 }
 export type DbSubroutineResponseFindByIds = DbSubroutineResponse<DbSubroutineOutputFindByIds>;
 
-export interface DbSubroutineOutputReadFileContentsById {
+export interface DbSubroutineOutputReadFileContentsById extends DbSubroutineBaseOutput {
 	result: string;
 }
 export type DbSubroutineResponseReadFileContentsById =
@@ -57,7 +61,7 @@ export interface DbServerLimits {
 	/** Maximum length of a query */
 	maxSentenceLength: number;
 }
-export interface DbSubroutineOutputGetServerInfo {
+export interface DbSubroutineOutputGetServerInfo extends DbSubroutineBaseOutput {
 	date: number;
 	time: number;
 	delimiters: DbServerDelimiters;
@@ -66,7 +70,7 @@ export interface DbSubroutineOutputGetServerInfo {
 export type DbSubroutineResponseGetServerInfo =
 	DbSubroutineResponse<DbSubroutineOutputGetServerInfo>;
 
-export interface DbSubroutineOutputSave {
+export interface DbSubroutineOutputSave extends DbSubroutineBaseOutput {
 	result: DbDocument;
 }
 export type DbSubroutineResponseSave = DbSubroutineResponse<DbSubroutineOutputSave>;
@@ -92,6 +96,8 @@ export interface DbSubroutineResponseTypesMap {
 
 export interface DbSubroutineOutputErrorBase {
 	errorCode: string;
+	/* Even with como logging always turned on this property may not exist depending on when the error was emitted. */
+	comoLogId?: string | null;
 }
 export type DbSubroutineResponseErrorBase = DbSubroutineResponse<DbSubroutineOutputErrorBase>;
 
