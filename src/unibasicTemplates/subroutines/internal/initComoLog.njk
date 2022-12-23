@@ -3,6 +3,11 @@ subroutine init_como_log(subroutineName)
 
 {% include "../../common/mvom.njk" %}
 
+if unassigned(S$MVOM.COMO.LOG.KEY) or S$MVOM.COMO.LOG.KEY eq '0' then
+  * append a random number at the end to avoid collisions for multiple parallel operations that are part of the same initial request
+  S$MVOM.COMO.LOG.KEY = 'mvom':'*':S$MVOM.REQUEST.ID:'*':RND(99999)
+end
+
 * hush must be off so that all terminal output is captured
 hush off
 execute 'COMO APPEND ':S$MVOM.COMO.LOG.KEY
