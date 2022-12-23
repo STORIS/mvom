@@ -29,6 +29,7 @@ export interface ModelFindAndCountResult {
 export interface ModelDatabaseExecutionOptions {
 	userDefined?: DbSubroutineUserDefinedOptions;
 	requestId?: string;
+	comoLogging?: 'on' | 'off' | 'onError';
 }
 export type ModelDeleteByIdOptions = ModelDatabaseExecutionOptions;
 export type ModelFindOptions = QueryConstructorOptions & ModelDatabaseExecutionOptions;
@@ -127,7 +128,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			id: string,
 			options: ModelDeleteByIdOptions = {},
 		): Promise<Model | null> {
-			const { userDefined, requestId } = options;
+			const { userDefined, requestId, comoLogging } = options;
 
 			const data = await this.connection.executeDbSubroutine(
 				'deleteById',
@@ -136,6 +137,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 					id,
 				},
 				{
+					...(comoLogging && { comoLogging }),
 					...(requestId && { requestId }),
 					...(userDefined && { userDefined }),
 				},
@@ -155,10 +157,11 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			selectionCriteria: Filter<TSchema> = {},
 			options: ModelFindOptions = {},
 		): Promise<Model[]> {
-			const { userDefined, requestId, ...queryConstructorOptions } = options;
+			const { userDefined, requestId, comoLogging, ...queryConstructorOptions } = options;
 			const query = new Query(Model, Model.#logHandler, selectionCriteria, queryConstructorOptions);
 			const { documents } = await query.exec({
 				...(userDefined && { userDefined }),
+				...(comoLogging && { comoLogging }),
 				...(requestId && { requestId }),
 			});
 
@@ -173,11 +176,12 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			selectionCriteria: Filter<TSchema> = {},
 			options: ModelFindOptions = {},
 		): Promise<ModelFindAndCountResult> {
-			const { userDefined, requestId, ...queryConstructorOptions } = options;
+			const { userDefined, requestId, comoLogging, ...queryConstructorOptions } = options;
 			const query = new Query(Model, Model.#logHandler, selectionCriteria, queryConstructorOptions);
 			const { count, documents } = await query.exec({
-				...(userDefined && { userDefined }),
+				...(comoLogging && { comoLogging }),
 				...(requestId && { requestId }),
+				...(userDefined && { userDefined }),
 			});
 
 			const models = documents.map((document) => {
@@ -196,7 +200,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			id: string,
 			options: ModelFindByIdOptions = {},
 		): Promise<Model | null> {
-			const { projection, userDefined, requestId } = options;
+			const { comoLogging, projection, requestId, userDefined } = options;
 
 			const data = await this.connection.executeDbSubroutine(
 				'findById',
@@ -206,8 +210,9 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 					projection: this.#formatProjection(projection),
 				},
 				{
-					...(userDefined && { userDefined }),
+					...(comoLogging && { comoLogging }),
 					...(requestId && { requestId }),
+					...(userDefined && { userDefined }),
 				},
 			);
 
@@ -225,7 +230,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			ids: string | string[],
 			options: ModelFindByIdOptions = {},
 		): Promise<(Model | null)[]> {
-			const { projection, requestId, userDefined } = options;
+			const { comoLogging, projection, requestId, userDefined } = options;
 
 			const idsArray = ensureArray(ids);
 			const data = await this.connection.executeDbSubroutine(
@@ -236,8 +241,9 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 					projection: this.#formatProjection(projection),
 				},
 				{
-					...(userDefined && { userDefined }),
+					...(comoLogging && { comoLogging }),
 					...(requestId && { requestId }),
+					...(userDefined && { userDefined }),
 				},
 			);
 
@@ -256,7 +262,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			id: string,
 			options: ModelReadFileContentsByIdOptions = {},
 		): Promise<string> {
-			const { requestId, userDefined } = options;
+			const { comoLogging, requestId, userDefined } = options;
 			const data = await this.connection.executeDbSubroutine(
 				'readFileContentsById',
 				{
@@ -264,8 +270,9 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 					id,
 				},
 				{
-					...(userDefined && { userDefined }),
+					...(comoLogging && { comoLogging }),
 					...(requestId && { requestId }),
+					...(userDefined && { userDefined }),
 				},
 			);
 
@@ -290,7 +297,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 		/** Save a document to the database */
 		public async save(options: ModelSaveOptions = {}): Promise<Model> {
-			const { requestId, userDefined } = options;
+			const { comoLogging, requestId, userDefined } = options;
 			if (this._id == null) {
 				throw new TypeError('_id value must be set prior to saving');
 			}
@@ -316,8 +323,9 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 						foreignKeyDefinitions: this.buildForeignKeyDefinitions(),
 					},
 					{
-						...(userDefined && { userDefined }),
+						...(comoLogging && { comoLogging }),
 						...(requestId && { requestId }),
+						...(userDefined && { userDefined }),
 					},
 				);
 

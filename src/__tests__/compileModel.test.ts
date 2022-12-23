@@ -29,6 +29,8 @@ const schemaDefinition: SchemaDefinition = {
 };
 const schema = new Schema(schemaDefinition);
 const filename = 'test.file';
+const requestId = 'requestId';
+const comoLogging = 'on';
 
 const { am, vm, svm } = mockDelimiters;
 
@@ -114,12 +116,12 @@ describe('deleteById', () => {
 		connectionMock.executeDbSubroutine.mockResolvedValue({ result: null });
 
 		const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
-		const options: ModelDeleteByIdOptions = { userDefined };
+		const options: ModelDeleteByIdOptions = { userDefined, comoLogging, requestId };
 		expect(await Model.deleteById(id, options)).toBeNull();
 		expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 			'deleteById',
 			{ filename, id },
-			{ userDefined },
+			{ userDefined, requestId, comoLogging },
 		);
 	});
 });
@@ -165,7 +167,7 @@ describe('find', () => {
 				projection: null,
 				queryCommand: `select ${filename}`,
 			},
-			undefined,
+			{},
 		);
 	});
 
@@ -185,7 +187,7 @@ describe('find', () => {
 		});
 
 		const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
-		const options: ModelFindOptions = { userDefined };
+		const options: ModelFindOptions = { userDefined, comoLogging, requestId };
 
 		const documents = await Model.find({}, options);
 		documents.forEach((document) => {
@@ -204,7 +206,7 @@ describe('find', () => {
 				projection: null,
 				queryCommand: `select ${filename}`,
 			},
-			{ userDefined },
+			{ userDefined, comoLogging, requestId },
 		);
 	});
 });
@@ -251,7 +253,7 @@ describe('findAndCount', () => {
 				projection: null,
 				queryCommand: `select ${filename}`,
 			},
-			undefined,
+			{},
 		);
 	});
 
@@ -271,7 +273,7 @@ describe('findAndCount', () => {
 		});
 
 		const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
-		const options: ModelFindOptions = { userDefined };
+		const options: ModelFindOptions = { userDefined, requestId, comoLogging };
 
 		const { count, documents } = await Model.findAndCount({}, options);
 		expect(count).toBe(2);
@@ -291,7 +293,7 @@ describe('findAndCount', () => {
 				projection: null,
 				queryCommand: `select ${filename}`,
 			},
-			{ userDefined },
+			{ userDefined, requestId, comoLogging },
 		);
 	});
 });
@@ -378,7 +380,7 @@ describe('findById', () => {
 		});
 
 		const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
-		const options: ModelFindByIdOptions = { userDefined };
+		const options: ModelFindByIdOptions = { userDefined, comoLogging, requestId };
 
 		const document = await Model.findById(id1, options);
 
@@ -392,7 +394,7 @@ describe('findById', () => {
 				id: id1,
 				projection: null,
 			},
-			{ userDefined },
+			{ userDefined, comoLogging, requestId },
 		);
 	});
 
@@ -535,7 +537,7 @@ describe('findByIds', () => {
 		});
 
 		const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
-		const options: ModelFindByIdOptions = { userDefined };
+		const options: ModelFindByIdOptions = { userDefined, comoLogging, requestId };
 
 		const documents = await Model.findByIds([id1, id2], options);
 		documents.forEach((document) => {
@@ -554,7 +556,7 @@ describe('findByIds', () => {
 				ids: [id1, id2],
 				projection: null,
 			},
-			{ userDefined },
+			{ userDefined, comoLogging, requestId },
 		);
 	});
 
@@ -623,7 +625,7 @@ describe('readFileContentsById', () => {
 		connectionMock.executeDbSubroutine.mockResolvedValue({ result: mockResult });
 
 		const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
-		const options: ModelReadFileContentsByIdOptions = { userDefined };
+		const options: ModelReadFileContentsByIdOptions = { userDefined, comoLogging, requestId };
 
 		const contents = await Model.readFileContentsById(id1, options);
 		expect(contents).toBe(mockResult);
@@ -633,7 +635,7 @@ describe('readFileContentsById', () => {
 				filename,
 				id: id1,
 			},
-			{ userDefined },
+			{ userDefined, comoLogging, requestId },
 		);
 	});
 });
@@ -905,7 +907,7 @@ describe('save', () => {
 			});
 
 			const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
-			const options: ModelSaveOptions = { userDefined };
+			const options: ModelSaveOptions = { userDefined, comoLogging, requestId };
 
 			const result = await model.save(options);
 
@@ -925,7 +927,7 @@ describe('save', () => {
 						{ entityIds: ['prop1-value'], entityName: 'prop1', filename: 'FK_FILE' },
 					],
 				},
-				{ userDefined },
+				{ userDefined, comoLogging, requestId },
 			);
 		});
 	});

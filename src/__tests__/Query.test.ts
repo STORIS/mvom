@@ -184,7 +184,7 @@ describe('exec', () => {
 						projection: null,
 						queryCommand: expectedQuery,
 					},
-					undefined,
+					{},
 				);
 			});
 
@@ -213,7 +213,7 @@ describe('exec', () => {
 						projection: null,
 						queryCommand: expectedQuery,
 					},
-					undefined,
+					{},
 				);
 			});
 		});
@@ -244,7 +244,7 @@ describe('exec', () => {
 						projection: null,
 						queryCommand: expectedQuery,
 					},
-					undefined,
+					{},
 				);
 			});
 
@@ -273,7 +273,7 @@ describe('exec', () => {
 						projection: null,
 						queryCommand: expectedQuery,
 					},
-					undefined,
+					{},
 				);
 			});
 
@@ -302,7 +302,7 @@ describe('exec', () => {
 						projection: null,
 						queryCommand: expectedQuery,
 					},
-					undefined,
+					{},
 				);
 			});
 
@@ -331,7 +331,7 @@ describe('exec', () => {
 						projection: null,
 						queryCommand: expectedQuery,
 					},
-					undefined,
+					{},
 				);
 			});
 
@@ -359,7 +359,7 @@ describe('exec', () => {
 						projection: null,
 						queryCommand: expectedQuery,
 					},
-					undefined,
+					{},
 				);
 			});
 
@@ -388,7 +388,7 @@ describe('exec', () => {
 						projection: null,
 						queryCommand: expectedQuery,
 					},
-					undefined,
+					{},
 				);
 			});
 
@@ -417,7 +417,7 @@ describe('exec', () => {
 						projection: null,
 						queryCommand: expectedQuery,
 					},
-					undefined,
+					{},
 				);
 			});
 
@@ -446,7 +446,7 @@ describe('exec', () => {
 						projection: null,
 						queryCommand: expectedQuery,
 					},
-					undefined,
+					{},
 				);
 			});
 
@@ -475,7 +475,7 @@ describe('exec', () => {
 						projection: null,
 						queryCommand: expectedQuery,
 					},
-					undefined,
+					{},
 				);
 			});
 
@@ -504,7 +504,7 @@ describe('exec', () => {
 						projection: null,
 						queryCommand: expectedQuery,
 					},
-					undefined,
+					{},
 				);
 			});
 
@@ -537,7 +537,7 @@ describe('exec', () => {
 							projection: null,
 							queryCommand: expectedQuery,
 						},
-						undefined,
+						{},
 					);
 				});
 
@@ -613,7 +613,7 @@ describe('exec', () => {
 							projection: null,
 							queryCommand: expectedQuery,
 						},
-						undefined,
+						{},
 					);
 				});
 
@@ -689,7 +689,7 @@ describe('exec', () => {
 							projection: null,
 							queryCommand: expectedQuery,
 						},
-						undefined,
+						{},
 					);
 				});
 
@@ -761,7 +761,7 @@ describe('exec', () => {
 						projection: null,
 						queryCommand: expectedQuery,
 					},
-					undefined,
+					{},
 				);
 			});
 
@@ -786,7 +786,7 @@ describe('exec', () => {
 						projection: null,
 						queryCommand: expectedQuery,
 					},
-					undefined,
+					{},
 				);
 			});
 
@@ -821,7 +821,7 @@ describe('exec', () => {
 							projection: null,
 							queryCommand: expectedQuery,
 						},
-						undefined,
+						{},
 					);
 					expect(dataTransformerMock.transformToQuery).toHaveBeenCalledWith(propertyValue);
 				});
@@ -867,7 +867,7 @@ describe('exec', () => {
 					projection: null,
 					queryCommand: expectedQuery,
 				},
-				undefined,
+				{},
 			);
 		});
 
@@ -906,7 +906,7 @@ describe('exec', () => {
 					projection: null,
 					queryCommand: expectedQuery,
 				},
-				undefined,
+				{},
 			);
 		});
 
@@ -945,7 +945,7 @@ describe('exec', () => {
 					projection: null,
 					queryCommand: expectedQuery,
 				},
-				undefined,
+				{},
 			);
 		});
 
@@ -993,7 +993,7 @@ describe('exec', () => {
 					projection: null,
 					queryCommand: expectedQuery,
 				},
-				undefined,
+				{},
 			);
 		});
 
@@ -1035,7 +1035,7 @@ describe('exec', () => {
 					projection: null,
 					queryCommand: expectedQuery,
 				},
-				undefined,
+				{},
 			);
 		});
 
@@ -1070,7 +1070,7 @@ describe('exec', () => {
 					projection: null,
 					queryCommand: expectedQuery,
 				},
-				undefined,
+				{},
 			);
 		});
 
@@ -1105,7 +1105,7 @@ describe('exec', () => {
 					projection: null,
 					queryCommand: expectedQuery,
 				},
-				undefined,
+				{},
 			);
 		});
 
@@ -1135,7 +1135,7 @@ describe('exec', () => {
 					projection: null,
 					queryCommand: expectedQuery,
 				},
-				undefined,
+				{},
 			);
 		});
 	});
@@ -1176,7 +1176,7 @@ describe('exec', () => {
 					projection: null,
 					queryCommand: expectedQuery,
 				},
-				undefined,
+				{},
 			);
 		});
 
@@ -1207,7 +1207,7 @@ describe('exec', () => {
 					projection: null,
 					queryCommand: expectedQuery,
 				},
-				undefined,
+				{},
 			);
 		});
 
@@ -1238,7 +1238,7 @@ describe('exec', () => {
 					projection: null,
 					queryCommand: expectedQuery,
 				},
-				undefined,
+				{},
 			);
 		});
 
@@ -1276,7 +1276,7 @@ describe('exec', () => {
 					projection: null,
 					queryCommand: expectedQuery,
 				},
-				undefined,
+				{},
 			);
 		});
 
@@ -1314,7 +1314,7 @@ describe('exec', () => {
 					projection: null,
 					queryCommand: expectedQuery,
 				},
-				undefined,
+				{},
 			);
 		});
 
@@ -1352,7 +1352,7 @@ describe('exec', () => {
 					projection: null,
 					queryCommand: expectedQuery,
 				},
-				undefined,
+				{},
 			);
 		});
 	});
@@ -1397,7 +1397,7 @@ describe('exec', () => {
 					skip,
 					limit,
 				},
-				undefined,
+				{},
 			);
 		});
 
@@ -1591,7 +1591,7 @@ describe('exec', () => {
 					projection: [2],
 					queryCommand: expectedQuery,
 				},
-				undefined,
+				{},
 			);
 		});
 	});

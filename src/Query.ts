@@ -114,7 +114,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 
 	/** Execute query */
 	public async exec(options: QueryExecutionOptions = {}): Promise<QueryExecutionResult> {
-		const { userDefined } = options;
+		const { comoLogging, requestId, userDefined } = options;
 		let queryCommand = `select ${this.Model.file}`;
 		if (this.selection != null) {
 			queryCommand = `${queryCommand} with ${this.selection}`;
@@ -139,11 +139,11 @@ class Query<TSchema extends GenericObject = GenericObject> {
 		};
 
 		this.logHandler.verbose(`executing query "${queryCommand}"`);
-		const data = await this.Model.connection.executeDbSubroutine(
-			'find',
-			executionOptions,
-			userDefined && { userDefined },
-		);
+		const data = await this.Model.connection.executeDbSubroutine('find', executionOptions, {
+			...(comoLogging && { comoLogging }),
+			...(requestId && { requestId }),
+			...(userDefined && { userDefined }),
+		});
 
 		return {
 			count: data.count,

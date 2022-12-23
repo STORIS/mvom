@@ -38,6 +38,8 @@ const mvisAdminUrl = 'http://foo.bar.com/mvisAdmin';
 const mvisAdminUsername = 'username';
 const mvisAdminPassword = 'password';
 const account = 'account';
+const requestId = 'requestId';
+const comoLogging = 'on';
 
 beforeEach(() => {
 	mockedAxios.create.mockReturnValue(mockedAxiosInstance);
@@ -355,6 +357,105 @@ describe('executeDbSubroutine', () => {
 				subroutineInput: {},
 				setupOptions: {
 					requestId: 'uuid',
+					comoLogging: 'off',
+				},
+				teardownOptions: {},
+			},
+		});
+	});
+
+	test('should use the como logging level on the connection if not provided an override', async () => {
+		(crypto.randomUUID as jest.Mock).mockReturnValue('uuid');
+
+		when<any, any[]>(mockedAxiosInstance.post)
+			.calledWith(
+				expect.anything(),
+				expect.objectContaining({
+					input: expect.objectContaining({
+						subroutineId: expect.stringContaining('getServerInfo'),
+					}),
+				}),
+			)
+			.mockResolvedValue({
+				data: {
+					output: {
+						date: 19791, // 2022-03-08
+						time: 43200000, // 12:00:00.000
+						delimiters: mockDelimiters,
+						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
+					},
+				},
+			});
+
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+			{
+				comoLogging: 'onError',
+			},
+		);
+
+		await connection.open();
+		await connection.executeDbSubroutine('getServerInfo', {});
+		expect(mockedAxiosInstance.post).toHaveBeenCalledWith(expect.anything(), {
+			input: {
+				subroutineId: 'getServerInfo',
+				subroutineInput: {},
+				setupOptions: {
+					requestId: 'uuid',
+					comoLogging: 'onError',
+				},
+				teardownOptions: {},
+			},
+		});
+	});
+
+	test('should override the connection level como log level if provided an override', async () => {
+		(crypto.randomUUID as jest.Mock).mockReturnValue('uuid');
+
+		when<any, any[]>(mockedAxiosInstance.post)
+			.calledWith(
+				expect.anything(),
+				expect.objectContaining({
+					input: expect.objectContaining({
+						subroutineId: expect.stringContaining('getServerInfo'),
+					}),
+				}),
+			)
+			.mockResolvedValue({
+				data: {
+					output: {
+						date: 19791, // 2022-03-08
+						time: 43200000, // 12:00:00.000
+						delimiters: mockDelimiters,
+						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
+					},
+				},
+			});
+
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+			{
+				comoLogging: 'onError',
+			},
+		);
+
+		await connection.open();
+		await connection.executeDbSubroutine('getServerInfo', {}, { comoLogging: 'off' });
+		expect(mockedAxiosInstance.post).toHaveBeenCalledWith(expect.anything(), {
+			input: {
+				subroutineId: 'getServerInfo',
+				subroutineInput: {},
+				setupOptions: {
+					requestId: 'uuid',
+					comoLogging: 'off',
 				},
 				teardownOptions: {},
 			},
@@ -873,7 +974,7 @@ describe('getDbDateTime', () => {
 		await connection.open();
 
 		const expected = '2022-03-08T12:00:00.000';
-		expect(await connection.getDbDateTime()).toEqual(expected);
+		expect(await connection.getDbDateTime({ requestId, comoLogging })).toEqual(expected);
 	});
 
 	test('should return current db server date and time when there is time drift', async () => {
@@ -1143,7 +1244,7 @@ describe('getDbTime', () => {
 		await connection.open();
 
 		const expected = '12:00:00.000';
-		expect(await connection.getDbTime()).toEqual(expected);
+		expect(await connection.getDbTime({ requestId, comoLogging })).toEqual(expected);
 	});
 });
 
@@ -1183,7 +1284,7 @@ describe('getDbLimits', () => {
 		await connection.open();
 
 		const expected = { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 };
-		expect(await connection.getDbLimits()).toEqual(expected);
+		expect(await connection.getDbLimits({ comoLogging, requestId })).toEqual(expected);
 	});
 });
 
