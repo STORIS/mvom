@@ -55,16 +55,7 @@ call mvom_setup(setupOptions, subroutineId)
 subroutineName = 'mvom_':subroutineId
 call @subroutineName(subroutineInput, output)
 
-call mvom_teardown(teardownOptions)
-
 response:
-  if S$MVOM.COMO.LOG.KEY ne '' then
-    if udoSetProperty(output, 'comoLogKey', S$MVOM.COMO.LOG.KEY) then
-      call error_handler(ERROR_UDO, output)
-    end
-  end
-
-  end
   * if an error occurs in serializing the output object it will likely result in a fatal error
   * there is little else we can do here except let that fatal error occur
   x = udoWrite(output, UDOFORMAT_JSON, outputSerialized)
@@ -73,10 +64,21 @@ response:
   x = udoFree(output)
   x = udoFree(input)
 
+  if S$MVOM.COMO.LOG.KEY ne '' then
+    if udoSetProperty(output, 'comoLogKey', S$MVOM.COMO.LOG.KEY) then
+      call error_handler(ERROR_UDO, output)
+    end
+
+    execute 'COMO OFF ':S$MVOM.COMO.LOG.KEY
+  end
+
+  call mvom_teardown(teardownOptions)
+
   return; * returning to caller
 
 {% include "./subroutines/internal/errorHandler.njk" %}
 {% include "./subroutines/internal/formatDocument.njk" %}
+{% include "./subroutines/internal/initComoLog.njk" %}
 {% include "./subroutines/internal/setup.njk" %}
 {% include "./subroutines/internal/teardown.njk" %}
 {% include "./subroutines/internal/validateForeignKeys.njk" %}
