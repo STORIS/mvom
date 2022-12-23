@@ -1,4 +1,4 @@
-subroutine mvom_setup(setupOptions)
+subroutine mvom_setup(setupOptions, subroutineId)
 * Perform any needed environment setup
 {% include "../../common/mvom.njk" %}
 
@@ -13,26 +13,22 @@ return; * returning to caller
 configureLogging: * configure como logging
 if udoGetProperty(setupOptions, 'requestId', requestId, type) eq 0 then
   S$MVOM.REQUEST.ID = requestId
+end else
+  S$MVOM.REQUEST.ID = ''
 end
 
 if udoGetProperty(setupOptions, 'comoLogging', comoLogging, type) eq 0 then
-  if comoLogging = '' then
+  if comoLogging eq '' then
     S$MVOM.COMO.LOGGING = 'off'
   end else
     S$MVOM.COMO.LOGGING = comoLogging
   end
 
-  if S$MVOM.COMO.LOGGING eq 'on' or S$MVOM.COMO.LOGGGING eq 'onError' then
-    S$MVOM.COMO.LOG.KEY = 'mvom':'-':S$MVOM.REQUEST.ID
-  end
-
   if S$MVOM.COMO.LOGGING eq 'on' then
-    hush off
-    execute 'COMO APPEND ':S$MVOM.COMO.LOG.KEY
-    crt S$MVOM.REQUEST.ID
-    crt oconv(date(), 'd4/')
-    crt oconv(system(12) / 1000, 'mts')
+    call init_como_log(subroutineId)
   end
+end else
+  S$MVOM.COMO.LOGGING = 'off'
 end
 
 return
