@@ -885,10 +885,10 @@ describe('getDbDate', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId, comoLogging });
 
 		const expected = '2022-03-08';
-		expect(await connection.getDbDate()).toEqual(expected);
+		expect(await connection.getDbDate({ requestId, comoLogging })).toEqual(expected);
 	});
 
 	test('should return current db server date when there is time drift', async () => {
@@ -974,7 +974,7 @@ describe('getDbDateTime', () => {
 		await connection.open();
 
 		const expected = '2022-03-08T12:00:00.000';
-		expect(await connection.getDbDateTime({ requestId, comoLogging })).toEqual(expected);
+		expect(await connection.getDbDateTime()).toEqual(expected);
 	});
 
 	test('should return current db server date and time when there is time drift', async () => {
@@ -1244,7 +1244,7 @@ describe('getDbTime', () => {
 		await connection.open();
 
 		const expected = '12:00:00.000';
-		expect(await connection.getDbTime({ requestId, comoLogging })).toEqual(expected);
+		expect(await connection.getDbTime()).toEqual(expected);
 	});
 });
 
@@ -1284,7 +1284,7 @@ describe('getDbLimits', () => {
 		await connection.open();
 
 		const expected = { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 };
-		expect(await connection.getDbLimits({ comoLogging, requestId })).toEqual(expected);
+		expect(await connection.getDbLimits()).toEqual(expected);
 	});
 });
 
