@@ -1,3 +1,4 @@
+import type { ComoLoggingOptions } from '../Connection';
 import type { BuildForeignKeyDefinitionsResult } from '../Document';
 import type { GenericObject } from '.';
 
@@ -10,7 +11,7 @@ export interface DbSubroutineUserDefinedOptions {
 }
 
 export interface DbSubroutineSetupOptions {
-	comoLogging?: 'on' | 'off' | 'onError';
+	comoLogging?: ComoLoggingOptions;
 	userDefined?: DbSubroutineUserDefinedOptions;
 	requestId?: string;
 }

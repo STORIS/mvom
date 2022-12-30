@@ -1,4 +1,5 @@
 import type Connection from './Connection';
+import type { ComoLoggingOptions } from './Connection';
 import type { DocumentConstructorOptions } from './Document';
 import Document from './Document';
 import { DataValidationError } from './errors';
@@ -29,7 +30,7 @@ export interface ModelFindAndCountResult {
 export interface ModelDatabaseExecutionOptions {
 	userDefined?: DbSubroutineUserDefinedOptions;
 	requestId?: string;
-	comoLogging?: 'on' | 'off' | 'onError';
+	comoLogging?: ComoLoggingOptions;
 }
 export type ModelDeleteByIdOptions = ModelDatabaseExecutionOptions;
 export type ModelFindOptions = QueryConstructorOptions & ModelDatabaseExecutionOptions;
