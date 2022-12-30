@@ -47,6 +47,8 @@ import type {
 
 // #region Types
 
+export type ComoLoggingOptions = 'on' | 'off' | 'onError';
+
 export interface CreateConnectionOptions {
 	/** Optional logger instance */
 	logger?: Logger;
@@ -66,7 +68,7 @@ export interface CreateConnectionOptions {
 	/** Optional https agent */
 	httpsAgent?: https.Agent;
 	/** Como log settings - defaults to off */
-	comoLogging?: 'on' | 'off' | 'onError';
+	comoLogging?: ComoLoggingOptions;
 }
 
 interface ConnectionConstructorOptions {
@@ -75,7 +77,7 @@ interface ConnectionConstructorOptions {
 	/** Optional https agent */
 	httpsAgent?: https.Agent;
 	/** Como log settings - defaults to off */
-	comoLogging?: 'on' | 'off' | 'onError';
+	comoLogging?: ComoLoggingOptions;
 }
 
 export type ConnectionStatus = 'disconnected' | 'connected' | 'connecting';
@@ -93,7 +95,7 @@ interface ServerInfo {
 }
 
 interface RequestOptions {
-	comoLogging?: 'on' | 'off' | 'onError';
+	comoLogging?: ComoLoggingOptions;
 	requestId?: string | null;
 }
 
