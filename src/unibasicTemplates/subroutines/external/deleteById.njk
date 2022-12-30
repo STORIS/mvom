@@ -1,5 +1,6 @@
 subroutine mvom_deleteById(options, output)
 * delete a document given a filename and record id
+{% include "../../common/mvom.njk" %}
 {% include "../../constants/udo.njk" %}
 {% include "../../constants/error.njk" %}
 
@@ -16,50 +17,82 @@ if udoGetProperty(options, 'id', recordId, type) then
 end
 
 * open the file
-open filename to f.file on error
-  call error_handler(ERROR_FILE_OPEN, output)
-  go returnFromSub
-end else
-  call error_handler(ERROR_FILE_OPEN, output)
-  go returnFromSub
-end
+openAttempt = 1
+loop
+  open filename to f.file on error
+    if S$MVOM.COMO.LOGGING eq 'onError' and openAttempt eq 1 then
+      openAttempt += 1
+      call init_como_log('deleteById')
+      continue
+    end
+
+    call error_handler(ERROR_FILE_OPEN, output)
+    go returnFromSub
+  end else
+    call error_handler(ERROR_FILE_OPEN, output)
+    go returnFromSub
+  end
+
+  exit
+repeat
 
 * read the record from the file
-readu record from f.file, recordId on error
-  call error_handler(ERROR_RECORD_READ, output)
-  go closeAndReturnFromSub
-end locked
-  call error_handler(ERROR_RECORD_LOCKED, output)
-  go closeAndReturnFromSub
-end then
-  * delete record
-  delete f.file, recordId on error
-    call error_handler(ERROR_RECORD_DELETE, output)
-    go closeReleaseAndReturnFromSub
-  end
+readAttempt = 1
+loop
+  readu record from f.file, recordId on error
+    if S$MVOM.COMO.LOGGING eq 'onError' and readAttempt eq 1 then
+      readAttempt += 1
+      call init_como_log('deleteById')
+      continue
+    end
 
-  * create null projection
-  if udoCreate(UDO_NULL, projection) then
-    call error_handler(ERROR_UDO, output)
-    go closeReleaseAndReturnFromSub
-  end
-
-  * format the record into an object structure
-  call format_document(record, recordId, projection, document, errorCode)
-  if errorCode then
-    call error_handler(errorCode, output)
+    call error_handler(ERROR_RECORD_READ, output)
     go closeAndReturnFromSub
-  end
-end else
-  * release unnecessary lock
-  release f.file, recordId on error null
-
-  * create a null udo handle to assign as document
-  if udoCreate(UDO_NULL, document) then
-    errorCode = ERROR_UDO
+  end locked
+    call error_handler(ERROR_RECORD_LOCKED, output)
     go closeAndReturnFromSub
+  end then
+    * delete record
+    deleteAttempt = 1
+    loop
+      delete f.file, recordId on error
+        if S$MVOM.COMO.LOGGING eq 'onError' and readAttempt eq 1 then
+          deleteAttempt += 1
+          call init_como_log('deleteById')
+          continue
+        end
+        call error_handler(ERROR_RECORD_DELETE, output)
+        go closeReleaseAndReturnFromSub
+      end
+
+      * create null projection
+      if udoCreate(UDO_NULL, projection) then
+        call error_handler(ERROR_UDO, output)
+        go closeReleaseAndReturnFromSub
+      end
+
+      * format the record into an object structure
+      call format_document(record, recordId, projection, document, errorCode)
+      if errorCode then
+        call error_handler(errorCode, output)
+        go closeAndReturnFromSub
+      end
+
+      exit
+    repeat
+  end else
+    * release unnecessary lock
+    release f.file, recordId on error null
+
+    * create a null udo handle to assign as document
+    if udoCreate(UDO_NULL, document) then
+      errorCode = ERROR_UDO
+      go closeAndReturnFromSub
+    end
+
+    exit
   end
-end
+repeat
 
 close f.file on error null
 
