@@ -51,10 +51,12 @@ if udoGetProperty(input, 'teardownOptions', teardownOptions, type) then
 end
 
 call mvom_setup(setupOptions, subroutineId)
-if udoSetProperty(output, 'comoLogId', 'O_':S$MVOM.COMO.LOG.ID) then
-  call error_handler(ERROR_UDO, output)
-  go response
-end
+if S$MVOM.COMO.LOG.ID ne '0' then
+  if udoSetProperty(output, 'comoLogId', 'O_':S$MVOM.COMO.LOG.ID) then
+    call error_handler(ERROR_UDO, output)
+    go response
+  end
+fi
 
 subroutineName = 'mvom_':subroutineId
 call @subroutineName(subroutineInput, output)
