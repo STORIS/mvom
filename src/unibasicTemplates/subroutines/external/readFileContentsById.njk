@@ -1,6 +1,9 @@
 subroutine mvom_readFileContentsById(options, output)
 * find and return the file content as Base64 string given a filename and record id for a Directory file
+{% include "../../common/mvom.njk" %}
 {% include "../../constants/error.njk" %}
+
+subroutineName = 'readFileContentsById'
 
 * get the filename from the options
 if udoGetProperty(options, 'filename', filename, type) then
@@ -14,24 +17,36 @@ if udoGetProperty(options, 'id', recordId, type) then
   go returnFromSub
 end
 
-open 'VOC' to f.voc on error
-  call error_handler(ERROR_FILE_OPEN, output)
-  go returnFromSub
-end else
+filename= 'VOC'
+gosub openFile
+if errorCode ne '' then
   call error_handler(ERROR_FILE_OPEN, output)
   go returnFromSub
 end
 
+f.voc = f.file
+
 * get filePath of the filename in VOC
-readv fileDirectoryPath from f.voc, filename, 2 on error
-  call error_handler(ERROR_FILE_OPEN, output)
-  go closeAndReturnFromSub
-end then
-  filePath = fileDirectoryPath:'/':recordId
-end else
-  call error_handler(ERROR_RECORD_READ, output)
-  go closeAndReturnFromSub
-end
+readAttempt = 1
+loop
+  readv fileDirectoryPath from f.voc, filename, 2 on error
+    if S$MVOM.COMO.LOGGING eq 'onError' and readAttempt eq 1 then
+      readAttempt += 1
+      call init_como_log(subroutineName)
+      continue
+    end
+
+    call error_handler(ERROR_FILE_OPEN, output)
+    go closeAndReturnFromSub
+  end then
+    filePath = fileDirectoryPath:'/':recordId
+  end else
+    call error_handler(ERROR_RECORD_READ, output)
+    go closeAndReturnFromSub
+  end
+
+  exit
+repeat
 
 close f.voc on error null
 
@@ -58,3 +73,5 @@ close f.voc on error null
 
 returnFromSub:
 return; * returning to caller
+
+{% include "../gosub/openFile.njk" %}

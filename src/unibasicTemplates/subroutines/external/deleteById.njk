@@ -4,6 +4,8 @@ subroutine mvom_deleteById(options, output)
 {% include "../../constants/udo.njk" %}
 {% include "../../constants/error.njk" %}
 
+subroutineName = 'deleteById'
+
 * get the filename from the options
 if udoGetProperty(options, 'filename', filename, type) then
   call error_handler(ERROR_MALFORMED_INPUT, output)
@@ -17,24 +19,11 @@ if udoGetProperty(options, 'id', recordId, type) then
 end
 
 * open the file
-openAttempt = 1
-loop
-  open filename to f.file on error
-    if S$MVOM.COMO.LOGGING eq 'onError' and openAttempt eq 1 then
-      openAttempt += 1
-      call init_como_log('deleteById')
-      continue
-    end
-
-    call error_handler(ERROR_FILE_OPEN, output)
-    go returnFromSub
-  end else
-    call error_handler(ERROR_FILE_OPEN, output)
-    go returnFromSub
-  end
-
-  exit
-repeat
+gosub openFile
+if errorCode ne '' then
+  call error_handler(ERROR_FILE_OPEN, output)
+  go returnFromSub
+end
 
 * read the record from the file
 readAttempt = 1
@@ -42,7 +31,7 @@ loop
   readu record from f.file, recordId on error
     if S$MVOM.COMO.LOGGING eq 'onError' and readAttempt eq 1 then
       readAttempt += 1
-      call init_como_log('deleteById')
+      call init_como_log(subroutineName)
       continue
     end
 
@@ -58,7 +47,7 @@ loop
       delete f.file, recordId on error
         if S$MVOM.COMO.LOGGING eq 'onError' and readAttempt eq 1 then
           deleteAttempt += 1
-          call init_como_log('deleteById')
+          call init_como_log(subroutineName)
           continue
         end
         call error_handler(ERROR_RECORD_DELETE, output)
@@ -114,3 +103,5 @@ close f.file on error null
 
 returnFromSub:
 return; * returning to caller
+
+{% include "../gosub/openFile.njk" %}

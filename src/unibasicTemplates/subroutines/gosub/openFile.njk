@@ -1,19 +1,20 @@
 * Open a file
 * set: filename - name of the file to open
 *      subroutineName - name of the subroutine including the gosub (for logging purposes)
-* returns: file - on success holds the open file pointer
-           errorCode - set if the "on error" or "else" clause is hit
+* returns: f.file - on success holds the open file pointer
+*          errorCode - set if the "on error" or "else" clause is hit
 openFile:
 {% include "../../common/mvom.njk" %}
 openFileOpenAttempt = 1
 errorCode = ''
 loop
-  open filename to file on error
+  open filename to f.file on error
     if S$MVOM.COMO.LOGGING eq 'onError' and openFileOpenAttempt eq 1 then
       openFileOpenAttempt += 1
       call init_como_log(subroutineName)
       continue
     end
+
     errorCode = ERROR_FILE_OPEN
   end else
     errorCode = ERROR_FILE_OPEN

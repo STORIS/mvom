@@ -5,6 +5,8 @@ subroutine mvom_save(options, output)
 {% include "../../constants/status.njk" %}
 {% include "../../common/mvom.njk" %}
 
+subroutineName = 'save'
+
 * get the filename from the options
 if udoGetProperty(options, 'filename', filename, type) then
   call error_handler(ERROR_MALFORMED_INPUT, output)
@@ -39,32 +41,15 @@ if udoGetProperty(options, 'foreignKeyDefinitions', fkDefinitions, type) then
 end
 
 * open the file
-openAttempt = 1
-loop
-  open filename to f.file on error
-    if S$MVOM.COMO.LOGGING eq 'onError' and openAttempt eq 1 then
-      openAttempt += 1
-      call init_como_log('save')
-      continue
-    end
-
-    call error_handler(ERROR_FILE_OPEN, output)
-    go returnFromSub
-  end else
-    call error_handler(ERROR_FILE_OPEN, output)
-    go returnFromSub
-  end
-
-  exit
-repeat
+gosub openFile
 
 * read and lock record from the file
 readAttempt = 1
 loop
   readu originalRecord from f.file, recordId on error
     if S$MVOM.COMO.LOGGING eq 'onError' and readAttempt eq 1 then
-    readAttempt += 1
-      call init_como_log('save')
+      readAttempt += 1
+      call init_como_log(subroutineName)
       continue
     end
 
@@ -137,7 +122,7 @@ loop
     * If configured to do so turn on como logging and replay the write.
     if S$MVOM.COMO.LOGGING eq 'onError' and writeAttempt eq 1 then
       writeAttempt += 1
-      call init_como_log('save')
+      call init_como_log(subroutineName)
       continue
     end
 
@@ -189,3 +174,5 @@ close f.file on error null
 
 returnFromSub:
 return; * returning to caller
+
+{% include "../gosub/openFile.njk" %}

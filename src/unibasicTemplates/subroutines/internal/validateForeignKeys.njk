@@ -52,7 +52,7 @@ loop
         go closeAndReturnFromSub
       end
 
-      fkFiles(fkFileCounter) = file
+      fkFiles(fkFileCounter) = f.file
     next fkFileCounter
   end else
     dim fkFiles(1)
@@ -63,7 +63,7 @@ loop
       go closeAndReturnFromSub
     end
 
-    fkFiles(1) = file
+    fkFiles(1) = f.file
   end
 
   if UDOGetProperty(fkDefinition, 'entityIds', fkEntityIds, type) then
@@ -94,7 +94,7 @@ loop
 
     for fkFileCounter = 1 to inmat(fkFiles)
       file = fkFiles(fkFileCounter)
-      gosub ReadForeignKey
+      gosub readForeignKey
       if errorCode ne '' then
         go closeAndReturnFromSub
       end
@@ -151,12 +151,12 @@ return; * returning to caller
 *      subroutineName - name of the subroutine including the gosub (for logging purposes)
 * returns: fkValid - boolean set to true if the record exists
 *          errorCode - set on error condition
-ReadForeignKey:
+readForeignKey:
 errorCode = ''
 readAttempt = 1
 loop
   fkValid = @false
-  readv exists from fil, fkEntityId, 0 on error
+  readv exists from file, fkEntityId, 0 on error
     if S$MVOM.COMO.LOGGING eq 'onError' and readAttempt eq 1 then
       readAttempt += 1
       call init_como_log(subroutineName)

@@ -1,7 +1,10 @@
 subroutine mvom_findById(options, output)
 * find and return a document given a filename and record id
+{% include "../../common/mvom.njk" %}
 {% include "../../constants/udo.njk" %}
 {% include "../../constants/error.njk" %}
+
+subroutineName = 'findById'
 
 * get the filename from the options
 if udoGetProperty(options, 'filename', filename, type) then
@@ -22,32 +25,41 @@ if udoGetProperty(options, 'projection', projection, type) then
 end
 
 * open the file
-open filename to f.file on error
-  call error_handler(ERROR_FILE_OPEN, output)
-  go returnFromSub
-end else
+gosub openFile
+if errorCode ne '' then
   call error_handler(ERROR_FILE_OPEN, output)
   go returnFromSub
 end
 
 * read the record from the file
-read record from f.file, recordId on error
-  call error_handler(ERROR_RECORD_READ, output)
-  go closeAndReturnFromSub
-end then
-  * format the record into an object structure
-  call format_document(record, recordId, projection, document, errorCode)
-  if errorCode then
-    call error_handler(errorCode, output)
+readAttempt = 1
+loop
+  read record from f.file, recordId on error
+    if S$MVOM.COMO.LOGGING eq 'onError' and readAttempt eq 1 then
+      readAttempt += 1
+      call init_como_log(subroutineName)
+      continue
+    end
+
+    call error_handler(ERROR_RECORD_READ, output)
     go closeAndReturnFromSub
+  end then
+    * format the record into an object structure
+    call format_document(record, recordId, projection, document, errorCode)
+    if errorCode then
+      call error_handler(errorCode, output)
+      go closeAndReturnFromSub
+    end
+    exit
+  end else
+    * create a null udo handle to assign as document
+    if udoCreate(UDO_NULL, document) then
+      errorCode = ERROR_UDO
+      go closeAndReturnFromSub
+    end
   end
-end else
-  * create a null udo handle to assign as document
-  if udoCreate(UDO_NULL, document) then
-    errorCode = ERROR_UDO
-    go closeAndReturnFromSub
-  end
-end
+  exit
+repeat
 
 close f.file on error null
 
@@ -65,3 +77,5 @@ close f.file on error null
 
 returnFromSub:
 return; * returning to caller
+
+{% include "../gosub/openFile.njk" %}

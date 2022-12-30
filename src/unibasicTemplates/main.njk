@@ -56,7 +56,7 @@ if S$MVOM.COMO.LOG.ID ne '0' then
     call error_handler(ERROR_UDO, output)
     go response
   end
-fi
+end
 
 subroutineName = 'mvom_':subroutineId
 call @subroutineName(subroutineInput, output)
