@@ -17,7 +17,7 @@ if udoGetProperty(options, 'id', recordId, type) then
   go returnFromSub
 end
 
-filename= 'VOC'
+filename = 'VOC'
 gosub openFile
 if errorCode ne '' then
   call error_handler(ERROR_FILE_OPEN, output)
