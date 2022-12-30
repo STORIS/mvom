@@ -1,3 +1,6 @@
+$ifndef status.constants
+$define status.constants
+
 * Return values of status()
 * write
 equ STATUS_WRITE_SUCCESS to 0
@@ -5,3 +8,5 @@ equ STATUS_WRITE_SYSTEM_ERROR to 1
 equ STATUS_WRITE_TRIGGER_CONSTRAINT to 2
 equ STATUS_WRITE_TRIGGER_ERROR to 3
 equ STATUS_WRITE_DUPLICATE_INDEX to 10
+
+$endif

@@ -1,3 +1,6 @@
+$ifndef error.constants
+$define error.constants
+
 * error constants:
 equ ERROR_MALFORMED_INPUT to {{dbErrors.malformedInput.code}}
 equ ERROR_UNSUPPORTED_ACTION to {{dbErrors.unsupportedAction.code}}
@@ -18,3 +21,5 @@ equ ERROR_QUERY to {{dbErrors.query.code}}
 equ ERROR_DIGEST_HASH to {{dbErrors.digestHash.code}}
 equ ERROR_FOREIGN_KEY to {{dbErrors.foreignKeyValidation.code}}
 equ ERROR_ENCODE_FILE to {{dbErrors.fileEncodeBase64.code}}
+
+$endif
