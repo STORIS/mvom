@@ -3,9 +3,10 @@ subroutine validate_foreign_keys(fkDefinitions, fkValidationErrors, errorCode)
 * This routine will not set an errorCode for a foreign key validation. Instead it will return an array of fkValidationErrors
 * Callers should check errorCode first. Then check the length of the fkValidationErrors array.
 {% include "../../constants/udo.njk" %}
-
+{% include "../../common/mvom.njk" %}
 {% include "../../constants/error.njk" %}
 
+subroutineName = 'validate_foreign_keys'
 errorCode = ''
 
 if udoCreate(UDO_ARRAY, fkValidationErrors) then
@@ -45,28 +46,24 @@ loop
         go closeAndReturnFromSub
       end
 
-      open fkFileName to fk.file on error
-        errorCode = ERROR_FILE_OPEN
-        go closeAndReturnFromSub
-      end else
-        errorCode = ERROR_FILE_OPEN
+      filename = fkFileName
+      gosub openFile
+      if errorCode ne '' then
         go closeAndReturnFromSub
       end
 
-      fkFiles(fkFileCounter) = fk.file
+      fkFiles(fkFileCounter) = file
     next fkFileCounter
   end else
     dim fkFiles(1)
 
-    open fkFileNames to fk.file on error
-      errorCode = ERROR_FILE_OPEN
-      go closeAndReturnFromSub
-    end else
-      errorCode = ERROR_FILE_OPEN
+    filename = fkFileNames
+    gosub openFile
+    if errorCode ne '' then
       go closeAndReturnFromSub
     end
 
-    fkFiles(1) = fk.file
+    fkFiles(1) = file
   end
 
   if UDOGetProperty(fkDefinition, 'entityIds', fkEntityIds, type) then
@@ -96,8 +93,12 @@ loop
     fkValid = @false
 
     for fkFileCounter = 1 to inmat(fkFiles)
-      readv exists from fkFiles(fkFileCounter), fkEntityId, 0 then
-        fkValid = @true
+      file = fkFiles(fkFileCounter)
+      gosub ReadForeignKey
+      if errorCode ne '' then
+        go closeAndReturnFromSub
+      end
+      if fkValid then
         exit
       end
     next fkFileCounter
@@ -143,4 +144,34 @@ next fkFileCounter
 returnFromSub:
 
 return; * returning to caller
+
+* Check if the record exists in the file
+* set: file - open file pointer
+*      fkEntityId - id to read
+*      subroutineName - name of the subroutine including the gosub (for logging purposes)
+* returns: fkValid - boolean set to true if the record exists
+*          errorCode - set on error condition
+ReadForeignKey:
+errorCode = ''
+readAttempt = 1
+loop
+  fkValid = @false
+  readv exists from fil, fkEntityId, 0 on error
+    if S$MVOM.COMO.LOGGING eq 'onError' and readAttempt eq 1 then
+      readAttempt += 1
+      call init_como_log(subroutineName)
+      continue
+    end
+
+    errorCode = ERROR_RECORD_READ
+  end then
+    fkValid = @true
+  end
+
+  exit
+repeat
+
+return
+
+{% include "../gosub/openFile.njk" %}
 
