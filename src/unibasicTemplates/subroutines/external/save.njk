@@ -42,6 +42,10 @@ end
 
 * open the file
 gosub openFile
+if errorCode ne '' then
+  call error_handler(ERROR_FILE_OPEN, output)
+  go returnFromSub
+end
 
 * read and lock record from the file
 readAttempt = 1
