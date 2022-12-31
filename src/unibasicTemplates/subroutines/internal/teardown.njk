@@ -3,6 +3,7 @@ subroutine mvom_teardown(teardownOptions)
 {% include "../../common/mvom.njk" %}
 
 if S$MVOM.COMO.LOGGING ne 'off' then
+  * no-op if como logging was not turned on earlier
   execute 'COMO OFF ':S$MVOM.COMO.LOG.ID
 end
 
