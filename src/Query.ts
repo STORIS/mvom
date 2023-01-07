@@ -40,7 +40,7 @@ export interface FilterOperators<TValue> {
 	$nin?: TValue[];
 }
 
-export interface RootFilterOperators<TSchema> {
+export interface RootFilterOperators<TSchema extends GenericObject = GenericObject> {
 	/** Used to combine conditions with an and */
 	$and?: Filter<TSchema>[];
 	/** Used to combine conditions with an or */

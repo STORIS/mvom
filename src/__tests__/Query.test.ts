@@ -959,6 +959,13 @@ describe('exec', () => {
 			const propertyName3 = 'property-name3';
 			const propertyValue3 = 'property-value3';
 			const propertyDictionary3 = 'property-dictionary3';
+
+			interface Schema {
+				[propertyName1]: string;
+				[propertyName2]: string;
+				[propertyName3]: string;
+			}
+
 			const selectionCritieria = {
 				$or: [
 					{
@@ -982,7 +989,7 @@ describe('exec', () => {
 				[propertyName3, { dictionary: propertyDictionary3, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+			const query = new Query<Schema>(ModelConstructorMock, logHandlerMock, selectionCritieria);
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ((${propertyDictionary1} = "${propertyValue1}" and ${propertyDictionary2} = "${propertyValue2}") or ${propertyDictionary3} = "${propertyValue3}")`;
