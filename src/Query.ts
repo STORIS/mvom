@@ -49,9 +49,9 @@ export interface RootFilterOperators<TSchema extends GenericObject = GenericObje
 
 export type Condition<TValue> = TValue | TValue[] | FilterOperators<TValue>;
 
-export type Filter<TSchema extends GenericObject = GenericObject> = {
+export type Filter<TSchema extends GenericObject = GenericObject> = RootFilterOperators<TSchema> & {
 	[key in keyof TSchema]?: Condition<TSchema[key]>;
-} & RootFilterOperators<TSchema>;
+};
 
 export type SortCriteria = [string, -1 | 1][];
 
