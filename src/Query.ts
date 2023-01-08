@@ -40,7 +40,7 @@ export interface FilterOperators<TValue> {
 	$nin?: TValue[];
 }
 
-export interface RootFilterOperators<TSchema> {
+export interface RootFilterOperators<TSchema extends GenericObject = GenericObject> {
 	/** Used to combine conditions with an and */
 	$and?: Filter<TSchema>[];
 	/** Used to combine conditions with an or */
@@ -49,9 +49,9 @@ export interface RootFilterOperators<TSchema> {
 
 export type Condition<TValue> = TValue | TValue[] | FilterOperators<TValue>;
 
-export type Filter<TSchema extends GenericObject = GenericObject> = {
+export type Filter<TSchema extends GenericObject = GenericObject> = RootFilterOperators<TSchema> & {
 	[key in keyof TSchema]?: Condition<TSchema[key]>;
-} & RootFilterOperators<TSchema>;
+};
 
 export type SortCriteria = [string, -1 | 1][];
 
