@@ -2,7 +2,7 @@ import type http from 'http';
 import type https from 'https';
 import path from 'path';
 import axios from 'axios';
-import type { AxiosInstance, AxiosRequestHeaders, AxiosResponse } from 'axios';
+import type { AxiosInstance, AxiosResponse, RawAxiosRequestHeaders } from 'axios';
 import fs from 'fs-extra';
 import { InvalidParameterError } from './errors';
 import type LogHandler from './LogHandler';
@@ -76,7 +76,7 @@ interface SubroutineCreate {
 	source?: string;
 }
 
-type AuthenticationHeaders = AuthenticateResult & AxiosRequestHeaders;
+type AuthenticationHeaders = AuthenticateResult & RawAxiosRequestHeaders;
 // #endregion
 
 class DeploymentManager {
