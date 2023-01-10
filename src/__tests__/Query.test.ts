@@ -3,7 +3,7 @@ import mockDelimiters from '#test/mockDelimiters';
 import type { ModelConstructor } from '../compileModel';
 import { InvalidParameterError, QueryLimitError } from '../errors';
 import type LogHandler from '../LogHandler';
-import type { QueryExecutionOptions, SortCriteria } from '../Query';
+import type { Filter, QueryExecutionOptions, SortCriteria } from '../Query';
 import Query from '../Query';
 import type { DataTransformer, DbSubroutineOutputFind } from '../types';
 
@@ -878,7 +878,13 @@ describe('exec', () => {
 			const propertyName2 = 'property-name2';
 			const propertyValue2 = 'property-value2';
 			const propertyDictionary2 = 'property-dictionary2';
-			const selectionCritieria = {
+
+			interface Schema {
+				[propertyName1]: string;
+				[propertyName2]: string;
+			}
+
+			const selectionCritieria: Filter<Schema> = {
 				$and: [
 					{
 						[propertyName1]: propertyValue1,
@@ -917,7 +923,13 @@ describe('exec', () => {
 			const propertyName2 = 'property-name2';
 			const propertyValue2 = 'property-value2';
 			const propertyDictionary2 = 'property-dictionary2';
-			const selectionCritieria = {
+
+			interface Schema {
+				[propertyName1]: string;
+				[propertyName2]: string;
+			}
+
+			const selectionCritieria: Filter<Schema> = {
 				$or: [
 					{
 						[propertyName1]: propertyValue1,
@@ -959,7 +971,14 @@ describe('exec', () => {
 			const propertyName3 = 'property-name3';
 			const propertyValue3 = 'property-value3';
 			const propertyDictionary3 = 'property-dictionary3';
-			const selectionCritieria = {
+
+			interface Schema {
+				[propertyName1]: string;
+				[propertyName2]: string;
+				[propertyName3]: string;
+			}
+
+			const selectionCritieria: Filter<Schema> = {
 				$or: [
 					{
 						$and: [
@@ -1007,7 +1026,14 @@ describe('exec', () => {
 			const propertyName3 = 'property-name3';
 			const propertyValue3 = 'property-value3';
 			const propertyDictionary3 = 'property-dictionary3';
-			const selectionCritieria = {
+
+			interface Schema {
+				[propertyName1]: string;
+				[propertyName2]: string;
+				[propertyName3]: string;
+			}
+
+			const selectionCritieria: Filter<Schema> = {
 				$or: [
 					{
 						[propertyName1]: propertyValue1,
