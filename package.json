@@ -46,7 +46,7 @@
   "dependencies": {
     "@babel/runtime": "^7.20.7",
     "async-mutex": "^0.4.0",
-    "axios": "^1.2.2",
+    "axios": "^1.2.3",
     "date-fns": "^2.29.3",
     "fs-extra": "^11.1.0",
     "lodash": "^4.17.21"
