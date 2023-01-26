@@ -388,6 +388,10 @@ class Connection {
 					);
 					throw new RecordVersionError({ filename, recordId: id });
 				}
+				case dbErrors.maxPayloadExceeded.code: {
+					this.logHandler.debug('Maximum return payload size of 5GB exceeded');
+					throw new DbServerError({ message: 'Maximum return payload size of 5GB exceeded' });
+				}
 				default:
 					this.logHandler.error(
 						`error code ${response.data.output.errorCode} occurred in database operation when calling ${subroutineName}`,

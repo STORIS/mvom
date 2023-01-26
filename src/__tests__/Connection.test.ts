@@ -514,6 +514,43 @@ describe('executeDbSubroutine', () => {
 		).rejects.toThrow(RecordVersionError);
 	});
 
+	test('should throw DbServerError when the maximum payload size is exceeded', async () => {
+		when<any, any[]>(mockedAxiosInstance.post)
+			.calledWith(
+				expect.anything(),
+				expect.objectContaining({
+					input: expect.objectContaining({
+						subroutineId: expect.stringContaining('save'),
+					}),
+				}),
+			)
+			.mockResolvedValue({
+				data: {
+					output: { errorCode: dbErrors.maxPayloadExceeded.code },
+				},
+			});
+
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
+		await connection.open();
+
+		const filename = 'filename';
+		const id = 'id';
+		await expect(
+			connection.executeDbSubroutine('save', {
+				filename,
+				id,
+				record: '',
+				foreignKeyDefinitions: [],
+			}),
+		).rejects.toThrow(DbServerError);
+	});
+
 	test('should throw DbServerError for other returned codes', async () => {
 		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
