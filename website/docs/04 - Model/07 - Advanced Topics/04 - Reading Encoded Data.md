@@ -30,9 +30,10 @@ static readFileContentsById(id: string, options?: ModelReadFileContentsByIdOptio
 
 #### Options Object Properties
 
-| Property      | Type     | Description                                                                                |
-| ------------- | -------- | ------------------------------------------------------------------------------------------ |
-| `userDefined` | `object` | The [user defined options](model_user_defined_options) to pass to the database subroutines |
+| Property               | Type     | Description                                                                                                                                                                   |
+| ---------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `maxReturnPayloadSize` | `number` | The maximum allowed return payload size in bytes. If this size is exceeded a DbServerError will be thrown. If omitted the value specified during connection creation is used. |
+| `userDefined`          | `object` | The [user defined options](model_user_defined_options) to pass to the database subroutines                                                                                    |
 
 ### Example
 
