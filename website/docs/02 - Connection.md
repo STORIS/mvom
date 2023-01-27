@@ -27,14 +27,13 @@ Connection.createConnection(mvisUri: string, account: string, options?: CreateCo
 
 #### Options Object Properties
 
-| Property               | Type          | Default         | Description                                                                                                 |
-| ---------------------- | ------------- | --------------- | ----------------------------------------------------------------------------------------------------------- |
-| `logger`               | `Logger`      |                 | An object implementing the [Logger](#logger-interface) interface, used for logging messages emitted by MVOM |
-| `cacheMaxAge`          | `number`      | `3600`          | The maximum age of cached connection information, such as the current database date                         |
-| `timeout`              | `number`      | `0`             | The request timeout in milliseconds (0 to disable)                                                          |
-| `httpAgent`            | `http.Agent`  |                 | An `http.Agent` instance to use with http requests (recommended)                                            |
-| `httpsAgent`           | `https.Agent` |                 | An `https.Agent` instance to use with https requests (recommended)                                          |
-| `maxReturnPayloadSize` | `number`      | `1,000,000,000` | The maximum allowed return payload size specified in bytes. A DbServerError will be thrown                  |
+| Property      | Type          | Default | Description                                                                                                 |
+| ------------- | ------------- | ------- | ----------------------------------------------------------------------------------------------------------- |
+| `logger`      | `Logger`      |         | An object implementing the [Logger](#logger-interface) interface, used for logging messages emitted by MVOM |
+| `cacheMaxAge` | `number`      | `3600`  | The maximum age of cached connection information, such as the current database date                         |
+| `timeout`     | `number`      | `0`     | The request timeout in milliseconds (0 to disable)                                                          |
+| `httpAgent`   | `http.Agent`  |         | An `http.Agent` instance to use with http requests (recommended)                                            |
+| `httpsAgent`  | `https.Agent` |         | An `https.Agent` instance to use with https requests (recommended)                                          |
 
 ### Example
 

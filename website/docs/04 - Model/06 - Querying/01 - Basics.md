@@ -26,14 +26,13 @@ static find(queryCondition: Filter, options?: ModelFindOptions): Promise<Model[]
 
 #### Options Object Properties
 
-| Property               | Type                                  | Default         | Description                                                                                                     |
-| ---------------------- | ------------------------------------- | --------------- | --------------------------------------------------------------------------------------------------------------- |
-| `maxReturnPayloadSize` | `number`                              | `1,000,000,000` | The maximum allowed return payload size specified in bytes. A DbServerError will be thrown                      |
-| `skip`                 | `number`                              |                 | The number of matching records to skip when returning results. See [pagination](model_query_pagination).        |
-| `limit`                | `number`                              |                 | The number of matching records to return in the result set. See [pagination](model_query_pagination).           |
-| `sort`                 | <code>[string, -1 &#124; 1 ][]</code> |                 | The sort criteria for the query. See [sorting](model_query_sorting).                                            |
-| `projection`           | `string[]`                            |                 | The [projection](../Advanced%20Topics/model_projection) of properties to return from the database               |
-| `userDefined`          | `object`                              |                 | The [user defined options](../Advanced%20Topics/model_user_defined_options) to pass to the database subroutines |
+| Property      | Type                                  | Description                                                                                                     |
+| ------------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `skip`        | `number`                              | The number of matching records to skip when returning results. See [pagination](model_query_pagination).        |
+| `limit`       | `number`                              | The number of matching records to return in the result set. See [pagination](model_query_pagination).           |
+| `sort`        | <code>[string, -1 &#124; 1 ][]</code> | The sort criteria for the query. See [sorting](model_query_sorting).                                            |
+| `projection`  | `string[]`                            | The [projection](../Advanced%20Topics/model_projection) of properties to return from the database               |
+| `userDefined` | `object`                              | The [user defined options](../Advanced%20Topics/model_user_defined_options) to pass to the database subroutines |
 
 ## findAndCount Method
 
