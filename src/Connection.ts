@@ -192,7 +192,7 @@ class Connection {
 		}
 
 		if (maxReturnPayloadSize < 0) {
-			throw new InvalidParameterError({ parameterName: 'timeout' });
+			throw new InvalidParameterError({ parameterName: 'maxReturnPayloadSize' });
 		}
 
 		const logHandler = new LogHandler(account, logger);
