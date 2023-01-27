@@ -40,6 +40,7 @@ const mvisAdminPassword = 'password';
 const account = 'account';
 const requestId = 'requestId';
 const comoLogging = 'on';
+const maxReturnPayloadSize = 100_000_000;
 
 beforeEach(() => {
 	mockedAxios.create.mockReturnValue(mockedAxiosInstance);
@@ -373,6 +374,7 @@ describe('executeDbSubroutine', () => {
 				subroutineId: 'getServerInfo',
 				subroutineInput: {},
 				setupOptions: {
+					maxReturnPayloadSize,
 					requestId: 'uuid',
 					comoLogging: 'off',
 				},
@@ -411,6 +413,7 @@ describe('executeDbSubroutine', () => {
 			mvisAdminPassword,
 			account,
 			{
+				maxReturnPayloadSize,
 				comoLogging: 'onError',
 			},
 		);
@@ -422,6 +425,7 @@ describe('executeDbSubroutine', () => {
 				subroutineId: 'getServerInfo',
 				subroutineInput: {},
 				setupOptions: {
+					maxReturnPayloadSize,
 					requestId: 'uuid',
 					comoLogging: 'onError',
 				},
@@ -460,6 +464,7 @@ describe('executeDbSubroutine', () => {
 			mvisAdminPassword,
 			account,
 			{
+				maxReturnPayloadSize,
 				comoLogging: 'onError',
 			},
 		);
@@ -473,6 +478,7 @@ describe('executeDbSubroutine', () => {
 				setupOptions: {
 					requestId: 'uuid',
 					comoLogging: 'off',
+					maxReturnPayloadSize,
 				},
 				teardownOptions: {},
 			},

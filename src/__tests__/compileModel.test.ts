@@ -576,7 +576,7 @@ describe('findByIds', () => {
 				ids: [id1, id2],
 				projection: null,
 			},
-			{ comoLogging, userDefined, maxReturnPayloadSize, comoLogging, requestId },
+			{ comoLogging, userDefined, maxReturnPayloadSize, requestId },
 		);
 	});
 
