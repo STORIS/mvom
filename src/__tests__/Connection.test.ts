@@ -76,6 +76,23 @@ describe('createConnection', () => {
 		}).toThrow(InvalidParameterError);
 	});
 
+	test('should throw InvalidParameterError if maxReturnPayloadSize is less than zero', () => {
+		const options: CreateConnectionOptions = {
+			maxReturnPayloadSize: -1,
+		};
+
+		expect(() => {
+			Connection.createConnection(
+				mvisUrl,
+				mvisAdminUrl,
+				mvisAdminUsername,
+				mvisAdminPassword,
+				account,
+				options,
+			);
+		}).toThrow(InvalidParameterError);
+	});
+
 	test('should return a new Connection instance', () => {
 		expect(
 			Connection.createConnection(
@@ -332,6 +349,33 @@ describe('executeDbSubroutine', () => {
 				record: '',
 				foreignKeyDefinitions: [],
 			}),
+		).rejects.toThrow();
+	});
+
+	test('should reject if a negative maximum return payload size is provided', async () => {
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
+
+		await connection.open();
+
+		const filename = 'filename';
+		const id = 'id';
+		await expect(
+			connection.executeDbSubroutine(
+				'save',
+				{
+					filename,
+					id,
+					record: '',
+					foreignKeyDefinitions: [],
+				},
+				{ maxReturnPayloadSize: -1 },
+			),
 		).rejects.toThrow();
 	});
 

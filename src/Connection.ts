@@ -74,7 +74,7 @@ interface ConnectionConstructorOptions {
 	/** Optional https agent */
 	httpsAgent?: https.Agent;
 	/** Maximum allowed return payload size in bytes */
-	maxReturnPayloadSize?: number;
+	maxReturnPayloadSize: number;
 }
 
 export enum ConnectionStatus {
@@ -136,7 +136,7 @@ class Connection {
 		deploymentManager: DeploymentManager,
 		options: ConnectionConstructorOptions,
 	) {
-		const { httpAgent, httpsAgent, maxReturnPayloadSize = 1_000_000_000 } = options;
+		const { httpAgent, httpsAgent, maxReturnPayloadSize } = options;
 
 		this.cacheMaxAge = cacheMaxAge;
 		this.logHandler = logHandler;
@@ -180,7 +180,7 @@ class Connection {
 			timeout = 0,
 			httpAgent,
 			httpsAgent,
-			maxReturnPayloadSize,
+			maxReturnPayloadSize = 1_000_000_000,
 		} = options;
 
 		if (!Number.isInteger(cacheMaxAge)) {
@@ -188,6 +188,10 @@ class Connection {
 		}
 
 		if (!Number.isInteger(timeout)) {
+			throw new InvalidParameterError({ parameterName: 'timeout' });
+		}
+
+		if (maxReturnPayloadSize < 0) {
 			throw new InvalidParameterError({ parameterName: 'timeout' });
 		}
 
