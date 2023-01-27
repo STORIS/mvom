@@ -83,7 +83,7 @@ describe('deleteById', () => {
 		expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 			'deleteById',
 			{ filename, id },
-			undefined,
+			{},
 		);
 	});
 
@@ -103,7 +103,7 @@ describe('deleteById', () => {
 		expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 			'deleteById',
 			{ filename, id },
-			undefined,
+			{},
 		);
 	});
 
@@ -165,7 +165,7 @@ describe('find', () => {
 				projection: null,
 				queryCommand: `select ${filename}`,
 			},
-			undefined,
+			{},
 		);
 	});
 
@@ -251,7 +251,7 @@ describe('findAndCount', () => {
 				projection: null,
 				queryCommand: `select ${filename}`,
 			},
-			undefined,
+			{},
 		);
 	});
 
@@ -318,7 +318,7 @@ describe('findById', () => {
 				id: id1,
 				projection: null,
 			},
-			undefined,
+			{},
 		);
 	});
 
@@ -342,7 +342,7 @@ describe('findById', () => {
 				id: id1,
 				projection: null,
 			},
-			undefined,
+			{},
 		);
 	});
 
@@ -364,7 +364,7 @@ describe('findById', () => {
 				id: id1,
 				projection: null,
 			},
-			undefined,
+			{},
 		);
 	});
 
@@ -418,7 +418,7 @@ describe('findById', () => {
 				id: id1,
 				projection: [2],
 			},
-			undefined,
+			{},
 		);
 	});
 });
@@ -455,7 +455,7 @@ describe('findByIds', () => {
 				ids: [id1, id2],
 				projection: null,
 			},
-			undefined,
+			{},
 		);
 	});
 
@@ -489,7 +489,7 @@ describe('findByIds', () => {
 				ids: [id1, id2],
 				projection: null,
 			},
-			undefined,
+			{},
 		);
 	});
 
@@ -516,7 +516,7 @@ describe('findByIds', () => {
 				ids: [id1, id2],
 				projection: null,
 			},
-			undefined,
+			{},
 		);
 	});
 
@@ -590,7 +590,7 @@ describe('findByIds', () => {
 				ids: [id1, id2],
 				projection: [2],
 			},
-			undefined,
+			{},
 		);
 	});
 });
@@ -611,7 +611,7 @@ describe('readFileContentsById', () => {
 				filename,
 				id: id1,
 			},
-			undefined,
+			{},
 		);
 	});
 
@@ -682,7 +682,7 @@ describe('save', () => {
 					{ entityIds: ['prop1-value'], entityName: 'prop1', filename: 'FK_FILE' },
 				],
 			},
-			undefined,
+			{},
 		);
 	});
 
@@ -715,7 +715,7 @@ describe('save', () => {
 						{ entityIds: ['prop1-value'], entityName: 'prop1', filename: 'FK_FILE' },
 					],
 				},
-				undefined,
+				{},
 			);
 		});
 
@@ -751,7 +751,7 @@ describe('save', () => {
 					record: `val1${vm}val2`,
 					foreignKeyDefinitions: [],
 				},
-				undefined,
+				{},
 			);
 		});
 
@@ -787,7 +787,7 @@ describe('save', () => {
 					record: `${vm}val2`,
 					foreignKeyDefinitions: [],
 				},
-				undefined,
+				{},
 			);
 		});
 
@@ -838,7 +838,7 @@ describe('save', () => {
 					record: `val1-subVal1${svm}val1-subVal2${vm}val2-subVal1${svm}val2-subVal2`,
 					foreignKeyDefinitions: [],
 				},
-				undefined,
+				{},
 			);
 		});
 
@@ -889,7 +889,7 @@ describe('save', () => {
 					record: `${svm}val1-subVal2${vm}val2-subVal1${svm}`,
 					foreignKeyDefinitions: [],
 				},
-				undefined,
+				{},
 			);
 		});
 
