@@ -257,16 +257,24 @@ class Connection {
 				'Cannot execute database features until database connection has been established',
 			);
 		}
+		const { maxReturnPayloadSize = this.maxReturnPayloadSize } = setupOptions;
+		if (maxReturnPayloadSize < 0) {
+			this.logHandler.error(
+				`Maximum returned payload size of ${maxReturnPayloadSize} is invalid. Must be a positive integer`,
+			);
+			throw new Error(
+				`Maximum returned payload size of ${maxReturnPayloadSize} is invalid. Must be a positive integer`,
+			);
+		}
+
+		const updatedSetupOptions = { ...setupOptions, maxReturnPayloadSize };
 
 		this.logHandler.debug(`executing database subroutine "${subroutineName}"`);
 
 		const data: DbSubroutinePayload<DbSubroutineInputOptionsMap[TSubroutineName]> = {
 			subroutineId: subroutineName,
 			subroutineInput: options,
-			setupOptions: {
-				...setupOptions,
-				maxReturnPayloadSize: setupOptions.maxReturnPayloadSize ?? this.maxReturnPayloadSize,
-			},
+			setupOptions: updatedSetupOptions,
 			teardownOptions,
 		};
 
@@ -279,7 +287,7 @@ class Connection {
 			return axios.isAxiosError(err) ? this.handleAxiosError(err) : this.handleUnexpectedError(err);
 		}
 
-		this.handleDbServerError(response, subroutineName, options);
+		this.handleDbServerError(response, subroutineName, options, updatedSetupOptions);
 
 		// return the relevant portion from the db server response
 		return response.data.output;
@@ -367,6 +375,7 @@ class Connection {
 		response: AxiosResponse<TResponse | DbSubroutineResponseError>,
 		subroutineName: TSubroutineName,
 		options: DbSubroutineInputOptionsMap[TSubroutineName],
+		setupOptions: DbSubroutineSetupOptions,
 	): asserts response is AxiosResponse<TResponse> {
 		if (response.data.output == null) {
 			// handle invalid response
@@ -408,8 +417,13 @@ class Connection {
 					throw new RecordVersionError({ filename, recordId: id });
 				}
 				case dbErrors.maxPayloadExceeded.code: {
-					this.logHandler.debug('Maximum return payload size of 5GB exceeded');
-					throw new DbServerError({ message: 'Maximum return payload size of 5GB exceeded' });
+					const { maxReturnPayloadSize } = setupOptions;
+					this.logHandler.debug(
+						`Maximum return payload size of ${maxReturnPayloadSize} bytes exceeded`,
+					);
+					throw new DbServerError({
+						message: `Maximum return payload size of ${maxReturnPayloadSize} exceeded`,
+					});
 				}
 				default:
 					this.logHandler.error(
