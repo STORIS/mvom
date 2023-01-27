@@ -2,6 +2,7 @@ $basictype 'U'
 subroutine mvom_main(inputSerialized, outputSerialized)
 {% include "./constants/udo.njk" %}
 {% include "./constants/error.njk" %}
+{% include "./constants/setup.njk" %}
 
 * eliminate all terminal output
 hush on
@@ -49,7 +50,7 @@ if udoGetProperty(input, 'teardownOptions', teardownOptions, type) then
   go response
 end
 
-call mvom_setup(setupOptions)
+call mvom_setup(setupOptions, parsedSetupOptions)
 
 subroutineName = 'mvom_':subroutineId
 call @subroutineName(subroutineInput, output)
@@ -65,9 +66,9 @@ response:
   x = udoFree(output)
   x = udoFree(input)
 
-  maxPayloadSize = 5000000000
+  maxReturnPayloadSize = parsedSetupOptions<MAX_RETURN_PAYLOAD_SIZE_POS>
   bytes = bytelen(outputSerialized)
-  if bytes > maxPayloadSize then
+  if bytes > maxReturnPayloadSize then
     if udoCreate(UDO_OBJECT, errOutput) then
       * in the event of an error in the creation of the output object, there is little we can do except fatally abort
       return; * returning to caller
