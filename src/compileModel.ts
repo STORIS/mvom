@@ -28,6 +28,8 @@ export interface ModelFindAndCountResult {
 
 export interface ModelDatabaseExecutionOptions {
 	userDefined?: DbSubroutineUserDefinedOptions;
+	/** Maximum allowed return payload size in bytes */
+	maxReturnPayloadSize?: number;
 }
 export type ModelDeleteByIdOptions = ModelDatabaseExecutionOptions;
 export type ModelFindOptions = QueryConstructorOptions & ModelDatabaseExecutionOptions;
@@ -126,7 +128,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			id: string,
 			options: ModelDeleteByIdOptions = {},
 		): Promise<Model | null> {
-			const { userDefined } = options;
+			const { maxReturnPayloadSize, userDefined } = options;
 
 			const data = await this.connection.executeDbSubroutine(
 				'deleteById',
@@ -134,7 +136,10 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 					filename: this.file,
 					id,
 				},
-				userDefined && { userDefined },
+				{
+					...(maxReturnPayloadSize && { maxReturnPayloadSize }),
+					...(userDefined && { userDefined }),
+				},
 			);
 
 			if (data.result == null) {
@@ -151,9 +156,12 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			selectionCriteria: Filter<TSchema> = {},
 			options: ModelFindOptions = {},
 		): Promise<Model[]> {
-			const { userDefined, ...queryConstructorOptions } = options;
+			const { maxReturnPayloadSize, userDefined, ...queryConstructorOptions } = options;
 			const query = new Query(Model, Model.#logHandler, selectionCriteria, queryConstructorOptions);
-			const { documents } = await query.exec(userDefined && { userDefined });
+			const { documents } = await query.exec({
+				...(maxReturnPayloadSize && { maxReturnPayloadSize }),
+				...(userDefined && { userDefined }),
+			});
 
 			return documents.map((document) => {
 				const { _id, __v, record } = document;
@@ -166,9 +174,12 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			selectionCriteria: Filter<TSchema> = {},
 			options: ModelFindOptions = {},
 		): Promise<ModelFindAndCountResult> {
-			const { userDefined, ...queryConstructorOptions } = options;
+			const { maxReturnPayloadSize, userDefined, ...queryConstructorOptions } = options;
 			const query = new Query(Model, Model.#logHandler, selectionCriteria, queryConstructorOptions);
-			const { count, documents } = await query.exec(userDefined && { userDefined });
+			const { count, documents } = await query.exec({
+				...(maxReturnPayloadSize && { maxReturnPayloadSize }),
+				...(userDefined && { userDefined }),
+			});
 
 			const models = documents.map((document) => {
 				const { _id, __v, record } = document;
@@ -186,7 +197,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			id: string,
 			options: ModelFindByIdOptions = {},
 		): Promise<Model | null> {
-			const { projection, userDefined } = options;
+			const { maxReturnPayloadSize, projection, userDefined } = options;
 
 			const data = await this.connection.executeDbSubroutine(
 				'findById',
@@ -195,7 +206,10 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 					id,
 					projection: this.#formatProjection(projection),
 				},
-				userDefined && { userDefined },
+				{
+					...(maxReturnPayloadSize && { maxReturnPayloadSize }),
+					...(userDefined && { userDefined }),
+				},
 			);
 
 			if (data.result == null) {
@@ -212,7 +226,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			ids: string | string[],
 			options: ModelFindByIdOptions = {},
 		): Promise<(Model | null)[]> {
-			const { projection, userDefined } = options;
+			const { maxReturnPayloadSize, projection, userDefined } = options;
 
 			const idsArray = ensureArray(ids);
 			const data = await this.connection.executeDbSubroutine(
@@ -222,7 +236,10 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 					ids: idsArray,
 					projection: this.#formatProjection(projection),
 				},
-				userDefined && { userDefined },
+				{
+					...(maxReturnPayloadSize && { maxReturnPayloadSize }),
+					...(userDefined && { userDefined }),
+				},
 			);
 
 			return data.result.map((dbResultItem) => {
@@ -240,14 +257,17 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			id: string,
 			options: ModelReadFileContentsByIdOptions = {},
 		): Promise<string> {
-			const { userDefined } = options;
+			const { maxReturnPayloadSize, userDefined } = options;
 			const data = await this.connection.executeDbSubroutine(
 				'readFileContentsById',
 				{
 					filename: this.file,
 					id,
 				},
-				userDefined && { userDefined },
+				{
+					...(maxReturnPayloadSize && { maxReturnPayloadSize }),
+					...(userDefined && { userDefined }),
+				},
 			);
 
 			return data.result;
@@ -271,7 +291,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 		/** Save a document to the database */
 		public async save(options: ModelSaveOptions = {}): Promise<Model> {
-			const { userDefined } = options;
+			const { maxReturnPayloadSize, userDefined } = options;
 			if (this._id == null) {
 				throw new TypeError('_id value must be set prior to saving');
 			}
@@ -296,7 +316,10 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 						record: this.#convertToMvString(),
 						foreignKeyDefinitions: this.buildForeignKeyDefinitions(),
 					},
-					userDefined && { userDefined },
+					{
+						...(maxReturnPayloadSize && { maxReturnPayloadSize }),
+						...(userDefined && { userDefined }),
+					},
 				);
 
 				const { _id, __v, record } = data.result;
