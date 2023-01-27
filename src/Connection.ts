@@ -471,6 +471,7 @@ class Connection {
 					);
 					throw new DbServerError({
 						message: `Maximum return payload size of ${maxReturnPayloadSize} exceeded`,
+						comoLogId,
 					});
 				}
 				default:
