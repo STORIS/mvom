@@ -14,6 +14,8 @@ export interface DbSubroutineSetupOptions {
 	comoLogging?: ComoLoggingOptions;
 	userDefined?: DbSubroutineUserDefinedOptions;
 	requestId?: string;
+	/** Maximum allowed return payload size in bytes */
+	maxReturnPayloadSize?: number;
 }
 
 export interface DbSubroutinePayload<TSubroutineInput extends GenericObject> {

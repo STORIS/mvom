@@ -1,7 +1,12 @@
 import type { ModelConstructor } from './compileModel';
 import { InvalidParameterError, QueryLimitError } from './errors';
 import type LogHandler from './LogHandler';
-import type { DbDocument, DbSubroutineSetupOptions, GenericObject } from './types';
+import type {
+	DbDocument,
+	DbSubroutineInputFind,
+	DbSubroutineSetupOptions,
+	GenericObject,
+} from './types';
 
 // #region Types
 export interface QueryConstructorOptions {
@@ -114,7 +119,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 
 	/** Execute query */
 	public async exec(options: QueryExecutionOptions = {}): Promise<QueryExecutionResult> {
-		const { comoLogging, requestId, userDefined } = options;
+		const { comoLogging, maxReturnPayloadSize, requestId, userDefined } = options;
 		let queryCommand = `select ${this.Model.file}`;
 		if (this.selection != null) {
 			queryCommand = `${queryCommand} with ${this.selection}`;
@@ -130,7 +135,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 				? this.Model.schema.transformPathsToDbPositions(this.projection)
 				: null;
 
-		const executionOptions = {
+		const executionOptions: DbSubroutineInputFind = {
 			filename: this.Model.file,
 			queryCommand,
 			...(this.skip != null && { skip: this.skip }),
@@ -138,12 +143,19 @@ class Query<TSchema extends GenericObject = GenericObject> {
 			projection,
 		};
 
-		this.logHandler.verbose(`executing query "${queryCommand}"`);
-		const data = await this.Model.connection.executeDbSubroutine('find', executionOptions, {
+		const setupOptions: DbSubroutineSetupOptions = {
 			...(comoLogging && { comoLogging }),
+			...(maxReturnPayloadSize && { maxReturnPayloadSize }),
 			...(requestId && { requestId }),
 			...(userDefined && { userDefined }),
-		});
+		};
+
+		this.logHandler.verbose(`executing query "${queryCommand}"`);
+		const data = await this.Model.connection.executeDbSubroutine(
+			'find',
+			executionOptions,
+			setupOptions,
+		);
 
 		return {
 			count: data.count,
