@@ -26,10 +26,11 @@ static findById(id: string, options?: ModelFindByIdOptions): Promise<Model | nul
 
 #### Options Object Properties
 
-| Property      | Type       | Description                                                                                                    |
-| ------------- | ---------- | -------------------------------------------------------------------------------------------------------------- |
-| `projection`  | `string[]` | The [projection](./Advanced%20Topics/model_projection) of properties to return from the database               |
-| `userDefined` | `object`   | The [user defined options](./Advanced%20Topics/model_user_defined_options) to pass to the database subroutines |
+| Property               | Type       | Default         | Description                                                                                                    |
+| ---------------------- | ---------- | --------------- | -------------------------------------------------------------------------------------------------------------- |
+| `maxReturnPayloadSize` | `number`   | `1,000,000,000` | The maximum allowed return payload size specified in bytes. A DbServerError will be thrown                     |
+| `projection`           | `string[]` |                 | The [projection](./Advanced%20Topics/model_projection) of properties to return from the database               |
+| `userDefined`          | `object`   |                 | The [user defined options](./Advanced%20Topics/model_user_defined_options) to pass to the database subroutines |
 
 ### Example
 
@@ -82,10 +83,11 @@ static findByIds(ids: string | string[], options?: ModelFindByIdOptions): Promis
 
 #### Options Object Properties
 
-| Property      | Type       | Description                                                                                                    |
-| ------------- | ---------- | -------------------------------------------------------------------------------------------------------------- |
-| `projection`  | `string[]` | The [projection](./Advanced%20Topics/model_projection) of properties to return from the database               |
-| `userDefined` | `object`   | The [user defined options](./Advanced%20Topics/model_user_defined_options) to pass to the database subroutines |
+| Property               | Type       | Default         | Description                                                                                                    |
+| ---------------------- | ---------- | --------------- | -------------------------------------------------------------------------------------------------------------- |
+| `maxReturnPayloadSize` | `number`   | `1,000,000,000` | The maximum allowed return payload size specified in bytes. A DbServerError will be thrown                     |
+| `projection`           | `string[]` |                 | The [projection](./Advanced%20Topics/model_projection) of properties to return from the database               |
+| `userDefined`          | `object`   |                 | The [user defined options](./Advanced%20Topics/model_user_defined_options) to pass to the database subroutines |
 
 ### Example
 

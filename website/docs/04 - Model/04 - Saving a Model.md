@@ -25,9 +25,10 @@ save(options?: ModelSaveOptions): Promise<Model>
 
 #### Options Object Properties
 
-| Property      | Type     | Description                                                                                                    |
-| ------------- | -------- | -------------------------------------------------------------------------------------------------------------- |
-| `userDefined` | `object` | The [user defined options](./Advanced%20Topics/model_user_defined_options) to pass to the database subroutines |
+| Property               | Type     | Default         | Description                                                                                                    |
+| ---------------------- | -------- | --------------- | -------------------------------------------------------------------------------------------------------------- |
+| `maxReturnPayloadSize` | `number` | `1,000,000,000` | The maximum allowed return payload size specified in bytes. A DbServerError will be thrown                     |
+| `userDefined`          | `object` |                 | The [user defined options](./Advanced%20Topics/model_user_defined_options) to pass to the database subroutines |
 
 ### Example (Inserting a Record)
 
