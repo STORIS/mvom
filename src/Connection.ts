@@ -71,6 +71,8 @@ interface ConnectionConstructorOptions {
 	httpAgent?: http.Agent;
 	/** Optional https agent */
 	httpsAgent?: https.Agent;
+	/** Maximum allowed return payload size in bytes */
+	maxReturnPayloadSize?: number;
 }
 
 export enum ConnectionStatus {
@@ -116,6 +118,9 @@ class Connection {
 	/** Mutex on acquiring server information */
 	private readonly serverInfoMutex: Mutex;
 
+	/** Maximum allowed return payload size in bytes */
+	private readonly maxReturnPayloadSize: number;
+
 	private constructor(
 		/** URL of the MVIS which facilitates access to the mv database */
 		mvisUrl: string,
@@ -129,11 +134,12 @@ class Connection {
 		deploymentManager: DeploymentManager,
 		options: ConnectionConstructorOptions,
 	) {
-		const { httpAgent, httpsAgent } = options;
+		const { httpAgent, httpsAgent, maxReturnPayloadSize = 1_000_000_000 } = options;
 
 		this.cacheMaxAge = cacheMaxAge;
 		this.logHandler = logHandler;
 		this.deploymentManager = deploymentManager;
+		this.maxReturnPayloadSize = maxReturnPayloadSize;
 
 		const url = new URL(mvisUrl);
 		url.pathname = url.pathname.replace(/\/?$/, `/${account}/subroutine/`);
@@ -247,7 +253,10 @@ class Connection {
 		const data: DbSubroutinePayload<DbSubroutineInputOptionsMap[TSubroutineName]> = {
 			subroutineId: subroutineName,
 			subroutineInput: options,
-			setupOptions,
+			setupOptions: {
+				...setupOptions,
+				maxReturnPayloadSize: setupOptions.maxReturnPayloadSize ?? this.maxReturnPayloadSize,
+			},
 			teardownOptions,
 		};
 
