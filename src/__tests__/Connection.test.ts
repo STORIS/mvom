@@ -76,6 +76,23 @@ describe('createConnection', () => {
 		}).toThrow(InvalidParameterError);
 	});
 
+	test('should throw InvalidParameterError if maxReturnPayloadSize is less than zero', () => {
+		const options: CreateConnectionOptions = {
+			maxReturnPayloadSize: -1,
+		};
+
+		expect(() => {
+			Connection.createConnection(
+				mvisUrl,
+				mvisAdminUrl,
+				mvisAdminUsername,
+				mvisAdminPassword,
+				account,
+				options,
+			);
+		}).toThrow(InvalidParameterError);
+	});
+
 	test('should return a new Connection instance', () => {
 		expect(
 			Connection.createConnection(
@@ -335,6 +352,33 @@ describe('executeDbSubroutine', () => {
 		).rejects.toThrow();
 	});
 
+	test('should reject if a negative maximum return payload size is provided', async () => {
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
+
+		await connection.open();
+
+		const filename = 'filename';
+		const id = 'id';
+		await expect(
+			connection.executeDbSubroutine(
+				'save',
+				{
+					filename,
+					id,
+					record: '',
+					foreignKeyDefinitions: [],
+				},
+				{ maxReturnPayloadSize: -1 },
+			),
+		).rejects.toThrow();
+	});
+
 	test('should throw DbServerError if response payload has a null output', async () => {
 		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
@@ -512,6 +556,43 @@ describe('executeDbSubroutine', () => {
 				foreignKeyDefinitions: [],
 			}),
 		).rejects.toThrow(RecordVersionError);
+	});
+
+	test('should throw DbServerError when the maximum payload size is exceeded', async () => {
+		when<any, any[]>(mockedAxiosInstance.post)
+			.calledWith(
+				expect.anything(),
+				expect.objectContaining({
+					input: expect.objectContaining({
+						subroutineId: expect.stringContaining('save'),
+					}),
+				}),
+			)
+			.mockResolvedValue({
+				data: {
+					output: { errorCode: dbErrors.maxPayloadExceeded.code },
+				},
+			});
+
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
+		await connection.open();
+
+		const filename = 'filename';
+		const id = 'id';
+		await expect(
+			connection.executeDbSubroutine('save', {
+				filename,
+				id,
+				record: '',
+				foreignKeyDefinitions: [],
+			}),
+		).rejects.toThrow(DbServerError);
 	});
 
 	test('should throw DbServerError for other returned codes', async () => {

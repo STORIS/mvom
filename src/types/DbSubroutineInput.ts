@@ -11,6 +11,8 @@ export interface DbSubroutineUserDefinedOptions {
 
 export interface DbSubroutineSetupOptions {
 	userDefined?: DbSubroutineUserDefinedOptions;
+	/** Maximum allowed return payload size in bytes */
+	maxReturnPayloadSize?: number;
 }
 
 export interface DbSubroutinePayload<TSubroutineInput extends GenericObject> {

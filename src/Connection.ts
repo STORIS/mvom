@@ -64,6 +64,8 @@ export interface CreateConnectionOptions {
 	httpAgent?: http.Agent;
 	/** Optional https agent */
 	httpsAgent?: https.Agent;
+	/** Maximum allowed return payload size in bytes */
+	maxReturnPayloadSize?: number;
 }
 
 interface ConnectionConstructorOptions {
@@ -71,6 +73,8 @@ interface ConnectionConstructorOptions {
 	httpAgent?: http.Agent;
 	/** Optional https agent */
 	httpsAgent?: https.Agent;
+	/** Maximum allowed return payload size in bytes */
+	maxReturnPayloadSize: number;
 }
 
 export enum ConnectionStatus {
@@ -116,6 +120,9 @@ class Connection {
 	/** Mutex on acquiring server information */
 	private readonly serverInfoMutex: Mutex;
 
+	/** Maximum allowed return payload size in bytes */
+	private readonly maxReturnPayloadSize: number;
+
 	private constructor(
 		/** URL of the MVIS which facilitates access to the mv database */
 		mvisUrl: string,
@@ -129,11 +136,12 @@ class Connection {
 		deploymentManager: DeploymentManager,
 		options: ConnectionConstructorOptions,
 	) {
-		const { httpAgent, httpsAgent } = options;
+		const { httpAgent, httpsAgent, maxReturnPayloadSize } = options;
 
 		this.cacheMaxAge = cacheMaxAge;
 		this.logHandler = logHandler;
 		this.deploymentManager = deploymentManager;
+		this.maxReturnPayloadSize = maxReturnPayloadSize;
 
 		const url = new URL(mvisUrl);
 		url.pathname = url.pathname.replace(/\/?$/, `/${account}/subroutine/`);
@@ -166,7 +174,14 @@ class Connection {
 		account: string,
 		options: CreateConnectionOptions = {},
 	): Connection {
-		const { logger, cacheMaxAge = 3600, timeout = 0, httpAgent, httpsAgent } = options;
+		const {
+			logger,
+			cacheMaxAge = 3600,
+			timeout = 0,
+			httpAgent,
+			httpsAgent,
+			maxReturnPayloadSize = 100_000_000,
+		} = options;
 
 		if (!Number.isInteger(cacheMaxAge)) {
 			throw new InvalidParameterError({ parameterName: 'cacheMaxAge' });
@@ -174,6 +189,10 @@ class Connection {
 
 		if (!Number.isInteger(timeout)) {
 			throw new InvalidParameterError({ parameterName: 'timeout' });
+		}
+
+		if (maxReturnPayloadSize < 0) {
+			throw new InvalidParameterError({ parameterName: 'maxReturnPayloadSize' });
 		}
 
 		const logHandler = new LogHandler(account, logger);
@@ -190,6 +209,7 @@ class Connection {
 		return new Connection(mvisUrl, account, cacheMaxAge, timeout, logHandler, deploymentManager, {
 			httpAgent,
 			httpsAgent,
+			maxReturnPayloadSize,
 		});
 	}
 
@@ -241,13 +261,24 @@ class Connection {
 				'Cannot execute database features until database connection has been established',
 			);
 		}
+		const { maxReturnPayloadSize = this.maxReturnPayloadSize } = setupOptions;
+		if (maxReturnPayloadSize < 0) {
+			this.logHandler.error(
+				`Maximum returned payload size of ${maxReturnPayloadSize} is invalid. Must be a positive integer`,
+			);
+			throw new Error(
+				`Maximum returned payload size of ${maxReturnPayloadSize} is invalid. Must be a positive integer`,
+			);
+		}
+
+		const updatedSetupOptions = { ...setupOptions, maxReturnPayloadSize };
 
 		this.logHandler.debug(`executing database subroutine "${subroutineName}"`);
 
 		const data: DbSubroutinePayload<DbSubroutineInputOptionsMap[TSubroutineName]> = {
 			subroutineId: subroutineName,
 			subroutineInput: options,
-			setupOptions,
+			setupOptions: updatedSetupOptions,
 			teardownOptions,
 		};
 
@@ -260,7 +291,7 @@ class Connection {
 			return axios.isAxiosError(err) ? this.handleAxiosError(err) : this.handleUnexpectedError(err);
 		}
 
-		this.handleDbServerError(response, subroutineName, options);
+		this.handleDbServerError(response, subroutineName, options, updatedSetupOptions);
 
 		// return the relevant portion from the db server response
 		return response.data.output;
@@ -348,6 +379,7 @@ class Connection {
 		response: AxiosResponse<TResponse | DbSubroutineResponseError>,
 		subroutineName: TSubroutineName,
 		options: DbSubroutineInputOptionsMap[TSubroutineName],
+		setupOptions: DbSubroutineSetupOptions,
 	): asserts response is AxiosResponse<TResponse> {
 		if (response.data.output == null) {
 			// handle invalid response
@@ -387,6 +419,15 @@ class Connection {
 						`record version mismatch found when saving record ${id} to ${filename}`,
 					);
 					throw new RecordVersionError({ filename, recordId: id });
+				}
+				case dbErrors.maxPayloadExceeded.code: {
+					const { maxReturnPayloadSize } = setupOptions;
+					this.logHandler.debug(
+						`Maximum return payload size of ${maxReturnPayloadSize} bytes exceeded`,
+					);
+					throw new DbServerError({
+						message: `Maximum return payload size of ${maxReturnPayloadSize} exceeded`,
+					});
 				}
 				default:
 					this.logHandler.error(
