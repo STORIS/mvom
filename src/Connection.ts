@@ -64,6 +64,8 @@ export interface CreateConnectionOptions {
 	httpAgent?: http.Agent;
 	/** Optional https agent */
 	httpsAgent?: https.Agent;
+	/** Maximum allowed return payload size in bytes */
+	maxReturnPayloadSize?: number;
 }
 
 interface ConnectionConstructorOptions {
@@ -172,7 +174,14 @@ class Connection {
 		account: string,
 		options: CreateConnectionOptions = {},
 	): Connection {
-		const { logger, cacheMaxAge = 3600, timeout = 0, httpAgent, httpsAgent } = options;
+		const {
+			logger,
+			cacheMaxAge = 3600,
+			timeout = 0,
+			httpAgent,
+			httpsAgent,
+			maxReturnPayloadSize,
+		} = options;
 
 		if (!Number.isInteger(cacheMaxAge)) {
 			throw new InvalidParameterError({ parameterName: 'cacheMaxAge' });
@@ -196,6 +205,7 @@ class Connection {
 		return new Connection(mvisUrl, account, cacheMaxAge, timeout, logHandler, deploymentManager, {
 			httpAgent,
 			httpsAgent,
+			maxReturnPayloadSize,
 		});
 	}
 
