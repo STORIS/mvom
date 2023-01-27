@@ -10,8 +10,8 @@ S$MVOM.PROCESS = @TRUE
 gosub processUserDefinedOptions
 
 if udoGetProperty(setupOptions, 'maxReturnPayloadSize', maxReturnPayloadSize, type) then
-  * Value not provided. Default to 1GB
-  maxReturnPayloadSize = 1000000000
+  * Value not provided. Default to 100MB
+  maxReturnPayloadSize = 100000000
 end
 
 parsedSetupOptions<MAX_RETURN_PAYLOAD_SIZE_POS> = maxReturnPayloadSize

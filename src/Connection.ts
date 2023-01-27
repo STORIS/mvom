@@ -180,7 +180,7 @@ class Connection {
 			timeout = 0,
 			httpAgent,
 			httpsAgent,
-			maxReturnPayloadSize = 1_000_000_000,
+			maxReturnPayloadSize = 100_000_000,
 		} = options;
 
 		if (!Number.isInteger(cacheMaxAge)) {
