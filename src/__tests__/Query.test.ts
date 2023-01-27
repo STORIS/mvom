@@ -184,7 +184,7 @@ describe('exec', () => {
 						projection: null,
 						queryCommand: expectedQuery,
 					},
-					undefined,
+					{},
 				);
 			});
 
@@ -213,7 +213,7 @@ describe('exec', () => {
 						projection: null,
 						queryCommand: expectedQuery,
 					},
-					undefined,
+					{},
 				);
 			});
 		});
@@ -244,7 +244,7 @@ describe('exec', () => {
 						projection: null,
 						queryCommand: expectedQuery,
 					},
-					undefined,
+					{},
 				);
 			});
 
@@ -273,7 +273,7 @@ describe('exec', () => {
 						projection: null,
 						queryCommand: expectedQuery,
 					},
-					undefined,
+					{},
 				);
 			});
 
@@ -302,7 +302,7 @@ describe('exec', () => {
 						projection: null,
 						queryCommand: expectedQuery,
 					},
-					undefined,
+					{},
 				);
 			});
 
@@ -331,7 +331,7 @@ describe('exec', () => {
 						projection: null,
 						queryCommand: expectedQuery,
 					},
-					undefined,
+					{},
 				);
 			});
 
@@ -359,7 +359,7 @@ describe('exec', () => {
 						projection: null,
 						queryCommand: expectedQuery,
 					},
-					undefined,
+					{},
 				);
 			});
 
@@ -388,7 +388,7 @@ describe('exec', () => {
 						projection: null,
 						queryCommand: expectedQuery,
 					},
-					undefined,
+					{},
 				);
 			});
 
@@ -417,7 +417,7 @@ describe('exec', () => {
 						projection: null,
 						queryCommand: expectedQuery,
 					},
-					undefined,
+					{},
 				);
 			});
 
@@ -446,7 +446,7 @@ describe('exec', () => {
 						projection: null,
 						queryCommand: expectedQuery,
 					},
-					undefined,
+					{},
 				);
 			});
 
@@ -475,7 +475,7 @@ describe('exec', () => {
 						projection: null,
 						queryCommand: expectedQuery,
 					},
-					undefined,
+					{},
 				);
 			});
 
@@ -504,7 +504,7 @@ describe('exec', () => {
 						projection: null,
 						queryCommand: expectedQuery,
 					},
-					undefined,
+					{},
 				);
 			});
 
@@ -537,7 +537,7 @@ describe('exec', () => {
 							projection: null,
 							queryCommand: expectedQuery,
 						},
-						undefined,
+						{},
 					);
 				});
 
@@ -613,7 +613,7 @@ describe('exec', () => {
 							projection: null,
 							queryCommand: expectedQuery,
 						},
-						undefined,
+						{},
 					);
 				});
 
@@ -689,7 +689,7 @@ describe('exec', () => {
 							projection: null,
 							queryCommand: expectedQuery,
 						},
-						undefined,
+						{},
 					);
 				});
 
@@ -761,7 +761,7 @@ describe('exec', () => {
 						projection: null,
 						queryCommand: expectedQuery,
 					},
-					undefined,
+					{},
 				);
 			});
 
@@ -786,7 +786,7 @@ describe('exec', () => {
 						projection: null,
 						queryCommand: expectedQuery,
 					},
-					undefined,
+					{},
 				);
 			});
 
@@ -821,7 +821,7 @@ describe('exec', () => {
 							projection: null,
 							queryCommand: expectedQuery,
 						},
-						undefined,
+						{},
 					);
 					expect(dataTransformerMock.transformToQuery).toHaveBeenCalledWith(propertyValue);
 				});
@@ -867,7 +867,7 @@ describe('exec', () => {
 					projection: null,
 					queryCommand: expectedQuery,
 				},
-				undefined,
+				{},
 			);
 		});
 
@@ -912,7 +912,7 @@ describe('exec', () => {
 					projection: null,
 					queryCommand: expectedQuery,
 				},
-				undefined,
+				{},
 			);
 		});
 
@@ -957,7 +957,7 @@ describe('exec', () => {
 					projection: null,
 					queryCommand: expectedQuery,
 				},
-				undefined,
+				{},
 			);
 		});
 
@@ -1012,7 +1012,7 @@ describe('exec', () => {
 					projection: null,
 					queryCommand: expectedQuery,
 				},
-				undefined,
+				{},
 			);
 		});
 
@@ -1061,7 +1061,7 @@ describe('exec', () => {
 					projection: null,
 					queryCommand: expectedQuery,
 				},
-				undefined,
+				{},
 			);
 		});
 
@@ -1096,7 +1096,7 @@ describe('exec', () => {
 					projection: null,
 					queryCommand: expectedQuery,
 				},
-				undefined,
+				{},
 			);
 		});
 
@@ -1131,7 +1131,7 @@ describe('exec', () => {
 					projection: null,
 					queryCommand: expectedQuery,
 				},
-				undefined,
+				{},
 			);
 		});
 
@@ -1161,7 +1161,7 @@ describe('exec', () => {
 					projection: null,
 					queryCommand: expectedQuery,
 				},
-				undefined,
+				{},
 			);
 		});
 	});
@@ -1202,7 +1202,7 @@ describe('exec', () => {
 					projection: null,
 					queryCommand: expectedQuery,
 				},
-				undefined,
+				{},
 			);
 		});
 
@@ -1233,7 +1233,7 @@ describe('exec', () => {
 					projection: null,
 					queryCommand: expectedQuery,
 				},
-				undefined,
+				{},
 			);
 		});
 
@@ -1264,7 +1264,7 @@ describe('exec', () => {
 					projection: null,
 					queryCommand: expectedQuery,
 				},
-				undefined,
+				{},
 			);
 		});
 
@@ -1302,7 +1302,7 @@ describe('exec', () => {
 					projection: null,
 					queryCommand: expectedQuery,
 				},
-				undefined,
+				{},
 			);
 		});
 
@@ -1340,7 +1340,7 @@ describe('exec', () => {
 					projection: null,
 					queryCommand: expectedQuery,
 				},
-				undefined,
+				{},
 			);
 		});
 
@@ -1378,7 +1378,7 @@ describe('exec', () => {
 					projection: null,
 					queryCommand: expectedQuery,
 				},
-				undefined,
+				{},
 			);
 		});
 	});
@@ -1423,7 +1423,7 @@ describe('exec', () => {
 					skip,
 					limit,
 				},
-				undefined,
+				{},
 			);
 		});
 
@@ -1442,7 +1442,8 @@ describe('exec', () => {
 
 			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
 			const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
-			const executionOptions: QueryExecutionOptions = { userDefined };
+			const maxReturnPayloadSize = 10_000;
+			const executionOptions: QueryExecutionOptions = { userDefined, maxReturnPayloadSize };
 			expect(await query.exec(executionOptions)).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue}"`;
@@ -1453,7 +1454,7 @@ describe('exec', () => {
 					projection: null,
 					queryCommand: expectedQuery,
 				},
-				{ userDefined },
+				{ maxReturnPayloadSize, userDefined },
 			);
 		});
 	});
@@ -1617,7 +1618,7 @@ describe('exec', () => {
 					projection: [2],
 					queryCommand: expectedQuery,
 				},
-				undefined,
+				{},
 			);
 		});
 	});
