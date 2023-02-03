@@ -303,7 +303,11 @@ class Connection {
 
 		const updatedSetupOptions = { ...setupOptions, maxReturnPayloadSize, requestId, comoLogging };
 
-		this.logHandler.debug(`executing database subroutine "${subroutineName}"`);
+		this.logHandler.debug(
+			`executing database subroutine "${subroutineName}" with setup options: ${JSON.stringify(
+				updatedSetupOptions,
+			)}`,
+		);
 		const data: DbSubroutinePayload<DbSubroutineInputOptionsMap[TSubroutineName]> = {
 			subroutineId: subroutineName,
 			subroutineInput: options,
@@ -383,10 +387,7 @@ class Connection {
 				const { date, time, delimiters, limits } = await this.executeDbSubroutine(
 					'getServerInfo',
 					{},
-					{
-						...(requestId && { requestId }),
-						...(comoLogging && { comoLogging }),
-					},
+					{ ...(comoLogging && { comoLogging }), ...(requestId && { requestId }) },
 				);
 
 				const timeDrift = differenceInMilliseconds(
