@@ -51,6 +51,7 @@ if udoGetProperty(input, 'teardownOptions', teardownOptions, type) then
   go response
 end
 
+parsedSetupOptions = ''
 call mvom_setup(setupOptions, subroutineId, parsedSetupOptions)
 if S$MVOM.COMO.LOG.ID ne '0' then
   if udoSetProperty(output, 'comoLogId', 'O_':S$MVOM.COMO.LOG.ID) then
