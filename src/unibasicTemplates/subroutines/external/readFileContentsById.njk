@@ -6,7 +6,7 @@ subroutine mvom_readFileContentsById(options, output)
 subroutineName = 'readFileContentsById'
 
 * get the filename from the options
-if udoGetProperty(options, 'filename', filename, type) then
+if udoGetProperty(options, 'filename', vocEntryName, type) then
   call error_handler(ERROR_MALFORMED_INPUT, output)
   go returnFromSub
 end
@@ -29,7 +29,7 @@ f.voc = f.file
 * get filePath of the filename in VOC
 readAttempt = 1
 loop
-  readv fileDirectoryPath from f.voc, filename, 2 on error
+  readv fileDirectoryPath from f.voc, vocEntryName, 2 on error
     if S$MVOM.COMO.LOGGING eq 'onError' and readAttempt eq 1 then
       readAttempt += 1
       call init_como_log(subroutineName)
