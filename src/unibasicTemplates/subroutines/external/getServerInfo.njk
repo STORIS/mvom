@@ -3,6 +3,8 @@ subroutine mvom_getServerInfo(options, output)
 {% include "../../constants/error.njk" %}
 {% include "../../common/mvom.njk" %}
 
+subroutineName = 'getServerInfo'
+
 if udoSetProperty(output, 'date', date(), UDO_NUMBER) then
   call error_handler(ERROR_UDO, output)
   go returnFromSub
