@@ -36,6 +36,7 @@ const mvisAdminUrl = 'http://foo.bar.com/mvisAdmin';
 const mvisAdminUsername = 'username';
 const mvisAdminPassword = 'password';
 const account = 'account';
+const requestId = 'requestId';
 
 beforeEach(() => {
 	mockedAxios.create.mockReturnValue(mockedAxiosInstance);
@@ -218,7 +219,7 @@ describe('open', () => {
 
 		connection.status = ConnectionStatus.connecting;
 
-		await expect(connection.open()).rejects.toThrow(ConnectionError);
+		await expect(connection.open({ requestId })).rejects.toThrow(ConnectionError);
 	});
 
 	test('should throw InvalidServerFeaturesError if database features are missing', async () => {
@@ -232,7 +233,7 @@ describe('open', () => {
 			account,
 		);
 
-		await expect(connection.open()).rejects.toThrow(InvalidServerFeaturesError);
+		await expect(connection.open({ requestId })).rejects.toThrow(InvalidServerFeaturesError);
 	});
 
 	test('should open new connection', async () => {
@@ -266,7 +267,7 @@ describe('open', () => {
 			account,
 		);
 
-		await connection.open();
+		await connection.open({ requestId });
 		expect(connection.status).toBe(ConnectionStatus.connected);
 	});
 });
@@ -361,7 +362,7 @@ describe('executeDbSubroutine', () => {
 			account,
 		);
 
-		await connection.open();
+		await connection.open({ requestId });
 
 		const filename = 'filename';
 		const id = 'id';
@@ -398,7 +399,7 @@ describe('executeDbSubroutine', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const filename = 'filename';
 		const id = 'id';
@@ -435,7 +436,7 @@ describe('executeDbSubroutine', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const filename = 'filename';
 		const id = 'id';
@@ -472,7 +473,7 @@ describe('executeDbSubroutine', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const filename = 'filename';
 		const id = 'id';
@@ -509,7 +510,7 @@ describe('executeDbSubroutine', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const filename = 'filename';
 		const id = 'id';
@@ -544,7 +545,7 @@ describe('executeDbSubroutine', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const filename = 'filename';
 		const id = 'id';
@@ -581,7 +582,7 @@ describe('executeDbSubroutine', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const filename = 'filename';
 		const id = 'id';
@@ -618,7 +619,7 @@ describe('executeDbSubroutine', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const filename = 'filename';
 		const id = 'id';
@@ -653,7 +654,7 @@ describe('executeDbSubroutine', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const filename = 'filename';
 		const id = 'id';
@@ -689,7 +690,7 @@ describe('executeDbSubroutine', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const filename = 'filename';
 		const id = 'id';
@@ -725,7 +726,7 @@ describe('executeDbSubroutine', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const filename = 'filename';
 		const id = 'id';
@@ -760,7 +761,7 @@ describe('executeDbSubroutine', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const filename = 'filename';
 		const id = 'id';
@@ -818,10 +819,10 @@ describe('getDbDate', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const expected = '2022-03-08';
-		expect(await connection.getDbDate()).toEqual(expected);
+		expect(await connection.getDbDate({ requestId })).toEqual(expected);
 	});
 
 	test('should return current db server date when there is time drift', async () => {
@@ -854,10 +855,10 @@ describe('getDbDate', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const expected = '2022-03-08';
-		expect(await connection.getDbDate()).toEqual(expected);
+		expect(await connection.getDbDate({ requestId })).toEqual(expected);
 	});
 });
 
@@ -904,10 +905,10 @@ describe('getDbDateTime', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const expected = '2022-03-08T12:00:00.000';
-		expect(await connection.getDbDateTime()).toEqual(expected);
+		expect(await connection.getDbDateTime({ requestId })).toEqual(expected);
 	});
 
 	test('should return current db server date and time when there is time drift', async () => {
@@ -940,10 +941,10 @@ describe('getDbDateTime', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const expected = '2022-03-08T12:00:00.000';
-		expect(await connection.getDbDateTime()).toEqual(expected);
+		expect(await connection.getDbDateTime({ requestId })).toEqual(expected);
 	});
 
 	test('should return calculated db server date and time when using cached server info', async () => {
@@ -976,12 +977,12 @@ describe('getDbDateTime', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		jest.setSystemTime(new Date('2022-03-08T13:00:00.000')); // 1 hour elapsed; still within 6 hour ttl
 
 		const expected = '2022-03-08T13:00:00.000';
-		expect(await connection.getDbDateTime()).toEqual(expected);
+		expect(await connection.getDbDateTime({ requestId })).toEqual(expected);
 		expect(mockedAxiosInstance.post).toHaveBeenCalledTimes(1);
 	});
 
@@ -1025,12 +1026,12 @@ describe('getDbDateTime', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		jest.setSystemTime(new Date('2022-03-08T19:00:00.000')); // 7 hours elapsed; beyond ttl
 
 		const expected = '2022-03-08T19:00:00.000';
-		expect(await connection.getDbDateTime()).toEqual(expected);
+		expect(await connection.getDbDateTime({ requestId })).toEqual(expected);
 		expect(mockedAxiosInstance.post).toHaveBeenCalledTimes(2);
 	});
 
@@ -1074,17 +1075,17 @@ describe('getDbDateTime', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		jest.setSystemTime(new Date('2022-03-08T19:00:00.000')); // 7 hours elapsed; beyond ttl
 
 		const expected = '2022-03-08T19:00:00.000';
-		expect(await connection.getDbDateTime()).toEqual(expected);
+		expect(await connection.getDbDateTime({ requestId })).toEqual(expected);
 
 		const results = await Promise.all([
-			connection.getDbDateTime(),
-			connection.getDbDateTime(),
-			connection.getDbDateTime(),
+			connection.getDbDateTime({ requestId }),
+			connection.getDbDateTime({ requestId }),
+			connection.getDbDateTime({ requestId }),
 		]);
 
 		results.forEach((result) => {
@@ -1138,10 +1139,10 @@ describe('getDbTime', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const expected = '12:00:00.000';
-		expect(await connection.getDbTime()).toEqual(expected);
+		expect(await connection.getDbTime({ requestId })).toEqual(expected);
 	});
 
 	test('should return current db server time when there is time drift', async () => {
@@ -1174,10 +1175,10 @@ describe('getDbTime', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const expected = '12:00:00.000';
-		expect(await connection.getDbTime()).toEqual(expected);
+		expect(await connection.getDbTime({ requestId })).toEqual(expected);
 	});
 });
 
@@ -1214,10 +1215,10 @@ describe('getDbLimits', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const expected = { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 };
-		expect(await connection.getDbLimits()).toEqual(expected);
+		expect(await connection.getDbLimits({ requestId })).toEqual(expected);
 	});
 });
 
@@ -1267,7 +1268,7 @@ describe('model', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const file = 'file';
 		const Model = connection.model(null, file);

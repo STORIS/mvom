@@ -29,6 +29,7 @@ const schemaDefinition: SchemaDefinition = {
 };
 const schema = new Schema(schemaDefinition);
 const filename = 'test.file';
+const requestId = 'requestId';
 
 const { am, vm, svm } = mockDelimiters;
 
@@ -115,12 +116,12 @@ describe('deleteById', () => {
 
 		const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
 		const maxReturnPayloadSize = 10_000;
-		const options: ModelDeleteByIdOptions = { userDefined, maxReturnPayloadSize };
+		const options: ModelDeleteByIdOptions = { userDefined, maxReturnPayloadSize, requestId };
 		expect(await Model.deleteById(id, options)).toBeNull();
 		expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 			'deleteById',
 			{ filename, id },
-			{ userDefined, maxReturnPayloadSize },
+			{ userDefined, maxReturnPayloadSize, requestId },
 		);
 	});
 });
@@ -187,7 +188,7 @@ describe('find', () => {
 
 		const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
 		const maxReturnPayloadSize = 10_000;
-		const options: ModelFindOptions = { maxReturnPayloadSize, userDefined };
+		const options: ModelFindOptions = { maxReturnPayloadSize, userDefined, requestId };
 
 		const documents = await Model.find({}, options);
 		documents.forEach((document) => {
@@ -206,7 +207,7 @@ describe('find', () => {
 				projection: null,
 				queryCommand: `select ${filename}`,
 			},
-			{ maxReturnPayloadSize, userDefined },
+			{ maxReturnPayloadSize, userDefined, requestId },
 		);
 	});
 });
@@ -274,7 +275,7 @@ describe('findAndCount', () => {
 
 		const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
 		const maxReturnPayloadSize = 10_000;
-		const options: ModelFindOptions = { maxReturnPayloadSize, userDefined };
+		const options: ModelFindOptions = { maxReturnPayloadSize, userDefined, requestId };
 
 		const { count, documents } = await Model.findAndCount({}, options);
 		expect(count).toBe(2);
@@ -294,7 +295,7 @@ describe('findAndCount', () => {
 				projection: null,
 				queryCommand: `select ${filename}`,
 			},
-			{ maxReturnPayloadSize, userDefined },
+			{ maxReturnPayloadSize, userDefined, requestId },
 		);
 	});
 });
@@ -382,7 +383,7 @@ describe('findById', () => {
 
 		const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
 		const maxReturnPayloadSize = 10_000;
-		const options: ModelFindByIdOptions = { maxReturnPayloadSize, userDefined };
+		const options: ModelFindByIdOptions = { maxReturnPayloadSize, userDefined, requestId };
 
 		const document = await Model.findById(id1, options);
 
@@ -396,7 +397,7 @@ describe('findById', () => {
 				id: id1,
 				projection: null,
 			},
-			{ maxReturnPayloadSize, userDefined },
+			{ maxReturnPayloadSize, userDefined, requestId },
 		);
 	});
 
@@ -540,7 +541,7 @@ describe('findByIds', () => {
 
 		const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
 		const maxReturnPayloadSize = 10_000;
-		const options: ModelFindByIdOptions = { maxReturnPayloadSize, userDefined };
+		const options: ModelFindByIdOptions = { maxReturnPayloadSize, userDefined, requestId };
 
 		const documents = await Model.findByIds([id1, id2], options);
 		documents.forEach((document) => {
@@ -559,7 +560,7 @@ describe('findByIds', () => {
 				ids: [id1, id2],
 				projection: null,
 			},
-			{ maxReturnPayloadSize, userDefined },
+			{ maxReturnPayloadSize, userDefined, requestId },
 		);
 	});
 
@@ -629,7 +630,11 @@ describe('readFileContentsById', () => {
 
 		const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
 		const maxReturnPayloadSize = 10_000;
-		const options: ModelReadFileContentsByIdOptions = { maxReturnPayloadSize, userDefined };
+		const options: ModelReadFileContentsByIdOptions = {
+			maxReturnPayloadSize,
+			userDefined,
+			requestId,
+		};
 
 		const contents = await Model.readFileContentsById(id1, options);
 		expect(contents).toBe(mockResult);
@@ -639,7 +644,7 @@ describe('readFileContentsById', () => {
 				filename,
 				id: id1,
 			},
-			{ maxReturnPayloadSize, userDefined },
+			{ maxReturnPayloadSize, userDefined, requestId },
 		);
 	});
 });
@@ -912,7 +917,7 @@ describe('save', () => {
 
 			const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
 			const maxReturnPayloadSize = 10_000;
-			const options: ModelSaveOptions = { maxReturnPayloadSize, userDefined };
+			const options: ModelSaveOptions = { maxReturnPayloadSize, userDefined, requestId };
 
 			const result = await model.save(options);
 
@@ -932,7 +937,7 @@ describe('save', () => {
 						{ entityIds: ['prop1-value'], entityName: 'prop1', filename: 'FK_FILE' },
 					],
 				},
-				{ maxReturnPayloadSize, userDefined },
+				{ maxReturnPayloadSize, userDefined, requestId },
 			);
 		});
 	});

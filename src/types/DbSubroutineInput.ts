@@ -11,6 +11,7 @@ export interface DbSubroutineUserDefinedOptions {
 
 export interface DbSubroutineSetupOptions {
 	userDefined?: DbSubroutineUserDefinedOptions;
+	requestId?: string;
 	/** Maximum allowed return payload size in bytes */
 	maxReturnPayloadSize?: number;
 }

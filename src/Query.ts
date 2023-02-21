@@ -119,7 +119,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 
 	/** Execute query */
 	public async exec(options: QueryExecutionOptions = {}): Promise<QueryExecutionResult> {
-		const { maxReturnPayloadSize, userDefined } = options;
+		const { maxReturnPayloadSize, requestId, userDefined } = options;
 		let queryCommand = `select ${this.Model.file}`;
 		if (this.selection != null) {
 			queryCommand = `${queryCommand} with ${this.selection}`;
@@ -128,7 +128,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 			queryCommand = `${queryCommand} ${this.sort}`;
 		}
 
-		await this.validateQuery(queryCommand);
+		await this.validateQuery(queryCommand, requestId);
 
 		const projection =
 			this.projection != null && this.Model.schema != null
@@ -145,6 +145,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 
 		const setupOptions: DbSubroutineSetupOptions = {
 			...(maxReturnPayloadSize && { maxReturnPayloadSize }),
+			...(requestId && { requestId }),
 			...(userDefined && { userDefined }),
 		};
 
@@ -342,8 +343,10 @@ class Query<TSchema extends GenericObject = GenericObject> {
 	}
 
 	/** Validate the query before execution */
-	private async validateQuery(query: string): Promise<void> {
-		const { maxSort, maxWith, maxSentenceLength } = await this.Model.connection.getDbLimits();
+	private async validateQuery(query: string, requestId?: string): Promise<void> {
+		const { maxSort, maxWith, maxSentenceLength } = await this.Model.connection.getDbLimits({
+			requestId,
+		});
 
 		/*
       For some reason, UDTEXECUTE (which is used by this library) appears to have a sentence length limit which is one character
