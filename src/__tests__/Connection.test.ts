@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import type http from 'http';
 import type https from 'https';
 import type { AxiosError, AxiosInstance } from 'axios';
@@ -24,6 +25,7 @@ import {
 import type { Logger } from '../LogHandler';
 
 jest.mock('axios');
+jest.mock('crypto');
 
 const mockDeploymentManager = mock<DeploymentManager>();
 jest.mock('../DeploymentManager', () => ({ createDeploymentManager: () => mockDeploymentManager }));
@@ -247,6 +249,11 @@ describe('open', () => {
 						subroutineId: expect.stringContaining('getServerInfo'),
 					}),
 				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
+					}),
+				}),
 			)
 			.mockResolvedValue({
 				data: {
@@ -319,6 +326,11 @@ describe('executeDbSubroutine', () => {
 						subroutineId: expect.stringContaining('getServerInfo'),
 					}),
 				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
+					}),
+				}),
 			)
 			.mockResolvedValue({
 				data: {
@@ -380,6 +392,59 @@ describe('executeDbSubroutine', () => {
 		).rejects.toThrow();
 	});
 
+	test('should generate requestID if not provided', async () => {
+		(crypto.randomUUID as jest.Mock).mockReturnValue('randomUuid');
+
+		when<any, any[]>(mockedAxiosInstance.post)
+			.calledWith(
+				expect.anything(),
+				expect.objectContaining({
+					input: expect.objectContaining({
+						subroutineId: expect.stringContaining('getServerInfo'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining('randomUuid'),
+					}),
+				}),
+			)
+			.mockResolvedValue({
+				data: {
+					output: {
+						date: 19791,
+						time: 43200000,
+						delimiters: mockDelimiters,
+						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
+					},
+				},
+			});
+
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
+
+		await connection.open();
+		expect(mockedAxiosInstance.post).toHaveBeenCalledWith(
+			expect.anything(),
+			{
+				input: {
+					subroutineId: 'getServerInfo',
+					subroutineInput: {},
+					setupOptions: {
+						maxReturnPayloadSize: 100_000_000,
+					},
+					teardownOptions: {},
+				},
+			},
+			{ headers: { 'X-MVIS-Trace-Id': 'randomUuid' } },
+		);
+	});
+
 	test('should throw DbServerError if response payload has a null output', async () => {
 		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
@@ -387,6 +452,11 @@ describe('executeDbSubroutine', () => {
 				expect.objectContaining({
 					input: expect.objectContaining({
 						subroutineId: expect.stringContaining('save'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
 					}),
 				}),
 			)
@@ -404,12 +474,16 @@ describe('executeDbSubroutine', () => {
 		const filename = 'filename';
 		const id = 'id';
 		await expect(
-			connection.executeDbSubroutine('save', {
-				filename,
-				id,
-				record: '',
-				foreignKeyDefinitions: [],
-			}),
+			connection.executeDbSubroutine(
+				'save',
+				{
+					filename,
+					id,
+					record: '',
+					foreignKeyDefinitions: [],
+				},
+				{ requestId },
+			),
 		).rejects.toThrow(DbServerError);
 	});
 
@@ -420,6 +494,11 @@ describe('executeDbSubroutine', () => {
 				expect.objectContaining({
 					input: expect.objectContaining({
 						subroutineId: expect.stringContaining('save'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
 					}),
 				}),
 			)
@@ -441,12 +520,16 @@ describe('executeDbSubroutine', () => {
 		const filename = 'filename';
 		const id = 'id';
 		await expect(
-			connection.executeDbSubroutine('save', {
-				filename,
-				id,
-				record: '',
-				foreignKeyDefinitions: [],
-			}),
+			connection.executeDbSubroutine(
+				'save',
+				{
+					filename,
+					id,
+					record: '',
+					foreignKeyDefinitions: [],
+				},
+				{ requestId },
+			),
 		).rejects.toThrow(ForeignKeyValidationError);
 	});
 
@@ -459,41 +542,9 @@ describe('executeDbSubroutine', () => {
 						subroutineId: expect.stringContaining('save'),
 					}),
 				}),
-			)
-			.mockResolvedValue({
-				data: {
-					output: { errorCode: dbErrors.recordLocked.code },
-				},
-			});
-
-		const connection = Connection.createConnection(
-			mvisUrl,
-			mvisAdminUrl,
-			mvisAdminUsername,
-			mvisAdminPassword,
-			account,
-		);
-		await connection.open({ requestId });
-
-		const filename = 'filename';
-		const id = 'id';
-		await expect(
-			connection.executeDbSubroutine('save', {
-				filename,
-				id,
-				record: '',
-				foreignKeyDefinitions: [],
-			}),
-		).rejects.toThrow(RecordLockedError);
-	});
-
-	test('should throw RecordLockedError when that code is returned from db during a delete', async () => {
-		when<any, any[]>(mockedAxiosInstance.post)
-			.calledWith(
-				expect.anything(),
 				expect.objectContaining({
-					input: expect.objectContaining({
-						subroutineId: expect.stringContaining('deleteById'),
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
 					}),
 				}),
 			)
@@ -515,10 +566,60 @@ describe('executeDbSubroutine', () => {
 		const filename = 'filename';
 		const id = 'id';
 		await expect(
-			connection.executeDbSubroutine('deleteById', {
-				filename,
-				id,
-			}),
+			connection.executeDbSubroutine(
+				'save',
+				{
+					filename,
+					id,
+					record: '',
+					foreignKeyDefinitions: [],
+				},
+				{ requestId },
+			),
+		).rejects.toThrow(RecordLockedError);
+	});
+
+	test('should throw RecordLockedError when that code is returned from db during a delete', async () => {
+		when<any, any[]>(mockedAxiosInstance.post)
+			.calledWith(
+				expect.anything(),
+				expect.objectContaining({
+					input: expect.objectContaining({
+						subroutineId: expect.stringContaining('deleteById'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
+					}),
+				}),
+			)
+			.mockResolvedValue({
+				data: {
+					output: { errorCode: dbErrors.recordLocked.code },
+				},
+			});
+
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
+		await connection.open({ requestId });
+
+		const filename = 'filename';
+		const id = 'id';
+		await expect(
+			connection.executeDbSubroutine(
+				'deleteById',
+				{
+					filename,
+					id,
+				},
+				{ requestId },
+			),
 		).rejects.toThrow(RecordLockedError);
 	});
 
@@ -529,6 +630,11 @@ describe('executeDbSubroutine', () => {
 				expect.objectContaining({
 					input: expect.objectContaining({
 						subroutineId: expect.stringContaining('save'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
 					}),
 				}),
 			)
@@ -550,12 +656,16 @@ describe('executeDbSubroutine', () => {
 		const filename = 'filename';
 		const id = 'id';
 		await expect(
-			connection.executeDbSubroutine('save', {
-				filename,
-				id,
-				record: '',
-				foreignKeyDefinitions: [],
-			}),
+			connection.executeDbSubroutine(
+				'save',
+				{
+					filename,
+					id,
+					record: '',
+					foreignKeyDefinitions: [],
+				},
+				{ requestId },
+			),
 		).rejects.toThrow(RecordVersionError);
 	});
 
@@ -566,6 +676,11 @@ describe('executeDbSubroutine', () => {
 				expect.objectContaining({
 					input: expect.objectContaining({
 						subroutineId: expect.stringContaining('save'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
 					}),
 				}),
 			)
@@ -587,12 +702,16 @@ describe('executeDbSubroutine', () => {
 		const filename = 'filename';
 		const id = 'id';
 		await expect(
-			connection.executeDbSubroutine('save', {
-				filename,
-				id,
-				record: '',
-				foreignKeyDefinitions: [],
-			}),
+			connection.executeDbSubroutine(
+				'save',
+				{
+					filename,
+					id,
+					record: '',
+					foreignKeyDefinitions: [],
+				},
+				{ requestId },
+			),
 		).rejects.toThrow(DbServerError);
 	});
 
@@ -603,6 +722,11 @@ describe('executeDbSubroutine', () => {
 				expect.objectContaining({
 					input: expect.objectContaining({
 						subroutineId: expect.stringContaining('save'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
 					}),
 				}),
 			)
@@ -624,12 +748,16 @@ describe('executeDbSubroutine', () => {
 		const filename = 'filename';
 		const id = 'id';
 		await expect(
-			connection.executeDbSubroutine('save', {
-				filename,
-				id,
-				record: '',
-				foreignKeyDefinitions: [],
-			}),
+			connection.executeDbSubroutine(
+				'save',
+				{
+					filename,
+					id,
+					record: '',
+					foreignKeyDefinitions: [],
+				},
+				{ requestId },
+			),
 		).rejects.toThrow(DbServerError);
 	});
 
@@ -642,6 +770,11 @@ describe('executeDbSubroutine', () => {
 				expect.objectContaining({
 					input: expect.objectContaining({
 						subroutineId: expect.stringContaining('save'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
 					}),
 				}),
 			)
@@ -659,12 +792,16 @@ describe('executeDbSubroutine', () => {
 		const filename = 'filename';
 		const id = 'id';
 		await expect(
-			connection.executeDbSubroutine('save', {
-				filename,
-				id,
-				record: '',
-				foreignKeyDefinitions: [],
-			}),
+			connection.executeDbSubroutine(
+				'save',
+				{
+					filename,
+					id,
+					record: '',
+					foreignKeyDefinitions: [],
+				},
+				{ requestId },
+			),
 		).rejects.toThrow(MvisError);
 	});
 
@@ -680,40 +817,9 @@ describe('executeDbSubroutine', () => {
 						subroutineId: expect.stringContaining('save'),
 					}),
 				}),
-			)
-			.mockRejectedValue(err);
-
-		const connection = Connection.createConnection(
-			mvisUrl,
-			mvisAdminUrl,
-			mvisAdminUsername,
-			mvisAdminPassword,
-			account,
-		);
-		await connection.open({ requestId });
-
-		const filename = 'filename';
-		const id = 'id';
-		await expect(
-			connection.executeDbSubroutine('save', {
-				filename,
-				id,
-				record: '',
-				foreignKeyDefinitions: [],
-			}),
-		).rejects.toThrow(TimeoutError);
-	});
-
-	test("should throw UnknownError with error's message if axios call rejects with an Error other than an AxiosError", async () => {
-		const errMsg = 'test error';
-		const err = new Error(errMsg);
-		mockedAxios.isAxiosError.mockReturnValue(false);
-		when<any, any[]>(mockedAxiosInstance.post)
-			.calledWith(
-				expect.anything(),
 				expect.objectContaining({
-					input: expect.objectContaining({
-						subroutineId: expect.stringContaining('save'),
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
 					}),
 				}),
 			)
@@ -731,12 +837,61 @@ describe('executeDbSubroutine', () => {
 		const filename = 'filename';
 		const id = 'id';
 		await expect(
-			connection.executeDbSubroutine('save', {
-				filename,
-				id,
-				record: '',
-				foreignKeyDefinitions: [],
-			}),
+			connection.executeDbSubroutine(
+				'save',
+				{
+					filename,
+					id,
+					record: '',
+					foreignKeyDefinitions: [],
+				},
+				{ requestId },
+			),
+		).rejects.toThrow(TimeoutError);
+	});
+
+	test("should throw UnknownError with error's message if axios call rejects with an Error other than an AxiosError", async () => {
+		const errMsg = 'test error';
+		const err = new Error(errMsg);
+		mockedAxios.isAxiosError.mockReturnValue(false);
+		when<any, any[]>(mockedAxiosInstance.post)
+			.calledWith(
+				expect.anything(),
+				expect.objectContaining({
+					input: expect.objectContaining({
+						subroutineId: expect.stringContaining('save'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
+					}),
+				}),
+			)
+			.mockRejectedValue(err);
+
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
+		await connection.open({ requestId });
+
+		const filename = 'filename';
+		const id = 'id';
+		await expect(
+			connection.executeDbSubroutine(
+				'save',
+				{
+					filename,
+					id,
+					record: '',
+					foreignKeyDefinitions: [],
+				},
+				{ requestId },
+			),
 		).rejects.toThrow(new UnknownError({ message: errMsg }));
 	});
 
@@ -749,6 +904,11 @@ describe('executeDbSubroutine', () => {
 				expect.objectContaining({
 					input: expect.objectContaining({
 						subroutineId: expect.stringContaining('save'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
 					}),
 				}),
 			)
@@ -766,12 +926,16 @@ describe('executeDbSubroutine', () => {
 		const filename = 'filename';
 		const id = 'id';
 		await expect(
-			connection.executeDbSubroutine('save', {
-				filename,
-				id,
-				record: '',
-				foreignKeyDefinitions: [],
-			}),
+			connection.executeDbSubroutine(
+				'save',
+				{
+					filename,
+					id,
+					record: '',
+					foreignKeyDefinitions: [],
+				},
+				{ requestId },
+			),
 		).rejects.toThrow(UnknownError);
 	});
 });
@@ -796,6 +960,11 @@ describe('getDbDate', () => {
 				expect.objectContaining({
 					input: expect.objectContaining({
 						subroutineId: expect.stringContaining('getServerInfo'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
 					}),
 				}),
 			)
@@ -832,6 +1001,11 @@ describe('getDbDate', () => {
 				expect.objectContaining({
 					input: expect.objectContaining({
 						subroutineId: expect.stringContaining('getServerInfo'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
 					}),
 				}),
 			)
@@ -884,6 +1058,11 @@ describe('getDbDateTime', () => {
 						subroutineId: expect.stringContaining('getServerInfo'),
 					}),
 				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
+					}),
+				}),
 			)
 			.mockResolvedValue({
 				data: {
@@ -920,6 +1099,11 @@ describe('getDbDateTime', () => {
 						subroutineId: expect.stringContaining('getServerInfo'),
 					}),
 				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
+					}),
+				}),
 			)
 			.mockResolvedValue({
 				data: {
@@ -954,6 +1138,11 @@ describe('getDbDateTime', () => {
 				expect.objectContaining({
 					input: expect.objectContaining({
 						subroutineId: expect.stringContaining('getServerInfo'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
 					}),
 				}),
 			)
@@ -993,6 +1182,11 @@ describe('getDbDateTime', () => {
 				expect.objectContaining({
 					input: expect.objectContaining({
 						subroutineId: expect.stringContaining('getServerInfo'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
 					}),
 				}),
 			)
@@ -1042,6 +1236,11 @@ describe('getDbDateTime', () => {
 				expect.objectContaining({
 					input: expect.objectContaining({
 						subroutineId: expect.stringContaining('getServerInfo'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
 					}),
 				}),
 			)
@@ -1118,6 +1317,11 @@ describe('getDbTime', () => {
 						subroutineId: expect.stringContaining('getServerInfo'),
 					}),
 				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
+					}),
+				}),
 			)
 			.mockResolvedValue({
 				data: {
@@ -1152,6 +1356,11 @@ describe('getDbTime', () => {
 				expect.objectContaining({
 					input: expect.objectContaining({
 						subroutineId: expect.stringContaining('getServerInfo'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
 					}),
 				}),
 			)
@@ -1194,6 +1403,11 @@ describe('getDbLimits', () => {
 				expect.objectContaining({
 					input: expect.objectContaining({
 						subroutineId: expect.stringContaining('getServerInfo'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
 					}),
 				}),
 			)
@@ -1247,6 +1461,11 @@ describe('model', () => {
 				expect.objectContaining({
 					input: expect.objectContaining({
 						subroutineId: expect.stringContaining('getServerInfo'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
 					}),
 				}),
 			)
