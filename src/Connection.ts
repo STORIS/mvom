@@ -359,7 +359,7 @@ class Connection {
 	}
 
 	/** Get the db server information (date, time, etc.) */
-	private async getDbServerInfo({ requestId }: DbServerInfoOptions): Promise<ServerInfo> {
+	private async getDbServerInfo({ requestId }: DbServerInfoOptions = {}): Promise<ServerInfo> {
 		// set a mutex on acquiring server information so multiple simultaneous requests are not modifying the cache
 		return this.serverInfoMutex.runExclusive(async () => {
 			if (this.dbServerInfo == null || Date.now() > this.dbServerInfo.cacheExpiry) {
