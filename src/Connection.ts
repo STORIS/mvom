@@ -289,7 +289,7 @@ class Connection {
 			);
 		}
 
-		const updatedSetupOptions = { ...setupOptions, maxReturnPayloadSize, requestId };
+		const updatedSetupOptions = { ...setupOptions, maxReturnPayloadSize };
 
 		this.logHandler.debug(`executing database subroutine "${subroutineName}"`);
 
