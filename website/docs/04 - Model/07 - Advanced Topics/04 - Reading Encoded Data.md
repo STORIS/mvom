@@ -33,6 +33,7 @@ static readFileContentsById(id: string, options?: ModelReadFileContentsByIdOptio
 | Property               | Type     | Description                                                                                                                                                                   |
 | ---------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `maxReturnPayloadSize` | `number` | The maximum allowed return payload size in bytes. If this size is exceeded a DbServerError will be thrown. If omitted the value specified during connection creation is used. |
+| `requestId`            | `string` | A request/trace ID to be passed to MVIS as a request header with the key `X-MVIS-Trace-Id`                                                                                    |
 | `userDefined`          | `object` | The [user defined options](model_user_defined_options) to pass to the database subroutines                                                                                    |
 
 ### Example
