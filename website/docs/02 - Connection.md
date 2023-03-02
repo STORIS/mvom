@@ -27,15 +27,14 @@ Connection.createConnection(mvisUri: string, account: string, options?: CreateCo
 
 #### Options Object Properties
 
-| Property               | Type          | Default                 | Description                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| ---------------------- | ------------- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `logger`               | `Logger`      |                         | An object implementing the [Logger](#logger-interface) interface, used for logging messages emitted by MVOM                                                                                                                                                                                                                                                                                                                            |
-| `cacheMaxAge`          | `number`      | `3600`                  | The maximum age of cached connection information, such as the current database date                                                                                                                                                                                                                                                                                                                                                    |
-| `timeout`              | `number`      | `0`                     | The request timeout in milliseconds (0 to disable)                                                                                                                                                                                                                                                                                                                                                                                     |
-| `httpAgent`            | `http.Agent`  |                         | An `http.Agent` instance to use with http requests (recommended)                                                                                                                                                                                                                                                                                                                                                                       |
-| `httpsAgent`           | `https.Agent` |                         | An `https.Agent` instance to use with https requests (recommended)                                                                                                                                                                                                                                                                                                                                                                     |
-| `maxReturnPayloadSize` | `number`      | `100_000_000`           | The maximum allowed return payload size in bytes. If this size is exceeded a DbServerError will be thrown. Returning large payloads can have a significant impact on performance and is often the result of invalid database records or an improperly configured query; ie forgetting to use pagination. Tune this value to match your datasets and the type of queries you issue. This can also be configured on a per request basis. |
-| `requestId`            | `string`      | randomly generated UUID | A request/trace ID to be passed to MVIS as a request header with the key `X-MVIS-Trace-Id`                                                                                                                                                                                                                                                                                                                                             |
+| Property               | Type          | Default       | Description                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| ---------------------- | ------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `logger`               | `Logger`      |               | An object implementing the [Logger](#logger-interface) interface, used for logging messages emitted by MVOM                                                                                                                                                                                                                                                                                                                            |
+| `cacheMaxAge`          | `number`      | `3600`        | The maximum age of cached connection information, such as the current database date                                                                                                                                                                                                                                                                                                                                                    |
+| `timeout`              | `number`      | `0`           | The request timeout in milliseconds (0 to disable)                                                                                                                                                                                                                                                                                                                                                                                     |
+| `httpAgent`            | `http.Agent`  |               | An `http.Agent` instance to use with http requests (recommended)                                                                                                                                                                                                                                                                                                                                                                       |
+| `httpsAgent`           | `https.Agent` |               | An `https.Agent` instance to use with https requests (recommended)                                                                                                                                                                                                                                                                                                                                                                     |
+| `maxReturnPayloadSize` | `number`      | `100_000_000` | The maximum allowed return payload size in bytes. If this size is exceeded a DbServerError will be thrown. Returning large payloads can have a significant impact on performance and is often the result of invalid database records or an improperly configured query; ie forgetting to use pagination. Tune this value to match your datasets and the type of queries you issue. This can also be configured on a per request basis. |
 
 ### Example
 
@@ -56,8 +55,20 @@ After a `Connection` instance has been created, the connection must be opened be
 ### Syntax
 
 ```ts
-open(): Promise<void>
+open(options?: OpenOptions): Promise<void>
 ```
+
+### Parameters
+
+| Parameter | Type     | Description                                              | Example |
+| --------- | -------- | -------------------------------------------------------- | ------- |
+| `options` | `object` | [Options object](#options-object-properties) (see below) |         |
+
+#### Options Object Properties
+
+| Property    | Type     | Default                 | Description                                                                                |
+| ----------- | -------- | ----------------------- | ------------------------------------------------------------------------------------------ |
+| `requestId` | `string` | randomly generated UUID | A request/trace ID to be passed to MVIS as a request header with the key `X-MVIS-Trace-Id` |
 
 ### Example
 
@@ -66,11 +77,12 @@ import { Connection } from 'mvom';
 
 const mvisUri = 'http://foo.bar.com';
 const account = 'demo';
-const options = { timeout: 30_000 };
+const connectOptions = { timeout: 30_000 };
+const openOptions = { requestId: 'trace' };
 
 const makeConnection = async (): Connection => {
   const connection = Connection.createConnection(mvisUri, account, options);
-  await connection.open();
+  await connection.open(openOptions);
   return connection;
 };
 
@@ -137,8 +149,20 @@ Using the connection instance, you can access the database server's current date
 ### Syntax
 
 ```ts
-getDbDate(): Promise<string>
+getDbDate(options?: GetDbDateOptions): Promise<string>
 ```
+
+### Parameters
+
+| Parameter | Type     | Description                                              | Example |
+| --------- | -------- | -------------------------------------------------------- | ------- |
+| `options` | `object` | [Options object](#options-object-properties) (see below) |         |
+
+#### Options Object Properties
+
+| Property    | Type     | Default                 | Description                                                                                |
+| ----------- | -------- | ----------------------- | ------------------------------------------------------------------------------------------ |
+| `requestId` | `string` | randomly generated UUID | A request/trace ID to be passed to MVIS as a request header with the key `X-MVIS-Trace-Id` |
 
 ## Getting the current database time
 
@@ -147,8 +171,20 @@ Using the connection instance, you can access the database server's current time
 ### Syntax
 
 ```ts
-getDbTime(): Promise<string>
+getDbTime(options?: GetDbTimeOptions): Promise<string>
 ```
+
+### Parameters
+
+| Parameter | Type     | Description                                              | Example |
+| --------- | -------- | -------------------------------------------------------- | ------- |
+| `options` | `object` | [Options object](#options-object-properties) (see below) |         |
+
+#### Options Object Properties
+
+| Property    | Type     | Default                 | Description                                                                                |
+| ----------- | -------- | ----------------------- | ------------------------------------------------------------------------------------------ |
+| `requestId` | `string` | randomly generated UUID | A request/trace ID to be passed to MVIS as a request header with the key `X-MVIS-Trace-Id` |
 
 ## Getting the current database date-time
 
@@ -157,8 +193,20 @@ Using the connection instance, you can access the database server's current date
 ### Syntax
 
 ```ts
-getDbDateTime(): Promise<string>
+getDbDateTime(options?: GetDbDateTimeOptions): Promise<string>
 ```
+
+### Parameters
+
+| Parameter | Type     | Description                                              | Example |
+| --------- | -------- | -------------------------------------------------------- | ------- |
+| `options` | `object` | [Options object](#options-object-properties) (see below) |         |
+
+#### Options Object Properties
+
+| Property    | Type     | Default                 | Description                                                                                |
+| ----------- | -------- | ----------------------- | ------------------------------------------------------------------------------------------ |
+| `requestId` | `string` | randomly generated UUID | A request/trace ID to be passed to MVIS as a request header with the key `X-MVIS-Trace-Id` |
 
 ## Logger interface
 
