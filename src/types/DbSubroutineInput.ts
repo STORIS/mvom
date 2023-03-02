@@ -11,6 +11,7 @@ export interface DbSubroutineUserDefinedOptions {
 
 export interface DbSubroutineSetupOptions {
 	userDefined?: DbSubroutineUserDefinedOptions;
+	/** Trace ID passed as a request header. Defined here for future use by the database server logic */
 	requestId?: string;
 	/** Maximum allowed return payload size in bytes */
 	maxReturnPayloadSize?: number;

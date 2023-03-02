@@ -98,7 +98,7 @@ interface ServerInfo {
 }
 
 interface RequestOptions {
-	requestId?: string | null;
+	requestId?: string;
 }
 
 export type OpenOptions = RequestOptions;
