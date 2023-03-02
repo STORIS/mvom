@@ -320,28 +320,24 @@ class Connection {
 	}
 
 	/** Get the current ISOCalendarDate from the database */
-	/* istanbul ignore next: Optional parameter is covered by executeDbSubroutine test "should generate requestID if not provided" */
 	public async getDbDate({ requestId }: GetDbDateOptions = {}): Promise<string> {
 		const { timeDrift } = await this.getDbServerInfo({ requestId });
 		return format(addMilliseconds(Date.now(), timeDrift), ISOCalendarDateFormat);
 	}
 
 	/** Get the current ISOCalendarDateTime from the database */
-	/* istanbul ignore next: Optional parameter is covered by executeDbSubroutine test "should generate requestID if not provided" */
 	public async getDbDateTime({ requestId }: GetDbDateTimeOptions = {}): Promise<string> {
 		const { timeDrift } = await this.getDbServerInfo({ requestId });
 		return format(addMilliseconds(Date.now(), timeDrift), ISOCalendarDateTimeFormat);
 	}
 
 	/** Get the current ISOTime from the database */
-	/* istanbul ignore next: Optional parameter is covered by executeDbSubroutine test "should generate requestID if not provided" */
 	public async getDbTime({ requestId }: GetDbTimeOptions = {}): Promise<string> {
 		const { timeDrift } = await this.getDbServerInfo({ requestId });
 		return format(addMilliseconds(Date.now(), timeDrift), ISOTimeFormat);
 	}
 
 	/** Get the multivalue database server limits */
-	/* istanbul ignore next: Optional parameter is covered by executeDbSubroutine test "should generate requestID if not provided" */
 	public async getDbLimits({ requestId }: GetDbLimitsOptions = {}): Promise<DbServerLimits> {
 		const { limits } = await this.getDbServerInfo({ requestId });
 		return limits;
@@ -363,7 +359,6 @@ class Connection {
 	}
 
 	/** Get the db server information (date, time, etc.) */
-	/* istanbul ignore next: Optional parameter is covered by executeDbSubroutine test "should generate requestID if not provided" */
 	private async getDbServerInfo({ requestId }: DbServerInfoOptions = {}): Promise<ServerInfo> {
 		// set a mutex on acquiring server information so multiple simultaneous requests are not modifying the cache
 		return this.serverInfoMutex.runExclusive(async () => {

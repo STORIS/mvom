@@ -331,7 +331,6 @@ class Query<TSchema extends GenericObject = GenericObject> {
 	/** Transform query constant to internal u2 format (if applicable) */
 	private transformToQuery(property: string, constant: unknown): unknown {
 		const dictionaryTypeDetail = this.Model.schema?.dictPaths.get(property);
-		/* istanbul ignore if: Would have thrown previously in getDictionaryId */
 		if (dictionaryTypeDetail == null) {
 			throw new InvalidParameterError({
 				message: 'Nonexistent schema property or property does not have a dictionary specified',
