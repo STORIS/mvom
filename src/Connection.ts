@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import type http from 'http';
 import type https from 'https';
 import { Mutex } from 'async-mutex';
@@ -95,6 +96,22 @@ interface ServerInfo {
 	/** Multivalue database server limits */
 	limits: DbServerLimits;
 }
+
+interface RequestOptions {
+	requestId?: string;
+}
+
+export type OpenOptions = RequestOptions;
+
+export type DbServerInfoOptions = RequestOptions;
+
+export type GetDbDateOptions = RequestOptions;
+
+export type GetDbDateTimeOptions = RequestOptions;
+
+export type GetDbTimeOptions = RequestOptions;
+
+export type GetDbLimitsOptions = RequestOptions;
 // #endregion
 
 /** A connection object */
@@ -214,7 +231,7 @@ class Connection {
 	}
 
 	/** Open a database connection */
-	public async open(): Promise<void> {
+	public async open({ requestId }: OpenOptions = {}): Promise<void> {
 		if (this.status !== ConnectionStatus.disconnected) {
 			this.logHandler.error('Connection is not closed');
 			throw new ConnectionError({ message: 'Connection is not closed' });
@@ -234,7 +251,7 @@ class Connection {
 
 		this.status = ConnectionStatus.connected;
 
-		await this.getDbServerInfo(); // establish baseline for database server information
+		await this.getDbServerInfo({ requestId }); // establish baseline for database server information
 
 		this.logHandler.info('connection opened');
 	}
@@ -261,7 +278,8 @@ class Connection {
 				'Cannot execute database features until database connection has been established',
 			);
 		}
-		const { maxReturnPayloadSize = this.maxReturnPayloadSize } = setupOptions;
+		const { maxReturnPayloadSize = this.maxReturnPayloadSize, requestId = crypto.randomUUID() } =
+			setupOptions;
 		if (maxReturnPayloadSize < 0) {
 			this.logHandler.error(
 				`Maximum returned payload size of ${maxReturnPayloadSize} is invalid. Must be a positive integer`,
@@ -286,7 +304,11 @@ class Connection {
 		try {
 			response = await this.axiosInstance.post<
 				DbSubroutineResponseTypes | DbSubroutineResponseError
-			>(this.deploymentManager.subroutineName, { input: data });
+			>(
+				this.deploymentManager.subroutineName,
+				{ input: data },
+				{ headers: { 'X-MVIS-Trace-Id': requestId } },
+			);
 		} catch (err) {
 			return axios.isAxiosError(err) ? this.handleAxiosError(err) : this.handleUnexpectedError(err);
 		}
@@ -298,26 +320,30 @@ class Connection {
 	}
 
 	/** Get the current ISOCalendarDate from the database */
-	public async getDbDate(): Promise<string> {
-		const { timeDrift } = await this.getDbServerInfo();
+	/* istanbul ignore next: Optional parameter is covered by executeDbSubroutine test "should generate requestID if not provided" */
+	public async getDbDate({ requestId }: GetDbDateOptions = {}): Promise<string> {
+		const { timeDrift } = await this.getDbServerInfo({ requestId });
 		return format(addMilliseconds(Date.now(), timeDrift), ISOCalendarDateFormat);
 	}
 
 	/** Get the current ISOCalendarDateTime from the database */
-	public async getDbDateTime(): Promise<string> {
-		const { timeDrift } = await this.getDbServerInfo();
+	/* istanbul ignore next: Optional parameter is covered by executeDbSubroutine test "should generate requestID if not provided" */
+	public async getDbDateTime({ requestId }: GetDbDateTimeOptions = {}): Promise<string> {
+		const { timeDrift } = await this.getDbServerInfo({ requestId });
 		return format(addMilliseconds(Date.now(), timeDrift), ISOCalendarDateTimeFormat);
 	}
 
 	/** Get the current ISOTime from the database */
-	public async getDbTime(): Promise<string> {
-		const { timeDrift } = await this.getDbServerInfo();
+	/* istanbul ignore next: Optional parameter is covered by executeDbSubroutine test "should generate requestID if not provided" */
+	public async getDbTime({ requestId }: GetDbTimeOptions = {}): Promise<string> {
+		const { timeDrift } = await this.getDbServerInfo({ requestId });
 		return format(addMilliseconds(Date.now(), timeDrift), ISOTimeFormat);
 	}
 
 	/** Get the multivalue database server limits */
-	public async getDbLimits(): Promise<DbServerLimits> {
-		const { limits } = await this.getDbServerInfo();
+	/* istanbul ignore next: Optional parameter is covered by executeDbSubroutine test "should generate requestID if not provided" */
+	public async getDbLimits({ requestId }: GetDbLimitsOptions = {}): Promise<DbServerLimits> {
+		const { limits } = await this.getDbServerInfo({ requestId });
 		return limits;
 	}
 
@@ -337,7 +363,8 @@ class Connection {
 	}
 
 	/** Get the db server information (date, time, etc.) */
-	private async getDbServerInfo(): Promise<ServerInfo> {
+	/* istanbul ignore next: Optional parameter is covered by executeDbSubroutine test "should generate requestID if not provided" */
+	private async getDbServerInfo({ requestId }: DbServerInfoOptions = {}): Promise<ServerInfo> {
 		// set a mutex on acquiring server information so multiple simultaneous requests are not modifying the cache
 		return this.serverInfoMutex.runExclusive(async () => {
 			if (this.dbServerInfo == null || Date.now() > this.dbServerInfo.cacheExpiry) {
@@ -345,6 +372,7 @@ class Connection {
 				const { date, time, delimiters, limits } = await this.executeDbSubroutine(
 					'getServerInfo',
 					{},
+					{ ...(requestId && { requestId }) },
 				);
 
 				const timeDrift = differenceInMilliseconds(
