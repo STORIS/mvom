@@ -392,7 +392,7 @@ describe('executeDbSubroutine', () => {
 		).rejects.toThrow();
 	});
 
-	test('should generate requestID if not provided', async () => {
+	test('should generate requestID if not provided and provide it as a setup option', async () => {
 		(crypto.randomUUID as jest.Mock).mockReturnValue('randomUuid');
 
 		when<any, any[]>(mockedAxiosInstance.post)
@@ -437,6 +437,7 @@ describe('executeDbSubroutine', () => {
 					subroutineInput: {},
 					setupOptions: {
 						maxReturnPayloadSize: 100_000_000,
+						requestId: expect.stringContaining('randomUuid'),
 					},
 					teardownOptions: {},
 				},
