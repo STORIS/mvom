@@ -81,7 +81,7 @@ const connectOptions = { timeout: 30_000 };
 const openOptions = { requestId: 'trace' };
 
 const makeConnection = async (): Connection => {
-  const connection = Connection.createConnection(mvisUri, account, options);
+  const connection = Connection.createConnection(mvisUri, account, connectOptions);
   await connection.open(openOptions);
   return connection;
 };
