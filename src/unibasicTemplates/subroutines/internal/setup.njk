@@ -1,4 +1,6 @@
-subroutine mvom_setup(setupOptions)
+subroutine mvom_setup(setupOptions, parsedSetupOptions)
+{% include "../../constants/setup.njk" %}
+
 * Perform any needed environment setup
 
 com /S$MVOM/ S$MVOM.PROCESS
@@ -6,6 +8,13 @@ com /S$MVOM/ S$MVOM.USER1, S$MVOM.USER2, S$MVOM.USER3, S$MVOM.USER4, S$MVOM.USER
 S$MVOM.PROCESS = @TRUE
 
 gosub processUserDefinedOptions
+
+if udoGetProperty(setupOptions, 'maxReturnPayloadSize', maxReturnPayloadSize, type) then
+  * Value not provided. Default to 100MB
+  maxReturnPayloadSize = 100000000
+end
+
+parsedSetupOptions<MAX_RETURN_PAYLOAD_SIZE_POS> = maxReturnPayloadSize
 
 returnFromSub:
 return; * returning to caller

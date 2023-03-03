@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import type http from 'http';
 import type https from 'https';
 import type { AxiosError, AxiosInstance } from 'axios';
@@ -24,6 +25,7 @@ import {
 import type { Logger } from '../LogHandler';
 
 jest.mock('axios');
+jest.mock('crypto');
 
 const mockDeploymentManager = mock<DeploymentManager>();
 jest.mock('../DeploymentManager', () => ({ createDeploymentManager: () => mockDeploymentManager }));
@@ -36,6 +38,7 @@ const mvisAdminUrl = 'http://foo.bar.com/mvisAdmin';
 const mvisAdminUsername = 'username';
 const mvisAdminPassword = 'password';
 const account = 'account';
+const requestId = 'requestId';
 
 beforeEach(() => {
 	mockedAxios.create.mockReturnValue(mockedAxiosInstance);
@@ -62,6 +65,23 @@ describe('createConnection', () => {
 	test('should throw InvalidParameterError if timeout is not an integer', () => {
 		const options: CreateConnectionOptions = {
 			timeout: 1.23,
+		};
+
+		expect(() => {
+			Connection.createConnection(
+				mvisUrl,
+				mvisAdminUrl,
+				mvisAdminUsername,
+				mvisAdminPassword,
+				account,
+				options,
+			);
+		}).toThrow(InvalidParameterError);
+	});
+
+	test('should throw InvalidParameterError if maxReturnPayloadSize is less than zero', () => {
+		const options: CreateConnectionOptions = {
+			maxReturnPayloadSize: -1,
 		};
 
 		expect(() => {
@@ -201,7 +221,7 @@ describe('open', () => {
 
 		connection.status = ConnectionStatus.connecting;
 
-		await expect(connection.open()).rejects.toThrow(ConnectionError);
+		await expect(connection.open({ requestId })).rejects.toThrow(ConnectionError);
 	});
 
 	test('should throw InvalidServerFeaturesError if database features are missing', async () => {
@@ -215,7 +235,7 @@ describe('open', () => {
 			account,
 		);
 
-		await expect(connection.open()).rejects.toThrow(InvalidServerFeaturesError);
+		await expect(connection.open({ requestId })).rejects.toThrow(InvalidServerFeaturesError);
 	});
 
 	test('should open new connection', async () => {
@@ -227,6 +247,11 @@ describe('open', () => {
 				expect.objectContaining({
 					input: expect.objectContaining({
 						subroutineId: expect.stringContaining('getServerInfo'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
 					}),
 				}),
 			)
@@ -249,7 +274,7 @@ describe('open', () => {
 			account,
 		);
 
-		await connection.open();
+		await connection.open({ requestId });
 		expect(connection.status).toBe(ConnectionStatus.connected);
 	});
 });
@@ -301,6 +326,11 @@ describe('executeDbSubroutine', () => {
 						subroutineId: expect.stringContaining('getServerInfo'),
 					}),
 				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
+					}),
+				}),
 			)
 			.mockResolvedValue({
 				data: {
@@ -335,6 +365,86 @@ describe('executeDbSubroutine', () => {
 		).rejects.toThrow();
 	});
 
+	test('should reject if a negative maximum return payload size is provided', async () => {
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
+
+		await connection.open({ requestId });
+
+		const filename = 'filename';
+		const id = 'id';
+		await expect(
+			connection.executeDbSubroutine(
+				'save',
+				{
+					filename,
+					id,
+					record: '',
+					foreignKeyDefinitions: [],
+				},
+				{ maxReturnPayloadSize: -1 },
+			),
+		).rejects.toThrow();
+	});
+
+	test('should generate requestID if not provided', async () => {
+		(crypto.randomUUID as jest.Mock).mockReturnValue('randomUuid');
+
+		when<any, any[]>(mockedAxiosInstance.post)
+			.calledWith(
+				expect.anything(),
+				expect.objectContaining({
+					input: expect.objectContaining({
+						subroutineId: expect.stringContaining('getServerInfo'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining('randomUuid'),
+					}),
+				}),
+			)
+			.mockResolvedValue({
+				data: {
+					output: {
+						date: 19791,
+						time: 43200000,
+						delimiters: mockDelimiters,
+						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
+					},
+				},
+			});
+
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
+
+		await connection.open();
+		expect(mockedAxiosInstance.post).toHaveBeenCalledWith(
+			expect.anything(),
+			{
+				input: {
+					subroutineId: 'getServerInfo',
+					subroutineInput: {},
+					setupOptions: {
+						maxReturnPayloadSize: 100_000_000,
+					},
+					teardownOptions: {},
+				},
+			},
+			{ headers: { 'X-MVIS-Trace-Id': 'randomUuid' } },
+		);
+	});
+
 	test('should throw DbServerError if response payload has a null output', async () => {
 		when<any, any[]>(mockedAxiosInstance.post)
 			.calledWith(
@@ -342,6 +452,11 @@ describe('executeDbSubroutine', () => {
 				expect.objectContaining({
 					input: expect.objectContaining({
 						subroutineId: expect.stringContaining('save'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
 					}),
 				}),
 			)
@@ -354,17 +469,21 @@ describe('executeDbSubroutine', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const filename = 'filename';
 		const id = 'id';
 		await expect(
-			connection.executeDbSubroutine('save', {
-				filename,
-				id,
-				record: '',
-				foreignKeyDefinitions: [],
-			}),
+			connection.executeDbSubroutine(
+				'save',
+				{
+					filename,
+					id,
+					record: '',
+					foreignKeyDefinitions: [],
+				},
+				{ requestId },
+			),
 		).rejects.toThrow(DbServerError);
 	});
 
@@ -375,6 +494,11 @@ describe('executeDbSubroutine', () => {
 				expect.objectContaining({
 					input: expect.objectContaining({
 						subroutineId: expect.stringContaining('save'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
 					}),
 				}),
 			)
@@ -391,17 +515,21 @@ describe('executeDbSubroutine', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const filename = 'filename';
 		const id = 'id';
 		await expect(
-			connection.executeDbSubroutine('save', {
-				filename,
-				id,
-				record: '',
-				foreignKeyDefinitions: [],
-			}),
+			connection.executeDbSubroutine(
+				'save',
+				{
+					filename,
+					id,
+					record: '',
+					foreignKeyDefinitions: [],
+				},
+				{ requestId },
+			),
 		).rejects.toThrow(ForeignKeyValidationError);
 	});
 
@@ -414,41 +542,9 @@ describe('executeDbSubroutine', () => {
 						subroutineId: expect.stringContaining('save'),
 					}),
 				}),
-			)
-			.mockResolvedValue({
-				data: {
-					output: { errorCode: dbErrors.recordLocked.code },
-				},
-			});
-
-		const connection = Connection.createConnection(
-			mvisUrl,
-			mvisAdminUrl,
-			mvisAdminUsername,
-			mvisAdminPassword,
-			account,
-		);
-		await connection.open();
-
-		const filename = 'filename';
-		const id = 'id';
-		await expect(
-			connection.executeDbSubroutine('save', {
-				filename,
-				id,
-				record: '',
-				foreignKeyDefinitions: [],
-			}),
-		).rejects.toThrow(RecordLockedError);
-	});
-
-	test('should throw RecordLockedError when that code is returned from db during a delete', async () => {
-		when<any, any[]>(mockedAxiosInstance.post)
-			.calledWith(
-				expect.anything(),
 				expect.objectContaining({
-					input: expect.objectContaining({
-						subroutineId: expect.stringContaining('deleteById'),
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
 					}),
 				}),
 			)
@@ -465,15 +561,65 @@ describe('executeDbSubroutine', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const filename = 'filename';
 		const id = 'id';
 		await expect(
-			connection.executeDbSubroutine('deleteById', {
-				filename,
-				id,
-			}),
+			connection.executeDbSubroutine(
+				'save',
+				{
+					filename,
+					id,
+					record: '',
+					foreignKeyDefinitions: [],
+				},
+				{ requestId },
+			),
+		).rejects.toThrow(RecordLockedError);
+	});
+
+	test('should throw RecordLockedError when that code is returned from db during a delete', async () => {
+		when<any, any[]>(mockedAxiosInstance.post)
+			.calledWith(
+				expect.anything(),
+				expect.objectContaining({
+					input: expect.objectContaining({
+						subroutineId: expect.stringContaining('deleteById'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
+					}),
+				}),
+			)
+			.mockResolvedValue({
+				data: {
+					output: { errorCode: dbErrors.recordLocked.code },
+				},
+			});
+
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
+		await connection.open({ requestId });
+
+		const filename = 'filename';
+		const id = 'id';
+		await expect(
+			connection.executeDbSubroutine(
+				'deleteById',
+				{
+					filename,
+					id,
+				},
+				{ requestId },
+			),
 		).rejects.toThrow(RecordLockedError);
 	});
 
@@ -484,6 +630,11 @@ describe('executeDbSubroutine', () => {
 				expect.objectContaining({
 					input: expect.objectContaining({
 						subroutineId: expect.stringContaining('save'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
 					}),
 				}),
 			)
@@ -500,18 +651,68 @@ describe('executeDbSubroutine', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const filename = 'filename';
 		const id = 'id';
 		await expect(
-			connection.executeDbSubroutine('save', {
-				filename,
-				id,
-				record: '',
-				foreignKeyDefinitions: [],
-			}),
+			connection.executeDbSubroutine(
+				'save',
+				{
+					filename,
+					id,
+					record: '',
+					foreignKeyDefinitions: [],
+				},
+				{ requestId },
+			),
 		).rejects.toThrow(RecordVersionError);
+	});
+
+	test('should throw DbServerError when the maximum payload size is exceeded', async () => {
+		when<any, any[]>(mockedAxiosInstance.post)
+			.calledWith(
+				expect.anything(),
+				expect.objectContaining({
+					input: expect.objectContaining({
+						subroutineId: expect.stringContaining('save'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
+					}),
+				}),
+			)
+			.mockResolvedValue({
+				data: {
+					output: { errorCode: dbErrors.maxPayloadExceeded.code },
+				},
+			});
+
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
+		await connection.open({ requestId });
+
+		const filename = 'filename';
+		const id = 'id';
+		await expect(
+			connection.executeDbSubroutine(
+				'save',
+				{
+					filename,
+					id,
+					record: '',
+					foreignKeyDefinitions: [],
+				},
+				{ requestId },
+			),
+		).rejects.toThrow(DbServerError);
 	});
 
 	test('should throw DbServerError for other returned codes', async () => {
@@ -521,6 +722,11 @@ describe('executeDbSubroutine', () => {
 				expect.objectContaining({
 					input: expect.objectContaining({
 						subroutineId: expect.stringContaining('save'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
 					}),
 				}),
 			)
@@ -537,17 +743,21 @@ describe('executeDbSubroutine', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const filename = 'filename';
 		const id = 'id';
 		await expect(
-			connection.executeDbSubroutine('save', {
-				filename,
-				id,
-				record: '',
-				foreignKeyDefinitions: [],
-			}),
+			connection.executeDbSubroutine(
+				'save',
+				{
+					filename,
+					id,
+					record: '',
+					foreignKeyDefinitions: [],
+				},
+				{ requestId },
+			),
 		).rejects.toThrow(DbServerError);
 	});
 
@@ -562,6 +772,11 @@ describe('executeDbSubroutine', () => {
 						subroutineId: expect.stringContaining('save'),
 					}),
 				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
+					}),
+				}),
 			)
 			.mockRejectedValue(err);
 
@@ -572,17 +787,21 @@ describe('executeDbSubroutine', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const filename = 'filename';
 		const id = 'id';
 		await expect(
-			connection.executeDbSubroutine('save', {
-				filename,
-				id,
-				record: '',
-				foreignKeyDefinitions: [],
-			}),
+			connection.executeDbSubroutine(
+				'save',
+				{
+					filename,
+					id,
+					record: '',
+					foreignKeyDefinitions: [],
+				},
+				{ requestId },
+			),
 		).rejects.toThrow(MvisError);
 	});
 
@@ -598,6 +817,11 @@ describe('executeDbSubroutine', () => {
 						subroutineId: expect.stringContaining('save'),
 					}),
 				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
+					}),
+				}),
 			)
 			.mockRejectedValue(err);
 
@@ -608,17 +832,21 @@ describe('executeDbSubroutine', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const filename = 'filename';
 		const id = 'id';
 		await expect(
-			connection.executeDbSubroutine('save', {
-				filename,
-				id,
-				record: '',
-				foreignKeyDefinitions: [],
-			}),
+			connection.executeDbSubroutine(
+				'save',
+				{
+					filename,
+					id,
+					record: '',
+					foreignKeyDefinitions: [],
+				},
+				{ requestId },
+			),
 		).rejects.toThrow(TimeoutError);
 	});
 
@@ -634,6 +862,11 @@ describe('executeDbSubroutine', () => {
 						subroutineId: expect.stringContaining('save'),
 					}),
 				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
+					}),
+				}),
 			)
 			.mockRejectedValue(err);
 
@@ -644,17 +877,21 @@ describe('executeDbSubroutine', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const filename = 'filename';
 		const id = 'id';
 		await expect(
-			connection.executeDbSubroutine('save', {
-				filename,
-				id,
-				record: '',
-				foreignKeyDefinitions: [],
-			}),
+			connection.executeDbSubroutine(
+				'save',
+				{
+					filename,
+					id,
+					record: '',
+					foreignKeyDefinitions: [],
+				},
+				{ requestId },
+			),
 		).rejects.toThrow(new UnknownError({ message: errMsg }));
 	});
 
@@ -669,6 +906,11 @@ describe('executeDbSubroutine', () => {
 						subroutineId: expect.stringContaining('save'),
 					}),
 				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
+					}),
+				}),
 			)
 			.mockRejectedValue(errMsg);
 
@@ -679,17 +921,21 @@ describe('executeDbSubroutine', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const filename = 'filename';
 		const id = 'id';
 		await expect(
-			connection.executeDbSubroutine('save', {
-				filename,
-				id,
-				record: '',
-				foreignKeyDefinitions: [],
-			}),
+			connection.executeDbSubroutine(
+				'save',
+				{
+					filename,
+					id,
+					record: '',
+					foreignKeyDefinitions: [],
+				},
+				{ requestId },
+			),
 		).rejects.toThrow(UnknownError);
 	});
 });
@@ -716,6 +962,11 @@ describe('getDbDate', () => {
 						subroutineId: expect.stringContaining('getServerInfo'),
 					}),
 				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
+					}),
+				}),
 			)
 			.mockResolvedValue({
 				data: {
@@ -737,10 +988,10 @@ describe('getDbDate', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const expected = '2022-03-08';
-		expect(await connection.getDbDate()).toEqual(expected);
+		expect(await connection.getDbDate({ requestId })).toEqual(expected);
 	});
 
 	test('should return current db server date when there is time drift', async () => {
@@ -750,6 +1001,11 @@ describe('getDbDate', () => {
 				expect.objectContaining({
 					input: expect.objectContaining({
 						subroutineId: expect.stringContaining('getServerInfo'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
 					}),
 				}),
 			)
@@ -773,10 +1029,10 @@ describe('getDbDate', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const expected = '2022-03-08';
-		expect(await connection.getDbDate()).toEqual(expected);
+		expect(await connection.getDbDate({ requestId })).toEqual(expected);
 	});
 });
 
@@ -802,6 +1058,11 @@ describe('getDbDateTime', () => {
 						subroutineId: expect.stringContaining('getServerInfo'),
 					}),
 				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
+					}),
+				}),
 			)
 			.mockResolvedValue({
 				data: {
@@ -823,10 +1084,10 @@ describe('getDbDateTime', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const expected = '2022-03-08T12:00:00.000';
-		expect(await connection.getDbDateTime()).toEqual(expected);
+		expect(await connection.getDbDateTime({ requestId })).toEqual(expected);
 	});
 
 	test('should return current db server date and time when there is time drift', async () => {
@@ -836,6 +1097,11 @@ describe('getDbDateTime', () => {
 				expect.objectContaining({
 					input: expect.objectContaining({
 						subroutineId: expect.stringContaining('getServerInfo'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
 					}),
 				}),
 			)
@@ -859,10 +1125,10 @@ describe('getDbDateTime', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const expected = '2022-03-08T12:00:00.000';
-		expect(await connection.getDbDateTime()).toEqual(expected);
+		expect(await connection.getDbDateTime({ requestId })).toEqual(expected);
 	});
 
 	test('should return calculated db server date and time when using cached server info', async () => {
@@ -872,6 +1138,11 @@ describe('getDbDateTime', () => {
 				expect.objectContaining({
 					input: expect.objectContaining({
 						subroutineId: expect.stringContaining('getServerInfo'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
 					}),
 				}),
 			)
@@ -895,12 +1166,12 @@ describe('getDbDateTime', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		jest.setSystemTime(new Date('2022-03-08T13:00:00.000')); // 1 hour elapsed; still within 6 hour ttl
 
 		const expected = '2022-03-08T13:00:00.000';
-		expect(await connection.getDbDateTime()).toEqual(expected);
+		expect(await connection.getDbDateTime({ requestId })).toEqual(expected);
 		expect(mockedAxiosInstance.post).toHaveBeenCalledTimes(1);
 	});
 
@@ -913,53 +1184,9 @@ describe('getDbDateTime', () => {
 						subroutineId: expect.stringContaining('getServerInfo'),
 					}),
 				}),
-			)
-			.mockResolvedValueOnce({
-				data: {
-					output: {
-						date: 19791, // 2022-03-08
-						time: 43200000, // 12:00:00.000
-						delimiters: mockDelimiters,
-						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
-					},
-				},
-			})
-			.mockResolvedValueOnce({
-				data: {
-					output: {
-						date: 19791, // 2022-03-08
-						time: 68400000, // 19:00:00.000
-						delimiters: mockDelimiters,
-						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
-					},
-				},
-			});
-
-		jest.setSystemTime(new Date('2022-03-08T12:00:00.000'));
-
-		const connection = Connection.createConnection(
-			mvisUrl,
-			mvisAdminUrl,
-			mvisAdminUsername,
-			mvisAdminPassword,
-			account,
-		);
-		await connection.open();
-
-		jest.setSystemTime(new Date('2022-03-08T19:00:00.000')); // 7 hours elapsed; beyond ttl
-
-		const expected = '2022-03-08T19:00:00.000';
-		expect(await connection.getDbDateTime()).toEqual(expected);
-		expect(mockedAxiosInstance.post).toHaveBeenCalledTimes(2);
-	});
-
-	test('should only call the db server once when cache has expired and multiple parallel requests are made', async () => {
-		when<any, any[]>(mockedAxiosInstance.post)
-			.calledWith(
-				expect.anything(),
 				expect.objectContaining({
-					input: expect.objectContaining({
-						subroutineId: expect.stringContaining('getServerInfo'),
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
 					}),
 				}),
 			)
@@ -993,17 +1220,71 @@ describe('getDbDateTime', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		jest.setSystemTime(new Date('2022-03-08T19:00:00.000')); // 7 hours elapsed; beyond ttl
 
 		const expected = '2022-03-08T19:00:00.000';
-		expect(await connection.getDbDateTime()).toEqual(expected);
+		expect(await connection.getDbDateTime({ requestId })).toEqual(expected);
+		expect(mockedAxiosInstance.post).toHaveBeenCalledTimes(2);
+	});
+
+	test('should only call the db server once when cache has expired and multiple parallel requests are made', async () => {
+		when<any, any[]>(mockedAxiosInstance.post)
+			.calledWith(
+				expect.anything(),
+				expect.objectContaining({
+					input: expect.objectContaining({
+						subroutineId: expect.stringContaining('getServerInfo'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
+					}),
+				}),
+			)
+			.mockResolvedValueOnce({
+				data: {
+					output: {
+						date: 19791, // 2022-03-08
+						time: 43200000, // 12:00:00.000
+						delimiters: mockDelimiters,
+						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
+					},
+				},
+			})
+			.mockResolvedValueOnce({
+				data: {
+					output: {
+						date: 19791, // 2022-03-08
+						time: 68400000, // 19:00:00.000
+						delimiters: mockDelimiters,
+						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
+					},
+				},
+			});
+
+		jest.setSystemTime(new Date('2022-03-08T12:00:00.000'));
+
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
+		await connection.open({ requestId });
+
+		jest.setSystemTime(new Date('2022-03-08T19:00:00.000')); // 7 hours elapsed; beyond ttl
+
+		const expected = '2022-03-08T19:00:00.000';
+		expect(await connection.getDbDateTime({ requestId })).toEqual(expected);
 
 		const results = await Promise.all([
-			connection.getDbDateTime(),
-			connection.getDbDateTime(),
-			connection.getDbDateTime(),
+			connection.getDbDateTime({ requestId }),
+			connection.getDbDateTime({ requestId }),
+			connection.getDbDateTime({ requestId }),
 		]);
 
 		results.forEach((result) => {
@@ -1036,6 +1317,11 @@ describe('getDbTime', () => {
 						subroutineId: expect.stringContaining('getServerInfo'),
 					}),
 				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
+					}),
+				}),
 			)
 			.mockResolvedValue({
 				data: {
@@ -1057,10 +1343,10 @@ describe('getDbTime', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const expected = '12:00:00.000';
-		expect(await connection.getDbTime()).toEqual(expected);
+		expect(await connection.getDbTime({ requestId })).toEqual(expected);
 	});
 
 	test('should return current db server time when there is time drift', async () => {
@@ -1070,6 +1356,11 @@ describe('getDbTime', () => {
 				expect.objectContaining({
 					input: expect.objectContaining({
 						subroutineId: expect.stringContaining('getServerInfo'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
 					}),
 				}),
 			)
@@ -1093,10 +1384,10 @@ describe('getDbTime', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const expected = '12:00:00.000';
-		expect(await connection.getDbTime()).toEqual(expected);
+		expect(await connection.getDbTime({ requestId })).toEqual(expected);
 	});
 });
 
@@ -1112,6 +1403,11 @@ describe('getDbLimits', () => {
 				expect.objectContaining({
 					input: expect.objectContaining({
 						subroutineId: expect.stringContaining('getServerInfo'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
 					}),
 				}),
 			)
@@ -1133,10 +1429,10 @@ describe('getDbLimits', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const expected = { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 };
-		expect(await connection.getDbLimits()).toEqual(expected);
+		expect(await connection.getDbLimits({ requestId })).toEqual(expected);
 	});
 });
 
@@ -1167,6 +1463,11 @@ describe('model', () => {
 						subroutineId: expect.stringContaining('getServerInfo'),
 					}),
 				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
+					}),
+				}),
 			)
 			.mockResolvedValue({
 				data: {
@@ -1186,7 +1487,7 @@ describe('model', () => {
 			mvisAdminPassword,
 			account,
 		);
-		await connection.open();
+		await connection.open({ requestId });
 
 		const file = 'file';
 		const Model = connection.model(null, file);

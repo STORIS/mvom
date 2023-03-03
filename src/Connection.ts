@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import type http from 'http';
 import type https from 'https';
 import { Mutex } from 'async-mutex';
@@ -64,6 +65,8 @@ export interface CreateConnectionOptions {
 	httpAgent?: http.Agent;
 	/** Optional https agent */
 	httpsAgent?: https.Agent;
+	/** Maximum allowed return payload size in bytes */
+	maxReturnPayloadSize?: number;
 }
 
 interface ConnectionConstructorOptions {
@@ -71,6 +74,8 @@ interface ConnectionConstructorOptions {
 	httpAgent?: http.Agent;
 	/** Optional https agent */
 	httpsAgent?: https.Agent;
+	/** Maximum allowed return payload size in bytes */
+	maxReturnPayloadSize: number;
 }
 
 export enum ConnectionStatus {
@@ -91,6 +96,22 @@ interface ServerInfo {
 	/** Multivalue database server limits */
 	limits: DbServerLimits;
 }
+
+interface RequestOptions {
+	requestId?: string;
+}
+
+export type OpenOptions = RequestOptions;
+
+export type DbServerInfoOptions = RequestOptions;
+
+export type GetDbDateOptions = RequestOptions;
+
+export type GetDbDateTimeOptions = RequestOptions;
+
+export type GetDbTimeOptions = RequestOptions;
+
+export type GetDbLimitsOptions = RequestOptions;
 // #endregion
 
 /** A connection object */
@@ -116,6 +137,9 @@ class Connection {
 	/** Mutex on acquiring server information */
 	private readonly serverInfoMutex: Mutex;
 
+	/** Maximum allowed return payload size in bytes */
+	private readonly maxReturnPayloadSize: number;
+
 	private constructor(
 		/** URL of the MVIS which facilitates access to the mv database */
 		mvisUrl: string,
@@ -129,11 +153,12 @@ class Connection {
 		deploymentManager: DeploymentManager,
 		options: ConnectionConstructorOptions,
 	) {
-		const { httpAgent, httpsAgent } = options;
+		const { httpAgent, httpsAgent, maxReturnPayloadSize } = options;
 
 		this.cacheMaxAge = cacheMaxAge;
 		this.logHandler = logHandler;
 		this.deploymentManager = deploymentManager;
+		this.maxReturnPayloadSize = maxReturnPayloadSize;
 
 		const url = new URL(mvisUrl);
 		url.pathname = url.pathname.replace(/\/?$/, `/${account}/subroutine/`);
@@ -166,7 +191,14 @@ class Connection {
 		account: string,
 		options: CreateConnectionOptions = {},
 	): Connection {
-		const { logger, cacheMaxAge = 3600, timeout = 0, httpAgent, httpsAgent } = options;
+		const {
+			logger,
+			cacheMaxAge = 3600,
+			timeout = 0,
+			httpAgent,
+			httpsAgent,
+			maxReturnPayloadSize = 100_000_000,
+		} = options;
 
 		if (!Number.isInteger(cacheMaxAge)) {
 			throw new InvalidParameterError({ parameterName: 'cacheMaxAge' });
@@ -174,6 +206,10 @@ class Connection {
 
 		if (!Number.isInteger(timeout)) {
 			throw new InvalidParameterError({ parameterName: 'timeout' });
+		}
+
+		if (maxReturnPayloadSize < 0) {
+			throw new InvalidParameterError({ parameterName: 'maxReturnPayloadSize' });
 		}
 
 		const logHandler = new LogHandler(account, logger);
@@ -190,11 +226,12 @@ class Connection {
 		return new Connection(mvisUrl, account, cacheMaxAge, timeout, logHandler, deploymentManager, {
 			httpAgent,
 			httpsAgent,
+			maxReturnPayloadSize,
 		});
 	}
 
 	/** Open a database connection */
-	public async open(): Promise<void> {
+	public async open({ requestId }: OpenOptions = {}): Promise<void> {
 		if (this.status !== ConnectionStatus.disconnected) {
 			this.logHandler.error('Connection is not closed');
 			throw new ConnectionError({ message: 'Connection is not closed' });
@@ -214,7 +251,7 @@ class Connection {
 
 		this.status = ConnectionStatus.connected;
 
-		await this.getDbServerInfo(); // establish baseline for database server information
+		await this.getDbServerInfo({ requestId }); // establish baseline for database server information
 
 		this.logHandler.info('connection opened');
 	}
@@ -241,13 +278,25 @@ class Connection {
 				'Cannot execute database features until database connection has been established',
 			);
 		}
+		const { maxReturnPayloadSize = this.maxReturnPayloadSize, requestId = crypto.randomUUID() } =
+			setupOptions;
+		if (maxReturnPayloadSize < 0) {
+			this.logHandler.error(
+				`Maximum returned payload size of ${maxReturnPayloadSize} is invalid. Must be a positive integer`,
+			);
+			throw new Error(
+				`Maximum returned payload size of ${maxReturnPayloadSize} is invalid. Must be a positive integer`,
+			);
+		}
+
+		const updatedSetupOptions = { ...setupOptions, maxReturnPayloadSize };
 
 		this.logHandler.debug(`executing database subroutine "${subroutineName}"`);
 
 		const data: DbSubroutinePayload<DbSubroutineInputOptionsMap[TSubroutineName]> = {
 			subroutineId: subroutineName,
 			subroutineInput: options,
-			setupOptions,
+			setupOptions: updatedSetupOptions,
 			teardownOptions,
 		};
 
@@ -255,38 +304,42 @@ class Connection {
 		try {
 			response = await this.axiosInstance.post<
 				DbSubroutineResponseTypes | DbSubroutineResponseError
-			>(this.deploymentManager.subroutineName, { input: data });
+			>(
+				this.deploymentManager.subroutineName,
+				{ input: data },
+				{ headers: { 'X-MVIS-Trace-Id': requestId } },
+			);
 		} catch (err) {
 			return axios.isAxiosError(err) ? this.handleAxiosError(err) : this.handleUnexpectedError(err);
 		}
 
-		this.handleDbServerError(response, subroutineName, options);
+		this.handleDbServerError(response, subroutineName, options, updatedSetupOptions);
 
 		// return the relevant portion from the db server response
 		return response.data.output;
 	}
 
 	/** Get the current ISOCalendarDate from the database */
-	public async getDbDate(): Promise<string> {
-		const { timeDrift } = await this.getDbServerInfo();
+	public async getDbDate({ requestId }: GetDbDateOptions = {}): Promise<string> {
+		const { timeDrift } = await this.getDbServerInfo({ requestId });
 		return format(addMilliseconds(Date.now(), timeDrift), ISOCalendarDateFormat);
 	}
 
 	/** Get the current ISOCalendarDateTime from the database */
-	public async getDbDateTime(): Promise<string> {
-		const { timeDrift } = await this.getDbServerInfo();
+	public async getDbDateTime({ requestId }: GetDbDateTimeOptions = {}): Promise<string> {
+		const { timeDrift } = await this.getDbServerInfo({ requestId });
 		return format(addMilliseconds(Date.now(), timeDrift), ISOCalendarDateTimeFormat);
 	}
 
 	/** Get the current ISOTime from the database */
-	public async getDbTime(): Promise<string> {
-		const { timeDrift } = await this.getDbServerInfo();
+	public async getDbTime({ requestId }: GetDbTimeOptions = {}): Promise<string> {
+		const { timeDrift } = await this.getDbServerInfo({ requestId });
 		return format(addMilliseconds(Date.now(), timeDrift), ISOTimeFormat);
 	}
 
 	/** Get the multivalue database server limits */
-	public async getDbLimits(): Promise<DbServerLimits> {
-		const { limits } = await this.getDbServerInfo();
+	public async getDbLimits({ requestId }: GetDbLimitsOptions = {}): Promise<DbServerLimits> {
+		const { limits } = await this.getDbServerInfo({ requestId });
 		return limits;
 	}
 
@@ -306,7 +359,7 @@ class Connection {
 	}
 
 	/** Get the db server information (date, time, etc.) */
-	private async getDbServerInfo(): Promise<ServerInfo> {
+	private async getDbServerInfo({ requestId }: DbServerInfoOptions = {}): Promise<ServerInfo> {
 		// set a mutex on acquiring server information so multiple simultaneous requests are not modifying the cache
 		return this.serverInfoMutex.runExclusive(async () => {
 			if (this.dbServerInfo == null || Date.now() > this.dbServerInfo.cacheExpiry) {
@@ -314,6 +367,7 @@ class Connection {
 				const { date, time, delimiters, limits } = await this.executeDbSubroutine(
 					'getServerInfo',
 					{},
+					{ ...(requestId && { requestId }) },
 				);
 
 				const timeDrift = differenceInMilliseconds(
@@ -348,6 +402,7 @@ class Connection {
 		response: AxiosResponse<TResponse | DbSubroutineResponseError>,
 		subroutineName: TSubroutineName,
 		options: DbSubroutineInputOptionsMap[TSubroutineName],
+		setupOptions: DbSubroutineSetupOptions,
 	): asserts response is AxiosResponse<TResponse> {
 		if (response.data.output == null) {
 			// handle invalid response
@@ -387,6 +442,15 @@ class Connection {
 						`record version mismatch found when saving record ${id} to ${filename}`,
 					);
 					throw new RecordVersionError({ filename, recordId: id });
+				}
+				case dbErrors.maxPayloadExceeded.code: {
+					const { maxReturnPayloadSize } = setupOptions;
+					this.logHandler.debug(
+						`Maximum return payload size of ${maxReturnPayloadSize} bytes exceeded`,
+					);
+					throw new DbServerError({
+						message: `Maximum return payload size of ${maxReturnPayloadSize} exceeded`,
+					});
 				}
 				default:
 					this.logHandler.error(
