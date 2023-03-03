@@ -60,9 +60,9 @@ open(options?: OpenOptions): Promise<void>
 
 ### Parameters
 
-| Parameter | Type     | Description                                              | Example |
-| --------- | -------- | -------------------------------------------------------- | ------- |
-| `options` | `object` | [Options object](#options-object-properties) (see below) |         |
+| Parameter | Type     | Description                                                | Example |
+| --------- | -------- | ---------------------------------------------------------- | ------- |
+| `options` | `object` | [Options object](#options-object-properties-1) (see below) |         |
 
 #### Options Object Properties
 
@@ -104,7 +104,7 @@ deployFeatures(sourceDir: string, options?: DeployFeaturesOptions)
 | Parameter   | Type     | Description                                                                | Example   |
 | ----------- | -------- | -------------------------------------------------------------------------- | --------- |
 | `sourceDir` | `string` | The directory on the database server where the subroutines will be created | `mvom.bp` |
-| `options`   | `object` | [Options object](#options-object-properties-1) (see below)                 |           |
+| `options`   | `object` | [Options object](#options-object-properties-2) (see below)                 |           |
 
 #### Options Object Properties
 
@@ -154,9 +154,9 @@ getDbDate(options?: GetDbDateOptions): Promise<string>
 
 ### Parameters
 
-| Parameter | Type     | Description                                              | Example |
-| --------- | -------- | -------------------------------------------------------- | ------- |
-| `options` | `object` | [Options object](#options-object-properties) (see below) |         |
+| Parameter | Type     | Description                                                | Example |
+| --------- | -------- | ---------------------------------------------------------- | ------- |
+| `options` | `object` | [Options object](#options-object-properties-3) (see below) |         |
 
 #### Options Object Properties
 
@@ -176,9 +176,9 @@ getDbTime(options?: GetDbTimeOptions): Promise<string>
 
 ### Parameters
 
-| Parameter | Type     | Description                                              | Example |
-| --------- | -------- | -------------------------------------------------------- | ------- |
-| `options` | `object` | [Options object](#options-object-properties) (see below) |         |
+| Parameter | Type     | Description                                                | Example |
+| --------- | -------- | ---------------------------------------------------------- | ------- |
+| `options` | `object` | [Options object](#options-object-properties-4) (see below) |         |
 
 #### Options Object Properties
 
@@ -198,9 +198,9 @@ getDbDateTime(options?: GetDbDateTimeOptions): Promise<string>
 
 ### Parameters
 
-| Parameter | Type     | Description                                              | Example |
-| --------- | -------- | -------------------------------------------------------- | ------- |
-| `options` | `object` | [Options object](#options-object-properties) (see below) |         |
+| Parameter | Type     | Description                                                | Example |
+| --------- | -------- | ---------------------------------------------------------- | ------- |
+| `options` | `object` | [Options object](#options-object-properties-5) (see below) |         |
 
 #### Options Object Properties
 
