@@ -55,8 +55,20 @@ After a `Connection` instance has been created, the connection must be opened be
 ### Syntax
 
 ```ts
-open(): Promise<void>
+open(options?: OpenOptions): Promise<void>
 ```
+
+### Parameters
+
+| Parameter | Type     | Description                                                | Example |
+| --------- | -------- | ---------------------------------------------------------- | ------- |
+| `options` | `object` | [Options object](#options-object-properties-1) (see below) |         |
+
+#### Options Object Properties
+
+| Property    | Type     | Default                 | Description                                                                                |
+| ----------- | -------- | ----------------------- | ------------------------------------------------------------------------------------------ |
+| `requestId` | `string` | randomly generated UUID | A request/trace ID to be passed to MVIS as a request header with the key `X-MVIS-Trace-Id` |
 
 ### Example
 
@@ -65,11 +77,12 @@ import { Connection } from 'mvom';
 
 const mvisUri = 'http://foo.bar.com';
 const account = 'demo';
-const options = { timeout: 30_000 };
+const connectOptions = { timeout: 30_000 };
+const openOptions = { requestId: 'trace' };
 
 const makeConnection = async (): Connection => {
-  const connection = Connection.createConnection(mvisUri, account, options);
-  await connection.open();
+  const connection = Connection.createConnection(mvisUri, account, connectOptions);
+  await connection.open(openOptions);
   return connection;
 };
 
@@ -91,7 +104,7 @@ deployFeatures(sourceDir: string, options?: DeployFeaturesOptions)
 | Parameter   | Type     | Description                                                                | Example   |
 | ----------- | -------- | -------------------------------------------------------------------------- | --------- |
 | `sourceDir` | `string` | The directory on the database server where the subroutines will be created | `mvom.bp` |
-| `options`   | `object` | [Options object](#options-object-properties-1) (see below)                 |           |
+| `options`   | `object` | [Options object](#options-object-properties-2) (see below)                 |           |
 
 #### Options Object Properties
 
@@ -136,8 +149,20 @@ Using the connection instance, you can access the database server's current date
 ### Syntax
 
 ```ts
-getDbDate(): Promise<string>
+getDbDate(options?: GetDbDateOptions): Promise<string>
 ```
+
+### Parameters
+
+| Parameter | Type     | Description                                                | Example |
+| --------- | -------- | ---------------------------------------------------------- | ------- |
+| `options` | `object` | [Options object](#options-object-properties-3) (see below) |         |
+
+#### Options Object Properties
+
+| Property    | Type     | Default                 | Description                                                                                |
+| ----------- | -------- | ----------------------- | ------------------------------------------------------------------------------------------ |
+| `requestId` | `string` | randomly generated UUID | A request/trace ID to be passed to MVIS as a request header with the key `X-MVIS-Trace-Id` |
 
 ## Getting the current database time
 
@@ -146,8 +171,20 @@ Using the connection instance, you can access the database server's current time
 ### Syntax
 
 ```ts
-getDbTime(): Promise<string>
+getDbTime(options?: GetDbTimeOptions): Promise<string>
 ```
+
+### Parameters
+
+| Parameter | Type     | Description                                                | Example |
+| --------- | -------- | ---------------------------------------------------------- | ------- |
+| `options` | `object` | [Options object](#options-object-properties-4) (see below) |         |
+
+#### Options Object Properties
+
+| Property    | Type     | Default                 | Description                                                                                |
+| ----------- | -------- | ----------------------- | ------------------------------------------------------------------------------------------ |
+| `requestId` | `string` | randomly generated UUID | A request/trace ID to be passed to MVIS as a request header with the key `X-MVIS-Trace-Id` |
 
 ## Getting the current database date-time
 
@@ -156,8 +193,20 @@ Using the connection instance, you can access the database server's current date
 ### Syntax
 
 ```ts
-getDbDateTime(): Promise<string>
+getDbDateTime(options?: GetDbDateTimeOptions): Promise<string>
 ```
+
+### Parameters
+
+| Parameter | Type     | Description                                                | Example |
+| --------- | -------- | ---------------------------------------------------------- | ------- |
+| `options` | `object` | [Options object](#options-object-properties-5) (see below) |         |
+
+#### Options Object Properties
+
+| Property    | Type     | Default                 | Description                                                                                |
+| ----------- | -------- | ----------------------- | ------------------------------------------------------------------------------------------ |
+| `requestId` | `string` | randomly generated UUID | A request/trace ID to be passed to MVIS as a request header with the key `X-MVIS-Trace-Id` |
 
 ## Logger interface
 
