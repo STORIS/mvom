@@ -92,6 +92,66 @@ const makeConnection = async (): Connection => {
 export default makeConnection;
 ```
 
+## Deploying MVOM database server features
+
+MVOM requires a number of database server subroutines (referred to by MVOM as _server features_) in order to perform its functionality on the database. If those subroutines are not available then a connection cannot be established. The connection instance allows for manually deploying those subroutines. The deployed subroutines will be cataloged globally for performance considerations. It is recommended to add handling for failed connections due to missing subroutines so that they are automatically deployed and the connection retried, but it is up to you when and how to deploy the subroutines. The `open` method will throw an `InvalidServerFeaturesError` if the subroutines are out of date and this error can be utilized as a trigger for deploying the subroutines.
+
+### Syntax
+
+```ts
+deploy(sourceDir: string, options?: DeployOptions)
+```
+
+### Parameters
+
+| Parameter   | Type     | Description                                                                | Example   |
+| ----------- | -------- | -------------------------------------------------------------------------- | --------- |
+| `sourceDir` | `string` | The directory on the database server where the subroutines will be created | `mvom.bp` |
+| `options`   | `object` | [Options object](#options-object-properties-2) (see below)                 |           |
+
+#### Options Object Properties
+
+| Property    | Type      | Default | Description                                                  |
+| ----------- | --------- | ------- | ------------------------------------------------------------ |
+| `createDir` | `boolean` | `false` | Create the directory prior to deploying if it is not present |
+
+### Example
+
+```ts
+import { Connection, InvalidServerFeaturesError } from 'mvom';
+const mvisUrl = 'http://foo.bar.com';
+const mvisAdminUrl = 'http://mvis-admin.bar.com';
+const mvisAdminUsername = 'username';
+const mvisAdminPassword = 'password';
+const account = 'demo';
+const options = { timeout: 30_000 };
+const sourceDir = 'mvom.bp';
+const makeConnection = async (): Connection => {
+  const connection = Connection.createConnection(
+    mvisUrl,
+    mvisAdminUrl,
+    mvisAdminUsername,
+    mvisAdminPassword,
+    account,
+    options,
+  );
+  try {
+    await connection.open();
+  } catch (connectionErr) {
+    if (connectionErr instanceof InvalidServerFeaturesError) {
+      // server code is out-of-date - try updating the features
+      await connection.deploy(sourceDir, { createDir: true });
+      await connection.open();
+    } else {
+      // something other than server code being out of date -- rethrow
+      throw connectionErr;
+    }
+  }
+  return connection;
+};
+export default makeConnection;
+```
+
 ## Getting the current database date
 
 Using the connection instance, you can access the database server's current date in ISO 8601 date format (`YYYY-MM-DD`).
@@ -106,7 +166,7 @@ getDbDate(options?: GetDbDateOptions): Promise<string>
 
 | Parameter | Type     | Description                                                | Example |
 | --------- | -------- | ---------------------------------------------------------- | ------- |
-| `options` | `object` | [Options object](#options-object-properties-2) (see below) |         |
+| `options` | `object` | [Options object](#options-object-properties-3) (see below) |         |
 
 #### Options Object Properties
 
@@ -128,7 +188,7 @@ getDbTime(options?: GetDbTimeOptions): Promise<string>
 
 | Parameter | Type     | Description                                                | Example |
 | --------- | -------- | ---------------------------------------------------------- | ------- |
-| `options` | `object` | [Options object](#options-object-properties-3) (see below) |         |
+| `options` | `object` | [Options object](#options-object-properties-4) (see below) |         |
 
 #### Options Object Properties
 
@@ -150,7 +210,7 @@ getDbDateTime(options?: GetDbDateTimeOptions): Promise<string>
 
 | Parameter | Type     | Description                                                | Example |
 | --------- | -------- | ---------------------------------------------------------- | ------- |
-| `options` | `object` | [Options object](#options-object-properties-4) (see below) |         |
+| `options` | `object` | [Options object](#options-object-properties-5) (see below) |         |
 
 #### Options Object Properties
 

@@ -13,4 +13,4 @@ In order to communicate to the MultiValue database, the following are required:
 
 ## The `mvom_main` Subroutine
 
-MVOM will automatically create a REST subroutine definition and deploy the subroutine to the database server if not present. The created subroutine definition is named `mvom_main` and is suffixed by an 8 character hash of the bundled source code. A new version of MVOM will result in a new hash and associated subroutine deployment.
+MVOM will automatically create a REST subroutine definition and deploy the subroutine to the database server if not present. The created subroutine definition is named `mvom_main` and is suffixed by an 8 character hash of the bundled source code. A new version of MVOM may result in a new hash and associated subroutine deployment.
