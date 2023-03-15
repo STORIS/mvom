@@ -160,7 +160,7 @@ getDbDateTime(options?: GetDbDateTimeOptions): Promise<string>
 
 ## Logger interface
 
-MVOM allows passing a logger to the connection instance which will have one of its methods executed whenever MVOM logs a message for debugging or error purposes. The logger object has the following interface:
+MVOM allows passing a logger to the connection instance which will have one of its methods executed whenever MVOM logs a message for debugging or error purposes. This logger will then be passed to any classes that require logging. The logger object has the following interface:
 
 ```ts
 interface Logger {
