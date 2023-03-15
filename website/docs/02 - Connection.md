@@ -158,13 +158,9 @@ getDbDateTime(options?: GetDbDateTimeOptions): Promise<string>
 | ----------- | -------- | ----------------------- | ------------------------------------------------------------------------------------------ |
 | `requestId` | `string` | randomly generated UUID | A request/trace ID to be passed to MVIS as a request header with the key `X-MVIS-Trace-Id` |
 
-## LogHandler
+## Logger interface
 
-MVOM allows passing a logger to the connection instance which will have one of its methods executed whenever MVOM logs a message for debugging or error purposes. This logger will be passed to the model constructor as a `LogHandler` instance.
-
-### Logger interface
-
-The logger object has the following interface:
+MVOM allows passing a logger to the connection instance which will have one of its methods executed whenever MVOM logs a message for debugging or error purposes. The logger object has the following interface:
 
 ```ts
 interface Logger {
