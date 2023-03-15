@@ -94,7 +94,7 @@ export default makeConnection;
 
 ## Deploying MVOM database server features
 
-MVOM requires a number of database server subroutines (referred to by MVOM as _server features_) in order to perform its functionality on the database. If those subroutines are not available then a connection cannot be established. The connection instance allows for manually deploying those subroutines. The deployed subroutines will be cataloged globally for performance considerations. It is recommended to add handling for failed connections due to missing subroutines so that they are automatically deployed and the connection retried, but it is up to you when and how to deploy the subroutines. The `open` method will throw an `InvalidServerFeaturesError` if the subroutines are out of date and this error can be utilized as a trigger for deploying the subroutines.
+MVOM requires a database server subroutine called `mvom_main` in order to perform its functionality on the database. If `mvom_main` is not available, a connection cannot be established. The connection instance allows for manually deploying this subroutine, which will be cataloged globally for performance considerations. It is recommended to add handling for failed connections due to the subroutine not existing so that it is automatically deployed and the connection retried, but it is up to you when and how to deploy. The `open` method will throw an `InvalidServerFeaturesError` if the subroutine is out of date, and this error can be utilized as a trigger for deploying the subroutine.
 
 ### Syntax
 
