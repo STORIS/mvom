@@ -106,7 +106,7 @@ getDbDate(options?: GetDbDateOptions): Promise<string>
 
 | Parameter | Type     | Description                                                | Example |
 | --------- | -------- | ---------------------------------------------------------- | ------- |
-| `options` | `object` | [Options object](#options-object-properties-3) (see below) |         |
+| `options` | `object` | [Options object](#options-object-properties-2) (see below) |         |
 
 #### Options Object Properties
 
@@ -128,7 +128,7 @@ getDbTime(options?: GetDbTimeOptions): Promise<string>
 
 | Parameter | Type     | Description                                                | Example |
 | --------- | -------- | ---------------------------------------------------------- | ------- |
-| `options` | `object` | [Options object](#options-object-properties-4) (see below) |         |
+| `options` | `object` | [Options object](#options-object-properties-3) (see below) |         |
 
 #### Options Object Properties
 
@@ -150,7 +150,7 @@ getDbDateTime(options?: GetDbDateTimeOptions): Promise<string>
 
 | Parameter | Type     | Description                                                | Example |
 | --------- | -------- | ---------------------------------------------------------- | ------- |
-| `options` | `object` | [Options object](#options-object-properties-5) (see below) |         |
+| `options` | `object` | [Options object](#options-object-properties-4) (see below) |         |
 
 #### Options Object Properties
 
