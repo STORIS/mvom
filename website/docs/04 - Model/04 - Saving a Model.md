@@ -25,9 +25,11 @@ save(options?: ModelSaveOptions): Promise<Model>
 
 #### Options Object Properties
 
-| Property      | Type     | Description                                                                                                    |
-| ------------- | -------- | -------------------------------------------------------------------------------------------------------------- |
-| `userDefined` | `object` | The [user defined options](./Advanced%20Topics/model_user_defined_options) to pass to the database subroutines |
+| Property               | Type     | Description                                                                                                                                                                   |
+| ---------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `maxReturnPayloadSize` | `number` | The maximum allowed return payload size in bytes. If this size is exceeded a DbServerError will be thrown. If omitted the value specified during connection creation is used. |
+| `requestId`            | `string` | A request/trace ID to be passed to MVIS as a request header with the key `X-MVIS-Trace-Id`                                                                                    |
+| `userDefined`          | `object` | The [user defined options](./Advanced%20Topics/model_user_defined_options) to pass to the database subroutines                                                                |
 
 ### Example (Inserting a Record)
 

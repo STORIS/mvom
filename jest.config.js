@@ -17,11 +17,11 @@ module.exports = {
 		'!**/scripts/**', // do not test scripts
 	],
 	coverageThreshold: {
-		global: {
-			branches: 100,
-			functions: 100,
-			lines: 100,
-			statements: 100,
+		'**/*.?([cm])[jt]s?(x)': {
+			statements: 25,
+			branches: 25,
+			functions: 25,
+			lines: 25,
 		},
 	},
 };

@@ -2,6 +2,7 @@ $basictype 'U'
 subroutine mvom_main(inputSerialized, outputSerialized)
 {% include "./constants/udo.njk" %}
 {% include "./constants/error.njk" %}
+{% include "./constants/setup.njk" %}
 
 * eliminate all terminal output
 hush on
@@ -49,7 +50,8 @@ if udoGetProperty(input, 'teardownOptions', teardownOptions, type) then
   go response
 end
 
-call mvom_setup(setupOptions)
+parsedSetupOptions = ''
+call mvom_setup(setupOptions, parsedSetupOptions)
 
 subroutineName = 'mvom_':subroutineId
 call @subroutineName(subroutineInput, output)
@@ -64,6 +66,20 @@ response:
   * if an error occurs in freeing the memory space for the objects, we will ignore it as there is little else that can be done
   x = udoFree(output)
   x = udoFree(input)
+
+  maxReturnPayloadSize = parsedSetupOptions<MAX_RETURN_PAYLOAD_SIZE_POS>
+  bytes = bytelen(outputSerialized)
+  if bytes > maxReturnPayloadSize then
+    if udoCreate(UDO_OBJECT, errOutput) then
+      * in the event of an error in the creation of the output object, there is little we can do except fatally abort
+      return; * returning to caller
+    end
+
+    call error_handler(ERROR_MAX_PAYLOAD_EXCEEDED, errOutput)
+
+    x = udoWrite(errOutput, UDOFORMAT_JSON, outputSerialized)
+    x = udoFree(errOutput)
+  end
 
   return; * returning to caller
 

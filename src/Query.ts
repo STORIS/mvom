@@ -1,7 +1,12 @@
 import type { ModelConstructor } from './compileModel';
 import { InvalidParameterError, QueryLimitError } from './errors';
 import type LogHandler from './LogHandler';
-import type { DbDocument, DbSubroutineSetupOptions, GenericObject } from './types';
+import type {
+	DbDocument,
+	DbSubroutineInputFind,
+	DbSubroutineSetupOptions,
+	GenericObject,
+} from './types';
 
 // #region Types
 export interface QueryConstructorOptions {
@@ -114,7 +119,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 
 	/** Execute query */
 	public async exec(options: QueryExecutionOptions = {}): Promise<QueryExecutionResult> {
-		const { userDefined } = options;
+		const { maxReturnPayloadSize, requestId, userDefined } = options;
 		let queryCommand = `select ${this.Model.file}`;
 		if (this.selection != null) {
 			queryCommand = `${queryCommand} with ${this.selection}`;
@@ -123,14 +128,14 @@ class Query<TSchema extends GenericObject = GenericObject> {
 			queryCommand = `${queryCommand} ${this.sort}`;
 		}
 
-		await this.validateQuery(queryCommand);
+		await this.validateQuery(queryCommand, requestId);
 
 		const projection =
 			this.projection != null && this.Model.schema != null
 				? this.Model.schema.transformPathsToDbPositions(this.projection)
 				: null;
 
-		const executionOptions = {
+		const executionOptions: DbSubroutineInputFind = {
 			filename: this.Model.file,
 			queryCommand,
 			...(this.skip != null && { skip: this.skip }),
@@ -138,11 +143,17 @@ class Query<TSchema extends GenericObject = GenericObject> {
 			projection,
 		};
 
+		const setupOptions: DbSubroutineSetupOptions = {
+			...(maxReturnPayloadSize && { maxReturnPayloadSize }),
+			...(requestId && { requestId }),
+			...(userDefined && { userDefined }),
+		};
+
 		this.logHandler.verbose(`executing query "${queryCommand}"`);
 		const data = await this.Model.connection.executeDbSubroutine(
 			'find',
 			executionOptions,
-			userDefined && { userDefined },
+			setupOptions,
 		);
 
 		return {
@@ -320,7 +331,6 @@ class Query<TSchema extends GenericObject = GenericObject> {
 	/** Transform query constant to internal u2 format (if applicable) */
 	private transformToQuery(property: string, constant: unknown): unknown {
 		const dictionaryTypeDetail = this.Model.schema?.dictPaths.get(property);
-		/* istanbul ignore if: Would have thrown previously in getDictionaryId */
 		if (dictionaryTypeDetail == null) {
 			throw new InvalidParameterError({
 				message: 'Nonexistent schema property or property does not have a dictionary specified',
@@ -332,8 +342,10 @@ class Query<TSchema extends GenericObject = GenericObject> {
 	}
 
 	/** Validate the query before execution */
-	private async validateQuery(query: string): Promise<void> {
-		const { maxSort, maxWith, maxSentenceLength } = await this.Model.connection.getDbLimits();
+	private async validateQuery(query: string, requestId?: string): Promise<void> {
+		const { maxSort, maxWith, maxSentenceLength } = await this.Model.connection.getDbLimits({
+			requestId,
+		});
 
 		/*
       For some reason, UDTEXECUTE (which is used by this library) appears to have a sentence length limit which is one character

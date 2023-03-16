@@ -225,7 +225,6 @@ class Schema {
 						dictionary,
 						dataTransformer: new ISOTimeDataTransformer(dictionaryDefinition.dbFormat),
 					});
-				/* istanbul ignore next: cannot hit without violating types */
 				default:
 					return acc;
 			}
@@ -356,7 +355,6 @@ class Schema {
 			case 'string':
 				schemaTypeValue = new StringType(castee, options);
 				break;
-			/* istanbul ignore next: the block below is for checking not implemented case for any new scalar value */
 			default: {
 				const exhaustiveCheck: never = castee;
 				throw new InvalidParameterError({
