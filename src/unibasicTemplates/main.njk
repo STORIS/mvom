@@ -50,6 +50,7 @@ if udoGetProperty(input, 'teardownOptions', teardownOptions, type) then
   go response
 end
 
+parsedSetupOptions = ''
 call mvom_setup(setupOptions, parsedSetupOptions)
 
 subroutineName = 'mvom_':subroutineId
