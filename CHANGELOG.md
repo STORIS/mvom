@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0-rc.0] - 2023-03-16
+
+### Breaking changes
+
+- Minimum Node version is now 16.0.0 ([#413](https://github.com/STORIS/mvom/pull/413))
+
+### Fixed
+
+- Check catalog existence as part of server validation ([#196](https://github.com/STORIS/mvom/pull/196))
+
+### Added
+
+- Deploy UniBasic via MVIS Admin ([#186](https://github.com/STORIS/mvom/pull/186))
+- Prevent multiples of same connection operations from running in parallel ([#308](https://github.com/STORIS/mvom/pull/308))
+- Add filename and record ID to error output ([#318](https://github.com/STORIS/mvom/pull/318))
+- Return write error status codes ([#322](https://github.com/STORIS/mvom/pull/322))
+- Allow specification of a maximum return payload size from the database ([#357](https://github.com/STORIS/mvom/pull/357))
+- Pass requestId to MVIS as HTTP header ([#390](https://github.com/STORIS/mvom/pull/390))
+- Add requestId to common variable ([#397](https://github.com/STORIS/mvom/pull/397))
+
+### Docs
+
+- Enable Algolia search ([#174](https://github.com/STORIS/mvom/pull/174))
+- Updated docs for changes in release ([#359](https://github.com/STORIS/mvom/pull/359))
+
 ## [2.0.0-alpha.7] - 2022-06-13
 
 ### Fixed
@@ -400,7 +425,8 @@ We've graduated from Alpha to Beta! Semver has been updated so breaking vs. non-
 
 Initial alpha release of this library! Thanks for using it!
 
-[unreleased]: https://github.com/storis/mvom/compare/2.0.0-alpha.7...HEAD
+[unreleased]: https://github.com/storis/mvom/compare/2.0.0-rc.0...HEAD
+[2.0.0-rc.0]: https://github.com/storis/mvom/compare/2.0.0-alpha.7...2.0.0-rc.0
 [2.0.0-alpha.7]: https://github.com/storis/mvom/compare/2.0.0-alpha.6...2.0.0-alpha.7
 [2.0.0-alpha.6]: https://github.com/storis/mvom/compare/2.0.0-alpha.5...2.0.0-alpha.6
 [2.0.0-alpha.5]: https://github.com/storis/mvom/compare/2.0.0-alpha.4...2.0.0-alpha.5
