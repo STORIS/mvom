@@ -14,16 +14,19 @@ A connection to the database server is established using the `createConnection` 
 ### Syntax
 
 ```ts
-Connection.createConnection(mvisUri: string, account: string, options?: CreateConnectionOptions): Connection
+Connection.createConnection(mvisUrl: string, mvisAdminUrl: string, mvisAdminUsername: string, mvisAdminPassword: string, account: string, options?: CreateConnectionOptions): Connection
 ```
 
 ### Parameters
 
-| Parameter | Type     | Description                                              | Example              |
-| --------- | -------- | -------------------------------------------------------- | -------------------- |
-| `mvisUri` | `string` | The URI to the MVIS server instance                      | `http://foo.bar.com` |
-| `account` | `string` | The account name as defined in MVIS configuration        | `demo`               |
-| `options` | `object` | [Options object](#options-object-properties) (see below) |                      |
+| Parameter           | Type     | Description                                                            | Example              |
+| ------------------- | -------- | ---------------------------------------------------------------------- | -------------------- |
+| `mvisUrl`           | `string` | The URL to the MVIS server instance                                    | `http://foo.bar.com` |
+| `mvisAdminUrl`      | `string` | The URL of the MVIS Admin instance                                     | `mvis-admin.bar.com` |
+| `mvisAdminUsername` | `string` | The username of a user account associated with the MVIS admin instance | `username`           |
+| `mvisAdminPassword` | `string` | The password of a user account associated with the MVIS admin instance | `password`           |
+| `account`           | `string` | The account name as defined in MVIS configuration                      | `demo`               |
+| `options`           | `object` | [Options object](#options-object-properties) (see below)               |                      |
 
 #### Options Object Properties
 
@@ -91,12 +94,12 @@ export default makeConnection;
 
 ## Deploying MVOM database server features
 
-MVOM requires a number of database server subroutines (referred to by MVOM as _server features_) in order to perform its functionality on the database. If those subroutines are not available then a connection cannot be established. The connection instance allows for manually deploying those subroutines. The deployed subroutines will be cataloged globally for performance considerations. It is recommended to add handling for failed connections due to missing subroutines so that they are automatically deployed and the connection retried, but it is up to you when and how to deploy the subroutines. The `open` method will throw an `InvalidServerFeaturesError` if the subroutines are out of date and this error can be utilized as a trigger for deploying the subroutines.
+MVOM requires a database server subroutine called `mvom_main` in order to perform its functionality on the database. If `mvom_main` is not available, a connection cannot be established. The connection instance allows for manually deploying this subroutine, which will be cataloged globally for performance considerations. It is recommended to add handling for failed connections due to the subroutine not existing so that it is automatically deployed and the connection retried, but it is up to you when and how to deploy. The `open` method will throw an `InvalidServerFeaturesError` if the subroutine is out of date, and this error can be utilized as a trigger for deploying the subroutine.
 
 ### Syntax
 
 ```ts
-deployFeatures(sourceDir: string, options?: DeployFeaturesOptions)
+deploy(sourceDir: string, options?: DeployOptions)
 ```
 
 ### Parameters
@@ -116,20 +119,28 @@ deployFeatures(sourceDir: string, options?: DeployFeaturesOptions)
 
 ```ts
 import { Connection, InvalidServerFeaturesError } from 'mvom';
-
-const mvisUri = 'http://foo.bar.com';
+const mvisUrl = 'http://foo.bar.com';
+const mvisAdminUrl = 'http://mvis-admin.bar.com';
+const mvisAdminUsername = 'username';
+const mvisAdminPassword = 'password';
 const account = 'demo';
 const options = { timeout: 30_000 };
 const sourceDir = 'mvom.bp';
-
 const makeConnection = async (): Connection => {
-  const connection = Connection.createConnection(mvisUri, account, options);
+  const connection = Connection.createConnection(
+    mvisUrl,
+    mvisAdminUrl,
+    mvisAdminUsername,
+    mvisAdminPassword,
+    account,
+    options,
+  );
   try {
     await connection.open();
   } catch (connectionErr) {
     if (connectionErr instanceof InvalidServerFeaturesError) {
       // server code is out-of-date - try updating the features
-      await connection.deployFeatures(sourceDir, { createDir: true });
+      await connection.deploy(sourceDir, { createDir: true });
       await connection.open();
     } else {
       // something other than server code being out of date -- rethrow
@@ -138,7 +149,6 @@ const makeConnection = async (): Connection => {
   }
   return connection;
 };
-
 export default makeConnection;
 ```
 
@@ -210,7 +220,7 @@ getDbDateTime(options?: GetDbDateTimeOptions): Promise<string>
 
 ## Logger interface
 
-MVOM allows passing a logger to the connection instance which will have one of its methods executed whenever MVOM logs a message for debugging or error purposes. The logger object has the following interface:
+MVOM allows passing a logger to the connection instance which will have one of its methods executed whenever MVOM logs a message for debugging or error purposes. This logger will then be passed to any classes that require logging. The logger object has the following interface:
 
 ```ts
 interface Logger {
@@ -251,9 +261,19 @@ const logger = {
   },
 };
 
-const mvisUri = 'http://foo.bar.com';
+const mvisUrl = 'http://foo.bar.com';
+mvisAdminUrl = 'http://mvis-admin.bar.com';
+mvisAdminUsername = 'username';
+mvisAdminPassword = 'password';
 const account = 'demo';
 const options = { timeout: 30_000, logger };
 
-const connection = Connection.createConnection(mvisUri, account, options);
+const connection = Connection.createConnection(
+  mvisUrl,
+  mvisAdminUrl,
+  mvisAdminUsername,
+  mvisAdminPassword,
+  account,
+  options,
+);
 ```
