@@ -158,8 +158,8 @@ describe('createConnection', () => {
 
 		const message = 'test message';
 		// @ts-expect-error: accessing private member in test
-		connection.logHandler.silly(message);
-		expect(loggerMock.silly).toHaveBeenCalledWith(`[${account}] ${message}`);
+		connection.logHandler.trace(message);
+		expect(loggerMock.trace).toHaveBeenCalledWith(`[${account}] ${message}`);
 	});
 
 	test('should allow for override of timeout', () => {

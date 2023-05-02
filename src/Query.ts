@@ -149,7 +149,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 			...(userDefined && { userDefined }),
 		};
 
-		this.logHandler.verbose(`executing query "${queryCommand}"`);
+		this.logHandler.debug(`executing query "${queryCommand}"`);
 		const data = await this.Model.connection.executeDbSubroutine(
 			'find',
 			executionOptions,
