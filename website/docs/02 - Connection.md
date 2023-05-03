@@ -224,12 +224,12 @@ MVOM allows passing a logger to the connection instance which will have one of i
 
 ```ts
 interface Logger {
+  fatal(message: string): void;
   error(message: string): void;
   warn(message: string): void;
   info(message: string): void;
-  verbose(message: string): void;
   debug(message: string): void;
-  silly(message: string): void;
+  trace(message: string): void;
 }
 ```
 
@@ -241,6 +241,9 @@ Any object implementing the `Logger` interface can be passed as an option when c
 import { Connection } from 'mvom';
 
 const logger = {
+  fatal: (message: string) => {
+    console.error(message);
+  },
   error: (message: string) => {
     console.error(message);
   },
@@ -250,13 +253,10 @@ const logger = {
   info: (message: string) => {
     console.log(message);
   },
-  verbose: (message: string) => {
-    console.log(message);
-  },
   debug: (message: string) => {
     console.log(message);
   },
-  silly: (message: string) => {
+  trace: (message: string) => {
     console.log(message);
   },
 };
