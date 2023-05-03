@@ -1,16 +1,33 @@
 import LogHandler from '../LogHandler';
 
 const loggerMock = {
+	fatal: jest.fn(),
 	error: jest.fn(),
 	warn: jest.fn(),
 	info: jest.fn(),
-	verbose: jest.fn(),
 	debug: jest.fn(),
-	silly: jest.fn(),
+	trace: jest.fn(),
 };
 
 const account = 'accountName';
 const message = 'test message';
+
+describe('fatal', () => {
+	test('should not emit log if no logger specified', () => {
+		const logHandler = new LogHandler(account);
+		logHandler.fatal(message);
+
+		expect(loggerMock.fatal).not.toHaveBeenCalled();
+	});
+
+	test('should emit log at fatal level', () => {
+		const logHandler = new LogHandler(account, loggerMock);
+		logHandler.fatal(message);
+
+		const expected = `[${account}] ${message}`;
+		expect(loggerMock.fatal).toHaveBeenCalledWith(expected);
+	});
+});
 
 describe('error', () => {
 	test('should not emit log if no logger specified', () => {
@@ -63,23 +80,6 @@ describe('info', () => {
 	});
 });
 
-describe('verbose', () => {
-	test('should not emit log if no logger specified', () => {
-		const logHandler = new LogHandler(account);
-		logHandler.verbose(message);
-
-		expect(loggerMock.verbose).not.toHaveBeenCalled();
-	});
-
-	test('should emit log at verbose level', () => {
-		const logHandler = new LogHandler(account, loggerMock);
-		logHandler.verbose(message);
-
-		const expected = `[${account}] ${message}`;
-		expect(loggerMock.verbose).toHaveBeenCalledWith(expected);
-	});
-});
-
 describe('debug', () => {
 	test('should not emit log if no logger specified', () => {
 		const logHandler = new LogHandler(account);
@@ -97,19 +97,19 @@ describe('debug', () => {
 	});
 });
 
-describe('silly', () => {
+describe('trace', () => {
 	test('should not emit log if no logger specified', () => {
 		const logHandler = new LogHandler(account);
-		logHandler.silly(message);
+		logHandler.trace(message);
 
-		expect(loggerMock.silly).not.toHaveBeenCalled();
+		expect(loggerMock.trace).not.toHaveBeenCalled();
 	});
 
-	test('should emit log at silly level', () => {
+	test('should emit log at trace level', () => {
 		const logHandler = new LogHandler(account, loggerMock);
-		logHandler.silly(message);
+		logHandler.trace(message);
 
 		const expected = `[${account}] ${message}`;
-		expect(loggerMock.silly).toHaveBeenCalledWith(expected);
+		expect(loggerMock.trace).toHaveBeenCalledWith(expected);
 	});
 });

@@ -3,16 +3,16 @@ interface LogFunction {
 }
 
 export interface Logger {
+	fatal: LogFunction;
 	error: LogFunction;
 	warn: LogFunction;
 	info: LogFunction;
-	verbose: LogFunction;
 	debug: LogFunction;
-	silly: LogFunction;
+	trace: LogFunction;
 }
 
 /** Handle logging */
-class LogHandler {
+class LogHandler implements Logger {
 	private account: string;
 
 	private logger?: Logger;
@@ -20,6 +20,11 @@ class LogHandler {
 	public constructor(account: string, logger?: Logger) {
 		this.account = account;
 		this.logger = logger;
+	}
+
+	/** Emit a fatal level log */
+	public fatal(message: string): void {
+		return this.log('fatal', message);
 	}
 
 	/** Emit an error level log */
@@ -37,19 +42,14 @@ class LogHandler {
 		return this.log('info', message);
 	}
 
-	/** Emit a verbose level log */
-	public verbose(message: string): void {
-		return this.log('verbose', message);
-	}
-
 	/** Emit a debug level log */
 	public debug(message: string): void {
 		return this.log('debug', message);
 	}
 
-	/** Emit a silly level log */
-	public silly(message: string): void {
-		return this.log('silly', message);
+	/** Emit a trace level log */
+	public trace(message: string): void {
+		return this.log('trace', message);
 	}
 
 	/** Log a message to logger */
