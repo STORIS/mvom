@@ -206,7 +206,6 @@ abstract class BaseScalarType extends BaseSchemaType implements DataTransformer 
 			});
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		return this.encryptSingle(data);
 	}
 

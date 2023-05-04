@@ -144,8 +144,8 @@ class Query<TSchema extends GenericObject = GenericObject> {
 		};
 
 		const setupOptions: DbSubroutineSetupOptions = {
-			...(maxReturnPayloadSize && { maxReturnPayloadSize }),
-			...(requestId && { requestId }),
+			...(maxReturnPayloadSize != null && { maxReturnPayloadSize }),
+			...(requestId != null && { requestId }),
 			...(userDefined && { userDefined }),
 		};
 

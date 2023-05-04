@@ -367,7 +367,7 @@ class Connection {
 				const { date, time, delimiters, limits } = await this.executeDbSubroutine(
 					'getServerInfo',
 					{},
-					{ ...(requestId && { requestId }) },
+					{ ...(requestId != null && { requestId }) },
 				);
 
 				const timeDrift = differenceInMilliseconds(

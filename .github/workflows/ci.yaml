@@ -34,7 +34,7 @@ jobs:
       - name: install website dependencies
         working-directory: website
         run: npm ci
-      - run: npm run lint:nocache
+      - run: npm run lint
       - run: npm run typecheck
       - run: npm run prettier
 

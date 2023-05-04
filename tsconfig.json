@@ -1,14 +1,20 @@
 {
-  "extends": "@storis/tsconfig/node16/tsconfig.json",
+  "extends": "@storis/tsconfig/node18/tsconfig.json",
   "compilerOptions": {
     /* Modules */
     "baseUrl": "./" /* Specify the base directory to resolve non-relative module names. */,
     "resolveJsonModule": true /* Enable importing .json files */,
     "paths": {
       /* Specify a set of entries that re-map imports to additional lookup locations. */
-      "#test/*": ["test/*"],
-      "*": ["src/@types/overrides/*", "node_modules/*"]
-    }
+      "#test/*": ["test/*"]
+    },
+    "checkJs": false
   },
-  "exclude": ["website/*"]
+  "include": [
+    "src/**/*", // source folder
+    "scripts/**/*", // scripts folder
+    "test/**/*", // test helpers
+    "./*.js", // root javascript files
+    "./.*.js" // root javascript config files
+  ]
 }
