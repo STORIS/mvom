@@ -690,7 +690,7 @@ describe('save', () => {
 				__v: null,
 				record: `prop1-value${am}123`,
 				foreignKeyDefinitions: [
-					{ entityIds: ['prop1-value'], entityName: 'prop1', filename: 'FK_FILE' },
+					{ entityIds: ['prop1-value'], entityName: 'prop1', filename: ['FK_FILE'] },
 				],
 			},
 			{},
@@ -723,7 +723,7 @@ describe('save', () => {
 					__v: null,
 					record: `prop1-value${am}123`,
 					foreignKeyDefinitions: [
-						{ entityIds: ['prop1-value'], entityName: 'prop1', filename: 'FK_FILE' },
+						{ entityIds: ['prop1-value'], entityName: 'prop1', filename: ['FK_FILE'] },
 					],
 				},
 				{},
@@ -934,7 +934,7 @@ describe('save', () => {
 					__v: null,
 					record: `prop1-value${am}123`,
 					foreignKeyDefinitions: [
-						{ entityIds: ['prop1-value'], entityName: 'prop1', filename: 'FK_FILE' },
+						{ entityIds: ['prop1-value'], entityName: 'prop1', filename: ['FK_FILE'] },
 					],
 				},
 				{ maxReturnPayloadSize, userDefined, requestId },
