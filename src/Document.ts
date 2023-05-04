@@ -166,7 +166,8 @@ class Document {
 			(acc, [key, value]) => {
 				const keyParts = key.split(separator);
 				const fileName = keyParts[0];
-				// If an array of filenames was provided, when we transformed the array into a string, commas were inserted between the filenames
+				// If an array of filenames was provided, when we transformed the array into a string above, commas
+				// would have been inserted between each filename. Split the string back into an array.
 				const filename = fileName.split(',');
 				// Just incase the entity name included a comma, rejoin
 				const entityName = keyParts.slice(1).join(separator);
