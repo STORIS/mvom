@@ -3,8 +3,7 @@ import type { DocumentConstructorOptions } from './Document';
 import Document from './Document';
 import { DataValidationError } from './errors';
 import type LogHandler from './LogHandler';
-import type { QueryConstructorOptions } from './Query';
-import Query, { type Filter } from './Query';
+import Query, { type Filter, type QueryConstructorOptions } from './Query';
 import type Schema from './Schema';
 import type { DbServerDelimiters, DbSubroutineUserDefinedOptions, GenericObject } from './types';
 import { ensureArray } from './utils';
@@ -138,8 +137,8 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 					id,
 				},
 				{
-					...(maxReturnPayloadSize && { maxReturnPayloadSize }),
-					...(requestId && { requestId }),
+					...(maxReturnPayloadSize != null && { maxReturnPayloadSize }),
+					...(requestId != null && { requestId }),
 					...(userDefined && { userDefined }),
 				},
 			);
@@ -161,8 +160,8 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			const { maxReturnPayloadSize, requestId, userDefined, ...queryConstructorOptions } = options;
 			const query = new Query(Model, Model.#logHandler, selectionCriteria, queryConstructorOptions);
 			const { documents } = await query.exec({
-				...(maxReturnPayloadSize && { maxReturnPayloadSize }),
-				...(requestId && { requestId }),
+				...(maxReturnPayloadSize != null && { maxReturnPayloadSize }),
+				...(requestId != null && { requestId }),
 				...(userDefined && { userDefined }),
 			});
 
@@ -180,8 +179,8 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			const { maxReturnPayloadSize, requestId, userDefined, ...queryConstructorOptions } = options;
 			const query = new Query(Model, Model.#logHandler, selectionCriteria, queryConstructorOptions);
 			const { count, documents } = await query.exec({
-				...(maxReturnPayloadSize && { maxReturnPayloadSize }),
-				...(requestId && { requestId }),
+				...(maxReturnPayloadSize != null && { maxReturnPayloadSize }),
+				...(requestId != null && { requestId }),
 				...(userDefined && { userDefined }),
 			});
 
@@ -211,8 +210,8 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 					projection: this.#formatProjection(projection),
 				},
 				{
-					...(maxReturnPayloadSize && { maxReturnPayloadSize }),
-					...(requestId && { requestId }),
+					...(maxReturnPayloadSize != null && { maxReturnPayloadSize }),
+					...(requestId != null && { requestId }),
 					...(userDefined && { userDefined }),
 				},
 			);
@@ -242,8 +241,8 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 					projection: this.#formatProjection(projection),
 				},
 				{
-					...(maxReturnPayloadSize && { maxReturnPayloadSize }),
-					...(requestId && { requestId }),
+					...(maxReturnPayloadSize != null && { maxReturnPayloadSize }),
+					...(requestId != null && { requestId }),
 					...(userDefined && { userDefined }),
 				},
 			);
@@ -271,8 +270,8 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 					id,
 				},
 				{
-					...(maxReturnPayloadSize && { maxReturnPayloadSize }),
-					...(requestId && { requestId }),
+					...(maxReturnPayloadSize != null && { maxReturnPayloadSize }),
+					...(requestId != null && { requestId }),
 					...(userDefined && { userDefined }),
 				},
 			);
@@ -324,8 +323,8 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 						foreignKeyDefinitions: this.buildForeignKeyDefinitions(),
 					},
 					{
-						...(maxReturnPayloadSize && { maxReturnPayloadSize }),
-						...(requestId && { requestId }),
+						...(maxReturnPayloadSize != null && { maxReturnPayloadSize }),
+						...(requestId != null && { requestId }),
 						...(userDefined && { userDefined }),
 					},
 				);

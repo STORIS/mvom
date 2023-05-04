@@ -10,7 +10,8 @@ class BooleanDataTransformer implements DataTransformer {
 
 	/** Transform js style data to mv style data */
 	public transformToDb(value: unknown): '1' | '0' {
-		return value ? '1' : '0';
+		const booleanValue = Boolean(value);
+		return booleanValue ? '1' : '0';
 	}
 
 	/** Transform query constants to u2 formatted Boolean */

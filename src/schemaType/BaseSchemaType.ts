@@ -35,7 +35,6 @@ abstract class BaseSchemaType {
 	}
 
 	/** Get data from a multivalue array at a given path */
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public getFromMvArray(path: number[], record: MvRecord = []): MvAttribute {
 		// if the entire contents of the record at the base path is null then we must treat this as a special case:
 		// - returning undefined won't alter the behavior of scalar data types (e.g. string, Boolean) since the undefined
