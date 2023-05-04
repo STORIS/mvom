@@ -1,13 +1,14 @@
-const { rules: baseRules } = require('@storis/eslint-config/nodejs');
+const { overrides: baseOverrides } = require('@storis/eslint-config/nodejs');
 
-const baseNamingRules = baseRules['@typescript-eslint/naming-convention'].slice(1);
+const baseNamingRules = baseOverrides[0].rules['@typescript-eslint/naming-convention'].slice(1);
 
 module.exports = {
 	extends: ['@storis/eslint-config/nodejs'],
 
-	parserOptions: {
-		tsconfigRootDir: __dirname,
-		project: ['./tsconfig.eslint.json', './website/tsconfig.eslint.json'],
+	settings: {
+		'import/resolver': {
+			'babel-module': {},
+		},
 	},
 
 	rules: {
