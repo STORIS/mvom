@@ -12,7 +12,7 @@ export interface DocumentConstructorOptions {
 }
 
 export interface BuildForeignKeyDefinitionsResult {
-	filename: string;
+	filename: string[];
 	entityName: string;
 	entityIds: string[];
 }
@@ -130,8 +130,8 @@ class Document {
 			return [];
 		}
 
-		// U2 does not allow commas in filenames so we can use it to separate filename/entityName combinations
-		const separator = ',';
+		// U2 does not allow pound signs in filenames so we can use it to separate filename/entityName combinations
+		const separator = '#';
 		const definitionMap = Array.from(this.#schema.paths).reduce(
 			(foreignKeyDefinitions, [keyPath, schemaType]) => {
 				const value = getIn(this, keyPath, null);
@@ -165,8 +165,11 @@ class Document {
 		return Array.from(definitionMap).reduce<BuildForeignKeyDefinitionsResult[]>(
 			(acc, [key, value]) => {
 				const keyParts = key.split(separator);
-				const filename = keyParts[0];
-				// Just incase the entity name included a comma, rejoin
+				const fileName = keyParts[0];
+				// If an array of filenames was provided, when we transformed the array into a string above, commas
+				// would have been inserted between each filename. Split the string back into an array.
+				const filename = fileName.split(',');
+				// Just incase the entity name included a pound sign, rejoin
 				const entityName = keyParts.slice(1).join(separator);
 				acc.push({ filename, entityName, entityIds: Array.from(value) });
 				return acc;

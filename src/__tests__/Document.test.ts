@@ -652,7 +652,7 @@ describe('buildForeignKeyDefinitions', () => {
 		const document = new DocumentSubclass(schema, { data: { prop1: 'foo' } });
 
 		const expected: BuildForeignKeyDefinitionsResult[] = [
-			{ filename: 'FILE', entityName: 'entityName', entityIds: ['foo'] },
+			{ filename: ['FILE'], entityName: 'entityName', entityIds: ['foo'] },
 		];
 		expect(document.buildForeignKeyDefinitions()).toEqual(expected);
 	});
@@ -675,8 +675,8 @@ describe('buildForeignKeyDefinitions', () => {
 		const document = new DocumentSubclass(schema, { data: { prop1: 'foo', prop2: 'bar' } });
 
 		const expected: BuildForeignKeyDefinitionsResult[] = [
-			{ filename: 'FILE1', entityName: 'entityName1', entityIds: ['foo'] },
-			{ filename: 'FILE2', entityName: 'entityName2', entityIds: ['bar'] },
+			{ filename: ['FILE1'], entityName: 'entityName1', entityIds: ['foo'] },
+			{ filename: ['FILE2'], entityName: 'entityName2', entityIds: ['bar'] },
 		];
 		expect(document.buildForeignKeyDefinitions()).toEqual(expected);
 	});
@@ -691,7 +691,7 @@ describe('buildForeignKeyDefinitions', () => {
 		const document = new DocumentSubclass(schema, { data: { prop1: 'foo', prop2: 'bar' } });
 
 		const expected: BuildForeignKeyDefinitionsResult[] = [
-			{ filename: 'FILE', entityName: 'entityName', entityIds: ['foo', 'bar'] },
+			{ filename: ['FILE'], entityName: 'entityName', entityIds: ['foo', 'bar'] },
 		];
 		expect(document.buildForeignKeyDefinitions()).toEqual(expected);
 	});
@@ -707,7 +707,7 @@ describe('buildForeignKeyDefinitions', () => {
 		const document = new DocumentSubclass(schema, { data: { prop1: ['foo', 'bar'] } });
 
 		const expected: BuildForeignKeyDefinitionsResult[] = [
-			{ filename: 'FILE', entityName: 'entityName', entityIds: ['foo', 'bar'] },
+			{ filename: ['FILE'], entityName: 'entityName', entityIds: ['foo', 'bar'] },
 		];
 		expect(document.buildForeignKeyDefinitions()).toEqual(expected);
 	});
@@ -741,8 +741,8 @@ describe('buildForeignKeyDefinitions', () => {
 		});
 
 		const expected: BuildForeignKeyDefinitionsResult[] = [
-			{ filename: 'FILE1', entityName: 'entityName', entityIds: ['foo', 'baz'] },
-			{ filename: 'FILE2', entityName: 'entityName', entityIds: ['bar', 'qux'] },
+			{ filename: ['FILE1'], entityName: 'entityName', entityIds: ['foo', 'baz'] },
+			{ filename: ['FILE2'], entityName: 'entityName', entityIds: ['bar', 'qux'] },
 		];
 		expect(document.buildForeignKeyDefinitions()).toEqual(expected);
 	});
@@ -758,7 +758,25 @@ describe('buildForeignKeyDefinitions', () => {
 		const document = new DocumentSubclass(schema, { data: { _id: 'id', prop1: 'foo' } });
 
 		const expected: BuildForeignKeyDefinitionsResult[] = [
-			{ filename: 'FILE', entityName: 'entityName', entityIds: ['id'] },
+			{ filename: ['FILE'], entityName: 'entityName', entityIds: ['id'] },
+		];
+		expect(document.buildForeignKeyDefinitions()).toEqual(expected);
+	});
+
+	test('should build foreign key definitions with multiple filenames', () => {
+		const definition: SchemaDefinition = {
+			prop1: {
+				type: 'string',
+				path: '1',
+				foreignKey: { entityName: 'entityName', file: ['FILE1', 'FILE2'] },
+			},
+		};
+		const schema = new Schema(definition);
+
+		const document = new DocumentSubclass(schema, { data: { prop1: 'foo' } });
+
+		const expected: BuildForeignKeyDefinitionsResult[] = [
+			{ filename: ['FILE1', 'FILE2'], entityName: 'entityName', entityIds: ['foo'] },
 		];
 		expect(document.buildForeignKeyDefinitions()).toEqual(expected);
 	});

@@ -308,8 +308,8 @@ describe('transformForeignKeyDefinitionsToDb', () => {
 		value2.prop2 = 4.56;
 
 		const expected: ForeignKeyDbDefinition[] = [
-			{ filename: 'FILE', entityId: 'foo', entityName: 'FK_ENTITY' },
-			{ filename: 'FILE', entityId: 'bar', entityName: 'FK_ENTITY' },
+			{ filename: ['FILE'], entityId: 'foo', entityName: 'FK_ENTITY' },
+			{ filename: ['FILE'], entityId: 'bar', entityName: 'FK_ENTITY' },
 		];
 		expect(documentArrayType.transformForeignKeyDefinitionsToDb([value1, value2])).toEqual(
 			expected,
