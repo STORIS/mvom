@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0-rc.1] - 2023-05-05
+
+### Breaking changes
+
+- Logger interface has been adjusted, adding `fatal` and `trace` while removing `verbose` and `silly` ([#463](https://github.com/STORIS/mvom/pull/463))
+
+### Fixed
+
+- Fix handling of foreign key validation when multiple files are specified ([#467](https://github.com/STORIS/mvom/pull/467))
+
 ## [2.0.0-rc.0] - 2023-03-16
 
 ### Breaking changes
@@ -425,7 +435,8 @@ We've graduated from Alpha to Beta! Semver has been updated so breaking vs. non-
 
 Initial alpha release of this library! Thanks for using it!
 
-[unreleased]: https://github.com/storis/mvom/compare/2.0.0-rc.0...HEAD
+[unreleased]: https://github.com/storis/mvom/compare/2.0.0-rc.1...HEAD
+[2.0.0-rc.1]: https://github.com/storis/mvom/compare/2.0.0-rc.0...2.0.0-rc.1
 [2.0.0-rc.0]: https://github.com/storis/mvom/compare/2.0.0-alpha.7...2.0.0-rc.0
 [2.0.0-alpha.7]: https://github.com/storis/mvom/compare/2.0.0-alpha.6...2.0.0-alpha.7
 [2.0.0-alpha.6]: https://github.com/storis/mvom/compare/2.0.0-alpha.5...2.0.0-alpha.6
