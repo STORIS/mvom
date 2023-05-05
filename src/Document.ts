@@ -169,7 +169,7 @@ class Document {
 				// If an array of filenames was provided, when we transformed the array into a string above, commas
 				// would have been inserted between each filename. Split the string back into an array.
 				const filename = fileName.split(',');
-				// Just incase the entity name included a comma, rejoin
+				// Just incase the entity name included a pound sign, rejoin
 				const entityName = keyParts.slice(1).join(separator);
 				acc.push({ filename, entityName, entityIds: Array.from(value) });
 				return acc;
