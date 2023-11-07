@@ -58,7 +58,7 @@
     "@storis/eslint-config": "5.0.0",
     "@storis/tsconfig": "2.0.0",
     "@types/fs-extra": "11.0.3",
-    "@types/jest-when": "3.5.4",
+    "@types/jest-when": "3.5.5",
     "@types/lodash": "4.14.200",
     "@types/node": "20.8.10",
     "@types/nunjucks": "3.2.5",
