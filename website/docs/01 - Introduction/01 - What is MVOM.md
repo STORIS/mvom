@@ -17,7 +17,7 @@ The creators of MVOM work with Unidata exclusively. This has not been tested on 
   - Unidata (version 8.2.1 or higher)
   - Universe (see warning above)
 - MultiValue Integration Server (version 1.3.0 or higher)
-- Node.js (version 16.0.0 or higher)
+- Node.js (version 20.0.0 or higher)
 
 ## How it works
 
