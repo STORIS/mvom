@@ -5,5 +5,5 @@
     "baseUrl": ".",
     "strictNullChecks": true
   },
-  "include": ["./*.js", "./.*.js", "./src/**/*"]
+  "include": ["./*.js", "./.*.js","./*.ts", "./.*.ts", "./src/**/*"]
 }
