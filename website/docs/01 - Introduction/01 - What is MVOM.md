@@ -9,7 +9,7 @@ MVOM (**M**ulti**V**alue **O**bject **M**apper) is a library which provides the 
 
 ## Requirements
 
-:::warning
+:::danger
 The creators of MVOM work with Unidata exclusively. This has not been tested on Universe. If you would like to help us test and ensure everything works on Universe, please [log an issue](https://github.com/STORIS/mvom/issues/new) and let us know.
 :::
 
@@ -17,7 +17,7 @@ The creators of MVOM work with Unidata exclusively. This has not been tested on 
   - Unidata (version 8.2.1 or higher)
   - Universe (see warning above)
 - MultiValue Integration Server (version 1.3.0 or higher)
-- Node.js (version 20.0.0 or higher)
+- Node.js (version 18.0.0 or higher)
 
 ## How it works
 
