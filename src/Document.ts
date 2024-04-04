@@ -198,7 +198,7 @@ class Document {
 						value = schemaType.cast(value);
 						setIn(this, keyPath, value);
 
-						const errors = await schemaType.validate(value, this);
+						const errors = await schemaType.validate(value, this, keyPath);
 						if (errors.length > 0) {
 							documentErrors.set(keyPath, errors);
 						}
