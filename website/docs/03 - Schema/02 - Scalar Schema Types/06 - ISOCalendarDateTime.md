@@ -9,7 +9,7 @@ The ISOCalendarDateTime schema type allow you to work with compound date-time va
 
 ## Schema Definition Properties
 
-In addition to the [base schema definition properties](../schema_basics#properties-common-to-all-schema-definitions) the `ISOCalendarDateTime` type has the following additional properties:
+In addition to the [base schema definition properties](../schema_basics#properties-common-to-all-schema-definition-types) the `ISOCalendarDateTime` type has the following additional properties:
 
 | Property   | Type                    |     Mandatory      | Default | Description                                                                                   |
 | ---------- | ----------------------- | :----------------: | ------- | --------------------------------------------------------------------------------------------- |
