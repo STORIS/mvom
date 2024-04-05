@@ -5,7 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.0] - 2024-04-03
+## [unreleased]
+
+## [3.0.0] - 2024-04-03
 
 ### Breaking Changes
 
@@ -14,7 +16,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Docs
 
 - Upgraded to Docusaurus v3.2 because V2 does not support Node 18 ([#620](https://github.com/STORIS/mvom/pull/620)).
-- Updated docs for changes in release ([#620](https://github.com/STORIS/mvom/pull/620))
 
 ### Added
 
