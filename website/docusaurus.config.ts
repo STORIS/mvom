@@ -70,7 +70,7 @@ const config: Config = {
 				},
 				{
 					type: 'docsVersion',
-					label: '2.0.0',
+					label: '2.0.0-rc.1',
 					position: 'right',
 				},
 				{
