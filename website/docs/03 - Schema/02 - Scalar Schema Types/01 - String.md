@@ -9,7 +9,7 @@ The string schema type is the simplest of the schema types supported by MVOM.
 
 ## Schema Definition Properties
 
-In addition to the [base schema definition properties](../schema_basics#properties-common-to-all-schema-definitions) the `string` type has the following additional properties:
+In addition to the [base schema definition properties](../schema_basics#properties-common-to-all-schema-definition-types) the `string` type has the following additional properties:
 
 | Property     | Type                               |     Mandatory      | Default | Description                                                                                             |
 | ------------ | ---------------------------------- | :----------------: | ------- | ------------------------------------------------------------------------------------------------------- |

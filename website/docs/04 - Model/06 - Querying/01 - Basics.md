@@ -75,7 +75,7 @@ When issuing queries, a query condition filter object must be passed to the `fin
 ```
 
 :::info
-In order to use a property for a query it must either be a property defined in the schema with a specified [dictionary](../../Schema/schema_basics#properties-common-to-all-schema-definitions) value or a property defined in the [dictionaries object](../../Schema/schema_options#dictionaries-object) of the schema options.
+In order to use a property for a query it must either be a property defined in the schema with a specified [dictionary](../../Schema/schema_basics#properties-common-to-all-schema-definition-types) value or a property defined in the [dictionaries object](../../Schema/schema_options#dictionaries-object) of the schema options.
 :::
 
 ### Example

@@ -35,4 +35,4 @@ The signature of the decrypt function is:
 
 Specifying the `encrypt` and `decrypt` functions for a schema merely enables the ability to allow encryption on properties in the schema. It does not activate encryption for any data by default. In order to enable encryption for a schema property, the `encrypted` property of the schema definition must be set to `true`. Doing so will enable encryption and decryption behaviors for that property as described above.
 
-See the [schema definition properties documentation](./schema_basics#properties-common-to-all-schema-definitions) for more information.
+See the [schema definition properties documentation](./schema_basics#properties-common-to-all-schema-definition-types) for more information.

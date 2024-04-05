@@ -9,7 +9,7 @@ The ISOTime schema type allow you to work with time values.
 
 ## Schema Definition Properties
 
-In addition to the [base schema definition properties](../schema_basics#properties-common-to-all-schema-definitions) the `ISOTime` type has the following additional properties:
+In addition to the [base schema definition properties](../schema_basics#properties-common-to-all-schema-definition-types) the `ISOTime` type has the following additional properties:
 
 | Property   | Type            |     Mandatory      | Default | Description                                                                                   |
 | ---------- | --------------- | :----------------: | ------- | --------------------------------------------------------------------------------------------- |
