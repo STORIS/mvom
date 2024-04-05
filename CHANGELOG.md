@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Docs
 
-- Upgraded to Docusaurus v3.2 because V2 does not support Node 18 ([#620](https://github.com/STORIS/mvom/pull/620)).
+- Upgraded to Docusaurus v3.2.1 because V2 does not support Node 18 ([#620](https://github.com/STORIS/mvom/pull/620)).
 
 ### Added
 
