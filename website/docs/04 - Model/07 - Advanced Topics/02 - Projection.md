@@ -7,7 +7,7 @@ title: Projection
 
 Consumers do not always want to return the entire contents of a record. In particular, for large records, returning the entirety of the record can increase the size of data transfer payloads and reduce overall performance if all of the data from a record is not needed. To support this behavior, many read operations allow for specification of a `projection` property. This `projection` property allows the consumer to limit the properties returned from the database resulting in reduced data traffic.
 
-:::caution
+:::warning
 It is highly advised to never save a `Model` that is instantiated from a read operation using `projection`. Unless you really know what you are doing, this could result in data loss as the `Model` instance will not contain the data that was excluded from the projection.
 :::
 

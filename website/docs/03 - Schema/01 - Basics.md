@@ -62,7 +62,7 @@ For data located in a specific value of an attribute, the `path` will be a dot-d
 
 For data located in a specific subvalue of a value of an attribute, the `path` will be a dot-delimited string of integers with three parts. That is, the format of the string will be `"n.n.n"` where `n` represents an integer value. For instance, If the data is locatated in the first subvalue of the second value of the third attribute of a file, the `path` would be defined as `"3.2.1"`.
 
-:::caution
+:::warning
 It's very likely that if you have data defined using subvalue based paths that there is either a better way to describe that data in MVOM or you might be employing a schema anti-pattern. Although this mechanism is supported by MVOM, it may be best to evaluate if there is another way to describe your schema or consider refactoring your physical database structures.
 :::
 

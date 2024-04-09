@@ -154,7 +154,7 @@ The query which will be executed on the MultiValue database is:
 select ITEM with DESCRIPTION like "...Bed..."
 ```
 
-:::caution
+:::warning
 Queries with the `$contains` operator cannot include single or double quotes (`'` or `"`) in the query constant value.
 :::
 
@@ -174,7 +174,7 @@ The query which will be executed on the MultiValue database is:
 select ITEM with DESCRIPTION like "Bed..."
 ```
 
-:::caution
+:::warning
 Queries with the `$startsWith` operator cannot include single or double quotes (`'` or `"`) in the query constant value.
 :::
 
@@ -194,7 +194,7 @@ The query which will be executed on the MultiValue database is:
 select ITEM with DESCRIPTION like "...Bed"
 ```
 
-:::caution
+:::warning
 Queries with the `$endsWith` operator cannot include single or double quotes (`'` or `"`) in the query constant value.
 :::
 

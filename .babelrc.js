@@ -3,7 +3,7 @@ module.exports = {
 	env: {
 		build: {
 			ignore: ['**/*.test.ts', '**/__mocks__/**'],
-			presets: [['@babel/env', { targets: { node: '16.0.0' } }], '@babel/typescript'],
+			presets: [['@babel/env', { targets: { node: '18.0.0' } }], '@babel/typescript'],
 		},
 		debug: { sourceMaps: 'inline', retainLines: true },
 	},

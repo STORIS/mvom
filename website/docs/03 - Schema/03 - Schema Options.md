@@ -72,7 +72,7 @@ const schema = new Schema({...}, { dictionaries });
 
 The `idMatch` property allows you to specify a regular expression which will validate the `_id` value of an object to determine if there is a match of the regular expression. If the value of `_id` property does not match the regular expression an error will be thrown when saving.
 
-Related: [Validating pattern matching in strings](./Scalar%20Schema%20Types/schema_type_string#validating-pattern-matching>)
+Related: [Validating pattern matching in strings](./Scalar%20Schema%20Types/schema_type_string#validating-pattern-matching)
 
 ### Validating ID foreign key
 

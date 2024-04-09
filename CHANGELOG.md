@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Breaking changes
+
+- Minimum Node version is now 18.0.0 ([#620](https://github.com/STORIS/mvom/pull/620))
+
+### Docs
+
+- Upgraded to Docusaurus v3.2.1 because V2 does not support Node 18 ([#620](https://github.com/STORIS/mvom/pull/620)).
+
+### Added
+
+- Add node 20 to the CI matrix
+
 ## [2.0.0-rc.1] - 2023-05-05
 
 ### Breaking changes
