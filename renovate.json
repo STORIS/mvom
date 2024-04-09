@@ -1,7 +1,6 @@
 {
   "extends": [
     "config:base",
-    ":onlyNpm",
     ":automergeTypes",
     ":automergeMinor",
     ":rebaseStalePrs",
