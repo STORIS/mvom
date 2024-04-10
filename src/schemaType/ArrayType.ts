@@ -34,10 +34,12 @@ class ArrayType extends BaseScalarArrayType {
 	}
 
 	/** Validate the array */
-	public async validate(value: unknown, document: Document): Promise<string[]> {
+	public async validate(value: unknown, document: Document, keyPath: string): Promise<string[]> {
 		return (
 			await Promise.all(
-				ensureArray(value).map((arrayItem) => this.valueSchemaType.validate(arrayItem, document)),
+				ensureArray(value).map((arrayItem) =>
+					this.valueSchemaType.validate(arrayItem, document, keyPath),
+				),
 			)
 		).flat();
 	}

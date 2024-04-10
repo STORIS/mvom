@@ -11,7 +11,11 @@ export interface SchemaTypeDefinitionBase {
 	encrypted?: boolean;
 }
 
-type ValidationFunction = (value: unknown, document: Document) => boolean | Promise<boolean>;
+type ValidationFunction = (
+	value: unknown,
+	document: Document,
+	keyPath: string,
+) => boolean | Promise<boolean>;
 
 export interface Validator {
 	validationFn: ValidationFunction;

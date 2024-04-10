@@ -122,7 +122,7 @@ abstract class BaseScalarType extends BaseSchemaType implements DataTransformer 
 	}
 
 	/** Validate the scalar type */
-	public async validate(value: unknown, document: Document): Promise<string[]> {
+	public async validate(value: unknown, document: Document, keyPath: string): Promise<string[]> {
 		// combining all the validation into one array of promise.all
 		// - a validator will return a placeholder symbol or the appropriate error message
 		// - filter out the placeholder symbols to only return the error messages
@@ -132,8 +132,8 @@ abstract class BaseScalarType extends BaseSchemaType implements DataTransformer 
 				this.validators
 					.concat(this.createRequiredValidator(), this.createTypeValidator())
 					.map(async ({ validationFn, message }) => {
-						const isValid = await validationFn(value, document);
-						const newMessage = `${message} - value: ${value}`;
+						const isValid = await validationFn(value, document, keyPath);
+						const newMessage = `${message} - keyPath: ${keyPath} - value: ${value}`;
 						return isValid ? ISVALID_SYMBOL : newMessage;
 					}),
 			)
@@ -157,8 +157,14 @@ abstract class BaseScalarType extends BaseSchemaType implements DataTransformer 
 		!this.required || value != null;
 
 	/** Type validator */
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	protected validateType = (value: unknown, document: Document): boolean | Promise<boolean> => true;
+	protected validateType = (
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		value: unknown,
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		document: Document,
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		keyPath: string,
+	): boolean | Promise<boolean> => true;
 
 	/** Create validation object for required validation */
 	private createRequiredValidator(): Validator {

@@ -43,6 +43,7 @@ class ISOCalendarDateTimeType extends BaseScalarType {
 	protected override validateType = async (
 		value: unknown,
 		document: Document,
+		keyPath: string,
 	): Promise<boolean> => {
 		if (value == null) {
 			return true;
@@ -57,8 +58,8 @@ class ISOCalendarDateTimeType extends BaseScalarType {
 
 		const partsValidations = (
 			await Promise.all([
-				this.isoCalendarDateType.validate(datePart, document),
-				this.isoTimeType.validate(timePart, document),
+				this.isoCalendarDateType.validate(datePart, document, keyPath),
+				this.isoTimeType.validate(timePart, document, keyPath),
 			])
 		).flat();
 
