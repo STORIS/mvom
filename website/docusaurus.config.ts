@@ -140,7 +140,7 @@ const config: Config = {
 					lastVersion: 'current',
 					versions: {
 						current: {
-							label: '2.0.0',
+							label: '2.0.0-rc.1',
 						},
 					},
 					remarkPlugins: [[npm2YarnPlugin, { sync: true }]],
@@ -170,7 +170,7 @@ const config: Config = {
 				},
 				{
 					type: 'docsVersion',
-					label: '2.0.0',
+					label: '2.0.0-rc.1',
 					position: 'right',
 				},
 				{
