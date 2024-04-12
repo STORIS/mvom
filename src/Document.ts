@@ -200,7 +200,10 @@ class Document {
 
 						const errors = await schemaType.validate(value, this);
 						if (this.#isArrayOfStrings(errors) && errors.length > 0) {
-							documentErrors.set(keyPath, errors);
+							documentErrors.set(
+								keyPath,
+								errors.map((error, index) => `idx${index}: ${error}`),
+							);
 						}
 
 						if (this.#isArrayOfMaps(errors)) {
