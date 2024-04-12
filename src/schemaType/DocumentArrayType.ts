@@ -65,10 +65,12 @@ class DocumentArrayType extends BaseSchemaType {
 		// - validation against the documents in the array will return a single object with 0 to n keys - only those with keys indicate errors;
 		// - iterate the returned object and return the messages from each
 		// - flatten the final results
+		console.log(`validating document array type.`);
 
 		const result = await Promise.all(
 			documentList.map(async (document) => {
 				const documentErrors = await document.validate();
+				console.log(`validating document in document array type: ${document?._raw}`);
 
 				return documentErrors;
 			}),

@@ -133,8 +133,8 @@ abstract class BaseScalarType extends BaseSchemaType implements DataTransformer 
 					.concat(this.createRequiredValidator(), this.createTypeValidator())
 					.map(async ({ validationFn, message }) => {
 						const isValid = await validationFn(value, document, keyPath);
-						const newMessage = `${message} - keyPath: ${keyPath} - value: ${value}`;
-						return isValid ? ISVALID_SYMBOL : newMessage;
+						// const newMessage = `${message} - keyPath: ${keyPath} - value: ${value}`;
+						return isValid ? ISVALID_SYMBOL : message;
 					}),
 			)
 		).filter((val): val is string => val !== ISVALID_SYMBOL);
