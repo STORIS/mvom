@@ -198,14 +198,13 @@ class Document {
 						value = schemaType.cast(value);
 						setIn(this, keyPath, value);
 
-						const errors = await schemaType.validate(value, this, keyPath);
+						const errors = await schemaType.validate(value, this);
 						if (this.#isArrayOfStrings(errors) && errors.length > 0) {
 							documentErrors.set(keyPath, errors);
 						}
 
 						if (this.#isArrayOfMaps(errors)) {
-							// eslint-disable-next-line @typescript-eslint/no-unused-vars
-							errors.forEach((errorMap, index) => {
+							errors.forEach((errorMap) => {
 								errorMap.forEach((error, key) => {
 									if (Array.isArray(error) && error.length > 0) {
 										documentErrors.set(`${keyPath}.${key}`, error);
