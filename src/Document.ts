@@ -205,12 +205,10 @@ class Document {
 
 						if (this.#isArrayOfMaps(errors)) {
 							// eslint-disable-next-line @typescript-eslint/no-unused-vars
-							errors.forEach((errorMap, unused) => {
+							errors.forEach((errorMap, index) => {
 								errorMap.forEach((error, key) => {
 									if (Array.isArray(error) && error.length > 0) {
 										documentErrors.set(`${keyPath}.${key}`, error);
-									} else {
-										documentErrors.set(keyPath, error);
 									}
 								});
 							});
