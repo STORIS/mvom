@@ -207,7 +207,9 @@ class Document {
 							// eslint-disable-next-line @typescript-eslint/no-unused-vars
 							errors.forEach((errorMap, unused) => {
 								errorMap.forEach((error, key) => {
-									documentErrors.set(`${keyPath}.${key}`, error);
+									if (Array.isArray(error) && error.length > 0) {
+										documentErrors.set(`${keyPath}.${key}`, error);
+									}
 								});
 							});
 						}
