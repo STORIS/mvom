@@ -199,8 +199,17 @@ class Document {
 						setIn(this, keyPath, value);
 
 						const errors = await schemaType.validate(value, this, keyPath);
-						if (errors.length > 0) {
+						if (this.#isArrayOfStrings(errors)) {
 							documentErrors.set(keyPath, errors);
+						}
+
+						if (this.#isArrayOfMaps(errors)) {
+							// eslint-disable-next-line @typescript-eslint/no-unused-vars
+							errors.forEach((errorMap, unused) => {
+								errorMap.forEach((error, key) => {
+									documentErrors.set(`${keyPath}.${key}`, error);
+								});
+							});
 						}
 					} catch (err) {
 						// an error was thrown - return the message from that error in the documentErrors list
@@ -210,6 +219,14 @@ class Document {
 			);
 		}
 		return documentErrors;
+	}
+
+	#isArrayOfStrings(value: unknown): value is string[] {
+		return Array.isArray(value) && value.every((item) => typeof item === 'string');
+	}
+
+	#isArrayOfMaps(value: unknown): value is Map<string, string | string[]>[] {
+		return Array.isArray(value) && value.every((item) => item instanceof Map);
 	}
 
 	/** Apply schema structure using record to document instance */
