@@ -859,5 +859,44 @@ describe('validate', () => {
 			const expected = new Map([['prop1', 'Test error message']]);
 			expect(await document.validate()).toEqual(expected);
 		});
+
+		test('should return error at property & unravel nested errors if schemaType validation fails', async () => {
+			const nestedSchema: SchemaDefinition = {
+				nestedProp1: [{ type: 'number', path: '1', required: true }],
+				nestedProp2: { type: 'number', path: '2', required: true },
+			};
+
+			const subDocumentArraySchema: SchemaDefinition = {
+				prop1: [{ type: 'string', path: '7', required: true }],
+				prop2: [{ type: 'number', path: '8', dbDecimals: 2, required: true }],
+			};
+
+			const definition: SchemaDefinition = {
+				prop1: { type: 'string', path: '1' },
+				prop2: { type: 'number', path: '2', dbDecimals: 2, required: true },
+				array: [{ type: 'string', path: '3' }],
+				nestedArray: [[{ type: 'string', path: '4', required: true }]],
+				nestedObject: {
+					prop1: { type: 'string', path: '5' },
+					prop2: { type: 'number', path: '6', dbDecimals: 2, required: true },
+				},
+				subdocumentArray: [subDocumentArraySchema],
+				embeddedType: nestedSchema,
+			};
+			const schema = new Schema(definition);
+			const document = new DocumentSubclass(schema, {
+				record: ['55', null, ['foo', 'bar'], [null], 'bing', null, [[null, 'thud']], [['5', null]]],
+			});
+
+			const expected = new Map([
+				['embeddedType.nestedProp2', ['Property is required']],
+				['nestedArray', ['Property is required']],
+				['nestedObject.prop2', ['Property is required']],
+				['prop2', ['Property is required']],
+				['subdocumentArray.prop1', ['index 0 - Property is required']],
+				['subdocumentArray.prop2', ['index 1 - Property is required']],
+			]);
+			expect(await document.validate()).toEqual(expected);
+		});
 	});
 });
