@@ -47,10 +47,10 @@ class EmbeddedType extends BaseSchemaType {
 	}
 
 	/** Validate the embedded document */
-	public async validate(document: Document): Promise<Map<string, string | string[]>[]> {
+	public async validate(document: Document): Promise<Map<string, string | string[]>> {
 		// - validation against the embedded document will return a single object with 0 to n keys - only those with keys indicate errors;
 		const documentErrors = await document.validate();
-		return [documentErrors];
+		return documentErrors;
 	}
 }
 

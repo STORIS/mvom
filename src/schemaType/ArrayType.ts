@@ -40,7 +40,7 @@ class ArrayType extends BaseScalarArrayType {
 				ensureArray(value).map(async (arrayItem, index) => {
 					const result = await this.valueSchemaType.validate(arrayItem, document);
 
-					return result.map((message) => `index ${index} - ${message}`);
+					return result.map((message) => `index ${index}: ${message}`);
 				}),
 			)
 		).flat();

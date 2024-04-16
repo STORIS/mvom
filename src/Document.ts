@@ -3,6 +3,7 @@ import { TransformDataError } from './errors';
 import ForeignKeyDbTransformer from './ForeignKeyDbTransformer';
 import type Schema from './Schema';
 import type { DbServerDelimiters, GenericObject, MvRecord } from './types';
+import { ensureArray } from './utils';
 
 // #region Types
 export interface DocumentConstructorOptions {
@@ -202,9 +203,8 @@ class Document {
 						if (this.#isArrayOfStrings(errors) && errors.length > 0) {
 							documentErrors.set(keyPath, errors);
 						}
-
-						if (this.#isArrayOfMaps(errors)) {
-							errors.forEach((errorMap) => {
+						if (errors instanceof Map || this.#isArrayOfMaps(errors)) {
+							ensureArray(errors).forEach((errorMap) => {
 								errorMap.forEach((error, key) => {
 									documentErrors.set(`${keyPath}.${key}`, error);
 								});

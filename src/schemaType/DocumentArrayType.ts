@@ -63,8 +63,6 @@ class DocumentArrayType extends BaseSchemaType {
 	public async validate(documentList: Document[]): Promise<Map<string, string | string[]>[]> {
 		// combining all the validation into one array of promise.all
 		// - validation against the documents in the array will return a single object with 0 to n keys - only those with keys indicate errors;
-		// - iterate the returned object and return the messages from each
-		// - flatten the final results
 		const result = await Promise.all(
 			documentList.map(async (document) => {
 				const documentErrors = await document.validate();

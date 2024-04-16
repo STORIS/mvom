@@ -67,7 +67,7 @@ abstract class BaseSchemaType {
 	public abstract validate(
 		value: unknown,
 		document: Document,
-	): Promise<string[] | Map<string, string | string[]>[]>;
+	): Promise<string[] | Map<string, string | string[]> | Map<string, string | string[]>[]>;
 }
 
 export default BaseSchemaType;

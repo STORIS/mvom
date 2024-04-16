@@ -893,8 +893,8 @@ describe('validate', () => {
 				['nestedArray', ['Property is required']],
 				['nestedObject.prop2', ['Property is required']],
 				['prop2', ['Property is required']],
-				['subdocumentArray.prop1', ['index 0 - Property is required']],
-				['subdocumentArray.prop2', ['index 1 - Property is required']],
+				['subdocumentArray.prop1', ['index 0: Property is required']],
+				['subdocumentArray.prop2', ['index 1: Property is required']],
 			]);
 			expect(await document.validate()).toEqual(expected);
 		});

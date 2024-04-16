@@ -207,8 +207,8 @@ describe('validate', () => {
 		const value = [null, null, 1.23];
 
 		const validationResult = await arrayType.validate(value, documentMock);
-		expect(validationResult).toContain('index 0 - Property is required');
-		expect(validationResult).toContain('index 1 - Property is required');
+		expect(validationResult).toContain('index 0: Property is required');
+		expect(validationResult).toContain('index 1: Property is required');
 		expect(validationResult).toHaveLength(2);
 	});
 
