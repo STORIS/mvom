@@ -1,9 +1,9 @@
-const { overrides: baseOverrides } = require('@storis/eslint-config/nodejs');
+const { overrides: baseOverrides } = require('./.config/eslint-config/nodejs');
 
 const baseNamingRules = baseOverrides[0].rules['@typescript-eslint/naming-convention'].slice(1);
 
 module.exports = {
-	extends: ['@storis/eslint-config/nodejs'],
+	extends: ['./.config/eslint-config/nodejs'],
 
 	settings: {
 		'import/resolver': {
