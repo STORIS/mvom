@@ -194,7 +194,7 @@ describe('transformForeignKeyDefinitionsToDb', () => {
 });
 
 describe('validate', () => {
-	test('should return errors defined by value schema validators', async () => {
+	test('should return errors defined by value schema validators and prepend the index to the message', async () => {
 		const valueSchemaDefinition: SchemaTypeDefinitionNumber = {
 			type: 'number',
 			path: '2.2',
@@ -207,7 +207,8 @@ describe('validate', () => {
 		const value = [null, null, 1.23];
 
 		const validationResult = await arrayType.validate(value, documentMock);
-		expect(validationResult).toContain('Property is required');
+		expect(validationResult).toContain('index 0 - Property is required');
+		expect(validationResult).toContain('index 1 - Property is required');
 		expect(validationResult).toHaveLength(2);
 	});
 

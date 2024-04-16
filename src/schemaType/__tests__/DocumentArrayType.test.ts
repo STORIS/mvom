@@ -262,20 +262,26 @@ describe('validate', () => {
 	const valueSchema = new Schema(definition);
 	const documentArrayType = new DocumentArrayType(valueSchema);
 
-	test('should return an array of the errors encountered when validating the subdocuments', async () => {
+	test('should return a Map for the errors encountered when validating each subdocument', async () => {
 		const originalRecord: MvRecord = ['unrelated'];
 
 		const value1 = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
 		const value2 = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
 
 		const validationResults = await documentArrayType.validate([value1, value2]);
-		expect(validationResults).toHaveLength(4);
+		expect(validationResults).toHaveLength(2);
+
+		const expected = new Map([
+			['prop1', ['Property is required']],
+			['prop2', ['Property is required']],
+		]);
+
 		validationResults.forEach((result) => {
-			expect(result).toBe('Property is required');
+			expect(result).toStrictEqual(expected);
 		});
 	});
 
-	test('should return an empty array if no errors are encountered when validating the subdocument', async () => {
+	test('should return an empty map for each sub-document if no errors are encountered when validating it', async () => {
 		const originalRecord: MvRecord = ['unrelated'];
 		const value1 = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
 		const value2 = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
@@ -285,7 +291,7 @@ describe('validate', () => {
 		value2.prop2 = 4.56;
 
 		const validationResults = await documentArrayType.validate([value1, value2]);
-		expect(validationResults).toEqual([]);
+		expect(validationResults).toEqual([new Map(), new Map()]);
 	});
 });
 

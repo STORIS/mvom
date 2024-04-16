@@ -206,9 +206,7 @@ class Document {
 						if (this.#isArrayOfMaps(errors)) {
 							errors.forEach((errorMap) => {
 								errorMap.forEach((error, key) => {
-									if (Array.isArray(error) && error.length > 0) {
-										documentErrors.set(`${keyPath}.${key}`, error);
-									}
+									documentErrors.set(`${keyPath}.${key}`, error);
 								});
 							});
 						}
