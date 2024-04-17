@@ -312,7 +312,7 @@ module.exports = {
 				],
 			},
 		},
-		,
+
 		{
 			files: ['./.*.js', './*.js', './website/**/*.js'],
 			rules: {
