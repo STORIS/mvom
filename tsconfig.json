@@ -109,5 +109,5 @@
     "test/**/*", // test helpers
     "./*.js", // root javascript files
     "./.*.js" // root javascript config files
-  ],
+  ]
 }
