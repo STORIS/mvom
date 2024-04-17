@@ -40,24 +40,12 @@ module.exports = {
 				filter: { regex: '^(_id|__v|_raw)$', match: true },
 				format: null,
 			},
-			// GraphQL variables PascalCase
-			{
-				selector: 'variable',
-				filter: { regex: '^.*Gql$', match: true },
-				format: ['PascalCase'],
-			},
 			// do not enforce format on property names
 			{ selector: 'property', format: null },
 			// PascalCase for classes and TypeScript keywords
 			{
 				selector: ['typeLike'],
 				format: ['PascalCase'],
-			},
-			// allow trailing ASC and DESC on enumerations
-			{
-				selector: 'enumMember',
-				filter: { regex: '^.*?_(ASC|DESC)$', match: true },
-				format: null,
 			},
 		],
 	},
@@ -72,7 +60,7 @@ module.exports = {
 		},
 
 		{
-			files: ['**/*.types.ts', '**/types/*.ts', '**/*.schema.ts', '**/instances/**'],
+			files: ['**/types/*.ts'],
 			rules: {
 				'import/prefer-default-export': 'off',
 				'import/no-default-export': 'error',
@@ -171,8 +159,8 @@ module.exports = {
 				'@typescript-eslint/ban-ts-comment': [
 					'error',
 					{
-						'ts-expect-error': 'allow-with-description',
-						'ts-ignore': 'allow-with-description',
+						'ts-expect-error': { descriptionFormat: '^: ' },
+						'ts-ignore': true,
 						'ts-nocheck': true,
 						'ts-check': false,
 					},
@@ -213,7 +201,7 @@ module.exports = {
 		},
 
 		{
-			files: ['**/index.[jt]s?(x)', '**/*.gql.[jt]s', '**/constants.ts'],
+			files: ['**/index.[jt]s?(x)'],
 			rules: {
 				// prefer named exports for certain file types
 				'import/prefer-default-export': 'off',
