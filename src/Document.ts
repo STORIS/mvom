@@ -106,7 +106,7 @@ class Document {
 
 							return valueArray.map((subvalue) => (subvalue === '' ? null : subvalue));
 						});
-				  });
+					});
 
 		return record;
 	}
@@ -121,7 +121,7 @@ class Document {
 						return schemaType.set(record, schemaType.cast(value));
 					},
 					this.#isSubdocument ? [] : cloneDeep(this.#record),
-			  );
+				);
 	}
 
 	/** Build a list of foreign key definitions to be used by the database for foreign key validation */
@@ -233,7 +233,7 @@ class Document {
 						}
 						setIn(document, keyPath, setValue);
 						return document;
-				  }, {});
+					}, {});
 
 		assignIn(this, plainDocument);
 	}
