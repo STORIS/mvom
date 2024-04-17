@@ -110,9 +110,4 @@
     "./*.js", // root javascript files
     "./.*.js" // root javascript config files
   ],
-  "ts-node": {
-    "require": ["tsconfig-paths/register"],
-    "swc": true,
-    "transpileOnly": true
-  }
 }
