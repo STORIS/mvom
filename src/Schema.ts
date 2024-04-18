@@ -153,6 +153,7 @@ class Schema {
 			if (positionPaths.has(positionPath)) {
 				// find the key in position paths
 				// add position
+				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 				const [dbPosition] = positionPaths.get(positionPath)!;
 				acc.add(dbPosition + 1);
 			} else if (!positionPath.includes('.')) {
@@ -163,6 +164,7 @@ class Schema {
 				);
 				matchedPositionPaths.forEach((key) => {
 					// add child position
+					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 					const [dbPosition] = positionPaths.get(key)!;
 					acc.add(dbPosition + 1);
 				});
