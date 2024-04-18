@@ -143,7 +143,7 @@ module.exports = {
 				'@typescript-eslint/member-ordering': 'error',
 
 				// disallow parameter properties in favor of explicit class declarations
-				'@typescript-eslint/no-parameter-properties': 'error',
+				'@typescript-eslint/parameter-properties': 'error',
 
 				// ensure unused variables are treated as an error
 				// overrides @typescript-eslint/recommended -- '@typescript-eslint/no-unused-vars': 'warn'
