@@ -142,9 +142,6 @@ module.exports = {
 				],
 				'@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
 
-				// disable consistent indexed object style. both are used in mvom
-				'@typescript-eslint/consistent-indexed-object-style': 'off',
-
 				// enforce consistent order of class members
 				'@typescript-eslint/member-ordering': 'error',
 
@@ -184,9 +181,6 @@ module.exports = {
 				'@typescript-eslint/no-unsafe-return': 'off',
 				'@typescript-eslint/restrict-template-expressions': 'off',
 				'@typescript-eslint/unbound-method': 'off',
-
-				// override @typescript-eslint/stylistic-type-checked to ignore consistent-indexed-object-style. Both are used as required.
-				'@typescript-eslint/consistent-indexed-object-style': 'off',
 
 				// force explicit member accessibility modifiers
 				'@typescript-eslint/explicit-member-accessibility': 'error',
