@@ -142,8 +142,8 @@ module.exports = {
 				],
 				'@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
 
-				// enforce consistent indexed object style
-				'@typescript-eslint/consistent-indexed-object-style': ['error', 'index-signature'],
+				// disable consistent indexed object style. both are used in mvom
+				'@typescript-eslint/consistent-indexed-object-style': 'off',
 
 				// enforce consistent order of class members
 				'@typescript-eslint/member-ordering': 'error',
