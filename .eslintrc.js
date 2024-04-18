@@ -159,7 +159,10 @@ module.exports = {
 		},
 		{
 			files: tsGlobs,
-			extends: ['plugin:@typescript-eslint/recommended-requiring-type-checking'],
+			extends: [
+				'plugin:@typescript-eslint/recommended-type-checked',
+				'plugin:@typescript-eslint/stylistic-type-checked',
+			],
 			rules: {
 				// ban ts-comment except with description
 				'@typescript-eslint/ban-ts-comment': [
@@ -172,8 +175,8 @@ module.exports = {
 					},
 				],
 
-				// disable rules turned on by @typescript-eslint/recommended-requiring-type-checking which are too noisy
-				// https://github.com/typescript-eslint/typescript-eslint/blob/main/packages/eslint-plugin/src/configs/recommended-requiring-type-checking.ts
+				// disable rules turned on by @typescript-eslint/recommended-type-checked which are too noisy
+				// https://github.com/typescript-eslint/typescript-eslint/blob/main/packages/eslint-plugin/src/configs/recommended-type-checked.ts
 				'@typescript-eslint/no-unsafe-argument': 'off',
 				'@typescript-eslint/no-unsafe-assignment': 'off',
 				'@typescript-eslint/no-unsafe-call': 'off',
@@ -181,6 +184,9 @@ module.exports = {
 				'@typescript-eslint/no-unsafe-return': 'off',
 				'@typescript-eslint/restrict-template-expressions': 'off',
 				'@typescript-eslint/unbound-method': 'off',
+
+				// turn off consistent-indexed-object-style. Both are used as required.
+				'@typescript-eslint/consistent-indexed-object-style': 'off',
 
 				// force explicit member accessibility modifiers
 				'@typescript-eslint/explicit-member-accessibility': 'error',
