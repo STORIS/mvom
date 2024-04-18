@@ -1,6 +1,4 @@
-interface LogFunction {
-	(message: string): void;
-}
+type LogFunction = (message: string) => void;
 
 export interface Logger {
 	fatal: LogFunction;
