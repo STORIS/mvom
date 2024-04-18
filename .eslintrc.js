@@ -185,11 +185,18 @@ module.exports = {
 				'@typescript-eslint/restrict-template-expressions': 'off',
 				'@typescript-eslint/unbound-method': 'off',
 
-				// turn off consistent-indexed-object-style. Both are used as required.
+				// override @typescript-eslint/stylistic-type-checked to ignore consistent-indexed-object-style. Both are used as required.
 				'@typescript-eslint/consistent-indexed-object-style': 'off',
 
 				// force explicit member accessibility modifiers
 				'@typescript-eslint/explicit-member-accessibility': 'error',
+
+				// override @typescript-eslint/stylistic-type-checked to ignore booleans in nullish coalescing checks
+				// https://typescript-eslint.io/rules/prefer-nullish-coalescing#ignoreprimitives
+				'@typescript-eslint/prefer-nullish-coalescing': [
+					'error',
+					{ ignorePrimitives: { boolean: true } },
+				],
 
 				// ban non-null assertions
 				'@typescript-eslint/no-non-null-assertion': 'error',
