@@ -15,7 +15,7 @@ class StringDataTransformer implements DataTransformer {
 		if (value == null) {
 			// if this property has an enumeration constraint and one of those constraints is empty string then return empty string;
 			// otherwise return null
-			return this.enum != null && this.enum.includes('') ? '' : null;
+			return this.enum?.includes('') ? '' : null;
 		}
 
 		return String(value);
