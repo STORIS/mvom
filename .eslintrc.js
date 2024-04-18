@@ -145,13 +145,20 @@ module.exports = {
 				// enforce consistent order of class members
 				'@typescript-eslint/member-ordering': 'error',
 
-				// disallow parameter properties in favor of explicit class declarations
-				'@typescript-eslint/parameter-properties': 'error',
-
 				// ensure unused variables are treated as an error
 				// overrides @typescript-eslint/recommended -- '@typescript-eslint/no-unused-vars': 'warn'
 				// https://github.com/typescript-eslint/typescript-eslint/blob/main/packages/eslint-plugin/src/configs/recommended.ts
 				'@typescript-eslint/no-unused-vars': 'error',
+
+				// disallow parameter properties in favor of explicit class declarations
+				'@typescript-eslint/parameter-properties': 'error',
+
+				// override @typescript-eslint/stylistic-type-checked to ignore booleans in nullish coalescing checks
+				// https://typescript-eslint.io/rules/prefer-nullish-coalescing#ignoreprimitives
+				'@typescript-eslint/prefer-nullish-coalescing': [
+					'error',
+					{ ignorePrimitives: { boolean: true } },
+				],
 			},
 		},
 		{
@@ -184,13 +191,6 @@ module.exports = {
 
 				// force explicit member accessibility modifiers
 				'@typescript-eslint/explicit-member-accessibility': 'error',
-
-				// override @typescript-eslint/stylistic-type-checked to ignore booleans in nullish coalescing checks
-				// https://typescript-eslint.io/rules/prefer-nullish-coalescing#ignoreprimitives
-				'@typescript-eslint/prefer-nullish-coalescing': [
-					'error',
-					{ ignorePrimitives: { boolean: true } },
-				],
 
 				// ban non-null assertions
 				'@typescript-eslint/no-non-null-assertion': 'error',
