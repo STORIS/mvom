@@ -211,7 +211,6 @@ abstract class BaseScalarType extends BaseSchemaType implements DataTransformer 
 
 	/** Encrypt a single value */
 	private encryptSingle(value: string | null): string | null {
-		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		return value == null ? value : this.encrypt!(value);
 	}
 
@@ -236,7 +235,6 @@ abstract class BaseScalarType extends BaseSchemaType implements DataTransformer 
 
 	/** Decrypt a single value */
 	private decryptSingle(value: MvDataType): MvDataType {
-		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		return typeof value !== 'string' ? value : this.decrypt!(value);
 	}
 }

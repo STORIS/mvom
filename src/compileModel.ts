@@ -42,7 +42,6 @@ export type ModelSaveOptions = ModelDatabaseExecutionOptions;
 // #endregion
 
 /** Define a new model */
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 const compileModel = <TSchema extends GenericObject = GenericObject>(
 	connection: Connection,
 	schema: Schema | null,
