@@ -30,6 +30,8 @@ module.exports = {
 			},
 			// camelCase for everything not otherwise indicated
 			{ selector: 'default', format: ['camelCase'] },
+			// allow any naming convention for imports
+			{ selector: 'import', format: null },
 			// allow known default exclusions
 			{ selector: 'default', filter: { regex: '^(_id|__v|_raw)$', match: true }, format: null },
 			// allow variables to be camelCase or UPPER_CASE
