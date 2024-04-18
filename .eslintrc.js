@@ -181,6 +181,9 @@ module.exports = {
 				// force explicit member accessibility modifiers
 				'@typescript-eslint/explicit-member-accessibility': 'error',
 
+				// ban non-null assertions
+				'@typescript-eslint/no-non-null-assertion': 'error',
+
 				// disallow boolean comparisons against non-boolean values
 				'@typescript-eslint/strict-boolean-expressions': ['error', { allowNullableBoolean: true }],
 			},
