@@ -74,6 +74,7 @@ module.exports = {
 				'plugin:jest/recommended',
 				'plugin:jest/style',
 				'plugin:@typescript-eslint/recommended',
+				'plugin:@typescript-eslint/stylistic',
 				'plugin:import/typescript',
 				'prettier',
 			],
@@ -140,6 +141,9 @@ module.exports = {
 					{ fixMixedExportsWithInlineTypeSpecifier: true },
 				],
 				'@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
+
+				// enforce consistent indexed object style
+				'@typescript-eslint/consistent-indexed-object-style': ['error', 'index-signature'],
 
 				// enforce consistent order of class members
 				'@typescript-eslint/member-ordering': 'error',
