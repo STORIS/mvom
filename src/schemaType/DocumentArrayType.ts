@@ -69,9 +69,9 @@ class DocumentArrayType extends BaseSchemaType {
 				const documentErrors = await document.validate();
 
 				const indexString = String(index);
-				documentErrors.forEach((message, key) => {
+				documentErrors.forEach((messages, key) => {
 					const errors = errorsMap.get(key) ?? [];
-					errors.push(...ensureArray(message));
+					errors.push(...messages);
 					if (errors.length > 0) {
 						errorsMap.set(`${indexString}.${key}`, errors);
 					}
