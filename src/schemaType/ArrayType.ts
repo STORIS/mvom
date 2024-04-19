@@ -42,7 +42,7 @@ class ArrayType extends BaseScalarArrayType {
 
 				return result.forEach((message) => {
 					const key = String(index);
-					const errors = errorsMap.get(key) || [];
+					const errors = errorsMap.get(key) ?? [];
 					errors.push(message);
 					errorsMap.set(key, errors);
 				});
