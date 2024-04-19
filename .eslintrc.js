@@ -30,6 +30,8 @@ module.exports = {
 			},
 			// camelCase for everything not otherwise indicated
 			{ selector: 'default', format: ['camelCase'] },
+			// allow any naming convention for imports
+			{ selector: 'import', format: null },
 			// allow known default exclusions
 			{ selector: 'default', filter: { regex: '^(_id|__v|_raw)$', match: true }, format: null },
 			// allow variables to be camelCase or UPPER_CASE
@@ -72,6 +74,7 @@ module.exports = {
 				'plugin:jest/recommended',
 				'plugin:jest/style',
 				'plugin:@typescript-eslint/recommended',
+				'plugin:@typescript-eslint/stylistic',
 				'plugin:import/typescript',
 				'prettier',
 			],
@@ -142,18 +145,21 @@ module.exports = {
 				// enforce consistent order of class members
 				'@typescript-eslint/member-ordering': 'error',
 
-				// disallow parameter properties in favor of explicit class declarations
-				'@typescript-eslint/no-parameter-properties': 'error',
-
 				// ensure unused variables are treated as an error
 				// overrides @typescript-eslint/recommended -- '@typescript-eslint/no-unused-vars': 'warn'
 				// https://github.com/typescript-eslint/typescript-eslint/blob/main/packages/eslint-plugin/src/configs/recommended.ts
 				'@typescript-eslint/no-unused-vars': 'error',
+
+				// disallow parameter properties in favor of explicit class declarations
+				'@typescript-eslint/parameter-properties': 'error',
 			},
 		},
 		{
 			files: tsGlobs,
-			extends: ['plugin:@typescript-eslint/recommended-requiring-type-checking'],
+			extends: [
+				'plugin:@typescript-eslint/recommended-type-checked',
+				'plugin:@typescript-eslint/stylistic-type-checked',
+			],
 			rules: {
 				// ban ts-comment except with description
 				'@typescript-eslint/ban-ts-comment': [
@@ -166,8 +172,8 @@ module.exports = {
 					},
 				],
 
-				// disable rules turned on by @typescript-eslint/recommended-requiring-type-checking which are too noisy
-				// https://github.com/typescript-eslint/typescript-eslint/blob/main/packages/eslint-plugin/src/configs/recommended-requiring-type-checking.ts
+				// disable rules turned on by @typescript-eslint/recommended-type-checked which are too noisy
+				// https://github.com/typescript-eslint/typescript-eslint/blob/main/packages/eslint-plugin/src/configs/recommended-type-checked.ts
 				'@typescript-eslint/no-unsafe-argument': 'off',
 				'@typescript-eslint/no-unsafe-assignment': 'off',
 				'@typescript-eslint/no-unsafe-call': 'off',
@@ -178,6 +184,16 @@ module.exports = {
 
 				// force explicit member accessibility modifiers
 				'@typescript-eslint/explicit-member-accessibility': 'error',
+
+				// ban non-null assertions
+				'@typescript-eslint/no-non-null-assertion': 'error',
+
+				// override @typescript-eslint/stylistic-type-checked to ignore booleans in nullish coalescing checks
+				// https://typescript-eslint.io/rules/prefer-nullish-coalescing#ignoreprimitives
+				'@typescript-eslint/prefer-nullish-coalescing': [
+					'error',
+					{ ignorePrimitives: { boolean: true } },
+				],
 
 				// disallow boolean comparisons against non-boolean values
 				'@typescript-eslint/strict-boolean-expressions': ['error', { allowNullableBoolean: true }],

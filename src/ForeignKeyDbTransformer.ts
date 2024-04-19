@@ -5,9 +5,7 @@ export interface ForeignKeyDefinition {
 	entityName: string;
 }
 
-interface PositionForeignKeyDefinition {
-	[key: number]: ForeignKeyDefinition;
-}
+type PositionForeignKeyDefinition = Record<number, ForeignKeyDefinition>;
 
 export type CompoundForeignKeyDefinition = PositionForeignKeyDefinition & {
 	splitCharacter: string;
