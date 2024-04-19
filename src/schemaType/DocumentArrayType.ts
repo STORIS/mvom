@@ -72,7 +72,9 @@ class DocumentArrayType extends BaseSchemaType {
 				documentErrors.forEach((message, key) => {
 					const errors = errorsMap.get(key) ?? [];
 					errors.push(...ensureArray(message));
-					errorsMap.set(`${indexString}.${key}`, errors);
+					if (errors.length > 0) {
+						errorsMap.set(`${indexString}.${key}`, errors);
+					}
 				});
 			}),
 		);
