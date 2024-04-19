@@ -227,6 +227,6 @@ describe('validate', () => {
 		const value = [1.23, 4.56, 7.89];
 
 		const validationResult = await arrayType.validate(value, documentMock);
-		expect(validationResult).toEqual(new Map<string, string[]>());
+		expect(validationResult.size).toBe(0);
 	});
 });

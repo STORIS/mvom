@@ -290,7 +290,7 @@ describe('validate', () => {
 		value2.prop2 = 4.56;
 
 		const validationResults = await documentArrayType.validate([value1, value2]);
-		expect(validationResults).toEqual(new Map());
+		expect(validationResults.size).toBe(0);
 	});
 });
 
