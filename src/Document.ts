@@ -3,7 +3,6 @@ import { TransformDataError } from './errors';
 import ForeignKeyDbTransformer from './ForeignKeyDbTransformer';
 import type Schema from './Schema';
 import type { DbServerDelimiters, GenericObject, MvRecord } from './types';
-import { ensureArray } from './utils';
 
 // #region Types
 export interface DocumentConstructorOptions {
@@ -180,8 +179,8 @@ class Document {
 	}
 
 	/** Validate document for errors */
-	public async validate(): Promise<Map<string, string | string[]>> {
-		const documentErrors = new Map<string, string | string[]>();
+	public async validate(): Promise<Map<string, string[]>> {
+		const documentErrors = new Map<string, string[]>();
 
 		if (this.#schema !== null) {
 			if (
@@ -189,7 +188,7 @@ class Document {
 				this.#schema.idMatch != null &&
 				!this.#schema.idMatch.test(this._id)
 			) {
-				documentErrors.set('_id', 'Document id does not match pattern');
+				documentErrors.set('_id', ['Document id does not match pattern']);
 			}
 			await Promise.all(
 				Array.from(this.#schema.paths).map(async ([keyPath, schemaType]) => {
@@ -200,15 +199,12 @@ class Document {
 						setIn(this, keyPath, value);
 
 						const errors = await schemaType.validate(value, this);
-						if (this.#isArrayOfStrings(errors) && errors.length > 0) {
-							documentErrors.set(keyPath, errors);
-						}
-						if (errors instanceof Map || this.#isArrayOfMaps(errors)) {
-							ensureArray(errors).forEach((errorMap) => {
-								errorMap.forEach((error, key) => {
-									documentErrors.set(`${keyPath}.${key}`, error);
-								});
+						if (errors instanceof Map) {
+							errors.forEach((error, key) => {
+								documentErrors.set(`${keyPath}.${key}`, error);
 							});
+						} else {
+							documentErrors.set(keyPath, errors);
 						}
 					} catch (err) {
 						// an error was thrown - return the message from that error in the documentErrors list
@@ -218,14 +214,6 @@ class Document {
 			);
 		}
 		return documentErrors;
-	}
-
-	#isArrayOfStrings(value: unknown): value is string[] {
-		return Array.isArray(value) && value.every((item) => typeof item === 'string');
-	}
-
-	#isArrayOfMaps(value: unknown): value is Map<string, string | string[]>[] {
-		return Array.isArray(value) && value.every((item) => item instanceof Map);
 	}
 
 	/** Apply schema structure using record to document instance */
