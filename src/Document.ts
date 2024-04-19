@@ -198,15 +198,15 @@ class Document {
 						value = schemaType.cast(value);
 						setIn(this, keyPath, value);
 
-						const errors = await schemaType.validate(value, this);
-						if (errors instanceof Map) {
-							errors.forEach((error, key) => {
-								if (error.length > 0) {
-									documentErrors.set(`${keyPath}.${key}`, error);
+						const validationResult = await schemaType.validate(value, this);
+						if (validationResult instanceof Map) {
+							validationResult.forEach((errors, key) => {
+								if (errors.length > 0) {
+									documentErrors.set(`${keyPath}.${key}`, errors);
 								}
 							});
-						} else if (errors.length > 0) {
-							documentErrors.set(keyPath, errors);
+						} else if (validationResult.length > 0) {
+							documentErrors.set(keyPath, validationResult);
 						}
 					} catch (err) {
 						// an error was thrown - return the message from that error in an array in the documentErrors list
