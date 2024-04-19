@@ -152,13 +152,6 @@ module.exports = {
 
 				// disallow parameter properties in favor of explicit class declarations
 				'@typescript-eslint/parameter-properties': 'error',
-
-				// override @typescript-eslint/stylistic-type-checked to ignore booleans in nullish coalescing checks
-				// https://typescript-eslint.io/rules/prefer-nullish-coalescing#ignoreprimitives
-				'@typescript-eslint/prefer-nullish-coalescing': [
-					'error',
-					{ ignorePrimitives: { boolean: true } },
-				],
 			},
 		},
 		{
@@ -194,6 +187,13 @@ module.exports = {
 
 				// ban non-null assertions
 				'@typescript-eslint/no-non-null-assertion': 'error',
+
+				// override @typescript-eslint/stylistic-type-checked to ignore booleans in nullish coalescing checks
+				// https://typescript-eslint.io/rules/prefer-nullish-coalescing#ignoreprimitives
+				'@typescript-eslint/prefer-nullish-coalescing': [
+					'error',
+					{ ignorePrimitives: { boolean: true } },
+				],
 
 				// disallow boolean comparisons against non-boolean values
 				'@typescript-eslint/strict-boolean-expressions': ['error', { allowNullableBoolean: true }],
