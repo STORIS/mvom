@@ -67,8 +67,10 @@ describe('set', () => {
 		value.prop1 = 'foo';
 		value.prop2 = 12.34;
 
+		const expected = ['unrelated', 'foo', '1234'];
+
 		const record = embeddedType.set(originalRecord, value);
-		expect(record).toEqual(['unrelated', 'foo', '1234']);
+		expect(record).toEqual(expected);
 	});
 });
 
@@ -84,13 +86,13 @@ describe('validate', () => {
 		const originalRecord: MvRecord = ['unrelated'];
 		const value = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
 
+		const expected = new Map([
+			['prop1', ['Property is required']],
+			['prop2', ['Property is required']],
+		]);
+
 		const validationResults = await embeddedType.validate(value);
-		expect(validationResults).toEqual(
-			new Map([
-				['prop1', ['Property is required']],
-				['prop2', ['Property is required']],
-			]),
-		);
+		expect(validationResults).toEqual(expected);
 	});
 
 	test('should return an empty map if no errors are encountered when validating the subdocument', async () => {
@@ -100,6 +102,6 @@ describe('validate', () => {
 		value.prop2 = 12.34;
 
 		const validationResults = await embeddedType.validate(value);
-		expect(validationResults).toEqual(new Map());
+		expect(validationResults.size).toBe(0);
 	});
 });
