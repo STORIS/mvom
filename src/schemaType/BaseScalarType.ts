@@ -126,7 +126,6 @@ abstract class BaseScalarType extends BaseSchemaType implements DataTransformer 
 		// combining all the validation into one array of promise.all
 		// - a validator will return a placeholder symbol or the appropriate error message
 		// - filter out the placeholder symbols to only return the error messages
-
 		return (
 			await Promise.all(
 				this.validators
