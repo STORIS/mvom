@@ -801,7 +801,7 @@ describe('validate', () => {
 		test('should return error if id match is specified and id does not match pattern', async () => {
 			const document = new DocumentSubclass(schema, { data: { _id: 'id', prop1: 'foo' } });
 
-			const expected = new Map([['_id', 'Document id does not match pattern']]);
+			const expected = new Map([['_id', ['Document id does not match pattern']]]);
 			expect(await document.validate()).toEqual(expected);
 		});
 
@@ -836,7 +836,7 @@ describe('validate', () => {
 			expect(await document.validate()).toEqual(expected);
 		});
 
-		test('should return thrown error message if schemaType validation throws an error', async () => {
+		test('should return thrown error message in an array if schemaType validation throws an error', async () => {
 			// mock StringType.validate to throw
 			jest.resetModules();
 			const err = new Error('Test error message');
@@ -856,7 +856,7 @@ describe('validate', () => {
 			});
 			const document = new DocumentSubclass(schema, { data: { prop1: 'foo' } });
 
-			const expected = new Map([['prop1', 'Test error message']]);
+			const expected = new Map([['prop1', ['Test error message']]]);
 			expect(await document.validate()).toEqual(expected);
 		});
 
@@ -885,7 +885,7 @@ describe('validate', () => {
 			};
 			const schema = new Schema(definition);
 			const document = new DocumentSubclass(schema, {
-				record: ['55', null, ['foo', 'bar'], [null], 'bing', null, [[null, 'thud']], [['5', null]]],
+				record: ['55', null, ['foo', 'bar'], [null], 'bing', null, [[null, '5']], [['5', null]]],
 			});
 
 			const expected = new Map([
@@ -893,8 +893,8 @@ describe('validate', () => {
 				['nestedArray', ['Property is required']],
 				['nestedObject.prop2', ['Property is required']],
 				['prop2', ['Property is required']],
-				['subdocumentArray.prop1', ['index 0: Property is required']],
-				['subdocumentArray.prop2', ['index 1: Property is required']],
+				['subdocumentArray.0.prop1.0', ['Property is required']],
+				['subdocumentArray.0.prop2.1', ['Property is required']],
 			]);
 			expect(await document.validate()).toEqual(expected);
 		});

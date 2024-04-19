@@ -201,14 +201,16 @@ class Document {
 						const errors = await schemaType.validate(value, this);
 						if (errors instanceof Map) {
 							errors.forEach((error, key) => {
-								documentErrors.set(`${keyPath}.${key}`, error);
+								if (error.length > 0) {
+									documentErrors.set(`${keyPath}.${key}`, error);
+								}
 							});
-						} else {
+						} else if (errors.length > 0) {
 							documentErrors.set(keyPath, errors);
 						}
 					} catch (err) {
-						// an error was thrown - return the message from that error in the documentErrors list
-						documentErrors.set(keyPath, err.message);
+						// an error was thrown - return the message from that error in an array in the documentErrors list
+						documentErrors.set(keyPath, [err.message]);
 					}
 				}),
 			);
