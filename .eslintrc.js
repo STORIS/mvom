@@ -262,8 +262,8 @@ module.exports = {
 				// valid titles
 				'jest/valid-title': 'error',
 
-				// no if conditionals in tests
-				'jest/no-if': 'error',
+				// no conditionals in tests
+				'jest/no-conditional-in-test': 'error',
 
 				// expect statements in test blocks
 				'jest/no-standalone-expect': 'error',
