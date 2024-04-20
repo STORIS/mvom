@@ -921,8 +921,10 @@ describe('validate', () => {
 				[['bing', 'bong']], // passingNestedArray
 				[
 					// failing nested array
-					[null, 'bing'],
-					['bong', null],
+					[null, 'yup'],
+					['bong', 'hello', null],
+					'hello',
+					null,
 				],
 				['5', '10'], // passingEmbeddedObject.prop1
 				'5', // passingEmbeddedObject.prop2
@@ -957,7 +959,8 @@ describe('validate', () => {
 				['failingArray.0', ['Property is required']],
 				['failingArray.1', ['Property is required']],
 				['failingNestedArray.0.0', ['Property is required']],
-				['failingNestedArray.0.1', ['Property is required']],
+				['failingNestedArray.1.2', ['Property is required']],
+				['failingNestedArray.3.0', ['Property is required']],
 				['failingEmbeddedObject.prop1.0', ['Property is required']],
 				['failingEmbeddedObject.prop1.2', ['Property is required']],
 				['failingEmbeddedObject.prop2', ['Property is required']],
