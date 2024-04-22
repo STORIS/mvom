@@ -187,9 +187,14 @@ describe('validate', () => {
 
 		const value = [null, null, 1.23];
 
+		const expected = new Map([
+			['0.0', ['Property is required']],
+			['1.0', ['Property is required']],
+		]);
+
 		const validationResult = await nestedArrayType.validate(value, documentMock);
-		expect(validationResult).toContain('Property is required');
-		expect(validationResult).toHaveLength(2);
+		expect(validationResult).toEqual(expected);
+		expect(validationResult.size).toBe(2);
 	});
 
 	test('should return errors defined by value schema validators when data is a nested array', async () => {
@@ -208,9 +213,15 @@ describe('validate', () => {
 			[1.23, 4.56],
 		];
 
+		const expected = new Map([
+			['0.0', ['Property is required']],
+			['0.1', ['Property is required']],
+			['1.0', ['Property is required']],
+			['1.1', ['Property is required']],
+		]);
 		const validationResult = await nestedArrayType.validate(value, documentMock);
-		expect(validationResult).toContain('Property is required');
-		expect(validationResult).toHaveLength(4);
+		expect(validationResult).toEqual(expected);
+		expect(validationResult.size).toBe(4);
 	});
 
 	test('should have no errors if value schema validators pass', async () => {
@@ -229,6 +240,6 @@ describe('validate', () => {
 		];
 
 		const validationResult = await nestedArrayType.validate(value, documentMock);
-		expect(validationResult).toHaveLength(0);
+		expect(validationResult.size).toBe(0);
 	});
 });
