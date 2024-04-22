@@ -40,12 +40,10 @@ class ArrayType extends BaseScalarArrayType {
 			ensureArray(value).map(async (arrayItem, index) => {
 				const result = await this.valueSchemaType.validate(arrayItem, document);
 
-				return result.forEach((message) => {
+				if (result.length > 0) {
 					const key = String(index);
-					const errors = errorsMap.get(key) ?? [];
-					errors.push(message);
-					errorsMap.set(key, errors);
-				});
+					errorsMap.set(key, result);
+				}
 			}),
 		);
 
