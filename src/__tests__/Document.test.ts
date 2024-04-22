@@ -918,7 +918,10 @@ describe('validate', () => {
 				null, // failingProp
 				['foo', 'bar'], // passingArray
 				[null, null], // failingArray
-				[['bing', 'bong']], // passingNestedArray
+				[
+					['bing', 'bong'],
+					['bong', 'bing'],
+				], // passingNestedArray
 				[
 					// failing nested array
 					[null, 'yup'],
