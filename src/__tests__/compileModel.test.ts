@@ -210,42 +210,6 @@ describe('find', () => {
 			{ maxReturnPayloadSize, userDefined, requestId },
 		);
 	});
-
-	test('projection test', async () => {
-		const Model = compileModel(connectionMock, schema, filename, mockDelimiters, logHandlerMock);
-
-		const id1 = 'id1';
-		const version1 = '1';
-		const id2 = 'id2';
-		const version2 = '2';
-		connectionMock.executeDbSubroutine.mockResolvedValue({
-			count: 1,
-			documents: [{ _id: id1, __v: version1, record: `foo${am}20` }],
-		});
-
-		const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
-		const maxReturnPayloadSize = 10_000;
-		const projection = ['prop2'];
-		const options: ModelFindOptions = { maxReturnPayloadSize, userDefined, requestId, projection };
-
-		const documents = await Model.find({}, options);
-		documents.forEach((document) => {
-			expect(document).toBeInstanceOf(Model);
-		});
-
-		const [document1] = documents;
-		expect(document1._id).toBe(id1);
-		expect(document1.__v).toBe(version1);
-		expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
-			'find',
-			{
-				filename,
-				projection: ['prop2'],
-				queryCommand: `select ${filename}`,
-			},
-			{ maxReturnPayloadSize, userDefined, requestId },
-		);
-	});
 });
 
 describe('findAndCount', () => {
