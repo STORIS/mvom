@@ -165,12 +165,10 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 				...(userDefined && { userDefined }),
 			});
 
-			const result = documents.map((document) => {
+			return documents.map((document) => {
 				const { _id, __v, record } = document;
 				return this.#createModelFromRecordString(record, _id, __v);
 			});
-
-			return result;
 		}
 
 		/** Find documents via query, returning them along with a count */
