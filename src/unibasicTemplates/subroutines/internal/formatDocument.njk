@@ -74,7 +74,8 @@ if useProjection then
   recordContents = ''
   lastProjectionPosition = dcount(projectionPositions, @am)
   for position = 1 to lastProjectionPosition
-    recordContents<position> = record<position>
+    projectionPosition = projectionPositions<position>
+    recordContents<projectionPosition> = record<projectionPosition>
   next position
 end else
   recordContents = record
