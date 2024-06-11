@@ -801,7 +801,7 @@ describe('validate', () => {
 		test('should return error if id match is specified and id does not match pattern', async () => {
 			const document = new DocumentSubclass(schema, { data: { _id: 'id', prop1: 'foo' } });
 
-			const expected = new Map([['_id', 'Document id does not match pattern']]);
+			const expected = new Map([['_id', ['Document id does not match pattern']]]);
 			expect(await document.validate()).toEqual(expected);
 		});
 
@@ -836,7 +836,7 @@ describe('validate', () => {
 			expect(await document.validate()).toEqual(expected);
 		});
 
-		test('should return thrown error message if schemaType validation throws an error', async () => {
+		test('should return thrown error message in an array if schemaType validation throws an error', async () => {
 			// mock StringType.validate to throw
 			jest.resetModules();
 			const err = new Error('Test error message');
@@ -856,7 +856,131 @@ describe('validate', () => {
 			});
 			const document = new DocumentSubclass(schema, { data: { prop1: 'foo' } });
 
-			const expected = new Map([['prop1', 'Test error message']]);
+			const expected = new Map([['prop1', ['Test error message']]]);
+			expect(await document.validate()).toEqual(expected);
+		});
+
+		test('return error at property & unravel nested errors if schemaType validation fails', async () => {
+			const passingSchema = new Schema({
+				prop1: { type: 'string', path: '15', required: true },
+				prop2: { type: 'number', path: '16', dbDecimals: 2, required: true },
+			});
+			const failingSchema = new Schema({
+				prop1: [{ type: 'string', path: '17', required: true }],
+				prop2: { type: 'number', path: '18', dbDecimals: 2, required: true },
+			});
+
+			const passingDocumentArraySchema = new Schema({
+				prop1: [{ type: 'string', path: '19', required: true }],
+				prop2: [{ type: 'number', path: '20', dbDecimals: 2, required: true }],
+			});
+			const failingDocumentArraySchema = new Schema({
+				prop1: [{ type: 'string', path: '21', required: true }],
+				prop2: { type: 'number', path: '22', dbDecimals: 2, required: true },
+			});
+			const definition: SchemaDefinition = {
+				passingProp: { type: 'string', path: '1', required: true },
+				failingProp: { type: 'number', path: '2', dbDecimals: 2, required: true },
+				passingArray: [{ type: 'string', path: '3', required: true }],
+				failingArray: [{ type: 'string', path: '4', required: true }],
+				passingNestedArray: [[{ type: 'string', path: '5', required: true }]],
+				failingNestedArray: [[{ type: 'string', path: '6', required: true }]],
+				passingObject: {
+					prop1: [{ type: 'number', path: '7', required: true }],
+					prop2: { type: 'number', path: '8', required: true },
+				},
+				failingObject: {
+					prop1: [{ type: 'number', path: '9', required: true }],
+					prop2: { type: 'number', path: '10', required: true },
+				},
+				passingObjectArray: [
+					{
+						prop1: [{ type: 'string', path: '11', required: true }],
+						prop2: { type: 'number', path: '12', dbDecimals: 2, required: true },
+					},
+				],
+				failingObjectDocumentArray: [
+					{
+						prop1: [{ type: 'string', path: '13', required: true }],
+						prop2: { type: 'number', path: '14', dbDecimals: 2, required: true },
+					},
+				],
+				passingSchema,
+				failingSchema,
+				passingSchemaDocumentArray: [passingDocumentArraySchema],
+				failingSchemaDocumentArray: [failingDocumentArraySchema],
+			};
+			const schema = new Schema(definition);
+			const record = [
+				'55', // passingProp
+				null, // failingProp
+				['foo', 'bar'], // passingArray
+				[null, null], // failingArray
+				[
+					['bing', 'bong'],
+					['bong', 'bing'],
+				], // passingNestedArray
+				[
+					// failing nested array
+					[null, 'yup'],
+					['bong', 'hello', null],
+					'hello',
+					null,
+				],
+				['5', '10'], // passingObject.prop1
+				'5', // passingObject.prop2
+				[null, '5', null], // failingObject.prop1
+				null, // failingObject.prop2
+				[['5', '6']], // passingObjectDocumentArray.prop1
+				[[`5`]], // passingObjectDocumentArray.prop2
+				[
+					// failingObjectDocumentArray.prop1
+					['5', null, '5'],
+					[null, '5', null],
+				],
+				['5', null], // failingObjectDocumentArray.prop2
+				['5', '10'], // passingSchema.prop1
+				'5', // passingSchema.prop2
+				[null, '5', null], // failingSchema.prop1
+				null, // failingSchema.prop2
+				['5', '10'], // passingSchemaDocumentArray.prop1
+				'5', // passingSchemaDocumentArray.prop2
+				[
+					[null, '5', null],
+					['5', null, '5'],
+				], // failingSchemaDocumentArray.prop1
+				[null, null], // failingSchemaDocumentArray.prop2
+			];
+			const document = new DocumentSubclass(schema, {
+				record,
+			});
+
+			const expected = new Map([
+				['failingProp', ['Property is required']],
+				['failingArray.0', ['Property is required']],
+				['failingArray.1', ['Property is required']],
+				['failingNestedArray.0.0', ['Property is required']],
+				['failingNestedArray.1.2', ['Property is required']],
+				['failingNestedArray.3.0', ['Property is required']],
+				['failingObject.prop1.0', ['Property is required']],
+				['failingObject.prop1.2', ['Property is required']],
+				['failingObject.prop2', ['Property is required']],
+				['failingObjectDocumentArray.0.prop1.1', ['Property is required']],
+				['failingObjectDocumentArray.1.prop1.0', ['Property is required']],
+				['failingObjectDocumentArray.1.prop1.2', ['Property is required']],
+				['failingObjectDocumentArray.1.prop2', ['Property is required']],
+				['failingObjectDocumentArray.1.prop2', ['Property is required']],
+				['failingSchema.prop1.0', ['Property is required']],
+				['failingSchema.prop1.2', ['Property is required']],
+				['failingSchema.prop2', ['Property is required']],
+				['failingSchemaDocumentArray.0.prop1.0', ['Property is required']],
+				['failingSchemaDocumentArray.0.prop1.2', ['Property is required']],
+				['failingSchemaDocumentArray.1.prop1.1', ['Property is required']],
+				['failingSchemaDocumentArray.0.prop1.2', ['Property is required']],
+				['failingSchemaDocumentArray.0.prop2', ['Property is required']],
+				['failingSchemaDocumentArray.1.prop2', ['Property is required']],
+			]);
+
 			expect(await document.validate()).toEqual(expected);
 		});
 	});

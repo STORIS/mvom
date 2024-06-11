@@ -45,6 +45,7 @@ type SchemaTypeDefinitionArray =
 	| SchemaDefinition[]
 	| SchemaDefinition[][];
 
+// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style -- Record cannot circularly reference itself so index signature must be used. refer here: https://github.com/microsoft/TypeScript/pull/33050#issuecomment-714348057 for additional information
 export interface SchemaDefinition {
 	[x: string]: SchemaTypeDefinition;
 }

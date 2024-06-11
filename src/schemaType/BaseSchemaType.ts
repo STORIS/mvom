@@ -64,7 +64,10 @@ abstract class BaseSchemaType {
 	public abstract set(record: MvRecord, value: unknown): MvRecord;
 
 	/** Validate value */
-	public abstract validate(value: unknown, document: Document): Promise<string[]>;
+	public abstract validate(
+		value: unknown,
+		document: Document,
+	): Promise<string[] | Map<string, string[]>>;
 }
 
 export default BaseSchemaType;

@@ -11,11 +11,11 @@ class StringDataTransformer implements DataTransformer {
 	/** Transform mv string to js string */
 	public transformFromDb(value: null): null;
 	public transformFromDb(value: unknown): string;
-	public transformFromDb(value: unknown): unknown | null {
+	public transformFromDb(value: unknown): unknown {
 		if (value == null) {
 			// if this property has an enumeration constraint and one of those constraints is empty string then return empty string;
 			// otherwise return null
-			return this.enum != null && this.enum.includes('') ? '' : null;
+			return this.enum?.includes('') ? '' : null;
 		}
 
 		return String(value);

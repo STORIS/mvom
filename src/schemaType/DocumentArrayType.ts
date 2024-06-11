@@ -60,21 +60,24 @@ class DocumentArrayType extends BaseSchemaType {
 	}
 
 	/** Validate the document array */
-	public async validate(documentList: Document[]): Promise<string[]> {
-		// combining all the validation into one array of promise.all
-		// - validation against the documents in the array will return a single object with 0 to n keys - only those with keys indicate errors;
-		// - iterate the returned object and return the messages from each
-		// - flatten the final results
+	public async validate(documentList: Document[]): Promise<Map<string, string[]>> {
+		// Create a map to store the errors. The key will be the index of the document in the list prefixed to the key path of the error
+		const errorsMap = new Map<string, string[]>();
+		await Promise.all(
+			documentList.map(async (document, index) => {
+				const documentErrors = await document.validate();
 
-		return (
-			await Promise.all(
-				documentList.map(async (document) => {
-					const documentErrors = await document.validate();
+				const indexString = String(index);
+				documentErrors.forEach((messages, keyPath) => {
+					if (messages.length > 0) {
+						const errorsMapKey = `${indexString}.${keyPath}`;
+						errorsMap.set(errorsMapKey, messages);
+					}
+				});
+			}),
+		);
 
-					return Array.from(documentErrors.values()).map((err) => ensureArray(err));
-				}),
-			)
-		).flat(2);
+		return errorsMap;
 	}
 
 	/** Create an array of foreign key definitions that will be validated before save */
