@@ -2,6 +2,7 @@ import { assignIn, cloneDeep, get as getIn, set as setIn } from 'lodash';
 import { TransformDataError } from './errors';
 import ForeignKeyDbTransformer from './ForeignKeyDbTransformer';
 import type Schema from './Schema';
+import type { SchemaDefinition } from './Schema';
 import type { DbServerDelimiters, GenericObject, MvRecord } from './types';
 
 // #region Types
@@ -19,7 +20,7 @@ export interface BuildForeignKeyDefinitionsResult {
 // #endregion
 
 /** A document object */
-class Document {
+class Document<TSchemaDefinition extends SchemaDefinition> {
 	[key: string]: unknown;
 
 	public _raw?: MvRecord;
@@ -28,7 +29,7 @@ class Document {
 	public _transformationErrors: TransformDataError[];
 
 	/** Schema instance which defined this document */
-	readonly #schema: Schema | null;
+	readonly #schema: Schema<TSchemaDefinition> | null;
 
 	/** Record array of multivalue data */
 	#record: MvRecord;
@@ -36,7 +37,10 @@ class Document {
 	/** Indicates whether this document is a subdocument of a composing parent */
 	readonly #isSubdocument: boolean;
 
-	protected constructor(schema: Schema | null, options: DocumentConstructorOptions) {
+	protected constructor(
+		schema: Schema<TSchemaDefinition> | null,
+		options: DocumentConstructorOptions,
+	) {
 		const { data = {}, record, isSubdocument = false } = options;
 
 		this.#schema = schema;
@@ -55,21 +59,27 @@ class Document {
 	}
 
 	/** Create a new Subdocument instance from a record array */
-	public static createSubdocumentFromRecord(schema: Schema, record: MvRecord): Document {
+	public static createSubdocumentFromRecord<TSchemaDefinition extends SchemaDefinition>(
+		schema: Schema<TSchemaDefinition>,
+		record: MvRecord,
+	): Document<TSchemaDefinition> {
 		return new Document(schema, { record, isSubdocument: true });
 	}
 
 	/** Create a new Subdocument instance from data */
-	public static createSubdocumentFromData(schema: Schema, data: GenericObject): Document {
+	public static createSubdocumentFromData<TSchemaDefinition extends SchemaDefinition>(
+		schema: Schema<TSchemaDefinition>,
+		data: GenericObject,
+	): Document<TSchemaDefinition> {
 		return new Document(schema, { data, isSubdocument: true });
 	}
 
 	/** Create a new Document instance from a record string */
-	public static createDocumentFromRecordString(
-		schema: Schema,
+	public static createDocumentFromRecordString<TSchemaDefinition extends SchemaDefinition>(
+		schema: Schema<TSchemaDefinition>,
 		recordString: string,
 		dbServerDelimiters: DbServerDelimiters,
-	): Document {
+	): Document<TSchemaDefinition> {
 		const record = Document.convertMvStringToArray(recordString, dbServerDelimiters);
 
 		return new Document(schema, { record });
