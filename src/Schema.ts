@@ -33,13 +33,13 @@ import type { DataTransformer, DecryptFn, EncryptFn, MarkRequired } from './type
 
 // #region Types
 type SchemaTypeDefinition =
-	| Schema
+	| Schema<SchemaDefinition>
 	| SchemaTypeDefinitionScalar
 	| SchemaDefinition
 	| SchemaTypeDefinitionArray;
 
 type SchemaTypeDefinitionArray =
-	| Schema[]
+	| Schema<SchemaDefinition>[]
 	| SchemaTypeDefinitionScalar[]
 	| SchemaTypeDefinitionScalar[][]
 	| SchemaDefinition[]
@@ -87,10 +87,49 @@ interface DictionaryTypeDetail {
 	dictionary: string;
 	dataTransformer: DataTransformer;
 }
+
+type InferRequiredType<TScalar, TType> = TScalar extends { required: true } ? TType : TType | null;
+
+type InferStringType<TString extends SchemaTypeDefinitionString> =
+	TString['enum'] extends readonly (infer E)[] ? E : string;
+
+type InferSchemaType<TSchemaTypeDefinition> =
+	TSchemaTypeDefinition extends SchemaTypeDefinitionBoolean
+		? InferRequiredType<TSchemaTypeDefinition, boolean>
+		: TSchemaTypeDefinition extends SchemaTypeDefinitionString
+		? InferRequiredType<TSchemaTypeDefinition, InferStringType<TSchemaTypeDefinition>>
+		: TSchemaTypeDefinition extends SchemaTypeDefinitionNumber
+		? InferRequiredType<TSchemaTypeDefinition, number>
+		: TSchemaTypeDefinition extends SchemaTypeDefinitionISOCalendarDate
+		? InferRequiredType<TSchemaTypeDefinition, `${number}-${number}-${number}`>
+		: TSchemaTypeDefinition extends SchemaTypeDefinitionISOCalendarDateTime
+		? InferRequiredType<
+				TSchemaTypeDefinition,
+				`${number}-${number}-${number}T${number}:${number}:${number}.${number}`
+		  >
+		: TSchemaTypeDefinition extends SchemaTypeDefinitionISOTime
+		? InferRequiredType<TSchemaTypeDefinition, `${number}:${number}:${number}.${number}`>
+		: TSchemaTypeDefinition extends Schema<infer SubSchemaDefinition>
+		? { [K in keyof SubSchemaDefinition]: InferSchemaType<SubSchemaDefinition[K]> }
+		: TSchemaTypeDefinition extends SchemaTypeDefinitionArray
+		? InferSchemaType<TSchemaTypeDefinition[0]>[]
+		: TSchemaTypeDefinition extends SchemaDefinition
+		? { [K in keyof TSchemaTypeDefinition]: InferSchemaType<TSchemaTypeDefinition[K]> }
+		: never;
+
+export type InferSchemaObject<TSchema extends Schema<SchemaDefinition>> = TSchema extends Schema<
+	infer TSchemaDefinition
+>
+	? { _id: string; __v: string } & {
+			[K in keyof TSchemaDefinition]: InferSchemaType<TSchemaDefinition[K]>;
+	  } extends infer O
+		? { [K in keyof O]: O[K] }
+		: never
+	: never;
 // #endregion
 
 /** Schema constructor */
-class Schema {
+class Schema<TSchemaDefinition extends SchemaDefinition> {
 	/** Key/value pairs of schema object path structure and associated multivalue dictionary ids */
 	public dictPaths: Map<string, DictionaryTypeDetail>;
 
@@ -104,13 +143,13 @@ class Schema {
 	public readonly idMatch?: RegExp;
 
 	/** The schema definition passed to the constructor */
-	private readonly definition: SchemaDefinition;
+	private readonly definition: TSchemaDefinition;
 
 	/** Map of the compiled schema object position paths */
 	private readonly positionPaths: Map<string, number[]>;
 
 	/** Map of all subdocument schemas represented in this Schema with parentPath as key */
-	private readonly subdocumentSchemas: Map<string, Schema>;
+	private readonly subdocumentSchemas: Map<string, Schema<SchemaDefinition>>;
 
 	/** Optional function to use for encryption of sensitive data */
 	private readonly encrypt?: EncryptFn;
@@ -119,7 +158,7 @@ class Schema {
 	private readonly decrypt?: DecryptFn;
 
 	public constructor(
-		definition: SchemaDefinition,
+		definition: TSchemaDefinition,
 		{ dictionaries = {}, idForeignKey, idMatch, encrypt, decrypt }: SchemaConstructorOptions = {},
 	) {
 		this.idForeignKey = idForeignKey;
@@ -247,7 +286,10 @@ class Schema {
 	}
 
 	/** Construct instance member paths */
-	private buildPaths(definition: SchemaDefinition, prev?: string): Map<string, BaseSchemaType> {
+	private buildPaths<TPathDefinition extends SchemaDefinition>(
+		definition: TPathDefinition,
+		prev?: string,
+	): Map<string, BaseSchemaType> {
 		return Object.entries(definition).reduce((acc, [key, value]) => {
 			// construct flattened keypath
 			const newKey = prev != null ? `${prev}.${key}` : key;
@@ -381,7 +423,10 @@ class Schema {
 	}
 
 	/** Perform ancillary updates needed when a subdocument is in the Schema definition */
-	private handleSubDocumentSchemas(schema: Schema, keyPath: string) {
+	private handleSubDocumentSchemas<TSubdocumentSchemaDefinition extends SchemaDefinition>(
+		schema: Schema<TSubdocumentSchemaDefinition>,
+		keyPath: string,
+	) {
 		this.subdocumentSchemas.set(keyPath, schema);
 		this.mergeSchemaDictionaries(schema, keyPath);
 	}
@@ -397,7 +442,10 @@ class Schema {
 	}
 
 	/** Merge subdocument schema dictionaries with the parent schema's dictionaries */
-	private mergeSchemaDictionaries(schema: Schema, keyPath: string) {
+	private mergeSchemaDictionaries<TSubdocumentSchemaDefinition extends SchemaDefinition>(
+		schema: Schema<TSubdocumentSchemaDefinition>,
+		keyPath: string,
+	) {
 		this.dictPaths = Array.from(schema.dictPaths).reduce(
 			(acc, [subDictPath, subDictTypeDetail]) => {
 				const dictKey = `${keyPath}.${subDictPath}`;
@@ -410,3 +458,27 @@ class Schema {
 }
 
 export default Schema;
+
+const foo = new Schema({
+	a: { type: 'boolean', path: 1, required: true },
+	b: { type: 'string', path: 2, enum: ['foo', 'bar'] as const },
+	c: { type: 'number', path: 3, required: true },
+	d: { type: 'ISOCalendarDate', path: 4 },
+	e: { type: 'ISOCalendarDateTime', path: 5 },
+	f: { type: 'ISOTime', path: 6 },
+	g: new Schema({
+		h: { type: 'string', path: 7, enum: ['baz', 'qux'] as const, required: true },
+		i: { type: 'number', path: 8 },
+	}),
+	j: [{ type: 'string', path: 9, required: true }],
+	k: [[{ type: 'string', path: 10, required: true }]],
+	l: [
+		new Schema({
+			m: { type: 'string', path: 11, required: true },
+			n: { type: 'number', path: 12 },
+		}),
+	],
+	o: { p: { type: 'string', path: 13, required: true }, q: { type: 'number', path: 14 } },
+	r: [{ s: { type: 'string', path: 15, required: true }, t: { type: 'number', path: 16 } }],
+});
+type Foo = InferSchemaObject<typeof foo>;

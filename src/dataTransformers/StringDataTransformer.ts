@@ -2,9 +2,9 @@ import type { DataTransformer } from '../types';
 
 class StringDataTransformer implements DataTransformer {
 	/** Array of allowed enumerations */
-	private readonly enum: string[] | null;
+	private readonly enum: readonly string[] | null;
 
-	public constructor(enumList?: string[]) {
+	public constructor(enumList?: readonly string[]) {
 		this.enum = enumList ?? null;
 	}
 

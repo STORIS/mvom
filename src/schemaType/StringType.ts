@@ -8,7 +8,7 @@ import type { SchemaTypeDefinitionBase, Validator } from './BaseSchemaType';
 
 export interface SchemaTypeDefinitionString extends SchemaTypeDefinitionBase {
 	type: 'string';
-	enum?: string[];
+	enum?: readonly string[];
 	match?: RegExp;
 	foreignKey?: SchemaForeignKeyDefinition | SchemaCompoundForeignKeyDefinition;
 }
@@ -19,7 +19,7 @@ class StringType extends BaseScalarType {
 	protected readonly dataTransformer: StringDataTransformer;
 
 	/** Array of allowed enumerations */
-	private readonly enum: string[] | null;
+	private readonly enum: readonly string[] | null;
 
 	/* Regular expression to validate the property value against */
 	private readonly match: RegExp | null;
