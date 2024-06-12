@@ -5,7 +5,7 @@ import { Mutex } from 'async-mutex';
 import type { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
 import axios from 'axios';
 import { addDays, addMilliseconds, differenceInMilliseconds, format } from 'date-fns';
-import compileModel from './compileModel';
+import compileModel, { type ModelConstructor } from './compileModel';
 import {
 	dbErrors,
 	ISOCalendarDateFormat,
@@ -347,10 +347,7 @@ class Connection {
 	public model<
 		TSchema extends Schema<TSchemaDefinition>,
 		TSchemaDefinition extends SchemaDefinition,
-	>(
-		schema: TSchema | null,
-		file: string,
-	): ReturnType<typeof compileModel<TSchema, TSchemaDefinition>> {
+	>(schema: TSchema | null, file: string): ModelConstructor<TSchema, TSchemaDefinition> {
 		if (this.status !== ConnectionStatus.connected || this.dbServerInfo == null) {
 			this.logHandler.error('Cannot create model until database connection has been established');
 			throw new Error('Cannot create model until database connection has been established');

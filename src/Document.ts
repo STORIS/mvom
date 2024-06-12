@@ -2,7 +2,7 @@ import { assignIn, cloneDeep, get as getIn, set as setIn } from 'lodash';
 import { TransformDataError } from './errors';
 import ForeignKeyDbTransformer from './ForeignKeyDbTransformer';
 import type Schema from './Schema';
-import type { SchemaDefinition } from './Schema';
+import type { InferDocumentObject, SchemaDefinition } from './Schema';
 import type { DbServerDelimiters, GenericObject, MvRecord } from './types';
 
 // #region Types
@@ -17,6 +17,11 @@ export interface BuildForeignKeyDefinitionsResult {
 	entityName: string;
 	entityIds: string[];
 }
+
+type DocumentCompositeValue<
+	TSchema extends Schema<TSchemaDefinition>,
+	TSchemaDefinition extends SchemaDefinition,
+> = Document<TSchema, TSchemaDefinition> & InferDocumentObject<TSchema>;
 // #endregion
 
 /** A document object */
@@ -62,16 +67,22 @@ class Document<
 	public static createSubdocumentFromRecord<
 		TSchema extends Schema<TSchemaDefinition>,
 		TSchemaDefinition extends SchemaDefinition,
-	>(schema: TSchema, record: MvRecord): Document<TSchema, TSchemaDefinition> {
-		return new Document(schema, { record, isSubdocument: true });
+	>(schema: TSchema, record: MvRecord): DocumentCompositeValue<TSchema, TSchemaDefinition> {
+		return new Document(schema, { record, isSubdocument: true }) as DocumentCompositeValue<
+			TSchema,
+			TSchemaDefinition
+		>;
 	}
 
 	/** Create a new Subdocument instance from data */
 	public static createSubdocumentFromData<
 		TSchema extends Schema<TSchemaDefinition>,
 		TSchemaDefinition extends SchemaDefinition,
-	>(schema: TSchema, data: GenericObject): Document<TSchema, TSchemaDefinition> {
-		return new Document(schema, { data, isSubdocument: true });
+	>(schema: TSchema, data: GenericObject): DocumentCompositeValue<TSchema, TSchemaDefinition> {
+		return new Document(schema, { data, isSubdocument: true }) as DocumentCompositeValue<
+			TSchema,
+			TSchemaDefinition
+		>;
 	}
 
 	/** Create a new Document instance from a record string */
@@ -82,10 +93,10 @@ class Document<
 		schema: TSchema,
 		recordString: string,
 		dbServerDelimiters: DbServerDelimiters,
-	): Document<TSchema, TSchemaDefinition> {
+	): DocumentCompositeValue<TSchema, TSchemaDefinition> {
 		const record = Document.convertMvStringToArray(recordString, dbServerDelimiters);
 
-		return new Document(schema, { record });
+		return new Document(schema, { record }) as DocumentCompositeValue<TSchema, TSchemaDefinition>;
 	}
 
 	/** Convert a multivalue string to an array */

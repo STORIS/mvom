@@ -121,14 +121,20 @@ type InferSchemaType<TSchemaTypeDefinition> =
 											}
 										: never;
 
-export type InferSchemaObject<TSchema extends Schema<SchemaDefinition>> =
+export type InferDocumentObject<TSchema extends Schema<SchemaDefinition>> =
 	TSchema extends Schema<infer TSchemaDefinition>
-		? { _id: string; __v: string } & {
+		? {
 				[K in keyof TSchemaDefinition]: InferSchemaType<TSchemaDefinition[K]>;
-			} extends infer O
-			? { [K in keyof O]: O[K] }
-			: never
+			}
 		: never;
+
+export type InferModelObject<TSchema extends Schema<SchemaDefinition>> = {
+	_id: string;
+	__v: string;
+} & InferDocumentObject<TSchema> extends infer O
+	? { [K in keyof O]: O[K] }
+	: never;
+
 // #endregion
 
 /** Schema constructor */
