@@ -154,10 +154,8 @@ abstract class BaseScalarType extends BaseSchemaType implements DataTransformer 
 		!this.required || value != null;
 
 	/** Type validator */
-	protected validateType = (
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		value: unknown,
-	): boolean | Promise<boolean> => true;
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	protected validateType = (value: unknown): boolean | Promise<boolean> => true;
 
 	/** Create validation object for required validation */
 	private createRequiredValidator(): Validator {
