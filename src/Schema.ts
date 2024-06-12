@@ -289,10 +289,7 @@ class Schema<TSchemaDefinition extends SchemaDefinition> {
 	}
 
 	/** Construct instance member paths */
-	private buildPaths<TPathDefinition extends SchemaDefinition>(
-		definition: TPathDefinition,
-		prev?: string,
-	): Map<string, BaseSchemaType> {
+	private buildPaths(definition: SchemaDefinition, prev?: string): Map<string, BaseSchemaType> {
 		return Object.entries(definition).reduce((acc, [key, value]) => {
 			// construct flattened keypath
 			const newKey = prev != null ? `${prev}.${key}` : key;
@@ -426,10 +423,10 @@ class Schema<TSchemaDefinition extends SchemaDefinition> {
 	}
 
 	/** Perform ancillary updates needed when a subdocument is in the Schema definition */
-	private handleSubDocumentSchemas<TSubdocumentSchemaDefinition extends SchemaDefinition>(
-		schema: Schema<TSubdocumentSchemaDefinition>,
-		keyPath: string,
-	) {
+	private handleSubDocumentSchemas<
+		TSchema extends Schema<TSubdocumentSchemaDefinition>,
+		TSubdocumentSchemaDefinition extends SchemaDefinition,
+	>(schema: TSchema, keyPath: string) {
 		this.subdocumentSchemas.set(keyPath, schema);
 		this.mergeSchemaDictionaries(schema, keyPath);
 	}
@@ -445,10 +442,10 @@ class Schema<TSchemaDefinition extends SchemaDefinition> {
 	}
 
 	/** Merge subdocument schema dictionaries with the parent schema's dictionaries */
-	private mergeSchemaDictionaries<TSubdocumentSchemaDefinition extends SchemaDefinition>(
-		schema: Schema<TSubdocumentSchemaDefinition>,
-		keyPath: string,
-	) {
+	private mergeSchemaDictionaries<
+		TSchema extends Schema<TSubdocumentSchemaDefinition>,
+		TSubdocumentSchemaDefinition extends SchemaDefinition,
+	>(schema: TSchema, keyPath: string) {
 		this.dictPaths = Array.from(schema.dictPaths).reduce(
 			(acc, [subDictPath, subDictTypeDetail]) => {
 				const dictKey = `${keyPath}.${subDictPath}`;
