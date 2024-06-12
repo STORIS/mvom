@@ -88,7 +88,7 @@ const compileModel = <
 		public readonly __v: string | null;
 
 		/** Id of model instance */
-		public declare _id: string | null; // add definite assignment assertion since property is assigned through defineProperty
+		public _id!: string | null; // add definite assignment assertion since property is assigned through defineProperty
 
 		/** Original record string that model was generated from */
 		public readonly _originalRecordString: string | null;
