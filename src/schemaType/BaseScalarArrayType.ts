@@ -3,11 +3,11 @@ import type BaseScalarType from './BaseScalarType';
 import BaseSchemaType from './BaseSchemaType';
 
 /** Abstract Base Type for all scalar arrays */
-abstract class BaseScalarArrayType<TSchemaType extends BaseScalarType> extends BaseSchemaType {
+abstract class BaseScalarArrayType extends BaseSchemaType {
 	/** A schemaType representing the type of the array's contents */
-	protected readonly valueSchemaType: TSchemaType;
+	protected readonly valueSchemaType: BaseScalarType;
 
-	protected constructor(valueSchemaType: TSchemaType) {
+	protected constructor(valueSchemaType: BaseScalarType) {
 		super();
 		this.valueSchemaType = valueSchemaType;
 	}

@@ -20,7 +20,6 @@ import {
 	StringType,
 } from './schemaType';
 import type {
-	BaseScalarType,
 	BaseSchemaType,
 	SchemaTypeDefinitionBoolean,
 	SchemaTypeDefinitionISOCalendarDate,
@@ -326,10 +325,7 @@ class Schema<TSchemaDefinition extends SchemaDefinition> {
 	private castArray(
 		castee: SchemaTypeDefinitionArray,
 		keyPath: string,
-	):
-		| ArrayType<BaseScalarType>
-		| NestedArrayType<BaseScalarType>
-		| DocumentArrayType<Schema<SchemaDefinition>, SchemaDefinition> {
+	): ArrayType | NestedArrayType | DocumentArrayType<Schema<SchemaDefinition>, SchemaDefinition> {
 		if (castee.length !== 1) {
 			// a schema array definition must contain exactly one value of language-type object (which includes arrays)
 			throw new InvalidParameterError({

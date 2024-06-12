@@ -5,8 +5,8 @@ import BaseScalarArrayType from './BaseScalarArrayType';
 import type BaseScalarType from './BaseScalarType';
 
 /** Scalar Array Schema Type */
-class ArrayType<TSchemaType extends BaseScalarType> extends BaseScalarArrayType<TSchemaType> {
-	public constructor(valueSchemaType: TSchemaType) {
+class ArrayType extends BaseScalarArrayType {
+	public constructor(valueSchemaType: BaseScalarType) {
 		super(valueSchemaType);
 	}
 

@@ -21,7 +21,7 @@ const definition: SchemaTypeDefinitionString = {
 
 const testScalarType = new TestScalarType(definition);
 
-class TestSubclass extends BaseScalarArrayType<BaseScalarType> {
+class TestSubclass extends BaseScalarArrayType {
 	public constructor(valueSchemaType: BaseScalarType) {
 		super(valueSchemaType);
 	}
