@@ -20,6 +20,7 @@ import {
 	StringType,
 } from './schemaType';
 import type {
+	BaseScalarType,
 	BaseSchemaType,
 	SchemaTypeDefinitionBoolean,
 	SchemaTypeDefinitionISOCalendarDate,
@@ -39,11 +40,10 @@ type SchemaTypeDefinition =
 	| SchemaTypeDefinitionArray;
 
 type SchemaTypeDefinitionArray =
-	| Schema<SchemaDefinition>[]
 	| SchemaTypeDefinitionScalar[]
 	| SchemaTypeDefinitionScalar[][]
 	| SchemaDefinition[]
-	| SchemaDefinition[][];
+	| Schema<SchemaDefinition>[];
 
 // eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style -- Record cannot circularly reference itself so index signature must be used. refer here: https://github.com/microsoft/TypeScript/pull/33050#issuecomment-714348057 for additional information
 export interface SchemaDefinition {
@@ -98,35 +98,38 @@ type InferSchemaType<TSchemaTypeDefinition> =
 	TSchemaTypeDefinition extends SchemaTypeDefinitionBoolean
 		? InferRequiredType<TSchemaTypeDefinition, boolean>
 		: TSchemaTypeDefinition extends SchemaTypeDefinitionString
-		? InferRequiredType<TSchemaTypeDefinition, InferStringType<TSchemaTypeDefinition>>
-		: TSchemaTypeDefinition extends SchemaTypeDefinitionNumber
-		? InferRequiredType<TSchemaTypeDefinition, number>
-		: TSchemaTypeDefinition extends SchemaTypeDefinitionISOCalendarDate
-		? InferRequiredType<TSchemaTypeDefinition, `${number}-${number}-${number}`>
-		: TSchemaTypeDefinition extends SchemaTypeDefinitionISOCalendarDateTime
-		? InferRequiredType<
-				TSchemaTypeDefinition,
-				`${number}-${number}-${number}T${number}:${number}:${number}.${number}`
-		  >
-		: TSchemaTypeDefinition extends SchemaTypeDefinitionISOTime
-		? InferRequiredType<TSchemaTypeDefinition, `${number}:${number}:${number}.${number}`>
-		: TSchemaTypeDefinition extends Schema<infer SubSchemaDefinition>
-		? { [K in keyof SubSchemaDefinition]: InferSchemaType<SubSchemaDefinition[K]> }
-		: TSchemaTypeDefinition extends SchemaTypeDefinitionArray
-		? InferSchemaType<TSchemaTypeDefinition[0]>[]
-		: TSchemaTypeDefinition extends SchemaDefinition
-		? { [K in keyof TSchemaTypeDefinition]: InferSchemaType<TSchemaTypeDefinition[K]> }
-		: never;
+			? InferRequiredType<TSchemaTypeDefinition, InferStringType<TSchemaTypeDefinition>>
+			: TSchemaTypeDefinition extends SchemaTypeDefinitionNumber
+				? InferRequiredType<TSchemaTypeDefinition, number>
+				: TSchemaTypeDefinition extends SchemaTypeDefinitionISOCalendarDate
+					? InferRequiredType<TSchemaTypeDefinition, `${number}-${number}-${number}`>
+					: TSchemaTypeDefinition extends SchemaTypeDefinitionISOCalendarDateTime
+						? InferRequiredType<
+								TSchemaTypeDefinition,
+								`${number}-${number}-${number}T${number}:${number}:${number}.${number}`
+							>
+						: TSchemaTypeDefinition extends SchemaTypeDefinitionISOTime
+							? InferRequiredType<TSchemaTypeDefinition, `${number}:${number}:${number}.${number}`>
+							: TSchemaTypeDefinition extends Schema<infer SubSchemaDefinition>
+								? { [K in keyof SubSchemaDefinition]: InferSchemaType<SubSchemaDefinition[K]> }
+								: TSchemaTypeDefinition extends SchemaTypeDefinitionArray
+									? InferSchemaType<TSchemaTypeDefinition[0]>[]
+									: TSchemaTypeDefinition extends SchemaDefinition
+										? {
+												[K in keyof TSchemaTypeDefinition]: InferSchemaType<
+													TSchemaTypeDefinition[K]
+												>;
+											}
+										: never;
 
-export type InferSchemaObject<TSchema extends Schema<SchemaDefinition>> = TSchema extends Schema<
-	infer TSchemaDefinition
->
-	? { _id: string; __v: string } & {
-			[K in keyof TSchemaDefinition]: InferSchemaType<TSchemaDefinition[K]>;
-	  } extends infer O
-		? { [K in keyof O]: O[K] }
-		: never
-	: never;
+export type InferSchemaObject<TSchema extends Schema<SchemaDefinition>> =
+	TSchema extends Schema<infer TSchemaDefinition>
+		? { _id: string; __v: string } & {
+				[K in keyof TSchemaDefinition]: InferSchemaType<TSchemaDefinition[K]>;
+			} extends infer O
+			? { [K in keyof O]: O[K] }
+			: never
+		: never;
 // #endregion
 
 /** Schema constructor */
@@ -323,7 +326,10 @@ class Schema<TSchemaDefinition extends SchemaDefinition> {
 	private castArray(
 		castee: SchemaTypeDefinitionArray,
 		keyPath: string,
-	): ArrayType | NestedArrayType | DocumentArrayType {
+	):
+		| ArrayType<BaseScalarType>
+		| NestedArrayType<BaseScalarType>
+		| DocumentArrayType<Schema<SchemaDefinition>> {
 		if (castee.length !== 1) {
 			// a schema array definition must contain exactly one value of language-type object (which includes arrays)
 			throw new InvalidParameterError({
@@ -459,27 +465,3 @@ class Schema<TSchemaDefinition extends SchemaDefinition> {
 }
 
 export default Schema;
-
-const foo = new Schema({
-	a: { type: 'boolean', path: 1, required: true },
-	b: { type: 'string', path: 2, enum: ['foo', 'bar'] as const },
-	c: { type: 'number', path: 3, required: true },
-	d: { type: 'ISOCalendarDate', path: 4 },
-	e: { type: 'ISOCalendarDateTime', path: 5 },
-	f: { type: 'ISOTime', path: 6 },
-	g: new Schema({
-		h: { type: 'string', path: 7, enum: ['baz', 'qux'] as const, required: true },
-		i: { type: 'number', path: 8 },
-	}),
-	j: [{ type: 'string', path: 9, required: true }],
-	k: [[{ type: 'string', path: 10, required: true }]],
-	l: [
-		new Schema({
-			m: { type: 'string', path: 11, required: true },
-			n: { type: 'number', path: 12 },
-		}),
-	],
-	o: { p: { type: 'string', path: 13, required: true }, q: { type: 'number', path: 14 } },
-	r: [{ s: { type: 'string', path: 15, required: true }, t: { type: 'number', path: 16 } }],
-});
-type Foo = InferSchemaObject<typeof foo>;

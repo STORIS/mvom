@@ -9,12 +9,10 @@ import type { MvRecord } from '../types';
 const { am, vm, svm } = mockDelimiters;
 
 class DocumentSubclass<
-	TSchemaDefinition extends SchemaDefinition,
-> extends Document<TSchemaDefinition> {
-	public constructor(
-		schema: Schema<TSchemaDefinition> | null,
-		options: DocumentConstructorOptions,
-	) {
+	TSchema extends Schema<TSchemaDefinition>,
+	TSchemaDefinition extends SchemaDefinition = TSchema extends Schema<infer U> ? U : never,
+> extends Document<TSchema, TSchemaDefinition> {
+	public constructor(schema: TSchema | null, options: DocumentConstructorOptions) {
 		super(schema, options);
 	}
 }

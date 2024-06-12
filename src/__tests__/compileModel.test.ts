@@ -18,7 +18,7 @@ import type { GenericObject } from '../types';
 
 const connectionMock = mockDeep<Connection>();
 const logHandlerMock = mock<LogHandler>();
-const schemaDefinition: SchemaDefinition = {
+const schemaDefinition = {
 	prop1: {
 		type: 'string',
 		path: 1,
@@ -26,7 +26,7 @@ const schemaDefinition: SchemaDefinition = {
 		foreignKey: { file: 'FK_FILE', entityName: 'prop1' },
 	},
 	prop2: { type: 'number', path: 2, dictionary: 'prop2Dictionary' },
-};
+} satisfies SchemaDefinition;
 const schema = new Schema(schemaDefinition);
 const filename = 'test.file';
 const requestId = 'requestId';

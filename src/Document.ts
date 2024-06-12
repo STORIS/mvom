@@ -20,7 +20,10 @@ export interface BuildForeignKeyDefinitionsResult {
 // #endregion
 
 /** A document object */
-class Document<TSchemaDefinition extends SchemaDefinition> {
+class Document<
+	TSchema extends Schema<TSchemaDefinition>,
+	TSchemaDefinition extends SchemaDefinition = TSchema extends Schema<infer U> ? U : never,
+> {
 	[key: string]: unknown;
 
 	public _raw?: MvRecord;
@@ -29,7 +32,7 @@ class Document<TSchemaDefinition extends SchemaDefinition> {
 	public _transformationErrors: TransformDataError[];
 
 	/** Schema instance which defined this document */
-	readonly #schema: Schema<TSchemaDefinition> | null;
+	readonly #schema: TSchema | null;
 
 	/** Record array of multivalue data */
 	#record: MvRecord;
@@ -37,10 +40,7 @@ class Document<TSchemaDefinition extends SchemaDefinition> {
 	/** Indicates whether this document is a subdocument of a composing parent */
 	readonly #isSubdocument: boolean;
 
-	protected constructor(
-		schema: Schema<TSchemaDefinition> | null,
-		options: DocumentConstructorOptions,
-	) {
+	protected constructor(schema: TSchema | null, options: DocumentConstructorOptions) {
 		const { data = {}, record, isSubdocument = false } = options;
 
 		this.#schema = schema;
@@ -59,27 +59,30 @@ class Document<TSchemaDefinition extends SchemaDefinition> {
 	}
 
 	/** Create a new Subdocument instance from a record array */
-	public static createSubdocumentFromRecord<TSchemaDefinition extends SchemaDefinition>(
-		schema: Schema<TSchemaDefinition>,
-		record: MvRecord,
-	): Document<TSchemaDefinition> {
+	public static createSubdocumentFromRecord<
+		TSchema extends Schema<TSchemaDefinition>,
+		TSchemaDefinition extends SchemaDefinition = TSchema extends Schema<infer U> ? U : never,
+	>(schema: TSchema, record: MvRecord): Document<TSchema, TSchemaDefinition> {
 		return new Document(schema, { record, isSubdocument: true });
 	}
 
 	/** Create a new Subdocument instance from data */
-	public static createSubdocumentFromData<TSchemaDefinition extends SchemaDefinition>(
-		schema: Schema<TSchemaDefinition>,
-		data: GenericObject,
-	): Document<TSchemaDefinition> {
+	public static createSubdocumentFromData<
+		TSchema extends Schema<TSchemaDefinition>,
+		TSchemaDefinition extends SchemaDefinition = TSchema extends Schema<infer U> ? U : never,
+	>(schema: TSchema, data: GenericObject): Document<TSchema, TSchemaDefinition> {
 		return new Document(schema, { data, isSubdocument: true });
 	}
 
 	/** Create a new Document instance from a record string */
-	public static createDocumentFromRecordString<TSchemaDefinition extends SchemaDefinition>(
-		schema: Schema<TSchemaDefinition>,
+	public static createDocumentFromRecordString<
+		TSchema extends Schema<TSchemaDefinition>,
+		TSchemaDefinition extends SchemaDefinition = TSchema extends Schema<infer U> ? U : never,
+	>(
+		schema: TSchema,
 		recordString: string,
 		dbServerDelimiters: DbServerDelimiters,
-	): Document<TSchemaDefinition> {
+	): Document<TSchema, TSchemaDefinition> {
 		const record = Document.convertMvStringToArray(recordString, dbServerDelimiters);
 
 		return new Document(schema, { record });
@@ -208,7 +211,7 @@ class Document<TSchemaDefinition extends SchemaDefinition> {
 						value = schemaType.cast(value);
 						setIn(this, keyPath, value);
 
-						const validationResult = await schemaType.validate(value, this);
+						const validationResult = await schemaType.validate(value);
 						if (validationResult instanceof Map) {
 							validationResult.forEach((errors, key) => {
 								if (errors.length > 0) {

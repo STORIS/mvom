@@ -5,14 +5,15 @@ import { DataValidationError } from './errors';
 import type LogHandler from './LogHandler';
 import Query, { type Filter, type QueryConstructorOptions } from './Query';
 import type Schema from './Schema';
-import type { DbServerDelimiters, DbSubroutineUserDefinedOptions, GenericObject } from './types';
+import type { SchemaDefinition } from './Schema';
+import type { DbServerDelimiters, DbSubroutineUserDefinedOptions } from './types';
 import { ensureArray } from './utils';
 
 // #region Types
-export interface ModelConstructorOptions<TSchema extends GenericObject> {
+export interface ModelConstructorOptions {
 	_id?: string | null;
 	__v?: string | null;
-	data?: TSchema;
+	data?: object;
 	record?: string;
 }
 
@@ -42,9 +43,12 @@ export type ModelSaveOptions = ModelDatabaseExecutionOptions;
 // #endregion
 
 /** Define a new model */
-const compileModel = <TSchema extends GenericObject = GenericObject>(
+const compileModel = <
+	TSchema extends Schema<TSchemaDefinition>,
+	TSchemaDefinition extends SchemaDefinition = TSchema extends Schema<infer U> ? U : never,
+>(
 	connection: Connection,
-	schema: Schema | null,
+	schema: TSchema | null,
 	file: string,
 	dbServerDelimiters: DbServerDelimiters,
 	logHandler: LogHandler,
@@ -53,7 +57,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 	logHandler.debug(`creating new model for file ${file}`);
 
 	/** Model constructor */
-	return class Model extends Document {
+	return class Model extends Document<TSchema, TSchemaDefinition> {
 		/** Connection instance which constructed this model definition */
 		public static readonly connection = connection;
 
@@ -61,7 +65,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 		public static readonly file = file;
 
 		/** Schema that defines this model */
-		public static readonly schema = schema;
+		public static readonly schema: TSchema | null = schema;
 
 		/** Log handler instance used for diagnostic logging */
 		static readonly #logHandler: LogHandler = logHandler;
@@ -81,7 +85,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 		/** Private id tracking property */
 		#_id: string | null;
 
-		public constructor(options: ModelConstructorOptions<TSchema>) {
+		public constructor(options: ModelConstructorOptions) {
 			const { data, record, _id = null, __v = null } = options;
 
 			const mvRecord =

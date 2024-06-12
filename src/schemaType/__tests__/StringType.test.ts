@@ -1,10 +1,6 @@
-import { mock } from 'jest-mock-extended';
-import type Document from '../../Document';
 import type { ForeignKeyDbDefinition } from '../../ForeignKeyDbTransformer';
 import type { SchemaTypeDefinitionString } from '../StringType';
 import StringType from '../StringType';
-
-const documentMock = mock<Document>();
 
 describe('transformFromDb', () => {
 	test('should return null if value is null and no enum is defined', () => {
@@ -122,7 +118,7 @@ describe('validations', () => {
 
 			const value = null;
 
-			expect(await stringType.validate(value, documentMock)).toContain('Property is required');
+			expect(await stringType.validate(value)).toContain('Property is required');
 		});
 
 		test('should return error message if required is true and value is empty string', async () => {
@@ -135,7 +131,7 @@ describe('validations', () => {
 
 			const value = '';
 
-			expect(await stringType.validate(value, documentMock)).toContain('Property is required');
+			expect(await stringType.validate(value)).toContain('Property is required');
 		});
 
 		test('should not return error message if required is true and value is populated with a string', async () => {
@@ -148,7 +144,7 @@ describe('validations', () => {
 
 			const value = 'foo';
 
-			expect(await stringType.validate(value, documentMock)).not.toContain('Property is required');
+			expect(await stringType.validate(value)).not.toContain('Property is required');
 		});
 
 		test('should not return error message if required is false and value is null', async () => {
@@ -161,7 +157,7 @@ describe('validations', () => {
 
 			const value = null;
 
-			expect(await stringType.validate(value, documentMock)).not.toContain('Property is required');
+			expect(await stringType.validate(value)).not.toContain('Property is required');
 		});
 
 		test('should not return error message if required is false and value is empty string', async () => {
@@ -174,7 +170,7 @@ describe('validations', () => {
 
 			const value = '';
 
-			expect(await stringType.validate(value, documentMock)).not.toContain('Property is required');
+			expect(await stringType.validate(value)).not.toContain('Property is required');
 		});
 	});
 
@@ -189,7 +185,7 @@ describe('validations', () => {
 
 			const value = null;
 
-			expect(await stringType.validate(value, documentMock)).not.toContain(
+			expect(await stringType.validate(value)).not.toContain(
 				'Value not present in list of allowed values',
 			);
 		});
@@ -203,7 +199,7 @@ describe('validations', () => {
 
 			const value = 'foo';
 
-			expect(await stringType.validate(value, documentMock)).not.toContain(
+			expect(await stringType.validate(value)).not.toContain(
 				'Value not present in list of allowed values',
 			);
 		});
@@ -218,7 +214,7 @@ describe('validations', () => {
 
 			const value = 'foo';
 
-			expect(await stringType.validate(value, documentMock)).not.toContain(
+			expect(await stringType.validate(value)).not.toContain(
 				'Value not present in list of allowed values',
 			);
 		});
@@ -233,7 +229,7 @@ describe('validations', () => {
 
 			const value = 'baz';
 
-			expect(await stringType.validate(value, documentMock)).toContain(
+			expect(await stringType.validate(value)).toContain(
 				'Value not present in list of allowed values',
 			);
 		});
@@ -250,9 +246,7 @@ describe('validations', () => {
 
 			const value = null;
 
-			expect(await stringType.validate(value, documentMock)).not.toContain(
-				'Value does not match pattern',
-			);
+			expect(await stringType.validate(value)).not.toContain('Value does not match pattern');
 		});
 
 		test('should not return error message if match qualifier is null', async () => {
@@ -264,9 +258,7 @@ describe('validations', () => {
 
 			const value = 'foo';
 
-			expect(await stringType.validate(value, documentMock)).not.toContain(
-				'Value does not match pattern',
-			);
+			expect(await stringType.validate(value)).not.toContain('Value does not match pattern');
 		});
 
 		test('should not return error message if value matches match qualifier', async () => {
@@ -279,9 +271,7 @@ describe('validations', () => {
 
 			const value = 'foo';
 
-			expect(await stringType.validate(value, documentMock)).not.toContain(
-				'Value does not match pattern',
-			);
+			expect(await stringType.validate(value)).not.toContain('Value does not match pattern');
 		});
 
 		test('should return error message if match qualifier is defined and value does not match', async () => {
@@ -294,9 +284,7 @@ describe('validations', () => {
 
 			const value = 'bar';
 
-			expect(await stringType.validate(value, documentMock)).toContain(
-				'Value does not match pattern',
-			);
+			expect(await stringType.validate(value)).toContain('Value does not match pattern');
 		});
 	});
 });

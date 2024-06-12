@@ -1,13 +1,9 @@
-import { mock } from 'jest-mock-extended';
 import { NumberType, StringType } from '..';
-import type Document from '../../Document';
 import type { ForeignKeyDbDefinition } from '../../ForeignKeyDbTransformer';
 import type { MvRecord } from '../../types';
 import NestedArrayType from '../NestedArrayType';
 import type { SchemaTypeDefinitionNumber } from '../NumberType';
 import type { SchemaTypeDefinitionString } from '../StringType';
-
-const documentMock = mock<Document>();
 
 describe('get', () => {
 	describe('no encryption', () => {
@@ -192,7 +188,7 @@ describe('validate', () => {
 			['1.0', ['Property is required']],
 		]);
 
-		const validationResult = await nestedArrayType.validate(value, documentMock);
+		const validationResult = await nestedArrayType.validate(value);
 		expect(validationResult).toEqual(expected);
 		expect(validationResult.size).toBe(2);
 	});
@@ -219,7 +215,7 @@ describe('validate', () => {
 			['1.0', ['Property is required']],
 			['1.1', ['Property is required']],
 		]);
-		const validationResult = await nestedArrayType.validate(value, documentMock);
+		const validationResult = await nestedArrayType.validate(value);
 		expect(validationResult).toEqual(expected);
 		expect(validationResult.size).toBe(4);
 	});
@@ -239,7 +235,7 @@ describe('validate', () => {
 			[7.89, 12.34],
 		];
 
-		const validationResult = await nestedArrayType.validate(value, documentMock);
+		const validationResult = await nestedArrayType.validate(value);
 		expect(validationResult.size).toBe(0);
 	});
 });

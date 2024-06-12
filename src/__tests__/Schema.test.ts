@@ -53,11 +53,12 @@ describe('constructor', () => {
 		});
 
 		test('should throw InvalidParameterError if nested array definition does not represent a scalar value', () => {
-			const definition: SchemaDefinition = {
+			const definition = {
 				prop1: [[{ prop1: { type: 'string', path: '1' } }]],
 			};
 
 			expect(() => {
+				// @ts-expect-error: definition is not a valid SchemaDefinition
 				new Schema(definition);
 			}).toThrow(InvalidParameterError);
 		});

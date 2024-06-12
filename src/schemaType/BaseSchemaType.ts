@@ -1,4 +1,3 @@
-import type Document from '../Document';
 import type { ForeignKeyDbDefinition } from '../ForeignKeyDbTransformer';
 import type { MvAttribute, MvRecord } from '../types';
 import { ensureArray } from '../utils';
@@ -11,7 +10,7 @@ export interface SchemaTypeDefinitionBase {
 	encrypted?: boolean;
 }
 
-type ValidationFunction = (value: unknown, document: Document) => boolean | Promise<boolean>;
+type ValidationFunction = (value: unknown) => boolean | Promise<boolean>;
 
 export interface Validator {
 	validationFn: ValidationFunction;
@@ -64,10 +63,7 @@ abstract class BaseSchemaType {
 	public abstract set(record: MvRecord, value: unknown): MvRecord;
 
 	/** Validate value */
-	public abstract validate(
-		value: unknown,
-		document: Document,
-	): Promise<string[] | Map<string, string[]>>;
+	public abstract validate(value: unknown): Promise<string[] | Map<string, string[]>>;
 }
 
 export default BaseSchemaType;
