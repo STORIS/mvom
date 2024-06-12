@@ -1,18 +1,18 @@
 import { mock, mockDeep } from 'jest-mock-extended';
 import mockDelimiters from '#test/mockDelimiters';
-import type { ModelConstructor } from '../compileModel';
+import type Connection from '../Connection';
 import { InvalidParameterError, QueryLimitError } from '../errors';
 import type LogHandler from '../LogHandler';
 import type { Filter, QueryExecutionOptions, SortCriteria } from '../Query';
 import Query from '../Query';
+import type Schema from '../Schema';
+import type { SchemaDefinition } from '../Schema';
 import type { DataTransformer, DbSubroutineOutputFind } from '../types';
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
-const ModelConstructorMock = mockDeep<ModelConstructor>();
+const connectionMock = mockDeep<Connection>();
+const schemaMock = mockDeep<Schema<SchemaDefinition>>();
 const filename = 'filename';
 const requestId = 'requestId';
-// @ts-expect-error: Ignore readonly modifier in test
-ModelConstructorMock.file = filename;
 
 const dataTransformerMock = mock<DataTransformer>();
 const logHandlerMock = mock<LogHandler>();
@@ -35,13 +35,13 @@ describe('constructor', () => {
 			};
 
 			// @ts-expect-error: Overriding mock
-			ModelConstructorMock.schema!.dictPaths = new Map([
+			schemaMock.dictPaths = new Map([
 				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
 				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
 			expect(() => {
-				new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+				new Query(connectionMock, schemaMock, filename, logHandlerMock, selectionCritieria);
 			}).toThrow(TypeError);
 		});
 
@@ -55,13 +55,13 @@ describe('constructor', () => {
 			};
 
 			// @ts-expect-error: Overriding mock
-			ModelConstructorMock.schema!.dictPaths = new Map([
+			schemaMock.dictPaths = new Map([
 				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
 				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
 			expect(() => {
-				new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+				new Query(connectionMock, schemaMock, filename, logHandlerMock, selectionCritieria);
 			}).toThrow(TypeError);
 		});
 
@@ -75,13 +75,13 @@ describe('constructor', () => {
 			};
 
 			// @ts-expect-error: Overriding mock
-			ModelConstructorMock.schema!.dictPaths = new Map([
+			schemaMock.dictPaths = new Map([
 				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
 				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
 			expect(() => {
-				new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+				new Query(connectionMock, schemaMock, filename, logHandlerMock, selectionCritieria);
 			}).toThrow(TypeError);
 		});
 
@@ -95,13 +95,13 @@ describe('constructor', () => {
 			};
 
 			// @ts-expect-error: Overriding mock
-			ModelConstructorMock.schema!.dictPaths = new Map([
+			schemaMock.dictPaths = new Map([
 				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
 				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
 			expect(() => {
-				new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+				new Query(connectionMock, schemaMock, filename, logHandlerMock, selectionCritieria);
 			}).toThrow(InvalidParameterError);
 		});
 
@@ -115,13 +115,13 @@ describe('constructor', () => {
 			};
 
 			// @ts-expect-error: Overriding mock
-			ModelConstructorMock.schema!.dictPaths = new Map([
+			schemaMock.dictPaths = new Map([
 				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
 				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
 			expect(() => {
-				new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+				new Query(connectionMock, schemaMock, filename, logHandlerMock, selectionCritieria);
 			}).toThrow(Error);
 		});
 
@@ -133,10 +133,10 @@ describe('constructor', () => {
 			};
 
 			// @ts-expect-error: Overriding mock
-			ModelConstructorMock.schema!.dictPaths = new Map();
+			schemaMock.dictPaths = new Map();
 
 			expect(() => {
-				new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+				new Query(connectionMock, schemaMock, filename, logHandlerMock, selectionCritieria);
 			}).toThrow(InvalidParameterError);
 		});
 	});
@@ -148,12 +148,12 @@ describe('exec', () => {
 		documents: [{ _id: 'id', __v: '__v', record: `foo${am}bar` }],
 	};
 	beforeEach(() => {
-		ModelConstructorMock.connection.executeDbSubroutine.mockResolvedValue(dbQueryResult);
+		connectionMock.executeDbSubroutine.mockResolvedValue(dbQueryResult);
 	});
 
 	describe('single conditions', () => {
 		beforeEach(() => {
-			ModelConstructorMock.connection.getDbLimits.mockResolvedValue({
+			connectionMock.getDbLimits.mockResolvedValue({
 				maxSort: 20,
 				maxWith: 512,
 				maxSentenceLength: 9247,
@@ -170,15 +170,21 @@ describe('exec', () => {
 				};
 
 				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([
+				schemaMock.dictPaths = new Map([
 					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 				]);
 
-				const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+				const query = new Query(
+					connectionMock,
+					schemaMock,
+					filename,
+					logHandlerMock,
+					selectionCritieria,
+				);
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue}"`;
-				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+				expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -199,15 +205,21 @@ describe('exec', () => {
 				};
 
 				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([
+				schemaMock.dictPaths = new Map([
 					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 				]);
 
-				const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+				const query = new Query(
+					connectionMock,
+					schemaMock,
+					filename,
+					logHandlerMock,
+					selectionCritieria,
+				);
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with (${propertyDictionary} = "${propertyValue1}" or ${propertyDictionary} = "${propertyValue2}")`;
-				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+				expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -229,16 +241,22 @@ describe('exec', () => {
 				};
 
 				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([
+				schemaMock.dictPaths = new Map([
 					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 				]);
 
-				const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+				const query = new Query(
+					connectionMock,
+					schemaMock,
+					filename,
+					logHandlerMock,
+					selectionCritieria,
+				);
 
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue}"`;
-				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+				expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -258,16 +276,22 @@ describe('exec', () => {
 				};
 
 				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([
+				schemaMock.dictPaths = new Map([
 					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 				]);
 
-				const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+				const query = new Query(
+					connectionMock,
+					schemaMock,
+					filename,
+					logHandlerMock,
+					selectionCritieria,
+				);
 
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} = '"${propertyValue}"'`;
-				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+				expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -287,16 +311,22 @@ describe('exec', () => {
 				};
 
 				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([
+				schemaMock.dictPaths = new Map([
 					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 				]);
 
-				const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+				const query = new Query(
+					connectionMock,
+					schemaMock,
+					filename,
+					logHandlerMock,
+					selectionCritieria,
+				);
 
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} = "'${propertyValue}'"`;
-				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+				expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -317,15 +347,21 @@ describe('exec', () => {
 				};
 
 				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([
+				schemaMock.dictPaths = new Map([
 					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 				]);
 
-				const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+				const query = new Query(
+					connectionMock,
+					schemaMock,
+					filename,
+					logHandlerMock,
+					selectionCritieria,
+				);
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with (${propertyDictionary} = "${propertyValue1}" or ${propertyDictionary} = "${propertyValue2}")`;
-				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+				expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -345,15 +381,21 @@ describe('exec', () => {
 				};
 
 				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([
+				schemaMock.dictPaths = new Map([
 					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 				]);
 
-				const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+				const query = new Query(
+					connectionMock,
+					schemaMock,
+					filename,
+					logHandlerMock,
+					selectionCritieria,
+				);
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue1}"`;
-				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+				expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -373,16 +415,22 @@ describe('exec', () => {
 				};
 
 				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([
+				schemaMock.dictPaths = new Map([
 					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 				]);
 
-				const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+				const query = new Query(
+					connectionMock,
+					schemaMock,
+					filename,
+					logHandlerMock,
+					selectionCritieria,
+				);
 
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} > "${propertyValue}"`;
-				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+				expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -402,16 +450,22 @@ describe('exec', () => {
 				};
 
 				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([
+				schemaMock.dictPaths = new Map([
 					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 				]);
 
-				const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+				const query = new Query(
+					connectionMock,
+					schemaMock,
+					filename,
+					logHandlerMock,
+					selectionCritieria,
+				);
 
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} >= "${propertyValue}"`;
-				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+				expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -431,16 +485,22 @@ describe('exec', () => {
 				};
 
 				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([
+				schemaMock.dictPaths = new Map([
 					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 				]);
 
-				const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+				const query = new Query(
+					connectionMock,
+					schemaMock,
+					filename,
+					logHandlerMock,
+					selectionCritieria,
+				);
 
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} < "${propertyValue}"`;
-				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+				expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -460,16 +520,22 @@ describe('exec', () => {
 				};
 
 				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([
+				schemaMock.dictPaths = new Map([
 					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 				]);
 
-				const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+				const query = new Query(
+					connectionMock,
+					schemaMock,
+					filename,
+					logHandlerMock,
+					selectionCritieria,
+				);
 
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} <= "${propertyValue}"`;
-				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+				expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -489,16 +555,22 @@ describe('exec', () => {
 				};
 
 				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([
+				schemaMock.dictPaths = new Map([
 					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 				]);
 
-				const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+				const query = new Query(
+					connectionMock,
+					schemaMock,
+					filename,
+					logHandlerMock,
+					selectionCritieria,
+				);
 
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} # "${propertyValue}"`;
-				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+				expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -519,19 +591,25 @@ describe('exec', () => {
 					};
 
 					// @ts-expect-error: Overriding mock
-					ModelConstructorMock.schema!.dictPaths = new Map([
+					schemaMock.dictPaths = new Map([
 						[
 							propertyName,
 							{ dictionary: propertyDictionary, dataTransformer: dataTransformerMock },
 						],
 					]);
 
-					const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+					const query = new Query(
+						connectionMock,
+						schemaMock,
+						filename,
+						logHandlerMock,
+						selectionCritieria,
+					);
 
 					expect(await query.exec()).toEqual(dbQueryResult);
 
 					const expectedQuery = `select ${filename} with ${propertyDictionary} like "...'${propertyValue}'..."`;
-					expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+					expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 						'find',
 						{
 							filename,
@@ -551,7 +629,7 @@ describe('exec', () => {
 					};
 
 					// @ts-expect-error: Overriding mock
-					ModelConstructorMock.schema!.dictPaths = new Map([
+					schemaMock.dictPaths = new Map([
 						[
 							propertyName,
 							{ dictionary: propertyDictionary, dataTransformer: dataTransformerMock },
@@ -559,7 +637,7 @@ describe('exec', () => {
 					]);
 
 					expect(() => {
-						new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+						new Query(connectionMock, schemaMock, filename, logHandlerMock, selectionCritieria);
 					}).toThrow();
 				});
 
@@ -572,7 +650,7 @@ describe('exec', () => {
 					};
 
 					// @ts-expect-error: Overriding mock
-					ModelConstructorMock.schema!.dictPaths = new Map([
+					schemaMock.dictPaths = new Map([
 						[
 							propertyName,
 							{ dictionary: propertyDictionary, dataTransformer: dataTransformerMock },
@@ -580,7 +658,7 @@ describe('exec', () => {
 					]);
 
 					expect(() => {
-						new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+						new Query(connectionMock, schemaMock, filename, logHandlerMock, selectionCritieria);
 					}).toThrow();
 				});
 			});
@@ -595,19 +673,25 @@ describe('exec', () => {
 					};
 
 					// @ts-expect-error: Overriding mock
-					ModelConstructorMock.schema!.dictPaths = new Map([
+					schemaMock.dictPaths = new Map([
 						[
 							propertyName,
 							{ dictionary: propertyDictionary, dataTransformer: dataTransformerMock },
 						],
 					]);
 
-					const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+					const query = new Query(
+						connectionMock,
+						schemaMock,
+						filename,
+						logHandlerMock,
+						selectionCritieria,
+					);
 
 					expect(await query.exec()).toEqual(dbQueryResult);
 
 					const expectedQuery = `select ${filename} with ${propertyDictionary} like "'${propertyValue}'..."`;
-					expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+					expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 						'find',
 						{
 							filename,
@@ -627,7 +711,7 @@ describe('exec', () => {
 					};
 
 					// @ts-expect-error: Overriding mock
-					ModelConstructorMock.schema!.dictPaths = new Map([
+					schemaMock.dictPaths = new Map([
 						[
 							propertyName,
 							{ dictionary: propertyDictionary, dataTransformer: dataTransformerMock },
@@ -635,7 +719,7 @@ describe('exec', () => {
 					]);
 
 					expect(() => {
-						new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+						new Query(connectionMock, schemaMock, filename, logHandlerMock, selectionCritieria);
 					}).toThrow();
 				});
 
@@ -648,7 +732,7 @@ describe('exec', () => {
 					};
 
 					// @ts-expect-error: Overriding mock
-					ModelConstructorMock.schema!.dictPaths = new Map([
+					schemaMock.dictPaths = new Map([
 						[
 							propertyName,
 							{ dictionary: propertyDictionary, dataTransformer: dataTransformerMock },
@@ -656,7 +740,7 @@ describe('exec', () => {
 					]);
 
 					expect(() => {
-						new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+						new Query(connectionMock, schemaMock, filename, logHandlerMock, selectionCritieria);
 					}).toThrow();
 				});
 			});
@@ -671,19 +755,25 @@ describe('exec', () => {
 					};
 
 					// @ts-expect-error: Overriding mock
-					ModelConstructorMock.schema!.dictPaths = new Map([
+					schemaMock.dictPaths = new Map([
 						[
 							propertyName,
 							{ dictionary: propertyDictionary, dataTransformer: dataTransformerMock },
 						],
 					]);
 
-					const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+					const query = new Query(
+						connectionMock,
+						schemaMock,
+						filename,
+						logHandlerMock,
+						selectionCritieria,
+					);
 
 					expect(await query.exec()).toEqual(dbQueryResult);
 
 					const expectedQuery = `select ${filename} with ${propertyDictionary} like "...'${propertyValue}'"`;
-					expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+					expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 						'find',
 						{
 							filename,
@@ -703,7 +793,7 @@ describe('exec', () => {
 					};
 
 					// @ts-expect-error: Overriding mock
-					ModelConstructorMock.schema!.dictPaths = new Map([
+					schemaMock.dictPaths = new Map([
 						[
 							propertyName,
 							{ dictionary: propertyDictionary, dataTransformer: dataTransformerMock },
@@ -711,7 +801,7 @@ describe('exec', () => {
 					]);
 
 					expect(() => {
-						new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+						new Query(connectionMock, schemaMock, filename, logHandlerMock, selectionCritieria);
 					}).toThrow();
 				});
 
@@ -724,7 +814,7 @@ describe('exec', () => {
 					};
 
 					// @ts-expect-error: Overriding mock
-					ModelConstructorMock.schema!.dictPaths = new Map([
+					schemaMock.dictPaths = new Map([
 						[
 							propertyName,
 							{ dictionary: propertyDictionary, dataTransformer: dataTransformerMock },
@@ -732,7 +822,7 @@ describe('exec', () => {
 					]);
 
 					expect(() => {
-						new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+						new Query(connectionMock, schemaMock, filename, logHandlerMock, selectionCritieria);
 					}).toThrow();
 				});
 			});
@@ -747,15 +837,21 @@ describe('exec', () => {
 				};
 
 				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([
+				schemaMock.dictPaths = new Map([
 					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 				]);
 
-				const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+				const query = new Query(
+					connectionMock,
+					schemaMock,
+					filename,
+					logHandlerMock,
+					selectionCritieria,
+				);
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with (${propertyDictionary} # "${propertyValue1}" and ${propertyDictionary} # "${propertyValue2}")`;
-				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+				expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -772,15 +868,21 @@ describe('exec', () => {
 				const selectionCritieria = {};
 
 				// @ts-expect-error: Overriding mock
-				ModelConstructorMock.schema!.dictPaths = new Map([
+				schemaMock.dictPaths = new Map([
 					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 				]);
 
-				const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+				const query = new Query(
+					connectionMock,
+					schemaMock,
+					filename,
+					logHandlerMock,
+					selectionCritieria,
+				);
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename}`;
-				expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+				expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
 						filename,
@@ -801,7 +903,7 @@ describe('exec', () => {
 					};
 
 					// @ts-expect-error: Overriding mock
-					ModelConstructorMock.schema!.dictPaths = new Map([
+					schemaMock.dictPaths = new Map([
 						[
 							propertyName,
 							{ dictionary: propertyDictionary, dataTransformer: dataTransformerMock },
@@ -810,12 +912,18 @@ describe('exec', () => {
 
 					dataTransformerMock.transformToQuery.mockReturnValue('1');
 
-					const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+					const query = new Query(
+						connectionMock,
+						schemaMock,
+						filename,
+						logHandlerMock,
+						selectionCritieria,
+					);
 
 					expect(await query.exec()).toEqual(dbQueryResult);
 
 					const expectedQuery = `select ${filename} with ${propertyDictionary} = "1"`;
-					expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+					expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 						'find',
 						{
 							filename,
@@ -832,7 +940,7 @@ describe('exec', () => {
 
 	describe('multiple conditions', () => {
 		beforeEach(() => {
-			ModelConstructorMock.connection.getDbLimits.mockResolvedValue({
+			connectionMock.getDbLimits.mockResolvedValue({
 				maxSort: 20,
 				maxWith: 512,
 				maxSentenceLength: 9247,
@@ -852,16 +960,22 @@ describe('exec', () => {
 			};
 
 			// @ts-expect-error: Overriding mock
-			ModelConstructorMock.schema!.dictPaths = new Map([
+			schemaMock.dictPaths = new Map([
 				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
 				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+			const query = new Query(
+				connectionMock,
+				schemaMock,
+				filename,
+				logHandlerMock,
+				selectionCritieria,
+			);
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with (${propertyDictionary1} = "${propertyValue1}" and ${propertyDictionary2} = "${propertyValue2}")`;
-			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+			expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -880,12 +994,12 @@ describe('exec', () => {
 			const propertyValue2 = 'property-value2';
 			const propertyDictionary2 = 'property-dictionary2';
 
-			interface Schema {
+			interface QuerySchema {
 				[propertyName1]: string;
 				[propertyName2]: string;
 			}
 
-			const selectionCritieria: Filter<Schema> = {
+			const selectionCritieria: Filter<QuerySchema> = {
 				$and: [
 					{
 						[propertyName1]: propertyValue1,
@@ -897,16 +1011,22 @@ describe('exec', () => {
 			};
 
 			// @ts-expect-error: Overriding mock
-			ModelConstructorMock.schema!.dictPaths = new Map([
+			schemaMock.dictPaths = new Map([
 				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
 				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+			const query = new Query(
+				connectionMock,
+				schemaMock,
+				filename,
+				logHandlerMock,
+				selectionCritieria,
+			);
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with (${propertyDictionary1} = "${propertyValue1}" and ${propertyDictionary2} = "${propertyValue2}")`;
-			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+			expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -925,12 +1045,12 @@ describe('exec', () => {
 			const propertyValue2 = 'property-value2';
 			const propertyDictionary2 = 'property-dictionary2';
 
-			interface Schema {
+			interface QuerySchema {
 				[propertyName1]: string;
 				[propertyName2]: string;
 			}
 
-			const selectionCritieria: Filter<Schema> = {
+			const selectionCritieria: Filter<QuerySchema> = {
 				$or: [
 					{
 						[propertyName1]: propertyValue1,
@@ -942,16 +1062,22 @@ describe('exec', () => {
 			};
 
 			// @ts-expect-error: Overriding mock
-			ModelConstructorMock.schema!.dictPaths = new Map([
+			schemaMock.dictPaths = new Map([
 				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
 				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+			const query = new Query(
+				connectionMock,
+				schemaMock,
+				filename,
+				logHandlerMock,
+				selectionCritieria,
+			);
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with (${propertyDictionary1} = "${propertyValue1}" or ${propertyDictionary2} = "${propertyValue2}")`;
-			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+			expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -973,13 +1099,13 @@ describe('exec', () => {
 			const propertyValue3 = 'property-value3';
 			const propertyDictionary3 = 'property-dictionary3';
 
-			interface Schema {
+			interface QuerySchema {
 				[propertyName1]: string;
 				[propertyName2]: string;
 				[propertyName3]: string;
 			}
 
-			const selectionCritieria: Filter<Schema> = {
+			const selectionCritieria: Filter<QuerySchema> = {
 				$or: [
 					{
 						$and: [
@@ -996,17 +1122,23 @@ describe('exec', () => {
 			};
 
 			// @ts-expect-error: Overriding mock
-			ModelConstructorMock.schema!.dictPaths = new Map([
+			schemaMock.dictPaths = new Map([
 				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
 				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 				[propertyName3, { dictionary: propertyDictionary3, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+			const query = new Query(
+				connectionMock,
+				schemaMock,
+				filename,
+				logHandlerMock,
+				selectionCritieria,
+			);
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ((${propertyDictionary1} = "${propertyValue1}" and ${propertyDictionary2} = "${propertyValue2}") or ${propertyDictionary3} = "${propertyValue3}")`;
-			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+			expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1028,13 +1160,13 @@ describe('exec', () => {
 			const propertyValue3 = 'property-value3';
 			const propertyDictionary3 = 'property-dictionary3';
 
-			interface Schema {
+			interface QuerySchema {
 				[propertyName1]: string;
 				[propertyName2]: string;
 				[propertyName3]: string;
 			}
 
-			const selectionCritieria: Filter<Schema> = {
+			const selectionCritieria: Filter<QuerySchema> = {
 				$or: [
 					{
 						[propertyName1]: propertyValue1,
@@ -1045,17 +1177,23 @@ describe('exec', () => {
 			};
 
 			// @ts-expect-error: Overriding mock
-			ModelConstructorMock.schema!.dictPaths = new Map([
+			schemaMock.dictPaths = new Map([
 				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
 				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 				[propertyName3, { dictionary: propertyDictionary3, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+			const query = new Query(
+				connectionMock,
+				schemaMock,
+				filename,
+				logHandlerMock,
+				selectionCritieria,
+			);
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ((${propertyDictionary1} = "${propertyValue1}" and ${propertyDictionary2} = "${propertyValue2}") or ${propertyDictionary3} = "${propertyValue3}")`;
-			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+			expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1081,16 +1219,22 @@ describe('exec', () => {
 			};
 
 			// @ts-expect-error: Overriding mock
-			ModelConstructorMock.schema!.dictPaths = new Map([
+			schemaMock.dictPaths = new Map([
 				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
 				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+			const query = new Query(
+				connectionMock,
+				schemaMock,
+				filename,
+				logHandlerMock,
+				selectionCritieria,
+			);
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary1} = "${propertyValue1}"`;
-			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+			expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1116,16 +1260,22 @@ describe('exec', () => {
 			};
 
 			// @ts-expect-error: Overriding mock
-			ModelConstructorMock.schema!.dictPaths = new Map([
+			schemaMock.dictPaths = new Map([
 				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
 				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+			const query = new Query(
+				connectionMock,
+				schemaMock,
+				filename,
+				logHandlerMock,
+				selectionCritieria,
+			);
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary1} = "${propertyValue1}"`;
-			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+			expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1146,16 +1296,22 @@ describe('exec', () => {
 			};
 
 			// @ts-expect-error: Overriding mock
-			ModelConstructorMock.schema!.dictPaths = new Map([
+			schemaMock.dictPaths = new Map([
 				[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+			const query = new Query(
+				connectionMock,
+				schemaMock,
+				filename,
+				logHandlerMock,
+				selectionCritieria,
+			);
 
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with (${propertyDictionary} >= "${propertyValue1}" and ${propertyDictionary} <= "${propertyValue2}")`;
-			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+			expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1169,7 +1325,7 @@ describe('exec', () => {
 
 	describe('sorting', () => {
 		beforeEach(() => {
-			ModelConstructorMock.connection.getDbLimits.mockResolvedValue({
+			connectionMock.getDbLimits.mockResolvedValue({
 				maxSort: 20,
 				maxWith: 512,
 				maxSentenceLength: 9247,
@@ -1186,17 +1342,24 @@ describe('exec', () => {
 			const sortCriteria: SortCriteria = [];
 
 			// @ts-expect-error: Overriding mock
-			ModelConstructorMock.schema!.dictPaths = new Map([
+			schemaMock.dictPaths = new Map([
 				[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria, {
-				sort: sortCriteria,
-			});
+			const query = new Query(
+				connectionMock,
+				schemaMock,
+				filename,
+				logHandlerMock,
+				selectionCritieria,
+				{
+					sort: sortCriteria,
+				},
+			);
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue}"`;
-			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+			expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1217,17 +1380,24 @@ describe('exec', () => {
 			const sortCriteria: SortCriteria = [[propertyName, 1]];
 
 			// @ts-expect-error: Overriding mock
-			ModelConstructorMock.schema!.dictPaths = new Map([
+			schemaMock.dictPaths = new Map([
 				[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria, {
-				sort: sortCriteria,
-			});
+			const query = new Query(
+				connectionMock,
+				schemaMock,
+				filename,
+				logHandlerMock,
+				selectionCritieria,
+				{
+					sort: sortCriteria,
+				},
+			);
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue}" by ${propertyDictionary}`;
-			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+			expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1248,17 +1418,24 @@ describe('exec', () => {
 			const sortCriteria: SortCriteria = [[propertyName, -1]];
 
 			// @ts-expect-error: Overriding mock
-			ModelConstructorMock.schema!.dictPaths = new Map([
+			schemaMock.dictPaths = new Map([
 				[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria, {
-				sort: sortCriteria,
-			});
+			const query = new Query(
+				connectionMock,
+				schemaMock,
+				filename,
+				logHandlerMock,
+				selectionCritieria,
+				{
+					sort: sortCriteria,
+				},
+			);
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue}" by.dsnd ${propertyDictionary}`;
-			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+			expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1285,18 +1462,25 @@ describe('exec', () => {
 			];
 
 			// @ts-expect-error: Overriding mock
-			ModelConstructorMock.schema!.dictPaths = new Map([
+			schemaMock.dictPaths = new Map([
 				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
 				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria, {
-				sort: sortCriteria,
-			});
+			const query = new Query(
+				connectionMock,
+				schemaMock,
+				filename,
+				logHandlerMock,
+				selectionCritieria,
+				{
+					sort: sortCriteria,
+				},
+			);
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary1} = "${propertyValue1}" by ${propertyDictionary1} by ${propertyDictionary2}`;
-			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+			expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1323,18 +1507,25 @@ describe('exec', () => {
 			];
 
 			// @ts-expect-error: Overriding mock
-			ModelConstructorMock.schema!.dictPaths = new Map([
+			schemaMock.dictPaths = new Map([
 				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
 				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria, {
-				sort: sortCriteria,
-			});
+			const query = new Query(
+				connectionMock,
+				schemaMock,
+				filename,
+				logHandlerMock,
+				selectionCritieria,
+				{
+					sort: sortCriteria,
+				},
+			);
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary1} = "${propertyValue1}" by.dsnd ${propertyDictionary1} by.dsnd ${propertyDictionary2}`;
-			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+			expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1361,18 +1552,25 @@ describe('exec', () => {
 			];
 
 			// @ts-expect-error: Overriding mock
-			ModelConstructorMock.schema!.dictPaths = new Map([
+			schemaMock.dictPaths = new Map([
 				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
 				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria, {
-				sort: sortCriteria,
-			});
+			const query = new Query(
+				connectionMock,
+				schemaMock,
+				filename,
+				logHandlerMock,
+				selectionCritieria,
+				{
+					sort: sortCriteria,
+				},
+			);
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary1} = "${propertyValue1}" by.dsnd ${propertyDictionary1} by ${propertyDictionary2}`;
-			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+			expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1386,7 +1584,7 @@ describe('exec', () => {
 
 	describe('options', () => {
 		beforeEach(() => {
-			ModelConstructorMock.connection.getDbLimits.mockResolvedValue({
+			connectionMock.getDbLimits.mockResolvedValue({
 				maxSort: 20,
 				maxWith: 512,
 				maxSentenceLength: 9247,
@@ -1404,18 +1602,25 @@ describe('exec', () => {
 			const limit = 25;
 
 			// @ts-expect-error: Overriding mock
-			ModelConstructorMock.schema!.dictPaths = new Map([
+			schemaMock.dictPaths = new Map([
 				[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria, {
-				skip,
-				limit,
-			});
+			const query = new Query(
+				connectionMock,
+				schemaMock,
+				filename,
+				logHandlerMock,
+				selectionCritieria,
+				{
+					skip,
+					limit,
+				},
+			);
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue}"`;
-			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+			expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1437,11 +1642,17 @@ describe('exec', () => {
 			};
 
 			// @ts-expect-error: Overriding mock
-			ModelConstructorMock.schema!.dictPaths = new Map([
+			schemaMock.dictPaths = new Map([
 				[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+			const query = new Query(
+				connectionMock,
+				schemaMock,
+				filename,
+				logHandlerMock,
+				selectionCritieria,
+			);
 			const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
 			const maxReturnPayloadSize = 10_000;
 			const executionOptions: QueryExecutionOptions = {
@@ -1452,7 +1663,7 @@ describe('exec', () => {
 			expect(await query.exec(executionOptions)).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue}"`;
-			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+			expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,
@@ -1466,7 +1677,7 @@ describe('exec', () => {
 
 	describe('limits', () => {
 		test('should throw QueryLimitError if query length exceeds sentence length', async () => {
-			ModelConstructorMock.connection.getDbLimits.mockResolvedValue({
+			connectionMock.getDbLimits.mockResolvedValue({
 				maxSort: 20,
 				maxWith: 512,
 				maxSentenceLength: 10,
@@ -1480,16 +1691,22 @@ describe('exec', () => {
 			};
 
 			// @ts-expect-error: Overriding mock
-			ModelConstructorMock.schema!.dictPaths = new Map([
+			schemaMock.dictPaths = new Map([
 				[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+			const query = new Query(
+				connectionMock,
+				schemaMock,
+				filename,
+				logHandlerMock,
+				selectionCritieria,
+			);
 			await expect(query.exec()).rejects.toThrow(QueryLimitError);
 		});
 
 		test('should throw QueryLimitError if sort criteria exceeds max sort limits', async () => {
-			ModelConstructorMock.connection.getDbLimits.mockResolvedValue({
+			connectionMock.getDbLimits.mockResolvedValue({
 				maxSort: 2,
 				maxWith: 512,
 				maxSentenceLength: 9247,
@@ -1513,20 +1730,27 @@ describe('exec', () => {
 			];
 
 			// @ts-expect-error: Overriding mock
-			ModelConstructorMock.schema!.dictPaths = new Map([
+			schemaMock.dictPaths = new Map([
 				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
 				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 				[propertyName3, { dictionary: propertyDictionary3, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria, {
-				sort: sortCriteria,
-			});
+			const query = new Query(
+				connectionMock,
+				schemaMock,
+				filename,
+				logHandlerMock,
+				selectionCritieria,
+				{
+					sort: sortCriteria,
+				},
+			);
 			await expect(query.exec()).rejects.toThrow(QueryLimitError);
 		});
 
 		test('should throw QueryLimitError if selection criteria exceeds max criteria limits', async () => {
-			ModelConstructorMock.connection.getDbLimits.mockResolvedValue({
+			connectionMock.getDbLimits.mockResolvedValue({
 				maxSort: 20,
 				maxWith: 2,
 				maxSentenceLength: 9247,
@@ -1549,18 +1773,24 @@ describe('exec', () => {
 			};
 
 			// @ts-expect-error: Overriding mock
-			ModelConstructorMock.schema!.dictPaths = new Map([
+			schemaMock.dictPaths = new Map([
 				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
 				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
 				[propertyName3, { dictionary: propertyDictionary3, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+			const query = new Query(
+				connectionMock,
+				schemaMock,
+				filename,
+				logHandlerMock,
+				selectionCritieria,
+			);
 			await expect(query.exec()).rejects.toThrow(QueryLimitError);
 		});
 
 		test('should throw QueryLimitError if selection criteria exceeds max criteria limits with array criteria', async () => {
-			ModelConstructorMock.connection.getDbLimits.mockResolvedValue({
+			connectionMock.getDbLimits.mockResolvedValue({
 				maxSort: 20,
 				maxWith: 2,
 				maxSentenceLength: 9247,
@@ -1577,18 +1807,24 @@ describe('exec', () => {
 			};
 
 			// @ts-expect-error: Overriding mock
-			ModelConstructorMock.schema!.dictPaths = new Map([
+			schemaMock.dictPaths = new Map([
 				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
 			]);
 
-			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria);
+			const query = new Query(
+				connectionMock,
+				schemaMock,
+				filename,
+				logHandlerMock,
+				selectionCritieria,
+			);
 			await expect(query.exec()).rejects.toThrow(QueryLimitError);
 		});
 	});
 
 	describe('projection', () => {
 		beforeEach(() => {
-			ModelConstructorMock.connection.getDbLimits.mockResolvedValue({
+			connectionMock.getDbLimits.mockResolvedValue({
 				maxSort: 20,
 				maxWith: 512,
 				maxSentenceLength: 9247,
@@ -1604,19 +1840,26 @@ describe('exec', () => {
 			};
 
 			// @ts-expect-error: Overriding mock
-			ModelConstructorMock.schema!.dictPaths = new Map([
+			schemaMock.dictPaths = new Map([
 				[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
 			]);
-			ModelConstructorMock.schema!.transformPathsToDbPositions.mockReturnValue([2]);
+			schemaMock.transformPathsToDbPositions.mockReturnValue([2]);
 
 			const projection = ['property-name'];
-			const query = new Query(ModelConstructorMock, logHandlerMock, selectionCritieria, {
-				projection,
-			});
+			const query = new Query(
+				connectionMock,
+				schemaMock,
+				filename,
+				logHandlerMock,
+				selectionCritieria,
+				{
+					projection,
+				},
+			);
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue}"`;
-			expect(ModelConstructorMock.connection.executeDbSubroutine).toHaveBeenCalledWith(
+			expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
 					filename,

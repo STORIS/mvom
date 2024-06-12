@@ -5,7 +5,7 @@ import { DataValidationError } from './errors';
 import type LogHandler from './LogHandler';
 import Query, { type Filter, type QueryConstructorOptions } from './Query';
 import type Schema from './Schema';
-import type { SchemaDefinition } from './Schema';
+import type { InferSchemaObject, SchemaDefinition } from './Schema';
 import type { DbServerDelimiters, DbSubroutineUserDefinedOptions } from './types';
 import { ensureArray } from './utils';
 
@@ -17,13 +17,15 @@ export interface ModelConstructorOptions {
 	record?: string;
 }
 
-export type ModelConstructor = ReturnType<typeof compileModel>;
-
-export interface ModelFindAndCountResult {
+export interface ModelFindAndCountResult<
+	TSchema extends Schema<TSchemaDefinition>,
+	TSchemaDefinition extends SchemaDefinition,
+> {
 	/** Number of documents returned */
 	count: number;
 	/** Model instances for the returned documents */
-	documents: InstanceType<ModelConstructor>[];
+	documents: (InstanceType<ReturnType<typeof compileModel<TSchema, TSchemaDefinition>>> &
+		InferSchemaObject<TSchema>)[];
 }
 
 export interface ModelDatabaseExecutionOptions {
@@ -45,7 +47,7 @@ export type ModelSaveOptions = ModelDatabaseExecutionOptions;
 /** Define a new model */
 const compileModel = <
 	TSchema extends Schema<TSchemaDefinition>,
-	TSchemaDefinition extends SchemaDefinition = TSchema extends Schema<infer U> ? U : never,
+	TSchemaDefinition extends SchemaDefinition,
 >(
 	connection: Connection,
 	schema: TSchema | null,
@@ -131,7 +133,7 @@ const compileModel = <
 		public static async deleteById(
 			id: string,
 			options: ModelDeleteByIdOptions = {},
-		): Promise<Model | null> {
+		): Promise<(Model & InferSchemaObject<TSchema>) | null> {
 			const { maxReturnPayloadSize, requestId, userDefined } = options;
 
 			const data = await this.connection.executeDbSubroutine(
@@ -160,9 +162,16 @@ const compileModel = <
 		public static async find(
 			selectionCriteria: Filter<TSchema> = {},
 			options: ModelFindOptions = {},
-		): Promise<Model[]> {
+		): Promise<(Model & InferSchemaObject<TSchema>)[]> {
 			const { maxReturnPayloadSize, requestId, userDefined, ...queryConstructorOptions } = options;
-			const query = new Query(Model, Model.#logHandler, selectionCriteria, queryConstructorOptions);
+			const query = new Query(
+				this.connection,
+				this.schema,
+				this.file,
+				this.#logHandler,
+				selectionCriteria,
+				queryConstructorOptions,
+			);
 			const { documents } = await query.exec({
 				...(maxReturnPayloadSize != null && { maxReturnPayloadSize }),
 				...(requestId != null && { requestId }),
@@ -179,9 +188,16 @@ const compileModel = <
 		public static async findAndCount(
 			selectionCriteria: Filter<TSchema> = {},
 			options: ModelFindOptions = {},
-		): Promise<ModelFindAndCountResult> {
+		): Promise<ModelFindAndCountResult<TSchema, TSchemaDefinition>> {
 			const { maxReturnPayloadSize, requestId, userDefined, ...queryConstructorOptions } = options;
-			const query = new Query(Model, Model.#logHandler, selectionCriteria, queryConstructorOptions);
+			const query = new Query(
+				this.connection,
+				this.schema,
+				this.file,
+				this.#logHandler,
+				selectionCriteria,
+				queryConstructorOptions,
+			);
 			const { count, documents } = await query.exec({
 				...(maxReturnPayloadSize != null && { maxReturnPayloadSize }),
 				...(requestId != null && { requestId }),
@@ -203,7 +219,7 @@ const compileModel = <
 		public static async findById(
 			id: string,
 			options: ModelFindByIdOptions = {},
-		): Promise<Model | null> {
+		): Promise<(Model & InferSchemaObject<TSchema>) | null> {
 			const { maxReturnPayloadSize, requestId, projection, userDefined } = options;
 
 			const data = await this.connection.executeDbSubroutine(
@@ -233,7 +249,7 @@ const compileModel = <
 		public static async findByIds(
 			ids: string | string[],
 			options: ModelFindByIdOptions = {},
-		): Promise<(Model | null)[]> {
+		): Promise<((Model & InferSchemaObject<TSchema>) | null)[]> {
 			const { maxReturnPayloadSize, requestId, projection, userDefined } = options;
 
 			const idsArray = ensureArray(ids);
@@ -257,7 +273,7 @@ const compileModel = <
 				}
 
 				const { _id, __v, record } = dbResultItem;
-				return new Model({ _id, __v, record });
+				return this.#createModelFromRecordString(record, _id, __v);
 			});
 		}
 
@@ -288,8 +304,8 @@ const compileModel = <
 			recordString: string,
 			_id: string,
 			__v?: string | null,
-		): Model {
-			return new Model({ _id, __v, record: recordString });
+		): Model & InferSchemaObject<TSchema> {
+			return new Model({ _id, __v, record: recordString }) as Model & InferSchemaObject<TSchema>;
 		}
 
 		/** Format projection option */
@@ -300,7 +316,7 @@ const compileModel = <
 		}
 
 		/** Save a document to the database */
-		public async save(options: ModelSaveOptions = {}): Promise<Model> {
+		public async save(options: ModelSaveOptions = {}): Promise<Model & InferSchemaObject<TSchema>> {
 			const { maxReturnPayloadSize, requestId, userDefined } = options;
 			if (this._id == null) {
 				throw new TypeError('_id value must be set prior to saving');

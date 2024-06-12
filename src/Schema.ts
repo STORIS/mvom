@@ -329,7 +329,7 @@ class Schema<TSchemaDefinition extends SchemaDefinition> {
 	):
 		| ArrayType<BaseScalarType>
 		| NestedArrayType<BaseScalarType>
-		| DocumentArrayType<Schema<SchemaDefinition>> {
+		| DocumentArrayType<Schema<SchemaDefinition>, SchemaDefinition> {
 		if (castee.length !== 1) {
 			// a schema array definition must contain exactly one value of language-type object (which includes arrays)
 			throw new InvalidParameterError({

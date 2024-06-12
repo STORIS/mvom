@@ -10,7 +10,7 @@ import BaseSchemaType from './BaseSchemaType';
 /** A Document Array Schema Type */
 class DocumentArrayType<
 	TSchema extends Schema<TSchemaDefinition>,
-	TSchemaDefinition extends SchemaDefinition = TSchema extends Schema<infer U> ? U : never,
+	TSchemaDefinition extends SchemaDefinition,
 > extends BaseSchemaType {
 	/** An instance of Schema representing the document structure of the array's contents */
 	private readonly valueSchema: TSchema;

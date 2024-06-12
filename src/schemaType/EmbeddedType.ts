@@ -8,7 +8,7 @@ import BaseSchemaType from './BaseSchemaType';
 /** Embedded Schema Type */
 class EmbeddedType<
 	TSchema extends Schema<TSchemaDefinition>,
-	TSchemaDefinition extends SchemaDefinition = TSchema extends Schema<infer U> ? U : never,
+	TSchemaDefinition extends SchemaDefinition,
 > extends BaseSchemaType {
 	/** An instance of Schema representing the the document structure of embedded object contents */
 	private readonly valueSchema: TSchema;

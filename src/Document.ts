@@ -22,7 +22,7 @@ export interface BuildForeignKeyDefinitionsResult {
 /** A document object */
 class Document<
 	TSchema extends Schema<TSchemaDefinition>,
-	TSchemaDefinition extends SchemaDefinition = TSchema extends Schema<infer U> ? U : never,
+	TSchemaDefinition extends SchemaDefinition,
 > {
 	[key: string]: unknown;
 
@@ -61,7 +61,7 @@ class Document<
 	/** Create a new Subdocument instance from a record array */
 	public static createSubdocumentFromRecord<
 		TSchema extends Schema<TSchemaDefinition>,
-		TSchemaDefinition extends SchemaDefinition = TSchema extends Schema<infer U> ? U : never,
+		TSchemaDefinition extends SchemaDefinition,
 	>(schema: TSchema, record: MvRecord): Document<TSchema, TSchemaDefinition> {
 		return new Document(schema, { record, isSubdocument: true });
 	}
@@ -69,7 +69,7 @@ class Document<
 	/** Create a new Subdocument instance from data */
 	public static createSubdocumentFromData<
 		TSchema extends Schema<TSchemaDefinition>,
-		TSchemaDefinition extends SchemaDefinition = TSchema extends Schema<infer U> ? U : never,
+		TSchemaDefinition extends SchemaDefinition,
 	>(schema: TSchema, data: GenericObject): Document<TSchema, TSchemaDefinition> {
 		return new Document(schema, { data, isSubdocument: true });
 	}
@@ -77,7 +77,7 @@ class Document<
 	/** Create a new Document instance from a record string */
 	public static createDocumentFromRecordString<
 		TSchema extends Schema<TSchemaDefinition>,
-		TSchemaDefinition extends SchemaDefinition = TSchema extends Schema<infer U> ? U : never,
+		TSchemaDefinition extends SchemaDefinition,
 	>(
 		schema: TSchema,
 		recordString: string,

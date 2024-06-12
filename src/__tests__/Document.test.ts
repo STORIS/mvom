@@ -10,7 +10,7 @@ const { am, vm, svm } = mockDelimiters;
 
 class DocumentSubclass<
 	TSchema extends Schema<TSchemaDefinition>,
-	TSchemaDefinition extends SchemaDefinition = TSchema extends Schema<infer U> ? U : never,
+	TSchemaDefinition extends SchemaDefinition,
 > extends Document<TSchema, TSchemaDefinition> {
 	public constructor(schema: TSchema | null, options: DocumentConstructorOptions) {
 		super(schema, options);
