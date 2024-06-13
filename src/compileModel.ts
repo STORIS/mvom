@@ -25,6 +25,10 @@ export type ModelConstructor<
 	TSchemaDefinition extends SchemaDefinition,
 > = ReturnType<typeof compileModel<TSchema, TSchemaDefinition>>;
 
+/**
+ * An intersection type that combines the `Model` class instance with the
+ * inferred shape of the model object based on the schema definition.
+ */
 type ModelCompositeValue<
 	TSchema extends Schema<TSchemaDefinition>,
 	TSchemaDefinition extends SchemaDefinition,

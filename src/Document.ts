@@ -18,6 +18,10 @@ export interface BuildForeignKeyDefinitionsResult {
 	entityIds: string[];
 }
 
+/**
+ * An intersection type that combines the `Document` class instance with the
+ * inferred shape of the document object based on the schema definition.
+ */
 type DocumentCompositeValue<
 	TSchema extends Schema<TSchemaDefinition>,
 	TSchemaDefinition extends SchemaDefinition,

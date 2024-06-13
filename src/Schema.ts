@@ -88,11 +88,18 @@ interface DictionaryTypeDetail {
 	dataTransformer: DataTransformer;
 }
 
+/** Infer whether a schema type definition is required and union the result with null if it is not */
 type InferRequiredType<TScalar, TType> = TScalar extends { required: true } ? TType : TType | null;
 
+/**
+ * Infer the output of a string type definition with specific handling for enumerations
+ * If an enumeration is a readonly array, the return type of the definition will be a union
+ * of the array elements. Otherwise, the return type will be a string.
+ */
 type InferStringType<TString extends SchemaTypeDefinitionString> =
 	TString['enum'] extends readonly (infer E)[] ? E : string;
 
+/** Infer the output type of a schema type definition */
 type InferSchemaType<TSchemaTypeDefinition> =
 	TSchemaTypeDefinition extends SchemaTypeDefinitionBoolean
 		? InferRequiredType<TSchemaTypeDefinition, boolean>
@@ -121,6 +128,7 @@ type InferSchemaType<TSchemaTypeDefinition> =
 											}
 										: never;
 
+/** Infer the shape of a `Document` instance based upon the Schema it was instantiated with */
 export type InferDocumentObject<TSchema extends Schema<SchemaDefinition>> =
 	TSchema extends Schema<infer TSchemaDefinition>
 		? {
@@ -128,6 +136,7 @@ export type InferDocumentObject<TSchema extends Schema<SchemaDefinition>> =
 			}
 		: never;
 
+/** Infer the shape of a `Model` instance based upon the Schema it was instantiated with */
 export type InferModelObject<TSchema extends Schema<SchemaDefinition>> = {
 	_id: string;
 	__v: string;
