@@ -39,10 +39,10 @@ type SchemaTypeDefinition =
 	| SchemaTypeDefinitionArray;
 
 type SchemaTypeDefinitionArray =
+	| Schema<SchemaDefinition>[]
 	| SchemaTypeDefinitionScalar[]
 	| SchemaTypeDefinitionScalar[][]
-	| SchemaDefinition[]
-	| Schema<SchemaDefinition>[];
+	| SchemaDefinition[];
 
 // eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style -- Record cannot circularly reference itself so index signature must be used. refer here: https://github.com/microsoft/TypeScript/pull/33050#issuecomment-714348057 for additional information
 export interface SchemaDefinition {
@@ -135,6 +135,17 @@ export type InferModelObject<TSchema extends Schema<SchemaDefinition>> = {
 	? { [K in keyof O]: O[K] }
 	: never;
 
+type KeyPath<T> = {
+	[K in keyof T & (string | number)]: T[K] extends (infer U)[]
+		? U extends unknown[]
+			? `${K}`
+			: U extends object
+				? `${K}.${KeyPath<U>}`
+				: `${K}`
+		: T[K] extends object
+			? `${K}.${KeyPath<T[K]>}`
+			: `${K}`;
+}[keyof T & (string | number)];
 // #endregion
 
 /** Schema constructor */
