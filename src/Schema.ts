@@ -110,7 +110,7 @@ type InferSchemaType<TSchemaTypeDefinition> =
 						: TSchemaTypeDefinition extends SchemaTypeDefinitionISOTime
 							? InferRequiredType<TSchemaTypeDefinition, `${number}:${number}:${number}.${number}`>
 							: TSchemaTypeDefinition extends Schema<infer SubSchemaDefinition>
-								? { [K in keyof SubSchemaDefinition]: InferSchemaType<SubSchemaDefinition[K]> }
+								? InferSchemaType<SubSchemaDefinition>
 								: TSchemaTypeDefinition extends SchemaTypeDefinitionArray
 									? InferSchemaType<TSchemaTypeDefinition[0]>[]
 									: TSchemaTypeDefinition extends SchemaDefinition
