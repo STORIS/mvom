@@ -5,15 +5,18 @@ import { DataValidationError } from './errors';
 import type LogHandler from './LogHandler';
 import Query, { type Filter, type QueryConstructorOptions } from './Query';
 import type Schema from './Schema';
-import type { InferModelObject, SchemaDefinition } from './Schema';
+import type { InferDocumentObject, InferModelObject, SchemaDefinition } from './Schema';
 import type { DbServerDelimiters, DbSubroutineUserDefinedOptions } from './types';
 import { ensureArray } from './utils';
 
 // #region Types
-export interface ModelConstructorOptions {
+export interface ModelConstructorOptions<
+	TSchema extends Schema<TSchemaDefinition>,
+	TSchemaDefinition extends SchemaDefinition,
+> {
 	_id?: string | null;
 	__v?: string | null;
-	data?: object;
+	data?: InferDocumentObject<TSchema>;
 	record?: string;
 }
 
@@ -96,7 +99,7 @@ const compileModel = <
 		/** Private id tracking property */
 		#_id: string | null;
 
-		public constructor(options: ModelConstructorOptions) {
+		public constructor(options: ModelConstructorOptions<TSchema, TSchemaDefinition>) {
 			const { data, record, _id = null, __v = null } = options;
 
 			const mvRecord =
