@@ -134,18 +134,6 @@ export type InferModelObject<TSchema extends Schema<SchemaDefinition>> = {
 } & InferDocumentObject<TSchema> extends infer O
 	? { [K in keyof O]: O[K] }
 	: never;
-
-type KeyPath<T> = {
-	[K in keyof T & (string | number)]: T[K] extends (infer U)[]
-		? U extends unknown[]
-			? `${K}`
-			: U extends object
-				? `${K}.${KeyPath<U>}`
-				: `${K}`
-		: T[K] extends object
-			? `${K}.${KeyPath<T[K]>}`
-			: `${K}`;
-}[keyof T & (string | number)];
 // #endregion
 
 /** Schema constructor */
