@@ -3,11 +3,11 @@ import { TransformDataError } from './errors';
 import ForeignKeyDbTransformer from './ForeignKeyDbTransformer';
 import type Schema from './Schema';
 import type { InferDocumentObject, SchemaDefinition } from './Schema';
-import type { DbServerDelimiters, GenericObject, MvRecord } from './types';
+import type { DbServerDelimiters, MvRecord } from './types';
 
 // #region Types
 export interface DocumentConstructorOptions {
-	data?: GenericObject;
+	data?: Record<string, unknown>;
 	record?: MvRecord;
 	isSubdocument?: boolean;
 }
@@ -78,7 +78,10 @@ class Document<
 	public static createSubdocumentFromData<
 		TSchema extends Schema<TSchemaDefinition>,
 		TSchemaDefinition extends SchemaDefinition,
-	>(schema: TSchema, data: GenericObject): DocumentCompositeValue<TSchema, TSchemaDefinition> {
+	>(
+		schema: TSchema,
+		data: Record<string, unknown>,
+	): DocumentCompositeValue<TSchema, TSchemaDefinition> {
 		return new Document(schema, { data, isSubdocument: true }) as DocumentCompositeValue<
 			TSchema,
 			TSchemaDefinition
