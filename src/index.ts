@@ -1,6 +1,12 @@
 export { default as Connection } from './Connection';
 export { default as Document } from './Document';
-export { default as Schema, type SchemaDefinition, type SchemaConstructorOptions } from './Schema';
+export {
+	default as Schema,
+	type SchemaDefinition,
+	type SchemaConstructorOptions,
+	type InferDocumentObject,
+	type InferModelObject,
+} from './Schema';
 export {
 	MvisError,
 	DataValidationError,
