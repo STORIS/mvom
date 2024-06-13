@@ -7,6 +7,7 @@ export {
 	type InferDocumentObject,
 	type InferModelObject,
 } from './Schema';
+export type { ModelConstructor } from './compileModel';
 export {
 	MvisError,
 	DataValidationError,
