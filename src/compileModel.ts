@@ -29,7 +29,7 @@ export type ModelConstructor<
  * An intersection type that combines the `Model` class instance with the
  * inferred shape of the model object based on the schema definition.
  */
-export type ModelCompositeValue<
+type ModelCompositeValue<
 	TSchema extends Schema<TSchemaDefinition> | null,
 	TSchemaDefinition extends SchemaDefinition,
 > =
