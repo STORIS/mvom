@@ -4,6 +4,9 @@ export {
 	default as Schema,
 	type SchemaDefinition,
 	type SchemaConstructorOptions,
+	type ISOCalendarDate,
+	type ISOCalendarDateTime,
+	type ISOTime,
 	type InferDocumentObject,
 	type InferModelObject,
 } from './Schema';

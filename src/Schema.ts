@@ -88,6 +88,13 @@ interface DictionaryTypeDetail {
 	dataTransformer: DataTransformer;
 }
 
+/** Format of ISOCalendarDate output */
+export type ISOCalendarDate = `${number}-${number}-${number}`;
+/** Format of ISOTime output */
+export type ISOTime = `${number}:${number}:${number}.${number}`;
+/** Format of ISOCalendarDateTime output */
+export type ISOCalendarDateTime = `${ISOCalendarDate}T${ISOTime}`;
+
 /** Infer whether a schema type definition is required and union the result with null if it is not */
 type InferRequiredType<TScalar, TType> = TScalar extends { required: true } ? TType : TType | null;
 
@@ -108,14 +115,11 @@ type InferSchemaType<TSchemaTypeDefinition> =
 			: TSchemaTypeDefinition extends SchemaTypeDefinitionNumber
 				? InferRequiredType<TSchemaTypeDefinition, number>
 				: TSchemaTypeDefinition extends SchemaTypeDefinitionISOCalendarDate
-					? InferRequiredType<TSchemaTypeDefinition, `${number}-${number}-${number}`>
+					? InferRequiredType<TSchemaTypeDefinition, ISOCalendarDate>
 					: TSchemaTypeDefinition extends SchemaTypeDefinitionISOCalendarDateTime
-						? InferRequiredType<
-								TSchemaTypeDefinition,
-								`${number}-${number}-${number}T${number}:${number}:${number}.${number}`
-							>
+						? InferRequiredType<TSchemaTypeDefinition, ISOCalendarDateTime>
 						: TSchemaTypeDefinition extends SchemaTypeDefinitionISOTime
-							? InferRequiredType<TSchemaTypeDefinition, `${number}:${number}:${number}.${number}`>
+							? InferRequiredType<TSchemaTypeDefinition, ISOTime>
 							: TSchemaTypeDefinition extends Schema<infer SubSchemaDefinition>
 								? InferSchemaType<SubSchemaDefinition>
 								: TSchemaTypeDefinition extends SchemaTypeDefinitionArray

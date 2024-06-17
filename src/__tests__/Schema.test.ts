@@ -7,7 +7,14 @@ import {
 	StringDataTransformer,
 } from '../dataTransformers';
 import { InvalidParameterError } from '../errors';
-import type { InferDocumentObject, InferModelObject, SchemaDefinition } from '../Schema';
+import type {
+	InferDocumentObject,
+	InferModelObject,
+	ISOCalendarDate,
+	ISOCalendarDateTime,
+	ISOTime,
+	SchemaDefinition,
+} from '../Schema';
 import Schema from '../Schema';
 import {
 	ArrayType,
@@ -443,7 +450,7 @@ describe('utility types', () => {
 				const schema1 = new Schema({ isoCalendarDateProp: { type: 'ISOCalendarDate', path: '1' } });
 				const test1: Assert<
 					InferDocumentObject<typeof schema1>,
-					{ isoCalendarDateProp: `${number}-${number}-${number}` | null }
+					{ isoCalendarDateProp: ISOCalendarDate | null }
 				> = true;
 				expect(test1).toBe(true);
 
@@ -452,7 +459,7 @@ describe('utility types', () => {
 				});
 				const test2: Assert<
 					InferDocumentObject<typeof schema2>,
-					{ isoCalendarDateProp: `${number}-${number}-${number}` }
+					{ isoCalendarDateProp: ISOCalendarDate }
 				> = true;
 				expect(test2).toBe(true);
 			});
@@ -461,15 +468,12 @@ describe('utility types', () => {
 				const schema1 = new Schema({ isoTimeProp: { type: 'ISOTime', path: '1' } });
 				const test1: Assert<
 					InferDocumentObject<typeof schema1>,
-					{ isoTimeProp: `${number}:${number}:${number}.${number}` | null }
+					{ isoTimeProp: ISOTime | null }
 				> = true;
 				expect(test1).toBe(true);
 
 				const schema2 = new Schema({ isoTimeProp: { type: 'ISOTime', path: '1', required: true } });
-				const test2: Assert<
-					InferDocumentObject<typeof schema2>,
-					{ isoTimeProp: `${number}:${number}:${number}.${number}` }
-				> = true;
+				const test2: Assert<InferDocumentObject<typeof schema2>, { isoTimeProp: ISOTime }> = true;
 				expect(test2).toBe(true);
 			});
 
@@ -480,9 +484,7 @@ describe('utility types', () => {
 				const test1: Assert<
 					InferDocumentObject<typeof schema1>,
 					{
-						isoCalendarDateTimeProp:
-							| `${number}-${number}-${number}T${number}:${number}:${number}.${number}`
-							| null;
+						isoCalendarDateTimeProp: ISOCalendarDateTime | null;
 					}
 				> = true;
 				expect(test1).toBe(true);
@@ -493,9 +495,7 @@ describe('utility types', () => {
 				const test2: Assert<
 					InferDocumentObject<typeof schema2>,
 					{
-						isoCalendarDateTimeProp:
-							| `${number}-${number}-${number}T${number}:${number}:${number}.${number}`
-							| null;
+						isoCalendarDateTimeProp: ISOCalendarDateTime | null;
 					}
 				> = true;
 				expect(test2).toBe(true);
@@ -717,14 +717,12 @@ describe('utility types', () => {
 						stringRequired: string;
 						numberOptional: number | null;
 						numberRequired: number;
-						isoCalendarDateOptional: `${number}-${number}-${number}` | null;
-						isoCalendarDateRequired: `${number}-${number}-${number}`;
-						isoTimeOptional: `${number}:${number}:${number}.${number}` | null;
-						isoTimeRequired: `${number}:${number}:${number}.${number}`;
-						isoCalendarDateTimeOptional:
-							| `${number}-${number}-${number}T${number}:${number}:${number}.${number}`
-							| null;
-						isoCalendarDateTimeRequired: `${number}-${number}-${number}T${number}:${number}:${number}.${number}`;
+						isoCalendarDateOptional: ISOCalendarDate | null;
+						isoCalendarDateRequired: ISOCalendarDate;
+						isoTimeOptional: ISOTime | null;
+						isoTimeRequired: ISOTime;
+						isoCalendarDateTimeOptional: ISOCalendarDateTime | null;
+						isoCalendarDateTimeRequired: ISOCalendarDateTime;
 						arrayOptional: (string | null)[];
 						arrayRequired: string[];
 						nestedArrayOptional: (string | null)[][];
@@ -823,7 +821,7 @@ describe('utility types', () => {
 				const schema1 = new Schema({ isoCalendarDateProp: { type: 'ISOCalendarDate', path: '1' } });
 				const test1: Assert<
 					InferModelObject<typeof schema1>,
-					{ _id: string; __v: string; isoCalendarDateProp: `${number}-${number}-${number}` | null }
+					{ _id: string; __v: string; isoCalendarDateProp: ISOCalendarDate | null }
 				> = true;
 				expect(test1).toBe(true);
 
@@ -833,7 +831,7 @@ describe('utility types', () => {
 				});
 				const test2: Assert<
 					InferModelObject<typeof schema2>,
-					{ _id: string; __v: string; isoCalendarDateProp: `${number}-${number}-${number}` }
+					{ _id: string; __v: string; isoCalendarDateProp: ISOCalendarDate }
 				> = true;
 				expect(test2).toBe(true);
 			});
@@ -846,7 +844,7 @@ describe('utility types', () => {
 					{
 						_id: string;
 						__v: string;
-						isoTimeProp: `${number}:${number}:${number}.${number}` | null;
+						isoTimeProp: ISOTime | null;
 					}
 				> = true;
 				expect(test1).toBe(true);
@@ -855,7 +853,7 @@ describe('utility types', () => {
 				const schema2 = new Schema({ isoTimeProp: { type: 'ISOTime', path: '1', required: true } });
 				const test2: Assert<
 					InferModelObject<typeof schema2>,
-					{ _id: string; __v: string; isoTimeProp: `${number}:${number}:${number}.${number}` }
+					{ _id: string; __v: string; isoTimeProp: ISOTime }
 				> = true;
 				expect(test2).toBe(true);
 			});
@@ -870,9 +868,7 @@ describe('utility types', () => {
 					{
 						_id: string;
 						__v: string;
-						isoCalendarDateTimeProp:
-							| `${number}-${number}-${number}T${number}:${number}:${number}.${number}`
-							| null;
+						isoCalendarDateTimeProp: ISOCalendarDateTime | null;
 					}
 				> = true;
 				expect(test1).toBe(true);
@@ -886,9 +882,7 @@ describe('utility types', () => {
 					{
 						_id: string;
 						__v: string;
-						isoCalendarDateTimeProp:
-							| `${number}-${number}-${number}T${number}:${number}:${number}.${number}`
-							| null;
+						isoCalendarDateTimeProp: ISOCalendarDateTime | null;
 					}
 				> = true;
 				expect(test2).toBe(true);
@@ -1145,14 +1139,12 @@ describe('utility types', () => {
 						stringRequired: string;
 						numberOptional: number | null;
 						numberRequired: number;
-						isoCalendarDateOptional: `${number}-${number}-${number}` | null;
-						isoCalendarDateRequired: `${number}-${number}-${number}`;
-						isoTimeOptional: `${number}:${number}:${number}.${number}` | null;
-						isoTimeRequired: `${number}:${number}:${number}.${number}`;
-						isoCalendarDateTimeOptional:
-							| `${number}-${number}-${number}T${number}:${number}:${number}.${number}`
-							| null;
-						isoCalendarDateTimeRequired: `${number}-${number}-${number}T${number}:${number}:${number}.${number}`;
+						isoCalendarDateOptional: ISOCalendarDate | null;
+						isoCalendarDateRequired: ISOCalendarDate;
+						isoTimeOptional: ISOTime | null;
+						isoTimeRequired: ISOTime;
+						isoCalendarDateTimeOptional: ISOCalendarDateTime | null;
+						isoCalendarDateTimeRequired: ISOCalendarDateTime;
 						arrayOptional: (string | null)[];
 						arrayRequired: string[];
 						nestedArrayOptional: (string | null)[][];
