@@ -9,10 +9,13 @@ import type { MvRecord } from '../types';
 const { am, vm, svm } = mockDelimiters;
 
 class DocumentSubclass<
-	TSchema extends Schema<TSchemaDefinition>,
+	TSchema extends Schema<TSchemaDefinition> | null,
 	TSchemaDefinition extends SchemaDefinition,
 > extends Document<TSchema, TSchemaDefinition> {
-	public constructor(schema: TSchema | null, options: DocumentConstructorOptions) {
+	public constructor(
+		schema: TSchema,
+		options: DocumentConstructorOptions<TSchema, TSchemaDefinition>,
+	) {
 		super(schema, options);
 	}
 }
@@ -450,7 +453,7 @@ describe('transformDocumentToRecord', () => {
 	});
 
 	test('should transform document with schema to record', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			prop1: { type: 'string', path: '1' },
 			prop2: { type: 'number', path: '2', dbDecimals: 2 },
 			array: [{ type: 'string', path: '3' }],
@@ -465,14 +468,14 @@ describe('transformDocumentToRecord', () => {
 					prop2: { type: 'number', path: '8', dbDecimals: 2 },
 				},
 			],
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition);
 
 		const data = {
 			prop1: 'foo',
 			prop2: 1.23,
 			array: ['bar', 'baz'],
-			nestedArray: [['qux', 'quux'], 'quz'],
+			nestedArray: [['qux', 'quux'], ['quz']],
 			nestedObject: { prop1: 'corge', prop2: 2.34 },
 			subdocumentArray: [
 				{ prop1: 'grault', prop2: 3.45 },

@@ -1,27 +1,27 @@
 import type Connection from './Connection';
-import type { DocumentConstructorOptions } from './Document';
+import type { DocumentConstructorOptions, DocumentData } from './Document';
 import Document from './Document';
 import { DataValidationError } from './errors';
 import type LogHandler from './LogHandler';
 import Query, { type Filter, type QueryConstructorOptions } from './Query';
 import type Schema from './Schema';
-import type { InferDocumentObject, InferModelObject, SchemaDefinition } from './Schema';
+import type { InferModelObject, SchemaDefinition } from './Schema';
 import type { DbServerDelimiters, DbSubroutineUserDefinedOptions } from './types';
 import { ensureArray } from './utils';
 
 // #region Types
 export interface ModelConstructorOptions<
-	TSchema extends Schema<TSchemaDefinition>,
+	TSchema extends Schema<TSchemaDefinition> | null,
 	TSchemaDefinition extends SchemaDefinition,
 > {
 	_id?: string | null;
 	__v?: string | null;
-	data?: InferDocumentObject<TSchema>;
+	data?: DocumentData<TSchema, TSchemaDefinition>;
 	record?: string;
 }
 
 export type ModelConstructor<
-	TSchema extends Schema<TSchemaDefinition>,
+	TSchema extends Schema<TSchemaDefinition> | null,
 	TSchemaDefinition extends SchemaDefinition,
 > = ReturnType<typeof compileModel<TSchema, TSchemaDefinition>>;
 
@@ -29,13 +29,16 @@ export type ModelConstructor<
  * An intersection type that combines the `Model` class instance with the
  * inferred shape of the model object based on the schema definition.
  */
-type ModelCompositeValue<
-	TSchema extends Schema<TSchemaDefinition>,
+export type ModelCompositeValue<
+	TSchema extends Schema<TSchemaDefinition> | null,
 	TSchemaDefinition extends SchemaDefinition,
-> = InstanceType<ModelConstructor<TSchema, TSchemaDefinition>> & InferModelObject<TSchema>;
+> =
+	TSchema extends Schema<TSchemaDefinition>
+		? InstanceType<ModelConstructor<TSchema, TSchemaDefinition>> & InferModelObject<TSchema>
+		: InstanceType<ModelConstructor<TSchema, TSchemaDefinition>>;
 
 export interface ModelFindAndCountResult<
-	TSchema extends Schema<TSchemaDefinition>,
+	TSchema extends Schema<TSchemaDefinition> | null,
 	TSchemaDefinition extends SchemaDefinition,
 > {
 	/** Number of documents returned */
@@ -62,11 +65,11 @@ export type ModelSaveOptions = ModelDatabaseExecutionOptions;
 
 /** Define a new model */
 const compileModel = <
-	TSchema extends Schema<TSchemaDefinition>,
+	TSchema extends Schema<TSchemaDefinition> | null,
 	TSchemaDefinition extends SchemaDefinition,
 >(
 	connection: Connection,
-	schema: TSchema | null,
+	schema: TSchema,
 	file: string,
 	dbServerDelimiters: DbServerDelimiters,
 	logHandler: LogHandler,
@@ -83,7 +86,7 @@ const compileModel = <
 		public static readonly file = file;
 
 		/** Schema that defines this model */
-		public static readonly schema: TSchema | null = schema;
+		public static readonly schema: TSchema = schema;
 
 		/** Log handler instance used for diagnostic logging */
 		static readonly #logHandler: LogHandler = logHandler;
@@ -109,7 +112,10 @@ const compileModel = <
 			const mvRecord =
 				record != null ? Document.convertMvStringToArray(record, Model.#dbServerDelimiters) : [];
 
-			const documentConstructorOptions: DocumentConstructorOptions = { data, record: mvRecord };
+			const documentConstructorOptions: DocumentConstructorOptions<TSchema, TSchemaDefinition> = {
+				data,
+				record: mvRecord,
+			};
 			super(Model.schema, documentConstructorOptions);
 
 			this.#_id = _id;
@@ -176,7 +182,7 @@ const compileModel = <
 
 		/** Find documents via query */
 		public static async find(
-			selectionCriteria: Filter<TSchema> = {},
+			selectionCriteria: Filter = {},
 			options: ModelFindOptions = {},
 		): Promise<ModelCompositeValue<TSchema, TSchemaDefinition>[]> {
 			const { maxReturnPayloadSize, requestId, userDefined, ...queryConstructorOptions } = options;
@@ -202,7 +208,7 @@ const compileModel = <
 
 		/** Find documents via query, returning them along with a count */
 		public static async findAndCount(
-			selectionCriteria: Filter<TSchema> = {},
+			selectionCriteria: Filter = {},
 			options: ModelFindOptions = {},
 		): Promise<ModelFindAndCountResult<TSchema, TSchemaDefinition>> {
 			const { maxReturnPayloadSize, requestId, userDefined, ...queryConstructorOptions } = options;
