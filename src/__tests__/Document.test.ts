@@ -4,12 +4,18 @@ import Document from '../Document';
 import { TransformDataError } from '../errors';
 import type { SchemaDefinition } from '../Schema';
 import Schema from '../Schema';
-import type { MvRecord } from '../types';
+import type { Assert, MvRecord } from '../types';
 
 const { am, vm, svm } = mockDelimiters;
 
-class DocumentSubclass extends Document {
-	public constructor(schema: Schema | null, options: DocumentConstructorOptions) {
+class DocumentSubclass<
+	TSchema extends Schema<TSchemaDefinition> | null,
+	TSchemaDefinition extends SchemaDefinition,
+> extends Document<TSchema, TSchemaDefinition> {
+	public constructor(
+		schema: TSchema,
+		options: DocumentConstructorOptions<TSchema, TSchemaDefinition>,
+	) {
 		super(schema, options);
 	}
 }
@@ -447,7 +453,7 @@ describe('transformDocumentToRecord', () => {
 	});
 
 	test('should transform document with schema to record', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			prop1: { type: 'string', path: '1' },
 			prop2: { type: 'number', path: '2', dbDecimals: 2 },
 			array: [{ type: 'string', path: '3' }],
@@ -462,14 +468,14 @@ describe('transformDocumentToRecord', () => {
 					prop2: { type: 'number', path: '8', dbDecimals: 2 },
 				},
 			],
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition);
 
 		const data = {
 			prop1: 'foo',
 			prop2: 1.23,
 			array: ['bar', 'baz'],
-			nestedArray: [['qux', 'quux'], 'quz'],
+			nestedArray: [['qux', 'quux'], ['quz']],
 			nestedObject: { prop1: 'corge', prop2: 2.34 },
 			subdocumentArray: [
 				{ prop1: 'grault', prop2: 3.45 },
@@ -983,5 +989,45 @@ describe('validate', () => {
 
 			expect(await document.validate()).toEqual(expected);
 		});
+	});
+});
+
+describe('type inference', () => {
+	test('should infer type without schema', () => {
+		const document = Document.createDocumentFromRecordString(null, `foo${am}123`, mockDelimiters);
+		type DocumentResult = typeof document;
+
+		// _raw should be MvRecord since there is no schema
+		const test1: Assert<DocumentResult['_raw'], MvRecord> = true;
+		expect(test1).toBe(true);
+
+		// any other property should be unknown
+		const test2: Assert<DocumentResult['otherProp'], unknown> = true;
+		expect(test2).toBe(true);
+	});
+
+	test('should infer type with schema', () => {
+		const schema = new Schema({
+			prop1: { type: 'string', path: '1' },
+			prop2: { type: 'number', path: '2', dbDecimals: 2 },
+		});
+		const document = Document.createDocumentFromRecordString(schema, `foo${am}123`, mockDelimiters);
+		type DocumentResult = typeof document;
+
+		// prop1 should be string | null
+		const test1: Assert<DocumentResult['prop1'], string | null> = true;
+		expect(test1).toBe(true);
+
+		// prop2 should be number | null
+		const test2: Assert<DocumentResult['prop2'], number | null> = true;
+		expect(test2).toBe(true);
+
+		// _raw should be undefined since there is a schema
+		const test3: Assert<DocumentResult['_raw'], undefined> = true;
+		expect(test3).toBe(true);
+
+		// any other property should be unknown
+		const test4: Assert<DocumentResult['otherProp'], unknown> = true;
+		expect(test4).toBe(true);
 	});
 });

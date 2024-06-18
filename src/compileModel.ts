@@ -1,28 +1,50 @@
 import type Connection from './Connection';
-import type { DocumentConstructorOptions } from './Document';
+import type { DocumentConstructorOptions, DocumentData } from './Document';
 import Document from './Document';
 import { DataValidationError } from './errors';
 import type LogHandler from './LogHandler';
 import Query, { type Filter, type QueryConstructorOptions } from './Query';
 import type Schema from './Schema';
-import type { DbServerDelimiters, DbSubroutineUserDefinedOptions, GenericObject } from './types';
+import type { InferModelObject, SchemaDefinition } from './Schema';
+import type { DbServerDelimiters, DbSubroutineUserDefinedOptions } from './types';
 import { ensureArray } from './utils';
 
 // #region Types
-export interface ModelConstructorOptions<TSchema extends GenericObject> {
+export interface ModelConstructorOptions<
+	TSchema extends Schema<TSchemaDefinition> | null,
+	TSchemaDefinition extends SchemaDefinition,
+> {
 	_id?: string | null;
 	__v?: string | null;
-	data?: TSchema;
+	data?: DocumentData<TSchema, TSchemaDefinition>;
 	record?: string;
 }
 
-export type ModelConstructor = ReturnType<typeof compileModel>;
+export type ModelConstructor<
+	TSchema extends Schema<TSchemaDefinition> | null,
+	TSchemaDefinition extends SchemaDefinition,
+> = ReturnType<typeof compileModel<TSchema, TSchemaDefinition>>;
 
-export interface ModelFindAndCountResult {
+/**
+ * An intersection type that combines the `Model` class instance with the
+ * inferred shape of the model object based on the schema definition.
+ */
+type ModelCompositeValue<
+	TSchema extends Schema<TSchemaDefinition> | null,
+	TSchemaDefinition extends SchemaDefinition,
+> =
+	TSchema extends Schema<TSchemaDefinition>
+		? InstanceType<ModelConstructor<TSchema, TSchemaDefinition>> & InferModelObject<TSchema>
+		: InstanceType<ModelConstructor<TSchema, TSchemaDefinition>>;
+
+export interface ModelFindAndCountResult<
+	TSchema extends Schema<TSchemaDefinition> | null,
+	TSchemaDefinition extends SchemaDefinition,
+> {
 	/** Number of documents returned */
 	count: number;
 	/** Model instances for the returned documents */
-	documents: InstanceType<ModelConstructor>[];
+	documents: ModelCompositeValue<TSchema, TSchemaDefinition>[];
 }
 
 export interface ModelDatabaseExecutionOptions {
@@ -42,9 +64,12 @@ export type ModelSaveOptions = ModelDatabaseExecutionOptions;
 // #endregion
 
 /** Define a new model */
-const compileModel = <TSchema extends GenericObject = GenericObject>(
+const compileModel = <
+	TSchema extends Schema<TSchemaDefinition> | null,
+	TSchemaDefinition extends SchemaDefinition,
+>(
 	connection: Connection,
-	schema: Schema | null,
+	schema: TSchema,
 	file: string,
 	dbServerDelimiters: DbServerDelimiters,
 	logHandler: LogHandler,
@@ -53,7 +78,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 	logHandler.debug(`creating new model for file ${file}`);
 
 	/** Model constructor */
-	return class Model extends Document {
+	return class Model extends Document<TSchema, TSchemaDefinition> {
 		/** Connection instance which constructed this model definition */
 		public static readonly connection = connection;
 
@@ -61,7 +86,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 		public static readonly file = file;
 
 		/** Schema that defines this model */
-		public static readonly schema = schema;
+		public static readonly schema: TSchema = schema;
 
 		/** Log handler instance used for diagnostic logging */
 		static readonly #logHandler: LogHandler = logHandler;
@@ -81,13 +106,16 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 		/** Private id tracking property */
 		#_id: string | null;
 
-		public constructor(options: ModelConstructorOptions<TSchema>) {
+		public constructor(options: ModelConstructorOptions<TSchema, TSchemaDefinition>) {
 			const { data, record, _id = null, __v = null } = options;
 
 			const mvRecord =
 				record != null ? Document.convertMvStringToArray(record, Model.#dbServerDelimiters) : [];
 
-			const documentConstructorOptions: DocumentConstructorOptions = { data, record: mvRecord };
+			const documentConstructorOptions: DocumentConstructorOptions<TSchema, TSchemaDefinition> = {
+				data,
+				record: mvRecord,
+			};
 			super(Model.schema, documentConstructorOptions);
 
 			this.#_id = _id;
@@ -127,7 +155,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 		public static async deleteById(
 			id: string,
 			options: ModelDeleteByIdOptions = {},
-		): Promise<Model | null> {
+		): Promise<ModelCompositeValue<TSchema, TSchemaDefinition> | null> {
 			const { maxReturnPayloadSize, requestId, userDefined } = options;
 
 			const data = await this.connection.executeDbSubroutine(
@@ -154,11 +182,18 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 		/** Find documents via query */
 		public static async find(
-			selectionCriteria: Filter<TSchema> = {},
+			selectionCriteria: Filter = {},
 			options: ModelFindOptions = {},
-		): Promise<Model[]> {
+		): Promise<ModelCompositeValue<TSchema, TSchemaDefinition>[]> {
 			const { maxReturnPayloadSize, requestId, userDefined, ...queryConstructorOptions } = options;
-			const query = new Query(Model, Model.#logHandler, selectionCriteria, queryConstructorOptions);
+			const query = new Query(
+				this.connection,
+				this.schema,
+				this.file,
+				this.#logHandler,
+				selectionCriteria,
+				queryConstructorOptions,
+			);
 			const { documents } = await query.exec({
 				...(maxReturnPayloadSize != null && { maxReturnPayloadSize }),
 				...(requestId != null && { requestId }),
@@ -173,11 +208,18 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 
 		/** Find documents via query, returning them along with a count */
 		public static async findAndCount(
-			selectionCriteria: Filter<TSchema> = {},
+			selectionCriteria: Filter = {},
 			options: ModelFindOptions = {},
-		): Promise<ModelFindAndCountResult> {
+		): Promise<ModelFindAndCountResult<TSchema, TSchemaDefinition>> {
 			const { maxReturnPayloadSize, requestId, userDefined, ...queryConstructorOptions } = options;
-			const query = new Query(Model, Model.#logHandler, selectionCriteria, queryConstructorOptions);
+			const query = new Query(
+				this.connection,
+				this.schema,
+				this.file,
+				this.#logHandler,
+				selectionCriteria,
+				queryConstructorOptions,
+			);
 			const { count, documents } = await query.exec({
 				...(maxReturnPayloadSize != null && { maxReturnPayloadSize }),
 				...(requestId != null && { requestId }),
@@ -199,7 +241,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 		public static async findById(
 			id: string,
 			options: ModelFindByIdOptions = {},
-		): Promise<Model | null> {
+		): Promise<ModelCompositeValue<TSchema, TSchemaDefinition> | null> {
 			const { maxReturnPayloadSize, requestId, projection, userDefined } = options;
 
 			const data = await this.connection.executeDbSubroutine(
@@ -229,7 +271,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 		public static async findByIds(
 			ids: string | string[],
 			options: ModelFindByIdOptions = {},
-		): Promise<(Model | null)[]> {
+		): Promise<(ModelCompositeValue<TSchema, TSchemaDefinition> | null)[]> {
 			const { maxReturnPayloadSize, requestId, projection, userDefined } = options;
 
 			const idsArray = ensureArray(ids);
@@ -253,7 +295,7 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 				}
 
 				const { _id, __v, record } = dbResultItem;
-				return new Model({ _id, __v, record });
+				return this.#createModelFromRecordString(record, _id, __v);
 			});
 		}
 
@@ -284,8 +326,11 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 			recordString: string,
 			_id: string,
 			__v?: string | null,
-		): Model {
-			return new Model({ _id, __v, record: recordString });
+		): ModelCompositeValue<TSchema, TSchemaDefinition> {
+			return new Model({ _id, __v, record: recordString }) as ModelCompositeValue<
+				TSchema,
+				TSchemaDefinition
+			>;
 		}
 
 		/** Format projection option */
@@ -296,7 +341,9 @@ const compileModel = <TSchema extends GenericObject = GenericObject>(
 		}
 
 		/** Save a document to the database */
-		public async save(options: ModelSaveOptions = {}): Promise<Model> {
+		public async save(
+			options: ModelSaveOptions = {},
+		): Promise<ModelCompositeValue<TSchema, TSchemaDefinition>> {
 			const { maxReturnPayloadSize, requestId, userDefined } = options;
 			if (this._id == null) {
 				throw new TypeError('_id value must be set prior to saving');

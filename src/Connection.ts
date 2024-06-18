@@ -30,6 +30,7 @@ import {
 import type { Logger } from './LogHandler';
 import LogHandler from './LogHandler';
 import type Schema from './Schema';
+import type { SchemaDefinition } from './Schema';
 import type {
 	DbServerDelimiters,
 	DbServerLimits,
@@ -42,7 +43,6 @@ import type {
 	DbSubroutineResponseTypes,
 	DbSubroutineResponseTypesMap,
 	DbSubroutineSetupOptions,
-	GenericObject,
 } from './types';
 
 // #region Types
@@ -344,10 +344,10 @@ class Connection {
 	}
 
 	/** Define a new model */
-	public model<TSchema extends GenericObject>(
-		schema: Schema | null,
-		file: string,
-	): ModelConstructor {
+	public model<
+		TSchema extends Schema<TSchemaDefinition> | null,
+		TSchemaDefinition extends SchemaDefinition,
+	>(schema: TSchema, file: string): ModelConstructor<TSchema, TSchemaDefinition> {
 		if (this.status !== ConnectionStatus.connected || this.dbServerInfo == null) {
 			this.logHandler.error('Cannot create model until database connection has been established');
 			throw new Error('Cannot create model until database connection has been established');
@@ -355,7 +355,7 @@ class Connection {
 
 		const { delimiters } = this.dbServerInfo;
 
-		return compileModel<TSchema>(this, schema, file, delimiters, this.logHandler);
+		return compileModel(this, schema, file, delimiters, this.logHandler);
 	}
 
 	/** Get the db server information (date, time, etc.) */

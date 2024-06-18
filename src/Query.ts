@@ -1,6 +1,8 @@
-import type { ModelConstructor } from './compileModel';
+import type Connection from './Connection';
 import { InvalidParameterError, QueryLimitError } from './errors';
 import type LogHandler from './LogHandler';
+import type { SchemaDefinition } from './Schema';
+import type Schema from './Schema';
 import type {
 	DbDocument,
 	DbSubroutineInputFind,
@@ -71,8 +73,14 @@ export interface QueryExecutionResult {
 
 /** A query object */
 class Query<TSchema extends GenericObject = GenericObject> {
-	/** Model constructor to use with query */
-	private readonly Model: ModelConstructor;
+	/** Connection instance to run query on */
+	private readonly connection: Connection;
+
+	/** Schema used for query */
+	private readonly schema: Schema<SchemaDefinition> | null;
+
+	/** File to run query against */
+	private readonly file: string;
 
 	/** Log handler instance used for diagnostic logging */
 	private readonly logHandler: LogHandler;
@@ -99,14 +107,18 @@ class Query<TSchema extends GenericObject = GenericObject> {
 	private conditionCount = 0;
 
 	public constructor(
-		Model: ModelConstructor,
+		connection: Connection,
+		schema: Schema<SchemaDefinition> | null,
+		file: string,
 		logHandler: LogHandler,
 		selectionCriteria: Filter<TSchema>,
 		options: QueryConstructorOptions = {},
 	) {
 		const { sort, limit, skip, projection } = options;
 
-		this.Model = Model;
+		this.connection = connection;
+		this.schema = schema;
+		this.file = file;
 		this.logHandler = logHandler;
 		this.limit = limit;
 		this.skip = skip;
@@ -120,7 +132,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 	/** Execute query */
 	public async exec(options: QueryExecutionOptions = {}): Promise<QueryExecutionResult> {
 		const { maxReturnPayloadSize, requestId, userDefined } = options;
-		let queryCommand = `select ${this.Model.file}`;
+		let queryCommand = `select ${this.file}`;
 		if (this.selection != null) {
 			queryCommand = `${queryCommand} with ${this.selection}`;
 		}
@@ -131,12 +143,12 @@ class Query<TSchema extends GenericObject = GenericObject> {
 		await this.validateQuery(queryCommand, requestId);
 
 		const projection =
-			this.projection != null && this.Model.schema != null
-				? this.Model.schema.transformPathsToDbPositions(this.projection)
+			this.projection != null && this.schema != null
+				? this.schema.transformPathsToDbPositions(this.projection)
 				: null;
 
 		const executionOptions: DbSubroutineInputFind = {
-			filename: this.Model.file,
+			filename: this.file,
 			queryCommand,
 			...(this.skip != null && { skip: this.skip }),
 			...(this.limit != null && { limit: this.limit }),
@@ -150,11 +162,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 		};
 
 		this.logHandler.debug(`executing query "${queryCommand}"`);
-		const data = await this.Model.connection.executeDbSubroutine(
-			'find',
-			executionOptions,
-			setupOptions,
-		);
+		const data = await this.connection.executeDbSubroutine('find', executionOptions, setupOptions);
 
 		return {
 			count: data.count,
@@ -317,7 +325,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 	 * @throws {link InvalidParameterError} Nonexistent schema property or property does not have a dictionary specified
 	 */
 	private getDictionaryId(property: string): string {
-		const dictionaryTypeDetail = this.Model.schema?.dictPaths.get(property);
+		const dictionaryTypeDetail = this.schema?.dictPaths.get(property);
 		if (dictionaryTypeDetail == null) {
 			throw new InvalidParameterError({
 				message: 'Nonexistent schema property or property does not have a dictionary specified',
@@ -330,7 +338,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 
 	/** Transform query constant to internal u2 format (if applicable) */
 	private transformToQuery(property: string, constant: unknown): unknown {
-		const dictionaryTypeDetail = this.Model.schema?.dictPaths.get(property);
+		const dictionaryTypeDetail = this.schema?.dictPaths.get(property);
 		if (dictionaryTypeDetail == null) {
 			throw new InvalidParameterError({
 				message: 'Nonexistent schema property or property does not have a dictionary specified',
@@ -343,7 +351,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 
 	/** Validate the query before execution */
 	private async validateQuery(query: string, requestId?: string): Promise<void> {
-		const { maxSort, maxWith, maxSentenceLength } = await this.Model.connection.getDbLimits({
+		const { maxSort, maxWith, maxSentenceLength } = await this.connection.getDbLimits({
 			requestId,
 		});
 

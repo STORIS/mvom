@@ -1,4 +1,3 @@
-import type Document from '../Document';
 import type { ForeignKeyDbDefinition } from '../ForeignKeyDbTransformer';
 import type { MvRecord } from '../types';
 import { ensureArray } from '../utils';
@@ -41,13 +40,13 @@ class NestedArrayType extends BaseScalarArrayType {
 	}
 
 	/** Validate the nested array */
-	public async validate(value: unknown, document: Document): Promise<Map<string, string[]>> {
+	public async validate(value: unknown): Promise<Map<string, string[]>> {
 		const errorsMap = new Map<string, string[]>();
 		await Promise.all(
 			ensureArray(value).map(async (arrayItem, index) => {
 				await Promise.all(
 					ensureArray(arrayItem).map(async (nestedArrayItem, nestedIndex) => {
-						const result = await this.valueSchemaType.validate(nestedArrayItem, document);
+						const result = await this.valueSchemaType.validate(nestedArrayItem);
 
 						if (result.length > 0) {
 							const key = `${index}.${nestedIndex}`;

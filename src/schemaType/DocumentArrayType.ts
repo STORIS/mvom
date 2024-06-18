@@ -2,16 +2,20 @@ import { cloneDeep, get as getIn, isPlainObject, set as setIn } from 'lodash';
 import Document from '../Document';
 import type { ForeignKeyDbDefinition } from '../ForeignKeyDbTransformer';
 import type Schema from '../Schema';
+import type { SchemaDefinition } from '../Schema';
 import type { MvRecord } from '../types';
 import { ensureArray } from '../utils';
 import BaseSchemaType from './BaseSchemaType';
 
 /** A Document Array Schema Type */
-class DocumentArrayType extends BaseSchemaType {
+class DocumentArrayType<
+	TSchema extends Schema<TSchemaDefinition>,
+	TSchemaDefinition extends SchemaDefinition,
+> extends BaseSchemaType {
 	/** An instance of Schema representing the document structure of the array's contents */
-	private readonly valueSchema: Schema;
+	private readonly valueSchema: TSchema;
 
-	public constructor(valueSchema: Schema) {
+	public constructor(valueSchema: TSchema) {
 		super();
 		this.valueSchema = valueSchema;
 	}
@@ -20,7 +24,7 @@ class DocumentArrayType extends BaseSchemaType {
 	 * Cast to array of documents
 	 * @throws {@link TypeError} Throws if a non-null/non-object is passed
 	 */
-	public override cast(value: unknown): Document[] {
+	public override cast(value: unknown): Document<TSchema, TSchemaDefinition>[] {
 		if (value == null) {
 			return [];
 		}
@@ -36,12 +40,15 @@ class DocumentArrayType extends BaseSchemaType {
 	}
 
 	/** Get value from mv data */
-	public get(record: MvRecord): Document[] {
+	public get(record: MvRecord): Document<TSchema, TSchemaDefinition>[] {
 		return [...this.makeSubDocument(record)];
 	}
 
 	/** Set specified document array value into mv record */
-	public set(originalRecord: MvRecord, documents: Document[]): MvRecord {
+	public set(
+		originalRecord: MvRecord,
+		documents: Document<TSchema, TSchemaDefinition>[],
+	): MvRecord {
 		const record = cloneDeep(originalRecord);
 		const mvPaths = this.valueSchema.getMvPaths();
 		// A subdocumentArray is always overwritten entirely so clear out all associated fields
@@ -60,7 +67,9 @@ class DocumentArrayType extends BaseSchemaType {
 	}
 
 	/** Validate the document array */
-	public async validate(documentList: Document[]): Promise<Map<string, string[]>> {
+	public async validate(
+		documentList: Document<TSchema, TSchemaDefinition>[],
+	): Promise<Map<string, string[]>> {
 		// Create a map to store the errors. The key will be the index of the document in the list prefixed to the key path of the error
 		const errorsMap = new Map<string, string[]>();
 		await Promise.all(
@@ -82,7 +91,7 @@ class DocumentArrayType extends BaseSchemaType {
 
 	/** Create an array of foreign key definitions that will be validated before save */
 	public override transformForeignKeyDefinitionsToDb(
-		documentList: Document[],
+		documentList: Document<TSchema, TSchemaDefinition>[],
 	): ForeignKeyDbDefinition[] {
 		return documentList
 			.map((document) => {
@@ -96,7 +105,7 @@ class DocumentArrayType extends BaseSchemaType {
 	}
 
 	/** Generate subdocument instances */
-	private *makeSubDocument(record: MvRecord): Generator<Document> {
+	private *makeSubDocument(record: MvRecord): Generator<Document<TSchema, TSchemaDefinition>> {
 		const makeSubRecord = (iteration: number): MvRecord =>
 			this.valueSchema.getMvPaths().reduce<MvRecord>((acc, path) => {
 				const value = this.getFromMvArray(path.concat([iteration]), record);
@@ -112,7 +121,10 @@ class DocumentArrayType extends BaseSchemaType {
 			if (subRecord.length === 0) {
 				return;
 			}
-			const subdocument = Document.createSubdocumentFromRecord(this.valueSchema, subRecord);
+			const subdocument = Document.createSubdocumentFromRecord<TSchema, TSchemaDefinition>(
+				this.valueSchema,
+				subRecord,
+			);
 
 			yield subdocument;
 			iteration += 1;
