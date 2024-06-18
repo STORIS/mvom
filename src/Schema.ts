@@ -120,24 +120,18 @@ type InferSchemaType<TSchemaTypeDefinition> =
 						? InferRequiredType<TSchemaTypeDefinition, ISOCalendarDateTime>
 						: TSchemaTypeDefinition extends SchemaTypeDefinitionISOTime
 							? InferRequiredType<TSchemaTypeDefinition, ISOTime>
-							: TSchemaTypeDefinition extends Schema<infer SubSchemaDefinition>
-								? InferSchemaType<SubSchemaDefinition>
+							: TSchemaTypeDefinition extends Schema<infer TSubSchemaDefinition>
+								? InferDocumentObject<Schema<TSubSchemaDefinition>>
 								: TSchemaTypeDefinition extends SchemaTypeDefinitionArray
 									? InferSchemaType<TSchemaTypeDefinition[0]>[]
 									: TSchemaTypeDefinition extends SchemaDefinition
-										? {
-												[K in keyof TSchemaTypeDefinition]: InferSchemaType<
-													TSchemaTypeDefinition[K]
-												>;
-											}
+										? InferDocumentObject<Schema<TSchemaTypeDefinition>>
 										: never;
 
 /** Infer the shape of a `Document` instance based upon the Schema it was instantiated with */
 export type InferDocumentObject<TSchema extends Schema<SchemaDefinition>> =
 	TSchema extends Schema<infer TSchemaDefinition>
-		? {
-				[K in keyof TSchemaDefinition]: InferSchemaType<TSchemaDefinition[K]>;
-			}
+		? { [K in keyof TSchemaDefinition]: InferSchemaType<TSchemaDefinition[K]> }
 		: never;
 
 /** Infer the shape of a `Model` instance based upon the Schema it was instantiated with */
