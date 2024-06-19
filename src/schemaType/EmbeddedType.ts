@@ -54,7 +54,7 @@ class EmbeddedType<
 	}
 
 	/** Validate the embedded document */
-	public validate(document: Document<TSchema, TSchemaDefinition>): Promise<Map<string, string[]>> {
+	public validate(document: Document<TSchema, TSchemaDefinition>): Map<string, string[]> {
 		// - validation against the embedded document will return a single object with 0 to n keys - only those with keys indicate errors;
 		return document.validate();
 	}

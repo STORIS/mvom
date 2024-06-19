@@ -39,7 +39,7 @@ class ISOCalendarDateTimeType extends BaseScalarType {
 	}
 
 	/** ISOCalendarDateTime data type validator */
-	protected override validateType = async (value: unknown): Promise<boolean> => {
+	protected override validateType = (value: unknown): boolean => {
 		if (value == null) {
 			return true;
 		}
@@ -51,14 +51,10 @@ class ISOCalendarDateTimeType extends BaseScalarType {
 
 		const [datePart, timePart] = value.split('T');
 
-		const partsValidations = (
-			await Promise.all([
-				this.isoCalendarDateType.validate(datePart),
-				this.isoTimeType.validate(timePart),
-			])
-		).flat();
+		const dateValidationResult = this.isoCalendarDateType.validate(datePart);
+		const timeValidationResult = this.isoTimeType.validate(timePart);
 
-		return partsValidations.length === 0;
+		return dateValidationResult.length === 0 && timeValidationResult.length === 0;
 	};
 }
 

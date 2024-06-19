@@ -789,11 +789,11 @@ describe('buildForeignKeyDefinitions', () => {
 });
 
 describe('validate', () => {
-	test('should return no errors if schema is null', async () => {
+	test('should return no errors if schema is null', () => {
 		const document = new DocumentSubclass(null, { record: [] });
 
 		const expected = new Map();
-		expect(await document.validate()).toEqual(expected);
+		expect(document.validate()).toEqual(expected);
 	});
 
 	describe('id matching validation', () => {
@@ -804,23 +804,23 @@ describe('validate', () => {
 			idMatch: /^foo$/,
 		});
 
-		test('should return error if id match is specified and id does not match pattern', async () => {
+		test('should return error if id match is specified and id does not match pattern', () => {
 			const document = new DocumentSubclass(schema, { data: { _id: 'id', prop1: 'foo' } });
 
 			const expected = new Map([['_id', ['Document id does not match pattern']]]);
-			expect(await document.validate()).toEqual(expected);
+			expect(document.validate()).toEqual(expected);
 		});
 
-		test('should not return error if id match is specified and id matches pattern', async () => {
+		test('should not return error if id match is specified and id matches pattern', () => {
 			const document = new DocumentSubclass(schema, { data: { _id: 'foo', prop1: 'foo' } });
 
 			const expected = new Map();
-			expect(await document.validate()).toEqual(expected);
+			expect(document.validate()).toEqual(expected);
 		});
 	});
 
 	describe('schema type validation', () => {
-		test('should return error at property if schemaType validation fails', async () => {
+		test('should return error at property if schemaType validation fails', () => {
 			const definition: SchemaDefinition = {
 				prop1: { type: 'string', path: '1', required: true },
 			};
@@ -828,10 +828,10 @@ describe('validate', () => {
 			const document = new DocumentSubclass(schema, { record: [] });
 
 			const expected = new Map([['prop1', ['Property is required']]]);
-			expect(await document.validate()).toEqual(expected);
+			expect(document.validate()).toEqual(expected);
 		});
 
-		test('should not return error at property if schemaType validation is successful', async () => {
+		test('should not return error at property if schemaType validation is successful', () => {
 			const definition: SchemaDefinition = {
 				prop1: { type: 'string', path: '1', required: true },
 			};
@@ -839,7 +839,7 @@ describe('validate', () => {
 			const document = new DocumentSubclass(schema, { record: ['foo'] });
 
 			const expected = new Map();
-			expect(await document.validate()).toEqual(expected);
+			expect(document.validate()).toEqual(expected);
 		});
 
 		test('should return thrown error message in an array if schemaType validation throws an error', async () => {
@@ -863,10 +863,10 @@ describe('validate', () => {
 			const document = new DocumentSubclass(schema, { data: { prop1: 'foo' } });
 
 			const expected = new Map([['prop1', ['Test error message']]]);
-			expect(await document.validate()).toEqual(expected);
+			expect(document.validate()).toEqual(expected);
 		});
 
-		test('return error at property & unravel nested errors if schemaType validation fails', async () => {
+		test('return error at property & unravel nested errors if schemaType validation fails', () => {
 			const passingSchema = new Schema({
 				prop1: { type: 'string', path: '15', required: true },
 				prop2: { type: 'number', path: '16', dbDecimals: 2, required: true },
@@ -987,7 +987,7 @@ describe('validate', () => {
 				['failingSchemaDocumentArray.1.prop2', ['Property is required']],
 			]);
 
-			expect(await document.validate()).toEqual(expected);
+			expect(document.validate()).toEqual(expected);
 		});
 	});
 });

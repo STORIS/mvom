@@ -262,13 +262,13 @@ describe('validate', () => {
 	const valueSchema = new Schema(definition);
 	const documentArrayType = new DocumentArrayType(valueSchema);
 
-	test('should return a single Map for the errors encountered when validating each subdocument. prepending the index to the nested document key', async () => {
+	test('should return a single Map for the errors encountered when validating each subdocument. prepending the index to the nested document key', () => {
 		const originalRecord: MvRecord = ['unrelated'];
 
 		const value1 = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
 		const value2 = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
 
-		const validationResults = await documentArrayType.validate([value1, value2]);
+		const validationResults = documentArrayType.validate([value1, value2]);
 
 		const expected = new Map([
 			['0.prop1', ['Property is required']],
@@ -280,7 +280,7 @@ describe('validate', () => {
 		expect(validationResults).toEqual(expected);
 	});
 
-	test('should return an empty map with no errors when no errors reported', async () => {
+	test('should return an empty map with no errors when no errors reported', () => {
 		const originalRecord: MvRecord = ['unrelated'];
 		const value1 = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
 		const value2 = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
@@ -289,7 +289,7 @@ describe('validate', () => {
 		value2.prop1 = 'bar';
 		value2.prop2 = 4.56;
 
-		const validationResults = await documentArrayType.validate([value1, value2]);
+		const validationResults = documentArrayType.validate([value1, value2]);
 		expect(validationResults.size).toBe(0);
 	});
 });

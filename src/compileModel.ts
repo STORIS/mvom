@@ -350,7 +350,7 @@ const compileModel = <
 			}
 
 			// validate data prior to saving
-			const validationErrors = await this.validate();
+			const validationErrors = this.validate();
 			if (validationErrors.size > 0) {
 				throw new DataValidationError({
 					validationErrors,

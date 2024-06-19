@@ -162,7 +162,7 @@ describe('transformToDb', () => {
 
 describe('validations', () => {
 	describe('required validations', () => {
-		test('should return error message if required is true and value is null', async () => {
+		test('should return error message if required is true and value is null', () => {
 			const definition: SchemaTypeDefinitionISOTime = {
 				type: 'ISOTime',
 				path: '2',
@@ -172,10 +172,10 @@ describe('validations', () => {
 
 			const value = null;
 
-			expect(await isoTimeType.validate(value)).toContain('Property is required');
+			expect(isoTimeType.validate(value)).toContain('Property is required');
 		});
 
-		test('should not return error message if required is true and value is populated with a time', async () => {
+		test('should not return error message if required is true and value is populated with a time', () => {
 			const definition: SchemaTypeDefinitionISOTime = {
 				type: 'ISOTime',
 				path: '2',
@@ -185,10 +185,10 @@ describe('validations', () => {
 
 			const value = '12:00:00.000';
 
-			expect(await isoTimeType.validate(value)).not.toContain('Property is required');
+			expect(isoTimeType.validate(value)).not.toContain('Property is required');
 		});
 
-		test('should not return error message if required is false and value is null', async () => {
+		test('should not return error message if required is false and value is null', () => {
 			const definition: SchemaTypeDefinitionISOTime = {
 				type: 'ISOTime',
 				path: '2',
@@ -198,12 +198,12 @@ describe('validations', () => {
 
 			const value = null;
 
-			expect(await isoTimeType.validate(value)).not.toContain('Property is required');
+			expect(isoTimeType.validate(value)).not.toContain('Property is required');
 		});
 	});
 
 	describe('type validations', () => {
-		test('should not return error message if value is null', async () => {
+		test('should not return error message if value is null', () => {
 			const definition: SchemaTypeDefinitionISOTime = {
 				type: 'ISOTime',
 				path: '2',
@@ -212,12 +212,12 @@ describe('validations', () => {
 
 			const value = null;
 
-			expect(await isoTimeType.validate(value)).not.toContain(
+			expect(isoTimeType.validate(value)).not.toContain(
 				'Property cannot be cast into the defined type',
 			);
 		});
 
-		test('should return error message if value is not a string', async () => {
+		test('should return error message if value is not a string', () => {
 			const definition: SchemaTypeDefinitionISOTime = {
 				type: 'ISOTime',
 				path: '2',
@@ -226,12 +226,12 @@ describe('validations', () => {
 
 			const value = 1234;
 
-			expect(await isoTimeType.validate(value)).toContain(
+			expect(isoTimeType.validate(value)).toContain(
 				'Property cannot be cast into the defined type',
 			);
 		});
 
-		test('should return error message if value is an improperly formatted string', async () => {
+		test('should return error message if value is an improperly formatted string', () => {
 			const definition: SchemaTypeDefinitionISOTime = {
 				type: 'ISOTime',
 				path: '2',
@@ -240,12 +240,12 @@ describe('validations', () => {
 
 			const value = 'foo';
 
-			expect(await isoTimeType.validate(value)).toContain(
+			expect(isoTimeType.validate(value)).toContain(
 				'Property cannot be cast into the defined type',
 			);
 		});
 
-		test('should not return error message if value is a properly formatted string', async () => {
+		test('should not return error message if value is a properly formatted string', () => {
 			const definition: SchemaTypeDefinitionISOTime = {
 				type: 'ISOTime',
 				path: '2',
@@ -254,7 +254,7 @@ describe('validations', () => {
 
 			const value = '12:01:02.123';
 
-			expect(await isoTimeType.validate(value)).not.toContain(
+			expect(isoTimeType.validate(value)).not.toContain(
 				'Property cannot be cast into the defined type',
 			);
 		});

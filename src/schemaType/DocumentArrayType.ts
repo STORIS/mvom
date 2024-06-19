@@ -67,26 +67,19 @@ class DocumentArrayType<
 	}
 
 	/** Validate the document array */
-	public async validate(
-		documentList: Document<TSchema, TSchemaDefinition>[],
-	): Promise<Map<string, string[]>> {
-		// Create a map to store the errors. The key will be the index of the document in the list prefixed to the key path of the error
-		const errorsMap = new Map<string, string[]>();
-		await Promise.all(
-			documentList.map(async (document, index) => {
-				const documentErrors = await document.validate();
+	public validate(documentList: Document<TSchema, TSchemaDefinition>[]): Map<string, string[]> {
+		return documentList.reduce<Map<string, string[]>>((acc, document, index) => {
+			const documentErrors = document.validate();
 
-				const indexString = String(index);
-				documentErrors.forEach((messages, keyPath) => {
-					if (messages.length > 0) {
-						const errorsMapKey = `${indexString}.${keyPath}`;
-						errorsMap.set(errorsMapKey, messages);
-					}
-				});
-			}),
-		);
+			documentErrors.forEach((messages, keyPath) => {
+				if (messages.length > 0) {
+					const errorsMapKey = `${index}.${keyPath}`;
+					acc.set(errorsMapKey, messages);
+				}
+			});
 
-		return errorsMap;
+			return acc;
+		}, new Map());
 	}
 
 	/** Create an array of foreign key definitions that will be validated before save */

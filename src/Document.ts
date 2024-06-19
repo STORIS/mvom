@@ -229,7 +229,7 @@ class Document<
 	}
 
 	/** Validate document for errors */
-	public async validate(): Promise<Map<string, string[]>> {
+	public validate(): Map<string, string[]> {
 		const documentErrors = new Map<string, string[]>();
 
 		if (this.#schema !== null) {
@@ -240,30 +240,29 @@ class Document<
 			) {
 				documentErrors.set('_id', ['Document id does not match pattern']);
 			}
-			await Promise.all(
-				Array.from(this.#schema.paths).map(async ([keyPath, schemaType]) => {
-					let value: unknown = getIn(this, keyPath, null);
-					// cast to complex data type if necessary
-					try {
-						value = schemaType.cast(value);
-						setIn(this, keyPath, value);
 
-						const validationResult = await schemaType.validate(value);
-						if (validationResult instanceof Map) {
-							validationResult.forEach((errors, key) => {
-								if (errors.length > 0) {
-									documentErrors.set(`${keyPath}.${key}`, errors);
-								}
-							});
-						} else if (validationResult.length > 0) {
-							documentErrors.set(keyPath, validationResult);
-						}
-					} catch (err) {
-						// an error was thrown - return the message from that error in an array in the documentErrors list
-						documentErrors.set(keyPath, [err.message]);
+			Array.from(this.#schema.paths).forEach(([keyPath, schemaType]) => {
+				const originalValue: unknown = getIn(this, keyPath, null);
+				// cast to complex data type if necessary
+				try {
+					const castValue = schemaType.cast(originalValue);
+					setIn(this, keyPath, castValue);
+
+					const validationResult = schemaType.validate(castValue);
+					if (validationResult instanceof Map) {
+						validationResult.forEach((errors, key) => {
+							if (errors.length > 0) {
+								documentErrors.set(`${keyPath}.${key}`, errors);
+							}
+						});
+					} else if (validationResult.length > 0) {
+						documentErrors.set(keyPath, validationResult);
 					}
-				}),
-			);
+				} catch (err) {
+					// an error was thrown - return the message from that error in an array in the documentErrors list
+					documentErrors.set(keyPath, [err.message]);
+				}
+			});
 		}
 		return documentErrors;
 	}

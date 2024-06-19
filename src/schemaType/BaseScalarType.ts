@@ -33,8 +33,6 @@ export type SchemaTypeDefinitionScalar =
 type RecordSetType = string | null | (string | null | (string | null)[])[];
 // #endregion
 
-const ISVALID_SYMBOL = Symbol('Is Valid');
-
 /** Abstract Scalar Schema Type */
 abstract class BaseScalarType extends BaseSchemaType implements DataTransformer {
 	/** Data definition which this schema type was constructed from */
@@ -121,20 +119,20 @@ abstract class BaseScalarType extends BaseSchemaType implements DataTransformer 
 	}
 
 	/** Validate the scalar type */
-	public async validate(value: unknown): Promise<string[]> {
-		// combining all the validation into one array of promise.all
-		// - a validator will return a placeholder symbol or the appropriate error message
-		// - filter out the placeholder symbols to only return the error messages
-		return (
-			await Promise.all(
-				this.validators
-					.concat(this.createRequiredValidator(), this.createTypeValidator())
-					.map(async ({ validationFn, message }) => {
-						const isValid = await validationFn(value);
-						return isValid ? ISVALID_SYMBOL : message;
-					}),
-			)
-		).filter((val): val is string => val !== ISVALID_SYMBOL);
+	public validate(value: unknown): string[] {
+		const validators = this.validators.concat(
+			this.createRequiredValidator(),
+			this.createTypeValidator(),
+		);
+
+		return validators.reduce<string[]>((acc, { validationFn, message }) => {
+			const isValid = validationFn(value);
+
+			if (!isValid) {
+				acc.push(message);
+			}
+			return acc;
+		}, []);
 	}
 
 	/** Get data from the specified keypath */
@@ -150,12 +148,11 @@ abstract class BaseScalarType extends BaseSchemaType implements DataTransformer 
 	}
 
 	/** Required validator */
-	protected validateRequired = (value: unknown): boolean | Promise<boolean> =>
-		!this.required || value != null;
+	protected validateRequired = (value: unknown): boolean => !this.required || value != null;
 
 	/** Type validator */
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	protected validateType = (value: unknown): boolean | Promise<boolean> => true;
+	protected validateType = (value: unknown): boolean => true;
 
 	/** Create validation object for required validation */
 	private createRequiredValidator(): Validator {

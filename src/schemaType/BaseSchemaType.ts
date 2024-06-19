@@ -10,7 +10,7 @@ export interface SchemaTypeDefinitionBase {
 	encrypted?: boolean;
 }
 
-type ValidationFunction = (value: unknown) => boolean | Promise<boolean>;
+type ValidationFunction = (value: unknown) => boolean;
 
 export interface Validator {
 	validationFn: ValidationFunction;
@@ -63,7 +63,7 @@ abstract class BaseSchemaType {
 	public abstract set(record: MvRecord, value: unknown): MvRecord;
 
 	/** Validate value */
-	public abstract validate(value: unknown): Promise<string[] | Map<string, string[]>>;
+	public abstract validate(value: unknown): string[] | Map<string, string[]>;
 }
 
 export default BaseSchemaType;

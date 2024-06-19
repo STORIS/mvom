@@ -192,7 +192,7 @@ describe('transformToQuery', () => {
 });
 
 describe('validate', () => {
-	test('should return error message if required is true and value is null', async () => {
+	test('should return error message if required is true and value is null', () => {
 		const definition: SchemaTypeDefinitionString = {
 			type: 'string',
 			path: '2',
@@ -203,10 +203,10 @@ describe('validate', () => {
 
 		const value = null;
 
-		expect(await testSubclass.validate(value)).toContain('Property is required');
+		expect(testSubclass.validate(value)).toContain('Property is required');
 	});
 
-	test('should not return error message if required is true and value is populated', async () => {
+	test('should not return error message if required is true and value is populated', () => {
 		const definition: SchemaTypeDefinitionString = {
 			type: 'string',
 			path: '2',
@@ -217,10 +217,10 @@ describe('validate', () => {
 
 		const value = 'foo';
 
-		expect(await testSubclass.validate(value)).not.toContain('Property is required');
+		expect(testSubclass.validate(value)).not.toContain('Property is required');
 	});
 
-	test('should not return error message if required is false and value is null', async () => {
+	test('should not return error message if required is false and value is null', () => {
 		const definition: SchemaTypeDefinitionString = {
 			type: 'string',
 			path: '2',
@@ -231,7 +231,7 @@ describe('validate', () => {
 
 		const value = null;
 
-		expect(await testSubclass.validate(value)).not.toContain('Property is required');
+		expect(testSubclass.validate(value)).not.toContain('Property is required');
 	});
 });
 
