@@ -11,7 +11,7 @@ class TestSubclass extends BaseSchemaType {
 	}
 
 	public validate() {
-		return Promise.resolve([]);
+		return [];
 	}
 }
 

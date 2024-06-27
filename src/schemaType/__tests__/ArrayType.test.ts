@@ -190,7 +190,7 @@ describe('transformForeignKeyDefinitionsToDb', () => {
 });
 
 describe('validate', () => {
-	test('should return errors defined by value schema validators as a map with the index as the key and string array of errors as the value', async () => {
+	test('should return errors defined by value schema validators as a map with the index as the key and string array of errors as the value', () => {
 		const valueSchemaDefinition: SchemaTypeDefinitionNumber = {
 			type: 'number',
 			path: '2.2',
@@ -202,7 +202,7 @@ describe('validate', () => {
 
 		const value = [null, null, 1.23];
 
-		const validationResult = await arrayType.validate(value);
+		const validationResult = arrayType.validate(value);
 		const expected = new Map<string, string[]>([
 			['0', ['Property is required']],
 			['1', ['Property is required']],
@@ -210,7 +210,7 @@ describe('validate', () => {
 		expect(validationResult).toEqual(expected);
 	});
 
-	test('should have no errors if value schema validators pass', async () => {
+	test('should have no errors if value schema validators pass', () => {
 		const valueSchemaDefinition: SchemaTypeDefinitionNumber = {
 			type: 'number',
 			path: '2.2',
@@ -222,7 +222,7 @@ describe('validate', () => {
 
 		const value = [1.23, 4.56, 7.89];
 
-		const validationResult = await arrayType.validate(value);
+		const validationResult = arrayType.validate(value);
 		expect(validationResult.size).toBe(0);
 	});
 });

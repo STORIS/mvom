@@ -40,23 +40,19 @@ class NestedArrayType extends BaseScalarArrayType {
 	}
 
 	/** Validate the nested array */
-	public async validate(value: unknown): Promise<Map<string, string[]>> {
-		const errorsMap = new Map<string, string[]>();
-		await Promise.all(
-			ensureArray(value).map(async (arrayItem, index) => {
-				await Promise.all(
-					ensureArray(arrayItem).map(async (nestedArrayItem, nestedIndex) => {
-						const result = await this.valueSchemaType.validate(nestedArrayItem);
+	public validate(value: unknown): Map<string, string[]> {
+		return ensureArray(value).reduce<Map<string, string[]>>((acc, arrayItem, index) => {
+			ensureArray(arrayItem).forEach((nestedArrayItem, nestedIndex) => {
+				const result = this.valueSchemaType.validate(nestedArrayItem);
 
-						if (result.length > 0) {
-							const key = `${index}.${nestedIndex}`;
-							errorsMap.set(key, result);
-						}
-					}),
-				);
-			}),
-		);
-		return errorsMap;
+				if (result.length > 0) {
+					const key = `${index}.${nestedIndex}`;
+					acc.set(key, result);
+				}
+			});
+
+			return acc;
+		}, new Map());
 	}
 }
 

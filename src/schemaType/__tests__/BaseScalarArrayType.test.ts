@@ -42,8 +42,8 @@ class TestSubclass extends BaseScalarArrayType {
 		return value;
 	}
 
-	public validate(): Promise<string[]> {
-		return Promise.resolve([]);
+	public validate(): string[] {
+		return [];
 	}
 }
 

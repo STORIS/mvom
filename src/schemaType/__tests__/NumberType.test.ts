@@ -129,7 +129,7 @@ describe('transformToDb', () => {
 
 describe('validations', () => {
 	describe('required validations', () => {
-		test('should return error message if required is true and value is null', async () => {
+		test('should return error message if required is true and value is null', () => {
 			const definition: SchemaTypeDefinitionNumber = {
 				type: 'number',
 				path: '2',
@@ -139,10 +139,10 @@ describe('validations', () => {
 
 			const value = null;
 
-			expect(await numberType.validate(value)).toContain('Property is required');
+			expect(numberType.validate(value)).toContain('Property is required');
 		});
 
-		test('should not return error message if required is true and value is populated with a number', async () => {
+		test('should not return error message if required is true and value is populated with a number', () => {
 			const definition: SchemaTypeDefinitionNumber = {
 				type: 'number',
 				path: '2',
@@ -152,10 +152,10 @@ describe('validations', () => {
 
 			const value = 1234;
 
-			expect(await numberType.validate(value)).not.toContain('Property is required');
+			expect(numberType.validate(value)).not.toContain('Property is required');
 		});
 
-		test('should not return error message if required is false and value is null', async () => {
+		test('should not return error message if required is false and value is null', () => {
 			const definition: SchemaTypeDefinitionNumber = {
 				type: 'number',
 				path: '2',
@@ -165,12 +165,12 @@ describe('validations', () => {
 
 			const value = null;
 
-			expect(await numberType.validate(value)).not.toContain('Property is required');
+			expect(numberType.validate(value)).not.toContain('Property is required');
 		});
 	});
 
 	describe('type validations', () => {
-		test('should return error message if value is not a number', async () => {
+		test('should return error message if value is not a number', () => {
 			const definition: SchemaTypeDefinitionNumber = {
 				type: 'number',
 				path: '2',
@@ -180,12 +180,10 @@ describe('validations', () => {
 
 			const value = 'foo';
 
-			expect(await numberType.validate(value)).toContain(
-				'Property cannot be cast into the defined type',
-			);
+			expect(numberType.validate(value)).toContain('Property cannot be cast into the defined type');
 		});
 
-		test('should not return error message if value is a number', async () => {
+		test('should not return error message if value is a number', () => {
 			const definition: SchemaTypeDefinitionNumber = {
 				type: 'number',
 				path: '2',
@@ -195,7 +193,7 @@ describe('validations', () => {
 
 			const value = 1234;
 
-			expect(await numberType.validate(value)).not.toContain(
+			expect(numberType.validate(value)).not.toContain(
 				'Property cannot be cast into the defined type',
 			);
 		});

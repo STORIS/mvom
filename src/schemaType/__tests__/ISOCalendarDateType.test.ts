@@ -74,7 +74,7 @@ describe('transformToDb', () => {
 
 describe('validations', () => {
 	describe('required validations', () => {
-		test('should return error message if required is true and value is null', async () => {
+		test('should return error message if required is true and value is null', () => {
 			const definition: SchemaTypeDefinitionISOCalendarDate = {
 				type: 'ISOCalendarDate',
 				path: '2',
@@ -84,10 +84,10 @@ describe('validations', () => {
 
 			const value = null;
 
-			expect(await isoCalendarDateType.validate(value)).toContain('Property is required');
+			expect(isoCalendarDateType.validate(value)).toContain('Property is required');
 		});
 
-		test('should not return error message if required is true and value is populated with a date', async () => {
+		test('should not return error message if required is true and value is populated with a date', () => {
 			const definition: SchemaTypeDefinitionISOCalendarDate = {
 				type: 'ISOCalendarDate',
 				path: '2',
@@ -97,10 +97,10 @@ describe('validations', () => {
 
 			const value = '2022-02-27';
 
-			expect(await isoCalendarDateType.validate(value)).not.toContain('Property is required');
+			expect(isoCalendarDateType.validate(value)).not.toContain('Property is required');
 		});
 
-		test('should not return error message if required is false and value is null', async () => {
+		test('should not return error message if required is false and value is null', () => {
 			const definition: SchemaTypeDefinitionISOCalendarDate = {
 				type: 'ISOCalendarDate',
 				path: '2',
@@ -110,12 +110,12 @@ describe('validations', () => {
 
 			const value = null;
 
-			expect(await isoCalendarDateType.validate(value)).not.toContain('Property is required');
+			expect(isoCalendarDateType.validate(value)).not.toContain('Property is required');
 		});
 	});
 
 	describe('type validations', () => {
-		test('should not return error message if value is null', async () => {
+		test('should not return error message if value is null', () => {
 			const definition: SchemaTypeDefinitionISOCalendarDate = {
 				type: 'ISOCalendarDate',
 				path: '2',
@@ -124,12 +124,12 @@ describe('validations', () => {
 
 			const value = null;
 
-			expect(await isoCalendarDateType.validate(value)).not.toContain(
+			expect(isoCalendarDateType.validate(value)).not.toContain(
 				'Property cannot be cast into the defined type',
 			);
 		});
 
-		test('should return error message if value is not a string', async () => {
+		test('should return error message if value is not a string', () => {
 			const definition: SchemaTypeDefinitionISOCalendarDate = {
 				type: 'ISOCalendarDate',
 				path: '2',
@@ -138,12 +138,12 @@ describe('validations', () => {
 
 			const value = 1234;
 
-			expect(await isoCalendarDateType.validate(value)).toContain(
+			expect(isoCalendarDateType.validate(value)).toContain(
 				'Property cannot be cast into the defined type',
 			);
 		});
 
-		test('should return error message if value is an improperly formatted string', async () => {
+		test('should return error message if value is an improperly formatted string', () => {
 			const definition: SchemaTypeDefinitionISOCalendarDate = {
 				type: 'ISOCalendarDate',
 				path: '2',
@@ -152,12 +152,12 @@ describe('validations', () => {
 
 			const value = 'foo';
 
-			expect(await isoCalendarDateType.validate(value)).toContain(
+			expect(isoCalendarDateType.validate(value)).toContain(
 				'Property cannot be cast into the defined type',
 			);
 		});
 
-		test('should return error message if value is an invalid date', async () => {
+		test('should return error message if value is an invalid date', () => {
 			const definition: SchemaTypeDefinitionISOCalendarDate = {
 				type: 'ISOCalendarDate',
 				path: '2',
@@ -166,12 +166,12 @@ describe('validations', () => {
 
 			const value = '2022-02-31'; // only 28 days in month
 
-			expect(await isoCalendarDateType.validate(value)).toContain(
+			expect(isoCalendarDateType.validate(value)).toContain(
 				'Property cannot be cast into the defined type',
 			);
 		});
 
-		test('should not return error message if value is a properly formatted string', async () => {
+		test('should not return error message if value is a properly formatted string', () => {
 			const definition: SchemaTypeDefinitionISOCalendarDate = {
 				type: 'ISOCalendarDate',
 				path: '2',
@@ -180,7 +180,7 @@ describe('validations', () => {
 
 			const value = '2022-02-27';
 
-			expect(await isoCalendarDateType.validate(value)).not.toContain(
+			expect(isoCalendarDateType.validate(value)).not.toContain(
 				'Property cannot be cast into the defined type',
 			);
 		});

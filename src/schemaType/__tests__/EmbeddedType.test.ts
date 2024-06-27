@@ -82,7 +82,7 @@ describe('validate', () => {
 	const valueSchema = new Schema(definition);
 	const embeddedType = new EmbeddedType(valueSchema);
 
-	test('should return a map of the errors encountered when validating the subdocument', async () => {
+	test('should return a map of the errors encountered when validating the subdocument', () => {
 		const originalRecord: MvRecord = ['unrelated'];
 		const value = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
 
@@ -91,17 +91,17 @@ describe('validate', () => {
 			['prop2', ['Property is required']],
 		]);
 
-		const validationResults = await embeddedType.validate(value);
+		const validationResults = embeddedType.validate(value);
 		expect(validationResults).toEqual(expected);
 	});
 
-	test('should return an empty map if no errors are encountered when validating the subdocument', async () => {
+	test('should return an empty map if no errors are encountered when validating the subdocument', () => {
 		const originalRecord: MvRecord = ['unrelated'];
 		const value = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
 		value.prop1 = 'foo';
 		value.prop2 = 12.34;
 
-		const validationResults = await embeddedType.validate(value);
+		const validationResults = embeddedType.validate(value);
 		expect(validationResults.size).toBe(0);
 	});
 });
