@@ -177,6 +177,11 @@ class Connection {
 		this.logHandler.debug('creating new connection instance');
 	}
 
+	/** Returns the subroutine name that is used on the multivalue server */
+	public get subroutineName(): string {
+		return this.deploymentManager.subroutineName;
+	}
+
 	/** Create a connection */
 	public static createConnection(
 		/** URL of the MVIS which facilitates access to the mv database */
@@ -304,11 +309,7 @@ class Connection {
 		try {
 			response = await this.axiosInstance.post<
 				DbSubroutineResponseTypes | DbSubroutineResponseError
-			>(
-				this.deploymentManager.subroutineName,
-				{ input: data },
-				{ headers: { 'X-MVIS-Trace-Id': requestId } },
-			);
+			>(this.subroutineName, { input: data }, { headers: { 'X-MVIS-Trace-Id': requestId } });
 		} catch (err) {
 			return axios.isAxiosError(err) ? this.handleAxiosError(err) : this.handleUnexpectedError(err);
 		}

@@ -27,7 +27,8 @@ import type { Logger } from '../LogHandler';
 jest.mock('axios');
 jest.mock('crypto');
 
-const mockDeploymentManager = mock<DeploymentManager>();
+const subroutineName = 'mvom_main@01234567';
+const mockDeploymentManager = mock<DeploymentManager>({ subroutineName });
 jest.mock('../DeploymentManager', () => ({ createDeploymentManager: () => mockDeploymentManager }));
 
 const mockedAxios = axios as jest.Mocked<typeof axios>;
@@ -206,6 +207,20 @@ describe('createConnection', () => {
 		expect(mockedAxios.create).toHaveBeenCalledWith(
 			expect.objectContaining({ httpsAgent: httpsAgentMock }),
 		);
+	});
+});
+
+describe('subroutineName getter', () => {
+	test('should return the subroutine name', () => {
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
+
+		expect(connection.subroutineName).toBe(subroutineName);
 	});
 });
 
@@ -430,7 +445,7 @@ describe('executeDbSubroutine', () => {
 
 		await connection.open();
 		expect(mockedAxiosInstance.post).toHaveBeenCalledWith(
-			expect.anything(),
+			subroutineName,
 			{
 				input: {
 					subroutineId: 'getServerInfo',
