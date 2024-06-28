@@ -101,7 +101,13 @@ interface RequestOptions {
 	requestId?: string;
 }
 
-export type OpenOptions = RequestOptions;
+export interface OpenOptions extends RequestOptions {
+	/**
+	 * Validate the multivalue subroutine deployment before opening the connection
+	 * @defaultValue `true`
+	 */
+	validateDeployment?: boolean;
+}
 
 export type DbServerInfoOptions = RequestOptions;
 
@@ -236,7 +242,9 @@ class Connection {
 	}
 
 	/** Open a database connection */
-	public async open({ requestId }: OpenOptions = {}): Promise<void> {
+	public async open(options: OpenOptions = {}): Promise<void> {
+		const { requestId, validateDeployment = true } = options;
+
 		if (this.status !== ConnectionStatus.disconnected) {
 			this.logHandler.error('Connection is not closed');
 			throw new ConnectionError({ message: 'Connection is not closed' });
@@ -245,13 +253,11 @@ class Connection {
 		this.logHandler.info('opening connection');
 		this.status = ConnectionStatus.connecting;
 
-		const isValid = await this.deploymentManager.validateDeployment();
-		if (!isValid) {
-			// prevent connection attempt if features are invalid
-			this.logHandler.info('MVIS has not been configured for use with MVOM');
-			this.logHandler.error('Connection will not be opened');
-			this.status = ConnectionStatus.disconnected;
-			throw new InvalidServerFeaturesError();
+		if (validateDeployment) {
+			this.logHandler.info('Validating deployment');
+			await this.validateDeployment();
+		} else {
+			this.logHandler.info('Skipping deployment validation');
 		}
 
 		this.status = ConnectionStatus.connected;
@@ -357,6 +363,18 @@ class Connection {
 		const { delimiters } = this.dbServerInfo;
 
 		return compileModel(this, schema, file, delimiters, this.logHandler);
+	}
+
+	/** Validate the multivalue subroutine deployment */
+	private async validateDeployment(): Promise<void> {
+		const isValid = await this.deploymentManager.validateDeployment();
+		if (!isValid) {
+			// prevent connection attempt if features are invalid
+			this.logHandler.info('MVIS has not been configured for use with MVOM');
+			this.logHandler.error('Connection will not be opened');
+			this.status = ConnectionStatus.disconnected;
+			throw new InvalidServerFeaturesError();
+		}
 	}
 
 	/** Get the db server information (date, time, etc.) */
