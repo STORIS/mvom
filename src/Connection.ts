@@ -79,7 +79,6 @@ interface ConnectionConstructorOptions {
 }
 
 export enum ConnectionStatus {
-	// convert to enum when transitioning class to TS
 	disconnected = 'disconnected',
 	connected = 'connected',
 	connecting = 'connecting',
