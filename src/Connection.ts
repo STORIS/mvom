@@ -79,7 +79,6 @@ interface ConnectionConstructorOptions {
 }
 
 export enum ConnectionStatus {
-	// convert to enum when transitioning class to TS
 	disconnected = 'disconnected',
 	connected = 'connected',
 	connecting = 'connecting',
@@ -101,7 +100,13 @@ interface RequestOptions {
 	requestId?: string;
 }
 
-export type OpenOptions = RequestOptions;
+export interface OpenOptions extends RequestOptions {
+	/**
+	 * Validate the multivalue subroutine deployment before opening the connection
+	 * @defaultValue `true`
+	 */
+	validateDeployment?: boolean;
+}
 
 export type DbServerInfoOptions = RequestOptions;
 
@@ -177,6 +182,11 @@ class Connection {
 		this.logHandler.debug('creating new connection instance');
 	}
 
+	/** Returns the subroutine name that is used on the multivalue server */
+	public get subroutineName(): string {
+		return this.deploymentManager.subroutineName;
+	}
+
 	/** Create a connection */
 	public static createConnection(
 		/** URL of the MVIS which facilitates access to the mv database */
@@ -231,7 +241,9 @@ class Connection {
 	}
 
 	/** Open a database connection */
-	public async open({ requestId }: OpenOptions = {}): Promise<void> {
+	public async open(options: OpenOptions = {}): Promise<void> {
+		const { requestId, validateDeployment = true } = options;
+
 		if (this.status !== ConnectionStatus.disconnected) {
 			this.logHandler.error('Connection is not closed');
 			throw new ConnectionError({ message: 'Connection is not closed' });
@@ -240,13 +252,11 @@ class Connection {
 		this.logHandler.info('opening connection');
 		this.status = ConnectionStatus.connecting;
 
-		const isValid = await this.deploymentManager.validateDeployment();
-		if (!isValid) {
-			// prevent connection attempt if features are invalid
-			this.logHandler.info('MVIS has not been configured for use with MVOM');
-			this.logHandler.error('Connection will not be opened');
-			this.status = ConnectionStatus.disconnected;
-			throw new InvalidServerFeaturesError();
+		if (validateDeployment) {
+			this.logHandler.info('Validating deployment');
+			await this.validateDeployment();
+		} else {
+			this.logHandler.info('Skipping deployment validation');
 		}
 
 		this.status = ConnectionStatus.connected;
@@ -304,11 +314,7 @@ class Connection {
 		try {
 			response = await this.axiosInstance.post<
 				DbSubroutineResponseTypes | DbSubroutineResponseError
-			>(
-				this.deploymentManager.subroutineName,
-				{ input: data },
-				{ headers: { 'X-MVIS-Trace-Id': requestId } },
-			);
+			>(this.subroutineName, { input: data }, { headers: { 'X-MVIS-Trace-Id': requestId } });
 		} catch (err) {
 			return axios.isAxiosError(err) ? this.handleAxiosError(err) : this.handleUnexpectedError(err);
 		}
@@ -356,6 +362,18 @@ class Connection {
 		const { delimiters } = this.dbServerInfo;
 
 		return compileModel(this, schema, file, delimiters, this.logHandler);
+	}
+
+	/** Validate the multivalue subroutine deployment */
+	private async validateDeployment(): Promise<void> {
+		const isValid = await this.deploymentManager.validateDeployment();
+		if (!isValid) {
+			// prevent connection attempt if features are invalid
+			this.logHandler.info('MVIS has not been configured for use with MVOM');
+			this.logHandler.error('Connection will not be opened');
+			this.status = ConnectionStatus.disconnected;
+			throw new InvalidServerFeaturesError();
+		}
 	}
 
 	/** Get the db server information (date, time, etc.) */
