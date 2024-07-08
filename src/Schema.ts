@@ -141,6 +141,21 @@ export type InferModelObject<TSchema extends Schema<SchemaDefinition>> = {
 } & InferDocumentObject<TSchema> extends infer O
 	? { [K in keyof O]: O[K] }
 	: never;
+
+type InferDocumentPaths<TObject extends Record<string, unknown>, TPrefix extends string = ''> = {
+	[Key in keyof TObject]: Key extends string
+		? TObject[Key] extends (infer U extends Record<string, unknown>)[]
+			? InferDocumentPaths<U, `${TPrefix}${Key}.`>
+			: TObject[Key] extends Record<string, unknown>
+				? InferDocumentPaths<TObject[Key], `${TPrefix}${Key}.`>
+				: `${TPrefix}${Key}`
+		: never;
+}[keyof TObject];
+
+export type InferSchemaPaths<TSchema extends Schema<SchemaDefinition>> = InferDocumentPaths<
+	InferDocumentObject<TSchema>
+> &
+	string;
 // #endregion
 
 /** Schema constructor */
