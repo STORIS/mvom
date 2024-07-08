@@ -1,14 +1,9 @@
 import type Connection from './Connection';
 import { InvalidParameterError, QueryLimitError } from './errors';
 import type LogHandler from './LogHandler';
-import type { SchemaDefinition } from './Schema';
+import type { InferDocumentObject, InferSchemaPaths, SchemaDefinition } from './Schema';
 import type Schema from './Schema';
-import type {
-	DbDocument,
-	DbSubroutineInputFind,
-	DbSubroutineSetupOptions,
-	GenericObject,
-} from './types';
+import type { DbDocument, DbSubroutineInputFind, DbSubroutineSetupOptions } from './types';
 
 // #region Types
 export interface QueryConstructorOptions {
@@ -47,18 +42,67 @@ export interface FilterOperators<TValue> {
 	$nin?: TValue[];
 }
 
-export interface RootFilterOperators<TSchema extends GenericObject = GenericObject> {
+export interface RootFilterOperators<
+	TSchema extends Schema<TSchemaDefinition> | null,
+	TSchemaDefinition extends SchemaDefinition,
+> {
 	/** Used to combine conditions with an and */
-	$and?: Filter<TSchema>[];
+	$and?: Filter<TSchema, TSchemaDefinition>[];
 	/** Used to combine conditions with an or */
-	$or?: Filter<TSchema>[];
+	$or?: Filter<TSchema, TSchemaDefinition>[];
 }
 
 export type Condition<TValue> = TValue | TValue[] | FilterOperators<TValue>;
 
-export type Filter<TSchema extends GenericObject = GenericObject> = RootFilterOperators<TSchema> & {
-	[key in keyof TSchema]?: Condition<TSchema[key]>;
-};
+/**
+ * Extract the type from an object at a given key
+ *
+ * For arrays, returns the type of the array elements
+ */
+type ExtractFromObject<TObject extends Record<string, unknown>, TKey> = TKey extends keyof TObject
+	? TObject[TKey] extends (infer U)[]
+		? U extends (infer V)[]
+			? NonNullable<V>
+			: NonNullable<U>
+		: NonNullable<TObject[TKey]>
+	: never;
+
+/** Get the type at a given array key path */
+type GetWithArray<Type, TArrayPath> = TArrayPath extends []
+	? Type
+	: TArrayPath extends [infer TKey, ...infer TRest]
+		? Type extends Record<string, unknown>
+			? GetWithArray<ExtractFromObject<Type, TKey>, TRest>
+			: Type extends (infer U extends Record<string, unknown>)[]
+				? GetWithArray<ExtractFromObject<U, TKey>, TRest>
+				: never
+		: never;
+
+/** Convert a string key path to an array of paths */
+type Path<TKeyPath extends string> = TKeyPath extends `${infer TKey}.${infer TRest}`
+	? [TKey, ...Path<TRest>]
+	: TKeyPath extends `${infer Key}`
+		? [Key]
+		: [];
+
+/** Get the type at a given string key path */
+type PathValue<Type extends Record<string, unknown>, TKeyPath extends string> = GetWithArray<
+	Type,
+	Path<TKeyPath>
+>;
+
+/** An object representing the query filters */
+export type Filter<
+	TSchema extends Schema<TSchemaDefinition> | null,
+	TSchemaDefinition extends SchemaDefinition,
+> = RootFilterOperators<TSchema, TSchemaDefinition> &
+	(TSchema extends Schema<TSchemaDefinition>
+		? {
+				[Key in InferSchemaPaths<TSchema>]?: Condition<
+					PathValue<InferDocumentObject<TSchema>, Key>
+				>;
+			}
+		: Record<string, never>) & { _id: string };
 
 export type SortCriteria = [string, -1 | 1][];
 
@@ -72,7 +116,10 @@ export interface QueryExecutionResult {
 // #endregion
 
 /** A query object */
-class Query<TSchema extends GenericObject = GenericObject> {
+class Query<
+	TSchema extends Schema<TSchemaDefinition> | null,
+	TSchemaDefinition extends SchemaDefinition,
+> {
 	/** Connection instance to run query on */
 	private readonly connection: Connection;
 
@@ -108,10 +155,10 @@ class Query<TSchema extends GenericObject = GenericObject> {
 
 	public constructor(
 		connection: Connection,
-		schema: Schema<SchemaDefinition> | null,
+		schema: TSchema,
 		file: string,
 		logHandler: LogHandler,
-		selectionCriteria: Filter<TSchema>,
+		selectionCriteria: Filter<TSchema, TSchemaDefinition>,
 		options: QueryConstructorOptions = {},
 	) {
 		const { sort, limit, skip, projection } = options;
@@ -175,7 +222,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 	 * @throws {@link TypeError} The value of the $or property must be an array
 	 * @throws {@link TypeError} Invalid conditional operator specified
 	 */
-	private formatSelectionCriteria(criteria: Filter<TSchema>): string | null {
+	private formatSelectionCriteria(criteria: Filter<TSchema, TSchemaDefinition>): string | null {
 		const criteriaProperties = Object.keys(criteria);
 		if (criteriaProperties.length === 0) {
 			return null;
@@ -231,9 +278,9 @@ class Query<TSchema extends GenericObject = GenericObject> {
 						this.validateLikeCondition(mvValue);
 						return this.formatCondition(queryProperty, 'like', `...'${mvValue}'`);
 					case '$in':
-						return this.formatConditionList(queryProperty, '=', mvValue, 'or');
+						return this.formatConditionList(queryProperty, '=', mvValue as unknown[], 'or');
 					case '$nin':
-						return this.formatConditionList(queryProperty, '#', mvValue, 'and');
+						return this.formatConditionList(queryProperty, '#', mvValue as unknown[], 'and');
 					default:
 						// unknown operator
 						throw new TypeError('Invalid conditional operator specified');

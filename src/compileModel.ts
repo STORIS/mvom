@@ -182,7 +182,10 @@ const compileModel = <
 
 		/** Find documents via query */
 		public static async find(
-			selectionCriteria: Filter = {},
+			selectionCriteria: Filter<TSchema, TSchemaDefinition> = {} as Filter<
+				TSchema,
+				TSchemaDefinition
+			>,
 			options: ModelFindOptions = {},
 		): Promise<ModelCompositeValue<TSchema, TSchemaDefinition>[]> {
 			const { maxReturnPayloadSize, requestId, userDefined, ...queryConstructorOptions } = options;
@@ -208,7 +211,10 @@ const compileModel = <
 
 		/** Find documents via query, returning them along with a count */
 		public static async findAndCount(
-			selectionCriteria: Filter = {},
+			selectionCriteria: Filter<TSchema, TSchemaDefinition> = {} as Filter<
+				TSchema,
+				TSchemaDefinition
+			>,
 			options: ModelFindOptions = {},
 		): Promise<ModelFindAndCountResult<TSchema, TSchemaDefinition>> {
 			const { maxReturnPayloadSize, requestId, userDefined, ...queryConstructorOptions } = options;
