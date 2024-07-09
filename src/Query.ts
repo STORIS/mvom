@@ -55,7 +55,7 @@ export interface RootFilterOperators<
 export type Condition<TValue> = TValue | TValue[] | FilterOperators<TValue>;
 
 /** Construct an object with the permitted conditions */
-export type ObjectCondition<T extends Record<string, unknown>> = {
+type ObjectCondition<T extends Record<string, unknown>> = {
 	[Key in keyof T]?: Condition<NonNullable<T[Key]>>;
 };
 
