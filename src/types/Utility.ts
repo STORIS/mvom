@@ -23,9 +23,7 @@ export type ToPaths<
 	? unknown
 	: T extends Record<string, unknown>
 		? {
-				[K in keyof T]: K extends string
-					? ToPaths<T[K], `${P}${K & string}.`, D, [0, ...DA]>
-					: never;
+				[K in keyof T]: K extends string ? ToPaths<T[K], `${P}${K}.`, D, [0, ...DA]> : never;
 			}[keyof T]
 		: T extends (infer U)[]
 			? ToPaths<U, P, D, [0, ...DA]>
