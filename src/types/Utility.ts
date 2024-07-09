@@ -8,7 +8,7 @@ export type Assert<T, U> =
 		: { error: 'Types are not equal'; type1: T; type2: U };
 
 /**
- * Helper type to deeply recurse and object and return a structure with the flatten keypath and type
+ * Helper type to deeply recurse an object and return a structure with the flatten keypath and type
  *
  * Scalar array types are returned as the scalar type (i.e. the array is dropped)
  *
