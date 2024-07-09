@@ -14,7 +14,7 @@ import { DataValidationError } from '../errors';
 import type LogHandler from '../LogHandler';
 import Schema from '../Schema';
 import type { SchemaDefinition } from '../Schema';
-import type { Assert, GenericObject, MvRecord } from '../types';
+import type { Assert, MvRecord } from '../types';
 
 const connectionMock = mockDeep<Connection>();
 const logHandlerMock = mock<LogHandler>();
@@ -678,7 +678,7 @@ describe('save', () => {
 		const err = new Error('Test error');
 		connectionMock.executeDbSubroutine.mockRejectedValue(err);
 
-		const error = await getError<Error & { other: GenericObject }>(async () => model.save());
+		const error = await getError<Error & { other: unknown }>(async () => model.save());
 
 		expect(error).not.toBeInstanceOf(NoErrorThrownError);
 		expect(error).toBeInstanceOf(Error);
