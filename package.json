@@ -80,5 +80,6 @@
     "rimraf": "5.0.9",
     "typescript": "5.5.3"
   },
-  "types": "index.d.ts"
+  "types": "index.d.ts",
+  "packageManager": "pnpm@7.26.3+sha1.68176b2648ccdef8af4dc767b1eeeefe04666871"
 }

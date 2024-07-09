@@ -7,8 +7,10 @@ export {
 	type ISOCalendarDate,
 	type ISOCalendarDateTime,
 	type ISOTime,
+	type FlattenDocument,
 	type InferDocumentObject,
 	type InferModelObject,
+	type InferSchemaPaths,
 } from './Schema';
 export type { ModelConstructor } from './compileModel';
 export {
