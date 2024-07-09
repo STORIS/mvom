@@ -1,7 +1,7 @@
 import type Connection from './Connection';
 import { InvalidParameterError, QueryLimitError } from './errors';
 import type LogHandler from './LogHandler';
-import type { InferDocumentObject, InferSchemaPaths, SchemaDefinition } from './Schema';
+import type { FlattenDocument, InferDocumentObject, SchemaDefinition } from './Schema';
 import type Schema from './Schema';
 import type { DbDocument, DbSubroutineInputFind, DbSubroutineSetupOptions } from './types';
 
@@ -54,55 +54,19 @@ export interface RootFilterOperators<
 
 export type Condition<TValue> = TValue | TValue[] | FilterOperators<TValue>;
 
-/**
- * Extract the type from an object at a given key
- *
- * For arrays, returns the type of the array elements
- */
-type ExtractFromObject<TObject extends Record<string, unknown>, TKey> = TKey extends keyof TObject
-	? TObject[TKey] extends (infer U)[]
-		? U extends (infer V)[]
-			? NonNullable<V>
-			: NonNullable<U>
-		: NonNullable<TObject[TKey]>
-	: never;
-
-/** Get the type at a given array key path */
-type GetWithArray<Type, TArrayPath> = TArrayPath extends []
-	? Type
-	: TArrayPath extends [infer TKey, ...infer TRest]
-		? Type extends Record<string, unknown>
-			? GetWithArray<ExtractFromObject<Type, TKey>, TRest>
-			: Type extends (infer U extends Record<string, unknown>)[]
-				? GetWithArray<ExtractFromObject<U, TKey>, TRest>
-				: never
-		: never;
-
-/** Convert a string key path to an array of paths */
-type Path<TKeyPath extends string> = TKeyPath extends `${infer TKey}.${infer TRest}`
-	? [TKey, ...Path<TRest>]
-	: TKeyPath extends `${infer Key}`
-		? [Key]
-		: [];
-
-/** Get the type at a given string key path */
-type PathValue<Type extends Record<string, unknown>, TKeyPath extends string> = GetWithArray<
-	Type,
-	Path<TKeyPath>
->;
+/** Construct an object with the permitted conditions */
+export type ObjectCondition<T extends Record<string, unknown>> = {
+	[Key in keyof T]?: Condition<NonNullable<T[Key]>>;
+};
 
 /** An object representing the query filters */
 export type Filter<
 	TSchema extends Schema<TSchemaDefinition> | null,
 	TSchemaDefinition extends SchemaDefinition,
 > = RootFilterOperators<TSchema, TSchemaDefinition> &
-	(TSchema extends Schema<TSchemaDefinition>
-		? {
-				[Key in InferSchemaPaths<TSchema>]?: Condition<
-					PathValue<InferDocumentObject<TSchema>, Key>
-				>;
-			}
-		: Record<string, never>) & { _id: string };
+	((TSchema extends Schema<TSchemaDefinition>
+		? ObjectCondition<FlattenDocument<InferDocumentObject<TSchema>>>
+		: Record<string, never>) & { _id?: Condition<string> });
 
 export type SortCriteria = [string, -1 | 1][];
 

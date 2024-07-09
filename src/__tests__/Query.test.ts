@@ -3,25 +3,18 @@ import mockDelimiters from '#test/mockDelimiters';
 import type Connection from '../Connection';
 import { InvalidParameterError, QueryLimitError } from '../errors';
 import type LogHandler from '../LogHandler';
-import type { Filter, QueryExecutionOptions, SortCriteria } from '../Query';
+import type { QueryExecutionOptions, SortCriteria } from '../Query';
 import Query from '../Query';
-import type Schema from '../Schema';
-import type { SchemaDefinition } from '../Schema';
-import type { DataTransformer, DbSubroutineOutputFind } from '../types';
+import Schema from '../Schema';
+import type { DbSubroutineOutputFind } from '../types';
 
 const connectionMock = mockDeep<Connection>();
-const schemaMock = mockDeep<Schema<SchemaDefinition>>();
 const filename = 'filename';
 const requestId = 'requestId';
 
-const dataTransformerMock = mock<DataTransformer>();
 const logHandlerMock = mock<LogHandler>();
 
 const { am } = mockDelimiters;
-
-beforeEach(() => {
-	dataTransformerMock.transformToQuery.mockImplementation((val) => String(val));
-});
 
 describe('constructor', () => {
 	describe('errors', () => {
@@ -34,14 +27,13 @@ describe('constructor', () => {
 				$and: [],
 			};
 
-			// @ts-expect-error: Overriding mock
-			schemaMock.dictPaths = new Map([
-				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
-				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
-			]);
+			const schema = new Schema({
+				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
+				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
+			});
 
 			expect(() => {
-				new Query(connectionMock, schemaMock, filename, logHandlerMock, selectionCritieria);
+				new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 			}).toThrow(TypeError);
 		});
 
@@ -54,14 +46,13 @@ describe('constructor', () => {
 				$or: [],
 			};
 
-			// @ts-expect-error: Overriding mock
-			schemaMock.dictPaths = new Map([
-				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
-				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
-			]);
+			const schema = new Schema({
+				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
+				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
+			});
 
 			expect(() => {
-				new Query(connectionMock, schemaMock, filename, logHandlerMock, selectionCritieria);
+				new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 			}).toThrow(TypeError);
 		});
 
@@ -71,17 +62,17 @@ describe('constructor', () => {
 			const propertyName2 = 'property-name2';
 			const propertyDictionary2 = 'property-dictionary2';
 			const selectionCritieria = {
-				foo: { $foo: 'bar' },
+				[propertyName1]: { $foo: 'bar' },
 			};
 
-			// @ts-expect-error: Overriding mock
-			schemaMock.dictPaths = new Map([
-				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
-				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
-			]);
+			const schema = new Schema({
+				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
+				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
+			});
 
 			expect(() => {
-				new Query(connectionMock, schemaMock, filename, logHandlerMock, selectionCritieria);
+				// @ts-expect-error: Testing invalid input
+				new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 			}).toThrow(TypeError);
 		});
 
@@ -94,14 +85,14 @@ describe('constructor', () => {
 				foo: { $in: [] },
 			};
 
-			// @ts-expect-error: Overriding mock
-			schemaMock.dictPaths = new Map([
-				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
-				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
-			]);
+			const schema = new Schema({
+				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
+				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
+			});
 
 			expect(() => {
-				new Query(connectionMock, schemaMock, filename, logHandlerMock, selectionCritieria);
+				// @ts-expect-error: Testing invalid input
+				new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 			}).toThrow(InvalidParameterError);
 		});
 
@@ -114,14 +105,13 @@ describe('constructor', () => {
 				[propertyName1]: `"This" 'shall' "not" 'pass'`,
 			};
 
-			// @ts-expect-error: Overriding mock
-			schemaMock.dictPaths = new Map([
-				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
-				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
-			]);
+			const schema = new Schema({
+				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
+				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
+			});
 
 			expect(() => {
-				new Query(connectionMock, schemaMock, filename, logHandlerMock, selectionCritieria);
+				new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 			}).toThrow(Error);
 		});
 
@@ -132,11 +122,12 @@ describe('constructor', () => {
 				[propertyName1]: propertyValue1,
 			};
 
-			// @ts-expect-error: Overriding mock
-			schemaMock.dictPaths = new Map();
+			const schema = new Schema({
+				[propertyName1]: { type: 'string', path: 1 },
+			});
 
 			expect(() => {
-				new Query(connectionMock, schemaMock, filename, logHandlerMock, selectionCritieria);
+				new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 			}).toThrow(InvalidParameterError);
 		});
 	});
@@ -169,14 +160,13 @@ describe('exec', () => {
 					[propertyName]: propertyValue,
 				};
 
-				// @ts-expect-error: Overriding mock
-				schemaMock.dictPaths = new Map([
-					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
-				]);
+				const schema = new Schema({
+					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+				});
 
 				const query = new Query(
 					connectionMock,
-					schemaMock,
+					schema,
 					filename,
 					logHandlerMock,
 					selectionCritieria,
@@ -204,14 +194,13 @@ describe('exec', () => {
 					[propertyName]: [propertyValue1, propertyValue2],
 				};
 
-				// @ts-expect-error: Overriding mock
-				schemaMock.dictPaths = new Map([
-					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
-				]);
+				const schema = new Schema({
+					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+				});
 
 				const query = new Query(
 					connectionMock,
-					schemaMock,
+					schema,
 					filename,
 					logHandlerMock,
 					selectionCritieria,
@@ -240,14 +229,13 @@ describe('exec', () => {
 					[propertyName]: { $eq: propertyValue },
 				};
 
-				// @ts-expect-error: Overriding mock
-				schemaMock.dictPaths = new Map([
-					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
-				]);
+				const schema = new Schema({
+					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+				});
 
 				const query = new Query(
 					connectionMock,
-					schemaMock,
+					schema,
 					filename,
 					logHandlerMock,
 					selectionCritieria,
@@ -275,14 +263,13 @@ describe('exec', () => {
 					[propertyName]: { $eq: `"${propertyValue}"` },
 				};
 
-				// @ts-expect-error: Overriding mock
-				schemaMock.dictPaths = new Map([
-					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
-				]);
+				const schema = new Schema({
+					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+				});
 
 				const query = new Query(
 					connectionMock,
-					schemaMock,
+					schema,
 					filename,
 					logHandlerMock,
 					selectionCritieria,
@@ -310,14 +297,13 @@ describe('exec', () => {
 					[propertyName]: { $eq: `'${propertyValue}'` },
 				};
 
-				// @ts-expect-error: Overriding mock
-				schemaMock.dictPaths = new Map([
-					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
-				]);
+				const schema = new Schema({
+					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+				});
 
 				const query = new Query(
 					connectionMock,
-					schemaMock,
+					schema,
 					filename,
 					logHandlerMock,
 					selectionCritieria,
@@ -346,14 +332,13 @@ describe('exec', () => {
 					[propertyName]: { $in: [propertyValue1, propertyValue2] },
 				};
 
-				// @ts-expect-error: Overriding mock
-				schemaMock.dictPaths = new Map([
-					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
-				]);
+				const schema = new Schema({
+					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+				});
 
 				const query = new Query(
 					connectionMock,
-					schemaMock,
+					schema,
 					filename,
 					logHandlerMock,
 					selectionCritieria,
@@ -380,14 +365,13 @@ describe('exec', () => {
 					[propertyName]: { $in: [propertyValue1] },
 				};
 
-				// @ts-expect-error: Overriding mock
-				schemaMock.dictPaths = new Map([
-					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
-				]);
+				const schema = new Schema({
+					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+				});
 
 				const query = new Query(
 					connectionMock,
-					schemaMock,
+					schema,
 					filename,
 					logHandlerMock,
 					selectionCritieria,
@@ -414,14 +398,13 @@ describe('exec', () => {
 					[propertyName]: { $gt: propertyValue },
 				};
 
-				// @ts-expect-error: Overriding mock
-				schemaMock.dictPaths = new Map([
-					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
-				]);
+				const schema = new Schema({
+					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+				});
 
 				const query = new Query(
 					connectionMock,
-					schemaMock,
+					schema,
 					filename,
 					logHandlerMock,
 					selectionCritieria,
@@ -449,14 +432,13 @@ describe('exec', () => {
 					[propertyName]: { $gte: propertyValue },
 				};
 
-				// @ts-expect-error: Overriding mock
-				schemaMock.dictPaths = new Map([
-					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
-				]);
+				const schema = new Schema({
+					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+				});
 
 				const query = new Query(
 					connectionMock,
-					schemaMock,
+					schema,
 					filename,
 					logHandlerMock,
 					selectionCritieria,
@@ -484,14 +466,13 @@ describe('exec', () => {
 					[propertyName]: { $lt: propertyValue },
 				};
 
-				// @ts-expect-error: Overriding mock
-				schemaMock.dictPaths = new Map([
-					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
-				]);
+				const schema = new Schema({
+					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+				});
 
 				const query = new Query(
 					connectionMock,
-					schemaMock,
+					schema,
 					filename,
 					logHandlerMock,
 					selectionCritieria,
@@ -519,14 +500,13 @@ describe('exec', () => {
 					[propertyName]: { $lte: propertyValue },
 				};
 
-				// @ts-expect-error: Overriding mock
-				schemaMock.dictPaths = new Map([
-					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
-				]);
+				const schema = new Schema({
+					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+				});
 
 				const query = new Query(
 					connectionMock,
-					schemaMock,
+					schema,
 					filename,
 					logHandlerMock,
 					selectionCritieria,
@@ -554,14 +534,13 @@ describe('exec', () => {
 					[propertyName]: { $ne: propertyValue },
 				};
 
-				// @ts-expect-error: Overriding mock
-				schemaMock.dictPaths = new Map([
-					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
-				]);
+				const schema = new Schema({
+					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+				});
 
 				const query = new Query(
 					connectionMock,
-					schemaMock,
+					schema,
 					filename,
 					logHandlerMock,
 					selectionCritieria,
@@ -590,17 +569,13 @@ describe('exec', () => {
 						[propertyName]: { $contains: propertyValue },
 					};
 
-					// @ts-expect-error: Overriding mock
-					schemaMock.dictPaths = new Map([
-						[
-							propertyName,
-							{ dictionary: propertyDictionary, dataTransformer: dataTransformerMock },
-						],
-					]);
+					const schema = new Schema({
+						[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+					});
 
 					const query = new Query(
 						connectionMock,
-						schemaMock,
+						schema,
 						filename,
 						logHandlerMock,
 						selectionCritieria,
@@ -628,16 +603,12 @@ describe('exec', () => {
 						[propertyName]: { $contains: propertyValue },
 					};
 
-					// @ts-expect-error: Overriding mock
-					schemaMock.dictPaths = new Map([
-						[
-							propertyName,
-							{ dictionary: propertyDictionary, dataTransformer: dataTransformerMock },
-						],
-					]);
+					const schema = new Schema({
+						[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+					});
 
 					expect(() => {
-						new Query(connectionMock, schemaMock, filename, logHandlerMock, selectionCritieria);
+						new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 					}).toThrow();
 				});
 
@@ -649,16 +620,12 @@ describe('exec', () => {
 						[propertyName]: { $contains: propertyValue },
 					};
 
-					// @ts-expect-error: Overriding mock
-					schemaMock.dictPaths = new Map([
-						[
-							propertyName,
-							{ dictionary: propertyDictionary, dataTransformer: dataTransformerMock },
-						],
-					]);
+					const schema = new Schema({
+						[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+					});
 
 					expect(() => {
-						new Query(connectionMock, schemaMock, filename, logHandlerMock, selectionCritieria);
+						new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 					}).toThrow();
 				});
 			});
@@ -672,17 +639,13 @@ describe('exec', () => {
 						[propertyName]: { $startsWith: propertyValue },
 					};
 
-					// @ts-expect-error: Overriding mock
-					schemaMock.dictPaths = new Map([
-						[
-							propertyName,
-							{ dictionary: propertyDictionary, dataTransformer: dataTransformerMock },
-						],
-					]);
+					const schema = new Schema({
+						[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+					});
 
 					const query = new Query(
 						connectionMock,
-						schemaMock,
+						schema,
 						filename,
 						logHandlerMock,
 						selectionCritieria,
@@ -710,16 +673,12 @@ describe('exec', () => {
 						[propertyName]: { $startsWith: propertyValue },
 					};
 
-					// @ts-expect-error: Overriding mock
-					schemaMock.dictPaths = new Map([
-						[
-							propertyName,
-							{ dictionary: propertyDictionary, dataTransformer: dataTransformerMock },
-						],
-					]);
+					const schema = new Schema({
+						[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+					});
 
 					expect(() => {
-						new Query(connectionMock, schemaMock, filename, logHandlerMock, selectionCritieria);
+						new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 					}).toThrow();
 				});
 
@@ -731,16 +690,12 @@ describe('exec', () => {
 						[propertyName]: { $startsWith: propertyValue },
 					};
 
-					// @ts-expect-error: Overriding mock
-					schemaMock.dictPaths = new Map([
-						[
-							propertyName,
-							{ dictionary: propertyDictionary, dataTransformer: dataTransformerMock },
-						],
-					]);
+					const schema = new Schema({
+						[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+					});
 
 					expect(() => {
-						new Query(connectionMock, schemaMock, filename, logHandlerMock, selectionCritieria);
+						new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 					}).toThrow();
 				});
 			});
@@ -754,17 +709,13 @@ describe('exec', () => {
 						[propertyName]: { $endsWith: propertyValue },
 					};
 
-					// @ts-expect-error: Overriding mock
-					schemaMock.dictPaths = new Map([
-						[
-							propertyName,
-							{ dictionary: propertyDictionary, dataTransformer: dataTransformerMock },
-						],
-					]);
+					const schema = new Schema({
+						[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+					});
 
 					const query = new Query(
 						connectionMock,
-						schemaMock,
+						schema,
 						filename,
 						logHandlerMock,
 						selectionCritieria,
@@ -792,16 +743,12 @@ describe('exec', () => {
 						[propertyName]: { $endsWith: propertyValue },
 					};
 
-					// @ts-expect-error: Overriding mock
-					schemaMock.dictPaths = new Map([
-						[
-							propertyName,
-							{ dictionary: propertyDictionary, dataTransformer: dataTransformerMock },
-						],
-					]);
+					const schema = new Schema({
+						[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+					});
 
 					expect(() => {
-						new Query(connectionMock, schemaMock, filename, logHandlerMock, selectionCritieria);
+						new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 					}).toThrow();
 				});
 
@@ -813,16 +760,12 @@ describe('exec', () => {
 						[propertyName]: { $endsWith: propertyValue },
 					};
 
-					// @ts-expect-error: Overriding mock
-					schemaMock.dictPaths = new Map([
-						[
-							propertyName,
-							{ dictionary: propertyDictionary, dataTransformer: dataTransformerMock },
-						],
-					]);
+					const schema = new Schema({
+						[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+					});
 
 					expect(() => {
-						new Query(connectionMock, schemaMock, filename, logHandlerMock, selectionCritieria);
+						new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 					}).toThrow();
 				});
 			});
@@ -836,14 +779,13 @@ describe('exec', () => {
 					[propertyName]: { $nin: [propertyValue1, propertyValue2] },
 				};
 
-				// @ts-expect-error: Overriding mock
-				schemaMock.dictPaths = new Map([
-					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
-				]);
+				const schema = new Schema({
+					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+				});
 
 				const query = new Query(
 					connectionMock,
-					schemaMock,
+					schema,
 					filename,
 					logHandlerMock,
 					selectionCritieria,
@@ -867,14 +809,13 @@ describe('exec', () => {
 				const propertyDictionary = 'property-dictionary';
 				const selectionCritieria = {};
 
-				// @ts-expect-error: Overriding mock
-				schemaMock.dictPaths = new Map([
-					[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
-				]);
+				const schema = new Schema({
+					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+				});
 
 				const query = new Query(
 					connectionMock,
-					schemaMock,
+					schema,
 					filename,
 					logHandlerMock,
 					selectionCritieria,
@@ -902,19 +843,13 @@ describe('exec', () => {
 						[propertyName]: { $eq: propertyValue },
 					};
 
-					// @ts-expect-error: Overriding mock
-					schemaMock.dictPaths = new Map([
-						[
-							propertyName,
-							{ dictionary: propertyDictionary, dataTransformer: dataTransformerMock },
-						],
-					]);
-
-					dataTransformerMock.transformToQuery.mockReturnValue('1');
+					const schema = new Schema({
+						[propertyName]: { type: 'boolean', path: 1, dictionary: propertyDictionary },
+					});
 
 					const query = new Query(
 						connectionMock,
-						schemaMock,
+						schema,
 						filename,
 						logHandlerMock,
 						selectionCritieria,
@@ -932,7 +867,6 @@ describe('exec', () => {
 						},
 						{},
 					);
-					expect(dataTransformerMock.transformToQuery).toHaveBeenCalledWith(propertyValue);
 				});
 			});
 		});
@@ -959,19 +893,12 @@ describe('exec', () => {
 				[propertyName2]: propertyValue2,
 			};
 
-			// @ts-expect-error: Overriding mock
-			schemaMock.dictPaths = new Map([
-				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
-				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
-			]);
+			const schema = new Schema({
+				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
+				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
+			});
 
-			const query = new Query(
-				connectionMock,
-				schemaMock,
-				filename,
-				logHandlerMock,
-				selectionCritieria,
-			);
+			const query = new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with (${propertyDictionary1} = "${propertyValue1}" and ${propertyDictionary2} = "${propertyValue2}")`;
@@ -994,12 +921,7 @@ describe('exec', () => {
 			const propertyValue2 = 'property-value2';
 			const propertyDictionary2 = 'property-dictionary2';
 
-			interface QuerySchema {
-				[propertyName1]: string;
-				[propertyName2]: string;
-			}
-
-			const selectionCritieria: Filter<QuerySchema> = {
+			const selectionCritieria = {
 				$and: [
 					{
 						[propertyName1]: propertyValue1,
@@ -1010,19 +932,12 @@ describe('exec', () => {
 				],
 			};
 
-			// @ts-expect-error: Overriding mock
-			schemaMock.dictPaths = new Map([
-				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
-				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
-			]);
+			const schema = new Schema({
+				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
+				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
+			});
 
-			const query = new Query(
-				connectionMock,
-				schemaMock,
-				filename,
-				logHandlerMock,
-				selectionCritieria,
-			);
+			const query = new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with (${propertyDictionary1} = "${propertyValue1}" and ${propertyDictionary2} = "${propertyValue2}")`;
@@ -1045,12 +960,7 @@ describe('exec', () => {
 			const propertyValue2 = 'property-value2';
 			const propertyDictionary2 = 'property-dictionary2';
 
-			interface QuerySchema {
-				[propertyName1]: string;
-				[propertyName2]: string;
-			}
-
-			const selectionCritieria: Filter<QuerySchema> = {
+			const selectionCritieria = {
 				$or: [
 					{
 						[propertyName1]: propertyValue1,
@@ -1061,19 +971,12 @@ describe('exec', () => {
 				],
 			};
 
-			// @ts-expect-error: Overriding mock
-			schemaMock.dictPaths = new Map([
-				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
-				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
-			]);
+			const schema = new Schema({
+				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
+				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
+			});
 
-			const query = new Query(
-				connectionMock,
-				schemaMock,
-				filename,
-				logHandlerMock,
-				selectionCritieria,
-			);
+			const query = new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with (${propertyDictionary1} = "${propertyValue1}" or ${propertyDictionary2} = "${propertyValue2}")`;
@@ -1099,13 +1002,7 @@ describe('exec', () => {
 			const propertyValue3 = 'property-value3';
 			const propertyDictionary3 = 'property-dictionary3';
 
-			interface QuerySchema {
-				[propertyName1]: string;
-				[propertyName2]: string;
-				[propertyName3]: string;
-			}
-
-			const selectionCritieria: Filter<QuerySchema> = {
+			const selectionCritieria = {
 				$or: [
 					{
 						$and: [
@@ -1121,20 +1018,13 @@ describe('exec', () => {
 				],
 			};
 
-			// @ts-expect-error: Overriding mock
-			schemaMock.dictPaths = new Map([
-				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
-				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
-				[propertyName3, { dictionary: propertyDictionary3, dataTransformer: dataTransformerMock }],
-			]);
+			const schema = new Schema({
+				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
+				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
+				[propertyName3]: { type: 'string', path: 3, dictionary: propertyDictionary3 },
+			});
 
-			const query = new Query(
-				connectionMock,
-				schemaMock,
-				filename,
-				logHandlerMock,
-				selectionCritieria,
-			);
+			const query = new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ((${propertyDictionary1} = "${propertyValue1}" and ${propertyDictionary2} = "${propertyValue2}") or ${propertyDictionary3} = "${propertyValue3}")`;
@@ -1160,13 +1050,7 @@ describe('exec', () => {
 			const propertyValue3 = 'property-value3';
 			const propertyDictionary3 = 'property-dictionary3';
 
-			interface QuerySchema {
-				[propertyName1]: string;
-				[propertyName2]: string;
-				[propertyName3]: string;
-			}
-
-			const selectionCritieria: Filter<QuerySchema> = {
+			const selectionCritieria = {
 				$or: [
 					{
 						[propertyName1]: propertyValue1,
@@ -1176,20 +1060,13 @@ describe('exec', () => {
 				],
 			};
 
-			// @ts-expect-error: Overriding mock
-			schemaMock.dictPaths = new Map([
-				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
-				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
-				[propertyName3, { dictionary: propertyDictionary3, dataTransformer: dataTransformerMock }],
-			]);
+			const schema = new Schema({
+				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
+				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
+				[propertyName3]: { type: 'string', path: 3, dictionary: propertyDictionary3 },
+			});
 
-			const query = new Query(
-				connectionMock,
-				schemaMock,
-				filename,
-				logHandlerMock,
-				selectionCritieria,
-			);
+			const query = new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ((${propertyDictionary1} = "${propertyValue1}" and ${propertyDictionary2} = "${propertyValue2}") or ${propertyDictionary3} = "${propertyValue3}")`;
@@ -1218,19 +1095,12 @@ describe('exec', () => {
 				],
 			};
 
-			// @ts-expect-error: Overriding mock
-			schemaMock.dictPaths = new Map([
-				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
-				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
-			]);
+			const schema = new Schema({
+				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
+				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
+			});
 
-			const query = new Query(
-				connectionMock,
-				schemaMock,
-				filename,
-				logHandlerMock,
-				selectionCritieria,
-			);
+			const query = new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary1} = "${propertyValue1}"`;
@@ -1259,19 +1129,12 @@ describe('exec', () => {
 				],
 			};
 
-			// @ts-expect-error: Overriding mock
-			schemaMock.dictPaths = new Map([
-				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
-				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
-			]);
+			const schema = new Schema({
+				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
+				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
+			});
 
-			const query = new Query(
-				connectionMock,
-				schemaMock,
-				filename,
-				logHandlerMock,
-				selectionCritieria,
-			);
+			const query = new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with ${propertyDictionary1} = "${propertyValue1}"`;
@@ -1295,18 +1158,11 @@ describe('exec', () => {
 				[propertyName]: { $gte: propertyValue1, $lte: propertyValue2 },
 			};
 
-			// @ts-expect-error: Overriding mock
-			schemaMock.dictPaths = new Map([
-				[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
-			]);
+			const schema = new Schema({
+				[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+			});
 
-			const query = new Query(
-				connectionMock,
-				schemaMock,
-				filename,
-				logHandlerMock,
-				selectionCritieria,
-			);
+			const query = new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 
 			expect(await query.exec()).toEqual(dbQueryResult);
 
@@ -1341,14 +1197,13 @@ describe('exec', () => {
 			};
 			const sortCriteria: SortCriteria = [];
 
-			// @ts-expect-error: Overriding mock
-			schemaMock.dictPaths = new Map([
-				[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
-			]);
+			const schema = new Schema({
+				[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+			});
 
 			const query = new Query(
 				connectionMock,
-				schemaMock,
+				schema,
 				filename,
 				logHandlerMock,
 				selectionCritieria,
@@ -1379,14 +1234,13 @@ describe('exec', () => {
 			};
 			const sortCriteria: SortCriteria = [[propertyName, 1]];
 
-			// @ts-expect-error: Overriding mock
-			schemaMock.dictPaths = new Map([
-				[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
-			]);
+			const schema = new Schema({
+				[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+			});
 
 			const query = new Query(
 				connectionMock,
-				schemaMock,
+				schema,
 				filename,
 				logHandlerMock,
 				selectionCritieria,
@@ -1417,14 +1271,13 @@ describe('exec', () => {
 			};
 			const sortCriteria: SortCriteria = [[propertyName, -1]];
 
-			// @ts-expect-error: Overriding mock
-			schemaMock.dictPaths = new Map([
-				[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
-			]);
+			const schema = new Schema({
+				[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+			});
 
 			const query = new Query(
 				connectionMock,
-				schemaMock,
+				schema,
 				filename,
 				logHandlerMock,
 				selectionCritieria,
@@ -1461,15 +1314,14 @@ describe('exec', () => {
 				[propertyName2, 1],
 			];
 
-			// @ts-expect-error: Overriding mock
-			schemaMock.dictPaths = new Map([
-				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
-				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
-			]);
+			const schema = new Schema({
+				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
+				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
+			});
 
 			const query = new Query(
 				connectionMock,
-				schemaMock,
+				schema,
 				filename,
 				logHandlerMock,
 				selectionCritieria,
@@ -1506,15 +1358,14 @@ describe('exec', () => {
 				[propertyName2, -1],
 			];
 
-			// @ts-expect-error: Overriding mock
-			schemaMock.dictPaths = new Map([
-				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
-				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
-			]);
+			const schema = new Schema({
+				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
+				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
+			});
 
 			const query = new Query(
 				connectionMock,
-				schemaMock,
+				schema,
 				filename,
 				logHandlerMock,
 				selectionCritieria,
@@ -1551,15 +1402,14 @@ describe('exec', () => {
 				[propertyName2, 1],
 			];
 
-			// @ts-expect-error: Overriding mock
-			schemaMock.dictPaths = new Map([
-				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
-				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
-			]);
+			const schema = new Schema({
+				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
+				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
+			});
 
 			const query = new Query(
 				connectionMock,
-				schemaMock,
+				schema,
 				filename,
 				logHandlerMock,
 				selectionCritieria,
@@ -1601,14 +1451,13 @@ describe('exec', () => {
 			const skip = 15;
 			const limit = 25;
 
-			// @ts-expect-error: Overriding mock
-			schemaMock.dictPaths = new Map([
-				[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
-			]);
+			const schema = new Schema({
+				[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+			});
 
 			const query = new Query(
 				connectionMock,
-				schemaMock,
+				schema,
 				filename,
 				logHandlerMock,
 				selectionCritieria,
@@ -1641,18 +1490,11 @@ describe('exec', () => {
 				[propertyName]: propertyValue,
 			};
 
-			// @ts-expect-error: Overriding mock
-			schemaMock.dictPaths = new Map([
-				[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
-			]);
+			const schema = new Schema({
+				[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+			});
 
-			const query = new Query(
-				connectionMock,
-				schemaMock,
-				filename,
-				logHandlerMock,
-				selectionCritieria,
-			);
+			const query = new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 			const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
 			const maxReturnPayloadSize = 10_000;
 			const executionOptions: QueryExecutionOptions = {
@@ -1690,18 +1532,11 @@ describe('exec', () => {
 				[propertyName]: propertyValue,
 			};
 
-			// @ts-expect-error: Overriding mock
-			schemaMock.dictPaths = new Map([
-				[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
-			]);
+			const schema = new Schema({
+				[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+			});
 
-			const query = new Query(
-				connectionMock,
-				schemaMock,
-				filename,
-				logHandlerMock,
-				selectionCritieria,
-			);
+			const query = new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 			await expect(query.exec()).rejects.toThrow(QueryLimitError);
 		});
 
@@ -1729,16 +1564,15 @@ describe('exec', () => {
 				[propertyName3, 1],
 			];
 
-			// @ts-expect-error: Overriding mock
-			schemaMock.dictPaths = new Map([
-				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
-				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
-				[propertyName3, { dictionary: propertyDictionary3, dataTransformer: dataTransformerMock }],
-			]);
+			const schema = new Schema({
+				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
+				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
+				[propertyName3]: { type: 'string', path: 3, dictionary: propertyDictionary3 },
+			});
 
 			const query = new Query(
 				connectionMock,
-				schemaMock,
+				schema,
 				filename,
 				logHandlerMock,
 				selectionCritieria,
@@ -1772,20 +1606,13 @@ describe('exec', () => {
 				[propertyName3]: propertyValue3,
 			};
 
-			// @ts-expect-error: Overriding mock
-			schemaMock.dictPaths = new Map([
-				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
-				[propertyName2, { dictionary: propertyDictionary2, dataTransformer: dataTransformerMock }],
-				[propertyName3, { dictionary: propertyDictionary3, dataTransformer: dataTransformerMock }],
-			]);
+			const schema = new Schema({
+				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
+				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
+				[propertyName3]: { type: 'string', path: 3, dictionary: propertyDictionary3 },
+			});
 
-			const query = new Query(
-				connectionMock,
-				schemaMock,
-				filename,
-				logHandlerMock,
-				selectionCritieria,
-			);
+			const query = new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 			await expect(query.exec()).rejects.toThrow(QueryLimitError);
 		});
 
@@ -1806,18 +1633,11 @@ describe('exec', () => {
 				[propertyName1]: [propertyValue1, propertyValue2, propertyValue3],
 			};
 
-			// @ts-expect-error: Overriding mock
-			schemaMock.dictPaths = new Map([
-				[propertyName1, { dictionary: propertyDictionary1, dataTransformer: dataTransformerMock }],
-			]);
+			const schema = new Schema({
+				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
+			});
 
-			const query = new Query(
-				connectionMock,
-				schemaMock,
-				filename,
-				logHandlerMock,
-				selectionCritieria,
-			);
+			const query = new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 			await expect(query.exec()).rejects.toThrow(QueryLimitError);
 		});
 	});
@@ -1839,16 +1659,14 @@ describe('exec', () => {
 				[propertyName]: propertyValue,
 			};
 
-			// @ts-expect-error: Overriding mock
-			schemaMock.dictPaths = new Map([
-				[propertyName, { dictionary: propertyDictionary, dataTransformer: dataTransformerMock }],
-			]);
-			schemaMock.transformPathsToDbPositions.mockReturnValue([2]);
+			const schema = new Schema({
+				[propertyName]: { type: 'string', path: 2, dictionary: propertyDictionary },
+			});
 
 			const projection = ['property-name'];
 			const query = new Query(
 				connectionMock,
-				schemaMock,
+				schema,
 				filename,
 				logHandlerMock,
 				selectionCritieria,
