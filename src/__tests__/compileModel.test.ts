@@ -188,7 +188,11 @@ describe('find', () => {
 
 		const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
 		const maxReturnPayloadSize = 10_000;
-		const options: ModelFindOptions = { maxReturnPayloadSize, userDefined, requestId };
+		const options: ModelFindOptions<typeof schema> = {
+			maxReturnPayloadSize,
+			userDefined,
+			requestId,
+		};
 
 		const documents = await Model.find({}, options);
 		documents.forEach((document) => {
@@ -275,7 +279,11 @@ describe('findAndCount', () => {
 
 		const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
 		const maxReturnPayloadSize = 10_000;
-		const options: ModelFindOptions = { maxReturnPayloadSize, userDefined, requestId };
+		const options: ModelFindOptions<typeof schema> = {
+			maxReturnPayloadSize,
+			userDefined,
+			requestId,
+		};
 
 		const { count, documents } = await Model.findAndCount({}, options);
 		expect(count).toBe(2);

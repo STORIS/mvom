@@ -20,13 +20,13 @@ import type Schema from './Schema';
 import type { DbDocument, DbSubroutineInputFind, DbSubroutineSetupOptions } from './types';
 
 // #region Types
-export interface QueryConstructorOptions {
+export interface QueryConstructorOptions<TSchema extends Schema | null> {
 	/** Skip the first _n_ results */
 	skip?: number | null;
 	/** Return only _n_ results */
 	limit?: number | null;
 	/** Sort criteria */
-	sort?: SortCriteria;
+	sort?: SortCriteria<TSchema>;
 	/** Return only the indicated properties */
 	projection?: string[];
 }
@@ -93,7 +93,10 @@ export type Filter<TSchema extends Schema | null> = RootFilterOperators<TSchema>
 			: never
 		: Record<string, never>) & { _id?: Condition<string> });
 
-export type SortCriteria = [string, -1 | 1][];
+export type SortCriteria<TSchema extends Schema | null> = [
+	Exclude<keyof Filter<TSchema>, '$and' | '$or'> & string,
+	-1 | 1,
+][];
 
 export type QueryExecutionOptions = DbSubroutineSetupOptions;
 export interface QueryExecutionResult {
@@ -125,7 +128,7 @@ class Query<TSchema extends Schema | null> {
 	private readonly sort: string | null;
 
 	/** Sort criteria passed to constructor */
-	private readonly sortCriteria?: SortCriteria;
+	private readonly sortCriteria?: SortCriteria<TSchema>;
 
 	/** Limit the result set to this number of items */
 	private readonly limit?: number | null;
@@ -145,7 +148,7 @@ class Query<TSchema extends Schema | null> {
 		file: string,
 		logHandler: LogHandler,
 		selectionCriteria: Filter<TSchema>,
-		options: QueryConstructorOptions = {},
+		options: QueryConstructorOptions<TSchema> = {},
 	) {
 		const { sort, limit, skip, projection } = options;
 
@@ -282,7 +285,7 @@ class Query<TSchema extends Schema | null> {
 	}
 
 	/** Format the sort criteria object into a string to use in multivalue query */
-	private formatSortCriteria(criteria?: SortCriteria): string | null {
+	private formatSortCriteria(criteria?: SortCriteria<TSchema>): string | null {
 		if (criteria == null || criteria.length === 0) {
 			return null;
 		}

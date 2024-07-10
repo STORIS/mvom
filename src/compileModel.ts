@@ -43,7 +43,8 @@ export interface ModelDatabaseExecutionOptions {
 	maxReturnPayloadSize?: number;
 }
 export type ModelDeleteByIdOptions = ModelDatabaseExecutionOptions;
-export type ModelFindOptions = QueryConstructorOptions & ModelDatabaseExecutionOptions;
+export type ModelFindOptions<TSchema extends Schema | null> = QueryConstructorOptions<TSchema> &
+	ModelDatabaseExecutionOptions;
 export interface ModelFindByIdOptions extends ModelDatabaseExecutionOptions {
 	/** Array of projection properties */
 	projection?: string[];
@@ -169,7 +170,7 @@ const compileModel = <TSchema extends Schema | null>(
 		/** Find documents via query */
 		public static async find(
 			selectionCriteria: Filter<TSchema> = {} as Filter<TSchema>,
-			options: ModelFindOptions = {},
+			options: ModelFindOptions<TSchema> = {},
 		): Promise<ModelCompositeValue<TSchema>[]> {
 			const { maxReturnPayloadSize, requestId, userDefined, ...queryConstructorOptions } = options;
 			const query = new Query(
@@ -195,7 +196,7 @@ const compileModel = <TSchema extends Schema | null>(
 		/** Find documents via query, returning them along with a count */
 		public static async findAndCount(
 			selectionCriteria: Filter<TSchema> = {} as Filter<TSchema>,
-			options: ModelFindOptions = {},
+			options: ModelFindOptions<TSchema> = {},
 		): Promise<ModelFindAndCountResult<TSchema>> {
 			const { maxReturnPayloadSize, requestId, userDefined, ...queryConstructorOptions } = options;
 			const query = new Query(

@@ -1198,7 +1198,7 @@ describe('exec', () => {
 			const selectionCritieria: Filter<typeof schema> = {
 				[propertyName]: propertyValue,
 			};
-			const sortCriteria: SortCriteria = [];
+			const sortCriteria: SortCriteria<typeof schema> = [];
 
 			const query = new Query(
 				connectionMock,
@@ -1235,7 +1235,7 @@ describe('exec', () => {
 			const selectionCritieria: Filter<typeof schema> = {
 				[propertyName]: propertyValue,
 			};
-			const sortCriteria: SortCriteria = [[propertyName, 1]];
+			const sortCriteria: SortCriteria<typeof schema> = [[propertyName, 1]];
 
 			const query = new Query(
 				connectionMock,
@@ -1272,7 +1272,7 @@ describe('exec', () => {
 			const selectionCritieria: Filter<typeof schema> = {
 				[propertyName]: propertyValue,
 			};
-			const sortCriteria: SortCriteria = [[propertyName, -1]];
+			const sortCriteria: SortCriteria<typeof schema> = [[propertyName, -1]];
 
 			const query = new Query(
 				connectionMock,
@@ -1312,7 +1312,7 @@ describe('exec', () => {
 			const selectionCritieria: Filter<typeof schema> = {
 				[propertyName1]: propertyValue1,
 			};
-			const sortCriteria: SortCriteria = [
+			const sortCriteria: SortCriteria<typeof schema> = [
 				[propertyName1, 1],
 				[propertyName2, 1],
 			];
@@ -1355,7 +1355,7 @@ describe('exec', () => {
 			const selectionCritieria: Filter<typeof schema> = {
 				[propertyName1]: propertyValue1,
 			};
-			const sortCriteria: SortCriteria = [
+			const sortCriteria: SortCriteria<typeof schema> = [
 				[propertyName1, -1],
 				[propertyName2, -1],
 			];
@@ -1398,7 +1398,7 @@ describe('exec', () => {
 			const selectionCritieria: Filter<typeof schema> = {
 				[propertyName1]: propertyValue1,
 			};
-			const sortCriteria: SortCriteria = [
+			const sortCriteria: SortCriteria<typeof schema> = [
 				[propertyName1, -1],
 				[propertyName2, 1],
 			];
@@ -1559,7 +1559,7 @@ describe('exec', () => {
 			const selectionCritieria: Filter<typeof schema> = {
 				[propertyName1]: propertyValue1,
 			};
-			const sortCriteria: SortCriteria = [
+			const sortCriteria: SortCriteria<typeof schema> = [
 				[propertyName1, 1],
 				[propertyName2, 1],
 				[propertyName3, 1],
