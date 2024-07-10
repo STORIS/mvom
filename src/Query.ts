@@ -51,15 +51,11 @@ export interface RootFilterOperators<TSchema extends Schema<SchemaDefinition> | 
 
 export type Condition<TValue> = TValue | TValue[] | FilterOperators<TValue>;
 
-/** Construct an object with the permitted conditions */
-type ObjectCondition<T extends Record<string, unknown>> = {
-	[Key in keyof T]?: Condition<NonNullable<T[Key]>>;
-};
-
-/** An object representing the query filters */
 export type Filter<TSchema extends Schema<SchemaDefinition> | null> = RootFilterOperators<TSchema> &
 	((TSchema extends Schema<SchemaDefinition>
-		? ObjectCondition<FlattenDocument<InferDocumentObject<TSchema>>>
+		? FlattenDocument<InferDocumentObject<TSchema>> extends infer O
+			? { [Key in keyof O]?: Condition<NonNullable<O[Key]>> }
+			: never
 		: Record<string, never>) & { _id?: Condition<string> });
 
 export type SortCriteria = [string, -1 | 1][];
