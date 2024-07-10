@@ -1685,7 +1685,7 @@ describe('exec', () => {
 
 describe('utility types', () => {
 	describe('Filter', () => {
-		test('should allow for a filter with a single schema property', () => {
+		test('should construct filter type from a single schema property', () => {
 			const schema = new Schema({ stringProp: { type: 'string', path: '1' } });
 
 			const test1: Equals<
@@ -1876,6 +1876,186 @@ describe('utility types', () => {
 					isoCalendarDateTimeDictionary?: Condition<ISOCalendarDateTime>;
 					_id?: Condition<string>;
 				}
+			> = true;
+			expect(test1).toBe(true);
+		});
+	});
+
+	describe('SortCriteria', () => {
+		test('should construct sort criteria with a single schema property', () => {
+			const schema = new Schema({ stringProp: { type: 'string', path: '1' } });
+
+			const test1: Equals<SortCriteria<typeof schema>, ['stringProp' | '_id', -1 | 1][]> = true;
+			expect(test1).toBe(true);
+		});
+
+		test('should construct sort criteria from a single dictionary', () => {
+			const schema = new Schema({}, { dictionaries: { stringDictionary: 'STRING_DICTIONARY' } });
+			const test1: Equals<
+				SortCriteria<typeof schema>,
+				['stringDictionary' | '_id', -1 | 1][]
+			> = true;
+			expect(test1).toBe(true);
+		});
+
+		test('should construct sort criteria from both a schema property and a dictionary', () => {
+			const schema = new Schema(
+				{ stringProp: { type: 'string', path: '1' } },
+				{ dictionaries: { stringDictionary: 'STRING_DICTIONARY' } },
+			);
+			const test1: Equals<
+				SortCriteria<typeof schema>,
+				['stringProp' | 'stringDictionary' | '_id', -1 | 1][]
+			> = true;
+			expect(test1).toBe(true);
+		});
+
+		test('should construct sort criteria from all possible dictionary formats', () => {
+			const schema = new Schema(
+				{},
+				{
+					dictionaries: {
+						stringDictionary: 'STRING_DICTIONARY',
+						stringDictionaryExplicit: { type: 'string', dictionary: 'STRING_DICTIONARY_EXPLICIT' },
+						numberDictionary: { type: 'number', dictionary: 'NUMBER_DICTIONARY' },
+						booleanDictionary: { type: 'boolean', dictionary: 'BOOLEAN_DICTIONARY' },
+						isoCalendarDateDictionary: {
+							type: 'ISOCalendarDate',
+							dictionary: 'ISO_CALENDAR_DATE_DICTIONARY',
+						},
+						isoTimeDictionary: { type: 'ISOTime', dictionary: 'ISO_TIME_DICTIONARY' },
+						isoCalendarDateTimeDictionary: {
+							type: 'ISOCalendarDateTime',
+							dictionary: 'ISO_CALENDAR_DATE_TIME_DICTIONARY',
+						},
+					},
+				},
+			);
+			const test1: Equals<
+				SortCriteria<typeof schema>,
+				[
+					(
+						| 'stringDictionary'
+						| 'stringDictionaryExplicit'
+						| 'numberDictionary'
+						| 'booleanDictionary'
+						| 'isoCalendarDateDictionary'
+						| 'isoTimeDictionary'
+						| 'isoCalendarDateTimeDictionary'
+						| '_id'
+					),
+					-1 | 1,
+				][]
+			> = true;
+			expect(test1).toBe(true);
+		});
+
+		test('should construct sort criteria from mixed schema', () => {
+			const schema = new Schema(
+				{
+					booleanOptional: { type: 'boolean', path: '1' },
+					booleanRequired: { type: 'boolean', path: '2', required: true },
+					stringOptional: { type: 'string', path: '3' },
+					stringRequired: { type: 'string', path: '4', required: true },
+					numberOptional: { type: 'number', path: '5' },
+					numberRequired: { type: 'number', path: '6', required: true },
+					isoCalendarDateOptional: { type: 'ISOCalendarDate', path: '7' },
+					isoCalendarDateRequired: { type: 'ISOCalendarDate', path: '8', required: true },
+					isoTimeOptional: { type: 'ISOTime', path: '9' },
+					isoTimeRequired: { type: 'ISOTime', path: '10', required: true },
+					isoCalendarDateTimeOptional: { type: 'ISOCalendarDateTime', path: '11' },
+					isoCalendarDateTimeRequired: { type: 'ISOCalendarDateTime', path: '12', required: true },
+					arrayOptional: [{ type: 'string', path: '13' }],
+					arrayRequired: [{ type: 'string', path: '14', required: true }],
+					nestedArrayOptional: [[{ type: 'string', path: '15' }]],
+					nestedArrayRequired: [[{ type: 'string', path: '16', required: true }]],
+					embeddedOptional: new Schema({
+						innerEmbeddedProp: { type: 'string', path: '17' },
+					}),
+					embeddedRequired: new Schema({
+						innerEmbeddedProp: { type: 'string', path: '18', required: true },
+					}),
+					documentArrayOptional: [
+						{
+							docStringProp: { type: 'string', path: '19' },
+							docNumberProp: { type: 'number', path: '20' },
+						},
+					],
+					documentArrayRequired: [
+						{
+							docStringProp: { type: 'string', path: '21', required: true },
+							docNumberProp: { type: 'number', path: '22' },
+						},
+					],
+					documentArraySchemaOptional: [
+						new Schema({
+							docStringProp: { type: 'string', path: '23' },
+						}),
+					],
+					documentArraySchemaRequired: [
+						new Schema({
+							docStringProp: { type: 'string', path: '24', required: true },
+						}),
+					],
+				},
+				{
+					dictionaries: {
+						stringDictionary: 'STRING_DICTIONARY',
+						stringDictionaryExplicit: { type: 'string', dictionary: 'STRING_DICTIONARY_EXPLICIT' },
+						numberDictionary: { type: 'number', dictionary: 'NUMBER_DICTIONARY' },
+						booleanDictionary: { type: 'boolean', dictionary: 'BOOLEAN_DICTIONARY' },
+						isoCalendarDateDictionary: {
+							type: 'ISOCalendarDate',
+							dictionary: 'ISO_CALENDAR_DATE_DICTIONARY',
+						},
+						isoTimeDictionary: { type: 'ISOTime', dictionary: 'ISO_TIME_DICTIONARY' },
+						isoCalendarDateTimeDictionary: {
+							type: 'ISOCalendarDateTime',
+							dictionary: 'ISO_CALENDAR_DATE_TIME_DICTIONARY',
+						},
+					},
+				},
+			);
+
+			const test1: Equals<
+				SortCriteria<typeof schema>,
+				[
+					(
+						| 'booleanOptional'
+						| 'booleanRequired'
+						| 'stringOptional'
+						| 'stringRequired'
+						| 'numberOptional'
+						| 'numberRequired'
+						| 'isoCalendarDateOptional'
+						| 'isoCalendarDateRequired'
+						| 'isoTimeOptional'
+						| 'isoTimeRequired'
+						| 'isoCalendarDateTimeOptional'
+						| 'isoCalendarDateTimeRequired'
+						| 'arrayOptional'
+						| 'arrayRequired'
+						| 'nestedArrayOptional'
+						| 'nestedArrayRequired'
+						| 'embeddedOptional.innerEmbeddedProp'
+						| 'embeddedRequired.innerEmbeddedProp'
+						| 'documentArrayOptional.docStringProp'
+						| 'documentArrayOptional.docNumberProp'
+						| 'documentArrayRequired.docStringProp'
+						| 'documentArrayRequired.docNumberProp'
+						| 'documentArraySchemaOptional.docStringProp'
+						| 'documentArraySchemaRequired.docStringProp'
+						| 'stringDictionary'
+						| 'stringDictionaryExplicit'
+						| 'numberDictionary'
+						| 'booleanDictionary'
+						| 'isoCalendarDateDictionary'
+						| 'isoTimeDictionary'
+						| 'isoCalendarDateTimeDictionary'
+						| '_id'
+					),
+					-1 | 1,
+				][]
 			> = true;
 			expect(test1).toBe(true);
 		});
