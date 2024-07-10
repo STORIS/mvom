@@ -240,7 +240,6 @@ class Query<TSchema extends Schema | null> {
 			}
 
 			// if query value is an object then it should contain one or more pairs of operator and value
-
 			const operatorConditions = Object.entries(queryValue).map(([operator, mvValue]) => {
 				switch (operator) {
 					case '$eq':
