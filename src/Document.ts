@@ -7,16 +7,11 @@ import type { DbServerDelimiters, MvRecord } from './types';
 
 // #region Types
 /** Type of data property for constructing a document dependent upon the schema */
-export type DocumentData<
-	TSchema extends Schema<TSchemaDefinition> | null,
-	TSchemaDefinition extends SchemaDefinition,
-> = TSchema extends Schema<TSchemaDefinition> ? InferDocumentObject<TSchema> : never;
+export type DocumentData<TSchema extends Schema<SchemaDefinition> | null> =
+	TSchema extends Schema<SchemaDefinition> ? InferDocumentObject<TSchema> : never;
 
-export interface DocumentConstructorOptions<
-	TSchema extends Schema<TSchemaDefinition> | null,
-	TSchemaDefinition extends SchemaDefinition,
-> {
-	data?: DocumentData<TSchema, TSchemaDefinition>;
+export interface DocumentConstructorOptions<TSchema extends Schema<SchemaDefinition> | null> {
+	data?: DocumentData<TSchema>;
 	record?: MvRecord;
 	isSubdocument?: boolean;
 }
@@ -31,23 +26,17 @@ export interface BuildForeignKeyDefinitionsResult {
  * An intersection type that combines the `Document` class instance with the
  * inferred shape of the document object based on the schema definition.
  */
-type DocumentCompositeValue<
-	TSchema extends Schema<TSchemaDefinition> | null,
-	TSchemaDefinition extends SchemaDefinition,
-> =
-	TSchema extends Schema<TSchemaDefinition>
-		? Document<TSchema, TSchemaDefinition> & InferDocumentObject<TSchema>
-		: Document<TSchema, TSchemaDefinition>;
+type DocumentCompositeValue<TSchema extends Schema<SchemaDefinition> | null> =
+	TSchema extends Schema<SchemaDefinition>
+		? Document<TSchema> & InferDocumentObject<TSchema>
+		: Document<TSchema>;
 // #endregion
 
 /** A document object */
-class Document<
-	TSchema extends Schema<TSchemaDefinition> | null,
-	TSchemaDefinition extends SchemaDefinition,
-> {
+class Document<TSchema extends Schema<SchemaDefinition> | null> {
 	[key: string]: unknown;
 
-	public _raw: TSchema extends Schema<TSchemaDefinition> ? undefined : MvRecord;
+	public _raw: TSchema extends Schema<SchemaDefinition> ? undefined : MvRecord;
 
 	/** Array of any errors which occurred during transformation from the database */
 	public _transformationErrors: TransformDataError[];
@@ -61,10 +50,7 @@ class Document<
 	/** Indicates whether this document is a subdocument of a composing parent */
 	readonly #isSubdocument: boolean;
 
-	protected constructor(
-		schema: TSchema,
-		options: DocumentConstructorOptions<TSchema, TSchemaDefinition>,
-	) {
+	protected constructor(schema: TSchema, options: DocumentConstructorOptions<TSchema>) {
 		const { data = {}, record, isSubdocument = false } = options;
 
 		this.#schema = schema;
@@ -78,7 +64,7 @@ class Document<
 
 		this._raw = (
 			schema == null ? this.#record : undefined
-		) as TSchema extends Schema<TSchemaDefinition> ? undefined : MvRecord;
+		) as TSchema extends Schema<SchemaDefinition> ? undefined : MvRecord;
 
 		this.#transformRecordToDocument();
 
@@ -87,42 +73,30 @@ class Document<
 	}
 
 	/** Create a new Subdocument instance from a record array */
-	public static createSubdocumentFromRecord<
-		TSchema extends Schema<TSchemaDefinition> | null,
-		TSchemaDefinition extends SchemaDefinition,
-	>(schema: TSchema, record: MvRecord): DocumentCompositeValue<TSchema, TSchemaDefinition> {
-		return new Document(schema, { record, isSubdocument: true }) as DocumentCompositeValue<
-			TSchema,
-			TSchemaDefinition
-		>;
+	public static createSubdocumentFromRecord<TSchema extends Schema<SchemaDefinition> | null>(
+		schema: TSchema,
+		record: MvRecord,
+	): DocumentCompositeValue<TSchema> {
+		return new Document(schema, { record, isSubdocument: true }) as DocumentCompositeValue<TSchema>;
 	}
 
 	/** Create a new Subdocument instance from data */
-	public static createSubdocumentFromData<
-		TSchema extends Schema<TSchemaDefinition>,
-		TSchemaDefinition extends SchemaDefinition,
-	>(
+	public static createSubdocumentFromData<TSchema extends Schema<SchemaDefinition>>(
 		schema: TSchema,
-		data: DocumentData<TSchema, TSchemaDefinition>,
-	): DocumentCompositeValue<TSchema, TSchemaDefinition> {
-		return new Document(schema, { data, isSubdocument: true }) as DocumentCompositeValue<
-			TSchema,
-			TSchemaDefinition
-		>;
+		data: DocumentData<TSchema>,
+	): DocumentCompositeValue<TSchema> {
+		return new Document(schema, { data, isSubdocument: true }) as DocumentCompositeValue<TSchema>;
 	}
 
 	/** Create a new Document instance from a record string */
-	public static createDocumentFromRecordString<
-		TSchema extends Schema<TSchemaDefinition> | null,
-		TSchemaDefinition extends SchemaDefinition,
-	>(
+	public static createDocumentFromRecordString<TSchema extends Schema<SchemaDefinition> | null>(
 		schema: TSchema,
 		recordString: string,
 		dbServerDelimiters: DbServerDelimiters,
-	): DocumentCompositeValue<TSchema, TSchemaDefinition> {
+	): DocumentCompositeValue<TSchema> {
 		const record = Document.convertMvStringToArray(recordString, dbServerDelimiters);
 
-		return new Document(schema, { record }) as DocumentCompositeValue<TSchema, TSchemaDefinition>;
+		return new Document(schema, { record }) as DocumentCompositeValue<TSchema>;
 	}
 
 	/** Convert a multivalue string to an array */

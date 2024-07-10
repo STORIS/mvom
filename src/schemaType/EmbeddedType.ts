@@ -6,10 +6,7 @@ import type { MvRecord } from '../types';
 import BaseSchemaType from './BaseSchemaType';
 
 /** Embedded Schema Type */
-class EmbeddedType<
-	TSchema extends Schema<TSchemaDefinition>,
-	TSchemaDefinition extends SchemaDefinition,
-> extends BaseSchemaType {
+class EmbeddedType<TSchema extends Schema<SchemaDefinition>> extends BaseSchemaType {
 	/** An instance of Schema representing the the document structure of embedded object contents */
 	private readonly valueSchema: TSchema;
 
@@ -23,7 +20,7 @@ class EmbeddedType<
 	 * Cast to embedded data type
 	 * @throws {@link TypeError} Throws if a non-null/non-object is passed
 	 */
-	public override cast(value: unknown): Document<TSchema, TSchemaDefinition> {
+	public override cast(value: unknown): Document<TSchema> {
 		// convert value to a plain structure and then recast as embedded document
 		const plainValue = value == null ? {} : JSON.parse(JSON.stringify(value));
 		if (!isPlainObject(plainValue)) {
@@ -33,8 +30,8 @@ class EmbeddedType<
 	}
 
 	/** Get value from mv data */
-	public get(record: MvRecord): Document<TSchema, TSchemaDefinition> {
-		const embeddedDocument = Document.createSubdocumentFromRecord<TSchema, TSchemaDefinition>(
+	public get(record: MvRecord): Document<TSchema> {
+		const embeddedDocument = Document.createSubdocumentFromRecord<TSchema>(
 			this.valueSchema,
 			record,
 		);
@@ -42,7 +39,7 @@ class EmbeddedType<
 	}
 
 	/** Set specified embedded document value into mv record */
-	public set(originalRecord: MvRecord, setValue: Document<TSchema, TSchemaDefinition>): MvRecord {
+	public set(originalRecord: MvRecord, setValue: Document<TSchema>): MvRecord {
 		const record = cloneDeep(originalRecord);
 		const subrecord = setValue.transformDocumentToRecord();
 		subrecord.forEach((value, arrayPos) => {
@@ -54,7 +51,7 @@ class EmbeddedType<
 	}
 
 	/** Validate the embedded document */
-	public validate(document: Document<TSchema, TSchemaDefinition>): Map<string, string[]> {
+	public validate(document: Document<TSchema>): Map<string, string[]> {
 		// - validation against the embedded document will return a single object with 0 to n keys - only those with keys indicate errors;
 		return document.validate();
 	}
