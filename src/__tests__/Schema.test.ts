@@ -30,7 +30,7 @@ import {
 	NumberType,
 	StringType,
 } from '../schemaType';
-import type { Assert } from '../types';
+import type { Equals } from '../types';
 
 describe('constructor', () => {
 	describe('errors', () => {
@@ -394,7 +394,7 @@ describe('utility types', () => {
 			test('should infer string type', () => {
 				// not required should be nullable
 				const schema1 = new Schema({ stringProp: { type: 'string', path: '1' } });
-				const test1: Assert<
+				const test1: Equals<
 					InferDocumentObject<typeof schema1>,
 					{ stringProp: string | null }
 				> = true;
@@ -402,14 +402,14 @@ describe('utility types', () => {
 
 				// required should not be nullable
 				const schema2 = new Schema({ stringProp: { type: 'string', path: '1', required: true } });
-				const test2: Assert<InferDocumentObject<typeof schema2>, { stringProp: string }> = true;
+				const test2: Equals<InferDocumentObject<typeof schema2>, { stringProp: string }> = true;
 				expect(test2).toBe(true);
 
 				// not required enum should be union of enum values and null
 				const schema3 = new Schema({
 					stringProp: { type: 'string', path: '1', enum: ['foo', 'bar'] as const },
 				});
-				const test3: Assert<
+				const test3: Equals<
 					InferDocumentObject<typeof schema3>,
 					{ stringProp: 'foo' | 'bar' | null }
 				> = true;
@@ -419,7 +419,7 @@ describe('utility types', () => {
 				const schema4 = new Schema({
 					stringProp: { type: 'string', path: '1', enum: ['foo', 'bar'] as const, required: true },
 				});
-				const test4: Assert<
+				const test4: Equals<
 					InferDocumentObject<typeof schema4>,
 					{ stringProp: 'foo' | 'bar' }
 				> = true;
@@ -429,7 +429,7 @@ describe('utility types', () => {
 			test('should infer number type', () => {
 				// not required should be nullable
 				const schema1 = new Schema({ numberProp: { type: 'number', path: '1' } });
-				const test1: Assert<
+				const test1: Equals<
 					InferDocumentObject<typeof schema1>,
 					{ numberProp: number | null }
 				> = true;
@@ -437,14 +437,14 @@ describe('utility types', () => {
 
 				// required should not be nullable
 				const schema2 = new Schema({ numberProp: { type: 'number', path: '1', required: true } });
-				const test2: Assert<InferDocumentObject<typeof schema2>, { numberProp: number }> = true;
+				const test2: Equals<InferDocumentObject<typeof schema2>, { numberProp: number }> = true;
 				expect(test2).toBe(true);
 			});
 
 			test('should infer boolean type', () => {
 				// not required should be nullable
 				const schema1 = new Schema({ booleanProp: { type: 'boolean', path: '1' } });
-				const test1: Assert<
+				const test1: Equals<
 					InferDocumentObject<typeof schema1>,
 					{ booleanProp: boolean | null }
 				> = true;
@@ -452,14 +452,14 @@ describe('utility types', () => {
 
 				// required should not be nullable
 				const schema2 = new Schema({ booleanProp: { type: 'boolean', path: '1', required: true } });
-				const test2: Assert<InferDocumentObject<typeof schema2>, { booleanProp: boolean }> = true;
+				const test2: Equals<InferDocumentObject<typeof schema2>, { booleanProp: boolean }> = true;
 				expect(test2).toBe(true);
 			});
 
 			test('should infer ISOCalendarDate type', () => {
 				// not required should be nullable
 				const schema1 = new Schema({ isoCalendarDateProp: { type: 'ISOCalendarDate', path: '1' } });
-				const test1: Assert<
+				const test1: Equals<
 					InferDocumentObject<typeof schema1>,
 					{ isoCalendarDateProp: ISOCalendarDate | null }
 				> = true;
@@ -469,7 +469,7 @@ describe('utility types', () => {
 				const schema2 = new Schema({
 					isoCalendarDateProp: { type: 'ISOCalendarDate', path: '1', required: true },
 				});
-				const test2: Assert<
+				const test2: Equals<
 					InferDocumentObject<typeof schema2>,
 					{ isoCalendarDateProp: ISOCalendarDate }
 				> = true;
@@ -479,7 +479,7 @@ describe('utility types', () => {
 			test('should infer ISOTime type', () => {
 				// not required should be nullable
 				const schema1 = new Schema({ isoTimeProp: { type: 'ISOTime', path: '1' } });
-				const test1: Assert<
+				const test1: Equals<
 					InferDocumentObject<typeof schema1>,
 					{ isoTimeProp: ISOTime | null }
 				> = true;
@@ -487,7 +487,7 @@ describe('utility types', () => {
 
 				// required should not be nullable
 				const schema2 = new Schema({ isoTimeProp: { type: 'ISOTime', path: '1', required: true } });
-				const test2: Assert<InferDocumentObject<typeof schema2>, { isoTimeProp: ISOTime }> = true;
+				const test2: Equals<InferDocumentObject<typeof schema2>, { isoTimeProp: ISOTime }> = true;
 				expect(test2).toBe(true);
 			});
 
@@ -496,7 +496,7 @@ describe('utility types', () => {
 				const schema1 = new Schema({
 					isoCalendarDateTimeProp: { type: 'ISOCalendarDateTime', path: '1' },
 				});
-				const test1: Assert<
+				const test1: Equals<
 					InferDocumentObject<typeof schema1>,
 					{
 						isoCalendarDateTimeProp: ISOCalendarDateTime | null;
@@ -508,7 +508,7 @@ describe('utility types', () => {
 				const schema2 = new Schema({
 					isoCalendarDateTimeProp: { type: 'ISOCalendarDateTime', path: '1' },
 				});
-				const test2: Assert<
+				const test2: Equals<
 					InferDocumentObject<typeof schema2>,
 					{
 						isoCalendarDateTimeProp: ISOCalendarDateTime | null;
@@ -524,7 +524,7 @@ describe('utility types', () => {
 				const schema1 = new Schema({
 					embeddedProp: new Schema({ innerEmbeddedProp: { type: 'string', path: '1' } }),
 				});
-				const test1: Assert<
+				const test1: Equals<
 					InferDocumentObject<typeof schema1>,
 					{ embeddedProp: { innerEmbeddedProp: string | null } }
 				> = true;
@@ -536,7 +536,7 @@ describe('utility types', () => {
 						innerEmbeddedProp: { type: 'string', path: '1', required: true },
 					}),
 				});
-				const test2: Assert<
+				const test2: Equals<
 					InferDocumentObject<typeof schema2>,
 					{ embeddedProp: { innerEmbeddedProp: string } }
 				> = true;
@@ -548,7 +548,7 @@ describe('utility types', () => {
 				const schema1 = new Schema({
 					embeddedProp: { innerEmbeddedProp: { type: 'string', path: '1' } },
 				});
-				const test1: Assert<
+				const test1: Equals<
 					InferDocumentObject<typeof schema1>,
 					{ embeddedProp: { innerEmbeddedProp: string | null } }
 				> = true;
@@ -558,7 +558,7 @@ describe('utility types', () => {
 				const schema2 = new Schema({
 					embeddedProp: { innerEmbeddedProp: { type: 'string', path: '1', required: true } },
 				});
-				const test2: Assert<
+				const test2: Equals<
 					InferDocumentObject<typeof schema2>,
 					{ embeddedProp: { innerEmbeddedProp: string } }
 				> = true;
@@ -574,7 +574,7 @@ describe('utility types', () => {
 						},
 					},
 				});
-				const test1: Assert<
+				const test1: Equals<
 					InferDocumentObject<typeof schema1>,
 					{ embeddedProp: { innerEmbeddedProp: { deepEmbeddedProp: string | null } } }
 				> = true;
@@ -588,7 +588,7 @@ describe('utility types', () => {
 						},
 					},
 				});
-				const test2: Assert<
+				const test2: Equals<
 					InferDocumentObject<typeof schema2>,
 					{ embeddedProp: { innerEmbeddedProp: { deepEmbeddedProp: string } } }
 				> = true;
@@ -600,7 +600,7 @@ describe('utility types', () => {
 			test('should infer scalar array', () => {
 				// not required should be nullable
 				const schema1 = new Schema({ arrayProp: [{ type: 'string', path: '1' }] });
-				const test1: Assert<
+				const test1: Equals<
 					InferDocumentObject<typeof schema1>,
 					{ arrayProp: (string | null)[] }
 				> = true;
@@ -608,14 +608,14 @@ describe('utility types', () => {
 
 				// required should not be nullable
 				const schema2 = new Schema({ arrayProp: [{ type: 'string', path: '1', required: true }] });
-				const test2: Assert<InferDocumentObject<typeof schema2>, { arrayProp: string[] }> = true;
+				const test2: Equals<InferDocumentObject<typeof schema2>, { arrayProp: string[] }> = true;
 				expect(test2).toBe(true);
 			});
 
 			test('should infer nested array', () => {
 				// not required should be nullable
 				const schema1 = new Schema({ nestedArrayProp: [[{ type: 'string', path: '1' }]] });
-				const test1: Assert<
+				const test1: Equals<
 					InferDocumentObject<typeof schema1>,
 					{ nestedArrayProp: (string | null)[][] }
 				> = true;
@@ -625,7 +625,7 @@ describe('utility types', () => {
 				const schema2 = new Schema({
 					nestedArrayProp: [[{ type: 'string', path: '1', required: true }]],
 				});
-				const test2: Assert<
+				const test2: Equals<
 					InferDocumentObject<typeof schema2>,
 					{ nestedArrayProp: string[][] }
 				> = true;
@@ -642,7 +642,7 @@ describe('utility types', () => {
 						},
 					],
 				});
-				const test1: Assert<
+				const test1: Equals<
 					InferDocumentObject<typeof schema1>,
 					{ documentArrayProp: { docStringProp: string | null; docNumberProp: number | null }[] }
 				> = true;
@@ -657,7 +657,7 @@ describe('utility types', () => {
 						},
 					],
 				});
-				const test2: Assert<
+				const test2: Equals<
 					InferDocumentObject<typeof schema2>,
 					{ documentArrayProp: { docStringProp: string; docNumberProp: number | null }[] }
 				> = true;
@@ -669,7 +669,7 @@ describe('utility types', () => {
 				const schema1 = new Schema({
 					documentArraySchemaProp: [new Schema({ docStringProp: { type: 'string', path: '1' } })],
 				});
-				const test1: Assert<
+				const test1: Equals<
 					InferDocumentObject<typeof schema1>,
 					{ documentArraySchemaProp: { docStringProp: string | null }[] }
 				> = true;
@@ -681,7 +681,7 @@ describe('utility types', () => {
 						new Schema({ docStringProp: { type: 'string', path: '1', required: true } }),
 					],
 				});
-				const test2: Assert<
+				const test2: Equals<
 					InferDocumentObject<typeof schema2>,
 					{ documentArraySchemaProp: { docStringProp: string }[] }
 				> = true;
@@ -738,7 +738,7 @@ describe('utility types', () => {
 					],
 				});
 
-				const test1: Assert<
+				const test1: Equals<
 					InferDocumentObject<typeof schema>,
 					{
 						booleanOptional: boolean | null;
@@ -775,7 +775,7 @@ describe('utility types', () => {
 			test('should infer string type', () => {
 				// not required should be nullable
 				const schema1 = new Schema({ stringProp: { type: 'string', path: '1' } });
-				const test1: Assert<
+				const test1: Equals<
 					InferModelObject<typeof schema1>,
 					{ _id: string; __v: string; stringProp: string | null }
 				> = true;
@@ -783,7 +783,7 @@ describe('utility types', () => {
 
 				// required should not be nullable
 				const schema2 = new Schema({ stringProp: { type: 'string', path: '1', required: true } });
-				const test2: Assert<
+				const test2: Equals<
 					InferModelObject<typeof schema2>,
 					{ _id: string; __v: string; stringProp: string }
 				> = true;
@@ -793,7 +793,7 @@ describe('utility types', () => {
 				const schema3 = new Schema({
 					stringProp: { type: 'string', path: '1', enum: ['foo', 'bar'] as const },
 				});
-				const test3: Assert<
+				const test3: Equals<
 					InferModelObject<typeof schema3>,
 					{ _id: string; __v: string; stringProp: 'foo' | 'bar' | null }
 				> = true;
@@ -803,7 +803,7 @@ describe('utility types', () => {
 				const schema4 = new Schema({
 					stringProp: { type: 'string', path: '1', enum: ['foo', 'bar'] as const, required: true },
 				});
-				const test4: Assert<
+				const test4: Equals<
 					InferModelObject<typeof schema4>,
 					{ _id: string; __v: string; stringProp: 'foo' | 'bar' }
 				> = true;
@@ -813,7 +813,7 @@ describe('utility types', () => {
 			test('should infer number type', () => {
 				// not required should be nullable
 				const schema1 = new Schema({ numberProp: { type: 'number', path: '1' } });
-				const test1: Assert<
+				const test1: Equals<
 					InferModelObject<typeof schema1>,
 					{ _id: string; __v: string; numberProp: number | null }
 				> = true;
@@ -821,7 +821,7 @@ describe('utility types', () => {
 
 				// required should not be nullable
 				const schema2 = new Schema({ numberProp: { type: 'number', path: '1', required: true } });
-				const test2: Assert<
+				const test2: Equals<
 					InferModelObject<typeof schema2>,
 					{ _id: string; __v: string; numberProp: number }
 				> = true;
@@ -831,7 +831,7 @@ describe('utility types', () => {
 			test('should infer boolean type', () => {
 				// not required should be nullable
 				const schema1 = new Schema({ booleanProp: { type: 'boolean', path: '1' } });
-				const test1: Assert<
+				const test1: Equals<
 					InferModelObject<typeof schema1>,
 					{ _id: string; __v: string; booleanProp: boolean | null }
 				> = true;
@@ -839,7 +839,7 @@ describe('utility types', () => {
 
 				// required should not be nullable
 				const schema2 = new Schema({ booleanProp: { type: 'boolean', path: '1', required: true } });
-				const test2: Assert<
+				const test2: Equals<
 					InferModelObject<typeof schema2>,
 					{ _id: string; __v: string; booleanProp: boolean }
 				> = true;
@@ -849,7 +849,7 @@ describe('utility types', () => {
 			test('should infer ISOCalendarDate type', () => {
 				// not required should be nullable
 				const schema1 = new Schema({ isoCalendarDateProp: { type: 'ISOCalendarDate', path: '1' } });
-				const test1: Assert<
+				const test1: Equals<
 					InferModelObject<typeof schema1>,
 					{ _id: string; __v: string; isoCalendarDateProp: ISOCalendarDate | null }
 				> = true;
@@ -859,7 +859,7 @@ describe('utility types', () => {
 				const schema2 = new Schema({
 					isoCalendarDateProp: { type: 'ISOCalendarDate', path: '1', required: true },
 				});
-				const test2: Assert<
+				const test2: Equals<
 					InferModelObject<typeof schema2>,
 					{ _id: string; __v: string; isoCalendarDateProp: ISOCalendarDate }
 				> = true;
@@ -869,7 +869,7 @@ describe('utility types', () => {
 			test('should infer ISOTime type', () => {
 				// not required should be nullable
 				const schema1 = new Schema({ isoTimeProp: { type: 'ISOTime', path: '1' } });
-				const test1: Assert<
+				const test1: Equals<
 					InferModelObject<typeof schema1>,
 					{
 						_id: string;
@@ -881,7 +881,7 @@ describe('utility types', () => {
 
 				// required should not be nullable
 				const schema2 = new Schema({ isoTimeProp: { type: 'ISOTime', path: '1', required: true } });
-				const test2: Assert<
+				const test2: Equals<
 					InferModelObject<typeof schema2>,
 					{ _id: string; __v: string; isoTimeProp: ISOTime }
 				> = true;
@@ -893,7 +893,7 @@ describe('utility types', () => {
 				const schema1 = new Schema({
 					isoCalendarDateTimeProp: { type: 'ISOCalendarDateTime', path: '1' },
 				});
-				const test1: Assert<
+				const test1: Equals<
 					InferModelObject<typeof schema1>,
 					{
 						_id: string;
@@ -907,7 +907,7 @@ describe('utility types', () => {
 				const schema2 = new Schema({
 					isoCalendarDateTimeProp: { type: 'ISOCalendarDateTime', path: '1' },
 				});
-				const test2: Assert<
+				const test2: Equals<
 					InferModelObject<typeof schema2>,
 					{
 						_id: string;
@@ -925,7 +925,7 @@ describe('utility types', () => {
 				const schema1 = new Schema({
 					embeddedProp: new Schema({ innerEmbeddedProp: { type: 'string', path: '1' } }),
 				});
-				const test1: Assert<
+				const test1: Equals<
 					InferModelObject<typeof schema1>,
 					{ _id: string; __v: string; embeddedProp: { innerEmbeddedProp: string | null } }
 				> = true;
@@ -937,7 +937,7 @@ describe('utility types', () => {
 						innerEmbeddedProp: { type: 'string', path: '1', required: true },
 					}),
 				});
-				const test2: Assert<
+				const test2: Equals<
 					InferModelObject<typeof schema2>,
 					{ _id: string; __v: string; embeddedProp: { innerEmbeddedProp: string } }
 				> = true;
@@ -949,7 +949,7 @@ describe('utility types', () => {
 				const schema1 = new Schema({
 					embeddedProp: { innerEmbeddedProp: { type: 'string', path: '1' } },
 				});
-				const test1: Assert<
+				const test1: Equals<
 					InferModelObject<typeof schema1>,
 					{ _id: string; __v: string; embeddedProp: { innerEmbeddedProp: string | null } }
 				> = true;
@@ -959,7 +959,7 @@ describe('utility types', () => {
 				const schema2 = new Schema({
 					embeddedProp: { innerEmbeddedProp: { type: 'string', path: '1', required: true } },
 				});
-				const test2: Assert<
+				const test2: Equals<
 					InferModelObject<typeof schema2>,
 					{ _id: string; __v: string; embeddedProp: { innerEmbeddedProp: string } }
 				> = true;
@@ -975,7 +975,7 @@ describe('utility types', () => {
 						},
 					},
 				});
-				const test1: Assert<
+				const test1: Equals<
 					InferModelObject<typeof schema1>,
 					{
 						_id: string;
@@ -993,7 +993,7 @@ describe('utility types', () => {
 						},
 					},
 				});
-				const test2: Assert<
+				const test2: Equals<
 					InferModelObject<typeof schema2>,
 					{
 						_id: string;
@@ -1009,7 +1009,7 @@ describe('utility types', () => {
 			test('should infer scalar array', () => {
 				// not required should be nullable
 				const schema1 = new Schema({ arrayProp: [{ type: 'string', path: '1' }] });
-				const test1: Assert<
+				const test1: Equals<
 					InferModelObject<typeof schema1>,
 					{ _id: string; __v: string; arrayProp: (string | null)[] }
 				> = true;
@@ -1017,7 +1017,7 @@ describe('utility types', () => {
 
 				// required should not be nullable
 				const schema2 = new Schema({ arrayProp: [{ type: 'string', path: '1', required: true }] });
-				const test2: Assert<
+				const test2: Equals<
 					InferModelObject<typeof schema2>,
 					{ _id: string; __v: string; arrayProp: string[] }
 				> = true;
@@ -1027,7 +1027,7 @@ describe('utility types', () => {
 			test('should infer nested array', () => {
 				// not required should be nullable
 				const schema1 = new Schema({ nestedArrayProp: [[{ type: 'string', path: '1' }]] });
-				const test1: Assert<
+				const test1: Equals<
 					InferModelObject<typeof schema1>,
 					{ _id: string; __v: string; nestedArrayProp: (string | null)[][] }
 				> = true;
@@ -1037,7 +1037,7 @@ describe('utility types', () => {
 				const schema2 = new Schema({
 					nestedArrayProp: [[{ type: 'string', path: '1', required: true }]],
 				});
-				const test2: Assert<
+				const test2: Equals<
 					InferModelObject<typeof schema2>,
 					{ _id: string; __v: string; nestedArrayProp: string[][] }
 				> = true;
@@ -1054,7 +1054,7 @@ describe('utility types', () => {
 						},
 					],
 				});
-				const test1: Assert<
+				const test1: Equals<
 					InferModelObject<typeof schema1>,
 					{
 						_id: string;
@@ -1073,7 +1073,7 @@ describe('utility types', () => {
 						},
 					],
 				});
-				const test2: Assert<
+				const test2: Equals<
 					InferModelObject<typeof schema2>,
 					{
 						_id: string;
@@ -1089,7 +1089,7 @@ describe('utility types', () => {
 				const schema1 = new Schema({
 					documentArraySchemaProp: [new Schema({ docStringProp: { type: 'string', path: '1' } })],
 				});
-				const test1: Assert<
+				const test1: Equals<
 					InferModelObject<typeof schema1>,
 					{ _id: string; __v: string; documentArraySchemaProp: { docStringProp: string | null }[] }
 				> = true;
@@ -1101,7 +1101,7 @@ describe('utility types', () => {
 						new Schema({ docStringProp: { type: 'string', path: '1', required: true } }),
 					],
 				});
-				const test2: Assert<
+				const test2: Equals<
 					InferModelObject<typeof schema2>,
 					{ _id: string; __v: string; documentArraySchemaProp: { docStringProp: string }[] }
 				> = true;
@@ -1158,7 +1158,7 @@ describe('utility types', () => {
 					],
 				});
 
-				const test1: Assert<
+				const test1: Equals<
 					InferModelObject<typeof schema>,
 					{
 						_id: string;
@@ -1241,7 +1241,7 @@ describe('utility types', () => {
 				],
 			});
 
-			const test1: Assert<
+			const test1: Equals<
 				FlattenDocument<typeof schema>,
 				{
 					booleanOptional: boolean | null;
@@ -1323,7 +1323,7 @@ describe('utility types', () => {
 				],
 			});
 
-			const test1: Assert<
+			const test1: Equals<
 				InferSchemaPaths<typeof schema>,
 				| 'booleanOptional'
 				| 'booleanRequired'
