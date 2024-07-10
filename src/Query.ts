@@ -57,9 +57,7 @@ export interface FilterOperators<TValue> {
 	$nin?: TValue[];
 }
 
-export interface RootFilterOperators<
-	TSchema extends Schema<SchemaDefinition, DictionariesOption> | null,
-> {
+export interface RootFilterOperators<TSchema extends Schema<SchemaDefinition> | null> {
 	/** Used to combine conditions with an and */
 	$and?: Filter<TSchema>[];
 	/** Used to combine conditions with an or */
@@ -85,18 +83,17 @@ type InferDictionaryType<TDictionaryDefinition extends DictionaryDefinition> =
 								? ISOCalendarDateTime
 								: never;
 
-type InferDictionariesType<TSchema extends Schema<SchemaDefinition, DictionariesOption>> =
+type InferDictionariesType<TSchema extends Schema<SchemaDefinition>> =
 	TSchema extends Schema<SchemaDefinition, infer TDictionariesOption>
 		? { [K in keyof TDictionariesOption]: InferDictionaryType<TDictionariesOption[K]> }
 		: never;
 
-export type Filter<TSchema extends Schema<SchemaDefinition, DictionariesOption> | null> =
-	RootFilterOperators<TSchema> &
-		((TSchema extends Schema<SchemaDefinition, DictionariesOption>
-			? FlattenDocument<TSchema> & InferDictionariesType<TSchema> extends infer O
-				? { [Key in keyof O]?: Condition<NonNullable<O[Key]>> }
-				: never
-			: Record<string, never>) & { _id?: Condition<string> });
+export type Filter<TSchema extends Schema<SchemaDefinition> | null> = RootFilterOperators<TSchema> &
+	((TSchema extends Schema<SchemaDefinition>
+		? FlattenDocument<TSchema> & InferDictionariesType<TSchema> extends infer O
+			? { [Key in keyof O]?: Condition<NonNullable<O[Key]>> }
+			: never
+		: Record<string, never>) & { _id?: Condition<string> });
 
 export type SortCriteria = [string, -1 | 1][];
 

@@ -168,7 +168,7 @@ export type InferSchemaPaths<TSchema extends Schema<SchemaDefinition, Dictionari
 /** Schema constructor */
 class Schema<
 	TSchemaDefinition extends SchemaDefinition,
-	TDictionaries extends Record<string, DictionaryDefinition>,
+	TDictionaries extends Record<string, DictionaryDefinition> = Record<never, never>,
 > {
 	/** Key/value pairs of schema object path structure and associated multivalue dictionary ids */
 	public dictPaths: Map<string, DictionaryTypeDetail>;
