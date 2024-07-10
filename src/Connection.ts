@@ -350,10 +350,10 @@ class Connection {
 	}
 
 	/** Define a new model */
-	public model<
-		TSchema extends Schema<TSchemaDefinition> | null,
-		TSchemaDefinition extends SchemaDefinition,
-	>(schema: TSchema, file: string): ModelConstructor<TSchema, TSchemaDefinition> {
+	public model<TSchema extends Schema<SchemaDefinition> | null>(
+		schema: TSchema,
+		file: string,
+	): ModelConstructor<TSchema> {
 		if (this.status !== ConnectionStatus.connected || this.dbServerInfo == null) {
 			this.logHandler.error('Cannot create model until database connection has been established');
 			throw new Error('Cannot create model until database connection has been established');

@@ -8,10 +8,7 @@ import { ensureArray } from '../utils';
 import BaseSchemaType from './BaseSchemaType';
 
 /** A Document Array Schema Type */
-class DocumentArrayType<
-	TSchema extends Schema<TSchemaDefinition>,
-	TSchemaDefinition extends SchemaDefinition,
-> extends BaseSchemaType {
+class DocumentArrayType<TSchema extends Schema<SchemaDefinition>> extends BaseSchemaType {
 	/** An instance of Schema representing the document structure of the array's contents */
 	private readonly valueSchema: TSchema;
 
@@ -24,7 +21,7 @@ class DocumentArrayType<
 	 * Cast to array of documents
 	 * @throws {@link TypeError} Throws if a non-null/non-object is passed
 	 */
-	public override cast(value: unknown): Document<TSchema, TSchemaDefinition>[] {
+	public override cast(value: unknown): Document<TSchema>[] {
 		if (value == null) {
 			return [];
 		}
@@ -40,15 +37,12 @@ class DocumentArrayType<
 	}
 
 	/** Get value from mv data */
-	public get(record: MvRecord): Document<TSchema, TSchemaDefinition>[] {
+	public get(record: MvRecord): Document<TSchema>[] {
 		return [...this.makeSubDocument(record)];
 	}
 
 	/** Set specified document array value into mv record */
-	public set(
-		originalRecord: MvRecord,
-		documents: Document<TSchema, TSchemaDefinition>[],
-	): MvRecord {
+	public set(originalRecord: MvRecord, documents: Document<TSchema>[]): MvRecord {
 		const record = cloneDeep(originalRecord);
 		const mvPaths = this.valueSchema.getMvPaths();
 		// A subdocumentArray is always overwritten entirely so clear out all associated fields
@@ -67,7 +61,7 @@ class DocumentArrayType<
 	}
 
 	/** Validate the document array */
-	public validate(documentList: Document<TSchema, TSchemaDefinition>[]): Map<string, string[]> {
+	public validate(documentList: Document<TSchema>[]): Map<string, string[]> {
 		return documentList.reduce<Map<string, string[]>>((acc, document, index) => {
 			const documentErrors = document.validate();
 
@@ -84,7 +78,7 @@ class DocumentArrayType<
 
 	/** Create an array of foreign key definitions that will be validated before save */
 	public override transformForeignKeyDefinitionsToDb(
-		documentList: Document<TSchema, TSchemaDefinition>[],
+		documentList: Document<TSchema>[],
 	): ForeignKeyDbDefinition[] {
 		return documentList
 			.map((document) => {
@@ -98,7 +92,7 @@ class DocumentArrayType<
 	}
 
 	/** Generate subdocument instances */
-	private *makeSubDocument(record: MvRecord): Generator<Document<TSchema, TSchemaDefinition>> {
+	private *makeSubDocument(record: MvRecord): Generator<Document<TSchema>> {
 		const makeSubRecord = (iteration: number): MvRecord =>
 			this.valueSchema.getMvPaths().reduce<MvRecord>((acc, path) => {
 				const value = this.getFromMvArray(path.concat([iteration]), record);
@@ -114,7 +108,7 @@ class DocumentArrayType<
 			if (subRecord.length === 0) {
 				return;
 			}
-			const subdocument = Document.createSubdocumentFromRecord<TSchema, TSchemaDefinition>(
+			const subdocument = Document.createSubdocumentFromRecord<TSchema>(
 				this.valueSchema,
 				subRecord,
 			);
