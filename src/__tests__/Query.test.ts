@@ -3,7 +3,7 @@ import mockDelimiters from '#test/mockDelimiters';
 import type Connection from '../Connection';
 import { InvalidParameterError, QueryLimitError } from '../errors';
 import type LogHandler from '../LogHandler';
-import type { QueryExecutionOptions, SortCriteria } from '../Query';
+import type { Filter, QueryExecutionOptions, SortCriteria } from '../Query';
 import Query from '../Query';
 import Schema from '../Schema';
 import type { DbSubroutineOutputFind } from '../types';
@@ -23,14 +23,14 @@ describe('constructor', () => {
 			const propertyDictionary1 = 'property-dictionary1';
 			const propertyName2 = 'property-name2';
 			const propertyDictionary2 = 'property-dictionary2';
-			const selectionCritieria = {
-				$and: [],
-			};
 
 			const schema = new Schema({
 				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
 				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
 			});
+			const selectionCritieria: Filter<typeof schema> = {
+				$and: [],
+			};
 
 			expect(() => {
 				new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
@@ -42,14 +42,14 @@ describe('constructor', () => {
 			const propertyDictionary1 = 'property-dictionary1';
 			const propertyName2 = 'property-name2';
 			const propertyDictionary2 = 'property-dictionary2';
-			const selectionCritieria = {
-				$or: [],
-			};
 
 			const schema = new Schema({
 				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
 				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
 			});
+			const selectionCritieria: Filter<typeof schema> = {
+				$or: [],
+			};
 
 			expect(() => {
 				new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
@@ -61,17 +61,17 @@ describe('constructor', () => {
 			const propertyDictionary1 = 'property-dictionary1';
 			const propertyName2 = 'property-name2';
 			const propertyDictionary2 = 'property-dictionary2';
-			const selectionCritieria = {
-				[propertyName1]: { $foo: 'bar' },
-			};
 
 			const schema = new Schema({
 				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
 				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
 			});
+			const selectionCritieria: Filter<typeof schema> = {
+				// @ts-expect-error: Testing invalid input
+				[propertyName1]: { $foo: 'bar' },
+			};
 
 			expect(() => {
-				// @ts-expect-error: Testing invalid input
 				new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 			}).toThrow(TypeError);
 		});
@@ -81,17 +81,17 @@ describe('constructor', () => {
 			const propertyDictionary1 = 'property-dictionary1';
 			const propertyName2 = 'property-name2';
 			const propertyDictionary2 = 'property-dictionary2';
-			const selectionCritieria = {
-				foo: { $in: [] },
-			};
 
 			const schema = new Schema({
 				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
 				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
 			});
+			const selectionCritieria: Filter<typeof schema> = {
+				// @ts-expect-error: Testing invalid input
+				foo: { $in: [] },
+			};
 
 			expect(() => {
-				// @ts-expect-error: Testing invalid input
 				new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 			}).toThrow(InvalidParameterError);
 		});
@@ -101,14 +101,14 @@ describe('constructor', () => {
 			const propertyDictionary1 = 'property-dictionary1';
 			const propertyName2 = 'property-name2';
 			const propertyDictionary2 = 'property-dictionary2';
-			const selectionCritieria = {
-				[propertyName1]: `"This" 'shall' "not" 'pass'`,
-			};
 
 			const schema = new Schema({
 				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
 				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
 			});
+			const selectionCritieria: Filter<typeof schema> = {
+				[propertyName1]: `"This" 'shall' "not" 'pass'`,
+			};
 
 			expect(() => {
 				new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
@@ -118,13 +118,13 @@ describe('constructor', () => {
 		test('should throw InvalidParameterError if query condition specifies an unmapped dictionary', () => {
 			const propertyName1 = 'property-name1';
 			const propertyValue1 = 'property-value1';
-			const selectionCritieria = {
-				[propertyName1]: propertyValue1,
-			};
 
 			const schema = new Schema({
 				[propertyName1]: { type: 'string', path: 1 },
 			});
+			const selectionCritieria: Filter<typeof schema> = {
+				[propertyName1]: propertyValue1,
+			};
 
 			expect(() => {
 				new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
@@ -156,13 +156,13 @@ describe('exec', () => {
 				const propertyName = 'property-name';
 				const propertyValue = 'property-value';
 				const propertyDictionary = 'property-dictionary';
-				const selectionCritieria = {
-					[propertyName]: propertyValue,
-				};
 
 				const schema = new Schema({
 					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
 				});
+				const selectionCritieria: Filter<typeof schema> = {
+					[propertyName]: propertyValue,
+				};
 
 				const query = new Query(
 					connectionMock,
@@ -190,13 +190,13 @@ describe('exec', () => {
 				const propertyValue1 = 'property-value1';
 				const propertyValue2 = 'property-value2';
 				const propertyDictionary = 'property-dictionary';
-				const selectionCritieria = {
-					[propertyName]: [propertyValue1, propertyValue2],
-				};
 
 				const schema = new Schema({
 					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
 				});
+				const selectionCritieria: Filter<typeof schema> = {
+					[propertyName]: [propertyValue1, propertyValue2],
+				};
 
 				const query = new Query(
 					connectionMock,
@@ -225,13 +225,13 @@ describe('exec', () => {
 				const propertyName = 'property-name';
 				const propertyValue = 'property-value';
 				const propertyDictionary = 'property-dictionary';
-				const selectionCritieria = {
-					[propertyName]: { $eq: propertyValue },
-				};
 
 				const schema = new Schema({
 					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
 				});
+				const selectionCritieria: Filter<typeof schema> = {
+					[propertyName]: { $eq: propertyValue },
+				};
 
 				const query = new Query(
 					connectionMock,
@@ -259,13 +259,13 @@ describe('exec', () => {
 				const propertyName = 'property-name';
 				const propertyValue = 'property-value';
 				const propertyDictionary = 'property-dictionary';
-				const selectionCritieria = {
-					[propertyName]: { $eq: `"${propertyValue}"` },
-				};
 
 				const schema = new Schema({
 					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
 				});
+				const selectionCritieria: Filter<typeof schema> = {
+					[propertyName]: { $eq: `"${propertyValue}"` },
+				};
 
 				const query = new Query(
 					connectionMock,
@@ -293,13 +293,13 @@ describe('exec', () => {
 				const propertyName = 'property-name';
 				const propertyValue = 'property-value';
 				const propertyDictionary = 'property-dictionary';
-				const selectionCritieria = {
-					[propertyName]: { $eq: `'${propertyValue}'` },
-				};
 
 				const schema = new Schema({
 					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
 				});
+				const selectionCritieria: Filter<typeof schema> = {
+					[propertyName]: { $eq: `'${propertyValue}'` },
+				};
 
 				const query = new Query(
 					connectionMock,
@@ -328,13 +328,13 @@ describe('exec', () => {
 				const propertyValue1 = 'property-value1';
 				const propertyValue2 = 'property-value2';
 				const propertyDictionary = 'property-dictionary';
-				const selectionCritieria = {
-					[propertyName]: { $in: [propertyValue1, propertyValue2] },
-				};
 
 				const schema = new Schema({
 					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
 				});
+				const selectionCritieria: Filter<typeof schema> = {
+					[propertyName]: { $in: [propertyValue1, propertyValue2] },
+				};
 
 				const query = new Query(
 					connectionMock,
@@ -361,13 +361,13 @@ describe('exec', () => {
 				const propertyName = 'property-name';
 				const propertyValue1 = 'property-value1';
 				const propertyDictionary = 'property-dictionary';
-				const selectionCritieria = {
-					[propertyName]: { $in: [propertyValue1] },
-				};
 
 				const schema = new Schema({
 					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
 				});
+				const selectionCritieria: Filter<typeof schema> = {
+					[propertyName]: { $in: [propertyValue1] },
+				};
 
 				const query = new Query(
 					connectionMock,
@@ -394,13 +394,13 @@ describe('exec', () => {
 				const propertyName = 'property-name';
 				const propertyValue = 'property-value';
 				const propertyDictionary = 'property-dictionary';
-				const selectionCritieria = {
-					[propertyName]: { $gt: propertyValue },
-				};
 
 				const schema = new Schema({
 					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
 				});
+				const selectionCritieria: Filter<typeof schema> = {
+					[propertyName]: { $gt: propertyValue },
+				};
 
 				const query = new Query(
 					connectionMock,
@@ -428,13 +428,13 @@ describe('exec', () => {
 				const propertyName = 'property-name';
 				const propertyValue = 'property-value';
 				const propertyDictionary = 'property-dictionary';
-				const selectionCritieria = {
-					[propertyName]: { $gte: propertyValue },
-				};
 
 				const schema = new Schema({
 					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
 				});
+				const selectionCritieria: Filter<typeof schema> = {
+					[propertyName]: { $gte: propertyValue },
+				};
 
 				const query = new Query(
 					connectionMock,
@@ -462,13 +462,13 @@ describe('exec', () => {
 				const propertyName = 'property-name';
 				const propertyValue = 'property-value';
 				const propertyDictionary = 'property-dictionary';
-				const selectionCritieria = {
-					[propertyName]: { $lt: propertyValue },
-				};
 
 				const schema = new Schema({
 					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
 				});
+				const selectionCritieria: Filter<typeof schema> = {
+					[propertyName]: { $lt: propertyValue },
+				};
 
 				const query = new Query(
 					connectionMock,
@@ -496,13 +496,13 @@ describe('exec', () => {
 				const propertyName = 'property-name';
 				const propertyValue = 'property-value';
 				const propertyDictionary = 'property-dictionary';
-				const selectionCritieria = {
-					[propertyName]: { $lte: propertyValue },
-				};
 
 				const schema = new Schema({
 					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
 				});
+				const selectionCritieria: Filter<typeof schema> = {
+					[propertyName]: { $lte: propertyValue },
+				};
 
 				const query = new Query(
 					connectionMock,
@@ -530,13 +530,13 @@ describe('exec', () => {
 				const propertyName = 'property-name';
 				const propertyValue = 'property-value';
 				const propertyDictionary = 'property-dictionary';
-				const selectionCritieria = {
-					[propertyName]: { $ne: propertyValue },
-				};
 
 				const schema = new Schema({
 					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
 				});
+				const selectionCritieria: Filter<typeof schema> = {
+					[propertyName]: { $ne: propertyValue },
+				};
 
 				const query = new Query(
 					connectionMock,
@@ -565,13 +565,13 @@ describe('exec', () => {
 					const propertyName = 'property-name';
 					const propertyValue = 'property-value';
 					const propertyDictionary = 'property-dictionary';
-					const selectionCritieria = {
-						[propertyName]: { $contains: propertyValue },
-					};
 
 					const schema = new Schema({
 						[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
 					});
+					const selectionCritieria: Filter<typeof schema> = {
+						[propertyName]: { $contains: propertyValue },
+					};
 
 					const query = new Query(
 						connectionMock,
@@ -599,13 +599,13 @@ describe('exec', () => {
 					const propertyName = 'property-name';
 					const propertyValue = 'property-value"';
 					const propertyDictionary = 'property-dictionary';
-					const selectionCritieria = {
-						[propertyName]: { $contains: propertyValue },
-					};
 
 					const schema = new Schema({
 						[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
 					});
+					const selectionCritieria: Filter<typeof schema> = {
+						[propertyName]: { $contains: propertyValue },
+					};
 
 					expect(() => {
 						new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
@@ -616,13 +616,13 @@ describe('exec', () => {
 					const propertyName = 'property-name';
 					const propertyValue = "property-value'";
 					const propertyDictionary = 'property-dictionary';
-					const selectionCritieria = {
-						[propertyName]: { $contains: propertyValue },
-					};
 
 					const schema = new Schema({
 						[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
 					});
+					const selectionCritieria: Filter<typeof schema> = {
+						[propertyName]: { $contains: propertyValue },
+					};
 
 					expect(() => {
 						new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
@@ -635,13 +635,13 @@ describe('exec', () => {
 					const propertyName = 'property-name';
 					const propertyValue = 'property-value';
 					const propertyDictionary = 'property-dictionary';
-					const selectionCritieria = {
-						[propertyName]: { $startsWith: propertyValue },
-					};
 
 					const schema = new Schema({
 						[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
 					});
+					const selectionCritieria: Filter<typeof schema> = {
+						[propertyName]: { $startsWith: propertyValue },
+					};
 
 					const query = new Query(
 						connectionMock,
@@ -669,13 +669,13 @@ describe('exec', () => {
 					const propertyName = 'property-name';
 					const propertyValue = 'property-value"';
 					const propertyDictionary = 'property-dictionary';
-					const selectionCritieria = {
-						[propertyName]: { $startsWith: propertyValue },
-					};
 
 					const schema = new Schema({
 						[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
 					});
+					const selectionCritieria: Filter<typeof schema> = {
+						[propertyName]: { $startsWith: propertyValue },
+					};
 
 					expect(() => {
 						new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
@@ -686,13 +686,13 @@ describe('exec', () => {
 					const propertyName = 'property-name';
 					const propertyValue = "property-value'";
 					const propertyDictionary = 'property-dictionary';
-					const selectionCritieria = {
-						[propertyName]: { $startsWith: propertyValue },
-					};
 
 					const schema = new Schema({
 						[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
 					});
+					const selectionCritieria: Filter<typeof schema> = {
+						[propertyName]: { $startsWith: propertyValue },
+					};
 
 					expect(() => {
 						new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
@@ -705,13 +705,13 @@ describe('exec', () => {
 					const propertyName = 'property-name';
 					const propertyValue = 'property-value';
 					const propertyDictionary = 'property-dictionary';
-					const selectionCritieria = {
-						[propertyName]: { $endsWith: propertyValue },
-					};
 
 					const schema = new Schema({
 						[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
 					});
+					const selectionCritieria: Filter<typeof schema> = {
+						[propertyName]: { $endsWith: propertyValue },
+					};
 
 					const query = new Query(
 						connectionMock,
@@ -739,13 +739,13 @@ describe('exec', () => {
 					const propertyName = 'property-name';
 					const propertyValue = 'property-value"';
 					const propertyDictionary = 'property-dictionary';
-					const selectionCritieria = {
-						[propertyName]: { $endsWith: propertyValue },
-					};
 
 					const schema = new Schema({
 						[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
 					});
+					const selectionCritieria: Filter<typeof schema> = {
+						[propertyName]: { $endsWith: propertyValue },
+					};
 
 					expect(() => {
 						new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
@@ -756,13 +756,13 @@ describe('exec', () => {
 					const propertyName = 'property-name';
 					const propertyValue = "property-value'";
 					const propertyDictionary = 'property-dictionary';
-					const selectionCritieria = {
-						[propertyName]: { $endsWith: propertyValue },
-					};
 
 					const schema = new Schema({
 						[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
 					});
+					const selectionCritieria: Filter<typeof schema> = {
+						[propertyName]: { $endsWith: propertyValue },
+					};
 
 					expect(() => {
 						new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
@@ -775,13 +775,13 @@ describe('exec', () => {
 				const propertyValue1 = 'property-value1';
 				const propertyValue2 = 'property-value2';
 				const propertyDictionary = 'property-dictionary';
-				const selectionCritieria = {
-					[propertyName]: { $nin: [propertyValue1, propertyValue2] },
-				};
 
 				const schema = new Schema({
 					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
 				});
+				const selectionCritieria: Filter<typeof schema> = {
+					[propertyName]: { $nin: [propertyValue1, propertyValue2] },
+				};
 
 				const query = new Query(
 					connectionMock,
@@ -807,11 +807,11 @@ describe('exec', () => {
 			test('should construct and execute query with no conditions', async () => {
 				const propertyName = 'property-name';
 				const propertyDictionary = 'property-dictionary';
-				const selectionCritieria = {};
 
 				const schema = new Schema({
 					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
 				});
+				const selectionCritieria: Filter<typeof schema> = {};
 
 				const query = new Query(
 					connectionMock,
@@ -839,13 +839,13 @@ describe('exec', () => {
 					const propertyName = 'property-name';
 					const propertyValue = true;
 					const propertyDictionary = 'property-dictionary';
-					const selectionCritieria = {
-						[propertyName]: { $eq: propertyValue },
-					};
 
 					const schema = new Schema({
 						[propertyName]: { type: 'boolean', path: 1, dictionary: propertyDictionary },
 					});
+					const selectionCritieria: Filter<typeof schema> = {
+						[propertyName]: { $eq: propertyValue },
+					};
 
 					const query = new Query(
 						connectionMock,
@@ -888,15 +888,16 @@ describe('exec', () => {
 			const propertyName2 = 'property-name2';
 			const propertyValue2 = 'property-value2';
 			const propertyDictionary2 = 'property-dictionary2';
-			const selectionCritieria = {
-				[propertyName1]: propertyValue1,
-				[propertyName2]: propertyValue2,
-			};
 
 			const schema = new Schema({
 				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
 				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
 			});
+
+			const selectionCritieria: Filter<typeof schema> = {
+				[propertyName1]: propertyValue1,
+				[propertyName2]: propertyValue2,
+			};
 
 			const query = new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 			expect(await query.exec()).toEqual(dbQueryResult);
@@ -921,7 +922,11 @@ describe('exec', () => {
 			const propertyValue2 = 'property-value2';
 			const propertyDictionary2 = 'property-dictionary2';
 
-			const selectionCritieria = {
+			const schema = new Schema({
+				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
+				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
+			});
+			const selectionCritieria: Filter<typeof schema> = {
 				$and: [
 					{
 						[propertyName1]: propertyValue1,
@@ -931,11 +936,6 @@ describe('exec', () => {
 					},
 				],
 			};
-
-			const schema = new Schema({
-				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
-				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
-			});
 
 			const query = new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 			expect(await query.exec()).toEqual(dbQueryResult);
@@ -960,7 +960,11 @@ describe('exec', () => {
 			const propertyValue2 = 'property-value2';
 			const propertyDictionary2 = 'property-dictionary2';
 
-			const selectionCritieria = {
+			const schema = new Schema({
+				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
+				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
+			});
+			const selectionCritieria: Filter<typeof schema> = {
 				$or: [
 					{
 						[propertyName1]: propertyValue1,
@@ -970,11 +974,6 @@ describe('exec', () => {
 					},
 				],
 			};
-
-			const schema = new Schema({
-				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
-				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
-			});
 
 			const query = new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 			expect(await query.exec()).toEqual(dbQueryResult);
@@ -1002,7 +1001,12 @@ describe('exec', () => {
 			const propertyValue3 = 'property-value3';
 			const propertyDictionary3 = 'property-dictionary3';
 
-			const selectionCritieria = {
+			const schema = new Schema({
+				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
+				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
+				[propertyName3]: { type: 'string', path: 3, dictionary: propertyDictionary3 },
+			});
+			const selectionCritieria: Filter<typeof schema> = {
 				$or: [
 					{
 						$and: [
@@ -1017,12 +1021,6 @@ describe('exec', () => {
 					{ [propertyName3]: propertyValue3 },
 				],
 			};
-
-			const schema = new Schema({
-				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
-				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
-				[propertyName3]: { type: 'string', path: 3, dictionary: propertyDictionary3 },
-			});
 
 			const query = new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 			expect(await query.exec()).toEqual(dbQueryResult);
@@ -1050,7 +1048,13 @@ describe('exec', () => {
 			const propertyValue3 = 'property-value3';
 			const propertyDictionary3 = 'property-dictionary3';
 
-			const selectionCritieria = {
+			const schema = new Schema({
+				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
+				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
+				[propertyName3]: { type: 'string', path: 3, dictionary: propertyDictionary3 },
+			});
+
+			const selectionCritieria: Filter<typeof schema> = {
 				$or: [
 					{
 						[propertyName1]: propertyValue1,
@@ -1059,12 +1063,6 @@ describe('exec', () => {
 					{ [propertyName3]: propertyValue3 },
 				],
 			};
-
-			const schema = new Schema({
-				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
-				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
-				[propertyName3]: { type: 'string', path: 3, dictionary: propertyDictionary3 },
-			});
 
 			const query = new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 			expect(await query.exec()).toEqual(dbQueryResult);
@@ -1087,18 +1085,18 @@ describe('exec', () => {
 			const propertyDictionary1 = 'property-dictionary1';
 			const propertyName2 = 'property-name2';
 			const propertyDictionary2 = 'property-dictionary2';
-			const selectionCritieria = {
+
+			const schema = new Schema({
+				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
+				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
+			});
+			const selectionCritieria: Filter<typeof schema> = {
 				$and: [
 					{
 						[propertyName1]: propertyValue1,
 					},
 				],
 			};
-
-			const schema = new Schema({
-				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
-				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
-			});
 
 			const query = new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 			expect(await query.exec()).toEqual(dbQueryResult);
@@ -1121,18 +1119,18 @@ describe('exec', () => {
 			const propertyDictionary1 = 'property-dictionary1';
 			const propertyName2 = 'property-name2';
 			const propertyDictionary2 = 'property-dictionary2';
-			const selectionCritieria = {
+
+			const schema = new Schema({
+				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
+				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
+			});
+			const selectionCritieria: Filter<typeof schema> = {
 				$or: [
 					{
 						[propertyName1]: propertyValue1,
 					},
 				],
 			};
-
-			const schema = new Schema({
-				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
-				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
-			});
 
 			const query = new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 			expect(await query.exec()).toEqual(dbQueryResult);
@@ -1154,13 +1152,13 @@ describe('exec', () => {
 			const propertyValue1 = 'property-value1';
 			const propertyValue2 = 'property-value2';
 			const propertyDictionary = 'property-dictionary';
-			const selectionCritieria = {
-				[propertyName]: { $gte: propertyValue1, $lte: propertyValue2 },
-			};
 
 			const schema = new Schema({
 				[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
 			});
+			const selectionCritieria: Filter<typeof schema> = {
+				[propertyName]: { $gte: propertyValue1, $lte: propertyValue2 },
+			};
 
 			const query = new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 
@@ -1192,14 +1190,14 @@ describe('exec', () => {
 			const propertyName = 'property-name';
 			const propertyValue = 'property-value';
 			const propertyDictionary = 'property-dictionary';
-			const selectionCritieria = {
-				[propertyName]: propertyValue,
-			};
-			const sortCriteria: SortCriteria = [];
 
 			const schema = new Schema({
 				[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
 			});
+			const selectionCritieria: Filter<typeof schema> = {
+				[propertyName]: propertyValue,
+			};
+			const sortCriteria: SortCriteria = [];
 
 			const query = new Query(
 				connectionMock,
@@ -1229,14 +1227,14 @@ describe('exec', () => {
 			const propertyName = 'property-name';
 			const propertyValue = 'property-value';
 			const propertyDictionary = 'property-dictionary';
-			const selectionCritieria = {
-				[propertyName]: propertyValue,
-			};
-			const sortCriteria: SortCriteria = [[propertyName, 1]];
 
 			const schema = new Schema({
 				[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
 			});
+			const selectionCritieria: Filter<typeof schema> = {
+				[propertyName]: propertyValue,
+			};
+			const sortCriteria: SortCriteria = [[propertyName, 1]];
 
 			const query = new Query(
 				connectionMock,
@@ -1266,14 +1264,14 @@ describe('exec', () => {
 			const propertyName = 'property-name';
 			const propertyValue = 'property-value';
 			const propertyDictionary = 'property-dictionary';
-			const selectionCritieria = {
-				[propertyName]: propertyValue,
-			};
-			const sortCriteria: SortCriteria = [[propertyName, -1]];
 
 			const schema = new Schema({
 				[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
 			});
+			const selectionCritieria: Filter<typeof schema> = {
+				[propertyName]: propertyValue,
+			};
+			const sortCriteria: SortCriteria = [[propertyName, -1]];
 
 			const query = new Query(
 				connectionMock,
@@ -1306,18 +1304,17 @@ describe('exec', () => {
 			const propertyName2 = 'property-name2';
 			const propertyDictionary2 = 'property-dictionary2';
 
-			const selectionCritieria = {
+			const schema = new Schema({
+				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
+				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
+			});
+			const selectionCritieria: Filter<typeof schema> = {
 				[propertyName1]: propertyValue1,
 			};
 			const sortCriteria: SortCriteria = [
 				[propertyName1, 1],
 				[propertyName2, 1],
 			];
-
-			const schema = new Schema({
-				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
-				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
-			});
 
 			const query = new Query(
 				connectionMock,
@@ -1350,18 +1347,17 @@ describe('exec', () => {
 			const propertyName2 = 'property-name2';
 			const propertyDictionary2 = 'property-dictionary2';
 
-			const selectionCritieria = {
+			const schema = new Schema({
+				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
+				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
+			});
+			const selectionCritieria: Filter<typeof schema> = {
 				[propertyName1]: propertyValue1,
 			};
 			const sortCriteria: SortCriteria = [
 				[propertyName1, -1],
 				[propertyName2, -1],
 			];
-
-			const schema = new Schema({
-				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
-				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
-			});
 
 			const query = new Query(
 				connectionMock,
@@ -1394,18 +1390,17 @@ describe('exec', () => {
 			const propertyName2 = 'property-name2';
 			const propertyDictionary2 = 'property-dictionary2';
 
-			const selectionCritieria = {
+			const schema = new Schema({
+				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
+				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
+			});
+			const selectionCritieria: Filter<typeof schema> = {
 				[propertyName1]: propertyValue1,
 			};
 			const sortCriteria: SortCriteria = [
 				[propertyName1, -1],
 				[propertyName2, 1],
 			];
-
-			const schema = new Schema({
-				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
-				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
-			});
 
 			const query = new Query(
 				connectionMock,
@@ -1445,15 +1440,15 @@ describe('exec', () => {
 			const propertyName = 'property-name';
 			const propertyValue = 'property-value';
 			const propertyDictionary = 'property-dictionary';
-			const selectionCritieria = {
-				[propertyName]: propertyValue,
-			};
-			const skip = 15;
-			const limit = 25;
 
 			const schema = new Schema({
 				[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
 			});
+			const selectionCritieria: Filter<typeof schema> = {
+				[propertyName]: propertyValue,
+			};
+			const skip = 15;
+			const limit = 25;
 
 			const query = new Query(
 				connectionMock,
@@ -1486,13 +1481,13 @@ describe('exec', () => {
 			const propertyName = 'property-name';
 			const propertyValue = 'property-value';
 			const propertyDictionary = 'property-dictionary';
-			const selectionCritieria = {
-				[propertyName]: propertyValue,
-			};
 
 			const schema = new Schema({
 				[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
 			});
+			const selectionCritieria: Filter<typeof schema> = {
+				[propertyName]: propertyValue,
+			};
 
 			const query = new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 			const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
@@ -1528,13 +1523,13 @@ describe('exec', () => {
 			const propertyName = 'property-name';
 			const propertyValue = 'property-value';
 			const propertyDictionary = 'property-dictionary';
-			const selectionCritieria = {
-				[propertyName]: propertyValue,
-			};
 
 			const schema = new Schema({
 				[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
 			});
+			const selectionCritieria: Filter<typeof schema> = {
+				[propertyName]: propertyValue,
+			};
 
 			const query = new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 			await expect(query.exec()).rejects.toThrow(QueryLimitError);
@@ -1555,7 +1550,12 @@ describe('exec', () => {
 			const propertyName3 = 'property-name3';
 			const propertyDictionary3 = 'property-dictionary3';
 
-			const selectionCritieria = {
+			const schema = new Schema({
+				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
+				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
+				[propertyName3]: { type: 'string', path: 3, dictionary: propertyDictionary3 },
+			});
+			const selectionCritieria: Filter<typeof schema> = {
 				[propertyName1]: propertyValue1,
 			};
 			const sortCriteria: SortCriteria = [
@@ -1563,12 +1563,6 @@ describe('exec', () => {
 				[propertyName2, 1],
 				[propertyName3, 1],
 			];
-
-			const schema = new Schema({
-				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
-				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
-				[propertyName3]: { type: 'string', path: 3, dictionary: propertyDictionary3 },
-			});
 
 			const query = new Query(
 				connectionMock,
@@ -1600,17 +1594,16 @@ describe('exec', () => {
 			const propertyValue3 = 'property-value3';
 			const propertyDictionary3 = 'property-dictionary3';
 
-			const selectionCritieria = {
-				[propertyName1]: propertyValue1,
-				[propertyName2]: propertyValue2,
-				[propertyName3]: propertyValue3,
-			};
-
 			const schema = new Schema({
 				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
 				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
 				[propertyName3]: { type: 'string', path: 3, dictionary: propertyDictionary3 },
 			});
+			const selectionCritieria: Filter<typeof schema> = {
+				[propertyName1]: propertyValue1,
+				[propertyName2]: propertyValue2,
+				[propertyName3]: propertyValue3,
+			};
 
 			const query = new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 			await expect(query.exec()).rejects.toThrow(QueryLimitError);
@@ -1629,13 +1622,12 @@ describe('exec', () => {
 			const propertyValue2 = 'property-value2';
 			const propertyValue3 = 'property-value3';
 
-			const selectionCritieria = {
-				[propertyName1]: [propertyValue1, propertyValue2, propertyValue3],
-			};
-
 			const schema = new Schema({
 				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
 			});
+			const selectionCritieria: Filter<typeof schema> = {
+				[propertyName1]: [propertyValue1, propertyValue2, propertyValue3],
+			};
 
 			const query = new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 			await expect(query.exec()).rejects.toThrow(QueryLimitError);
@@ -1655,13 +1647,13 @@ describe('exec', () => {
 			const propertyName = 'property-name';
 			const propertyValue = 'property-value';
 			const propertyDictionary = 'property-dictionary';
-			const selectionCritieria = {
-				[propertyName]: propertyValue,
-			};
 
 			const schema = new Schema({
 				[propertyName]: { type: 'string', path: 2, dictionary: propertyDictionary },
 			});
+			const selectionCritieria: Filter<typeof schema> = {
+				[propertyName]: propertyValue,
+			};
 
 			const projection = ['property-name'];
 			const query = new Query(

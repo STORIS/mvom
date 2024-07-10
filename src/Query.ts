@@ -42,14 +42,11 @@ export interface FilterOperators<TValue> {
 	$nin?: TValue[];
 }
 
-export interface RootFilterOperators<
-	TSchema extends Schema<TSchemaDefinition> | null,
-	TSchemaDefinition extends SchemaDefinition,
-> {
+export interface RootFilterOperators<TSchema extends Schema<SchemaDefinition> | null> {
 	/** Used to combine conditions with an and */
-	$and?: Filter<TSchema, TSchemaDefinition>[];
+	$and?: Filter<TSchema>[];
 	/** Used to combine conditions with an or */
-	$or?: Filter<TSchema, TSchemaDefinition>[];
+	$or?: Filter<TSchema>[];
 }
 
 export type Condition<TValue> = TValue | TValue[] | FilterOperators<TValue>;
@@ -60,11 +57,8 @@ type ObjectCondition<T extends Record<string, unknown>> = {
 };
 
 /** An object representing the query filters */
-export type Filter<
-	TSchema extends Schema<TSchemaDefinition> | null,
-	TSchemaDefinition extends SchemaDefinition,
-> = RootFilterOperators<TSchema, TSchemaDefinition> &
-	((TSchema extends Schema<TSchemaDefinition>
+export type Filter<TSchema extends Schema<SchemaDefinition> | null> = RootFilterOperators<TSchema> &
+	((TSchema extends Schema<SchemaDefinition>
 		? ObjectCondition<FlattenDocument<InferDocumentObject<TSchema>>>
 		: Record<string, never>) & { _id?: Condition<string> });
 
@@ -122,7 +116,7 @@ class Query<
 		schema: TSchema,
 		file: string,
 		logHandler: LogHandler,
-		selectionCriteria: Filter<TSchema, TSchemaDefinition>,
+		selectionCriteria: Filter<TSchema>,
 		options: QueryConstructorOptions = {},
 	) {
 		const { sort, limit, skip, projection } = options;
@@ -186,7 +180,7 @@ class Query<
 	 * @throws {@link TypeError} The value of the $or property must be an array
 	 * @throws {@link TypeError} Invalid conditional operator specified
 	 */
-	private formatSelectionCriteria(criteria: Filter<TSchema, TSchemaDefinition>): string | null {
+	private formatSelectionCriteria(criteria: Filter<TSchema>): string | null {
 		const criteriaProperties = Object.keys(criteria);
 		if (criteriaProperties.length === 0) {
 			return null;
