@@ -148,7 +148,7 @@ export type FlattenDocument<TSchema extends Schema<SchemaDefinition>> =
 		? FlattenObject<O>
 		: never;
 
-/** Infer the string keyPath's of a schema */
+/** Infer the string keyPaths of a schema */
 export type InferSchemaPaths<TSchema extends Schema<SchemaDefinition>> =
 	keyof FlattenDocument<TSchema>;
 // #endregion
