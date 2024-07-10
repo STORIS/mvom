@@ -168,7 +168,7 @@ export type InferSchemaPaths<TSchema extends Schema<SchemaDefinition>> =
 /** Schema constructor */
 class Schema<
 	TSchemaDefinition extends SchemaDefinition,
-	TDictionaries extends Record<string, DictionaryDefinition> = Record<never, never>,
+	TDictionaries extends DictionariesOption = Record<never, never>,
 > {
 	/** Key/value pairs of schema object path structure and associated multivalue dictionary ids */
 	public dictPaths: Map<string, DictionaryTypeDetail>;
@@ -261,62 +261,59 @@ class Schema<
 	}
 
 	/** Build the dictionary path map for additional dictionaries provided as schema options */
-	private buildDictionaryPaths(dictionaries?: TDictionaries): Map<string, DictionaryTypeDetail> {
+	private buildDictionaryPaths(
+		dictionaries: DictionariesOption = {},
+	): Map<string, DictionaryTypeDetail> {
 		// Add reference for _id --> @ID by default
 		const dictPaths = new Map<string, DictionaryTypeDetail>([
 			['_id', { dictionary: '@ID', dataTransformer: new StringDataTransformer() }],
 		]);
 
-		return Object.entries(dictionaries ?? {}).reduce(
-			(acc, [queryProperty, dictionaryDefinition]) => {
-				if (typeof dictionaryDefinition === 'string') {
+		return Object.entries(dictionaries).reduce((acc, [queryProperty, dictionaryDefinition]) => {
+			if (typeof dictionaryDefinition === 'string') {
+				return acc.set(queryProperty, {
+					dictionary: dictionaryDefinition,
+					dataTransformer: new StringDataTransformer(),
+				});
+			}
+
+			const { type, dictionary } = dictionaryDefinition;
+
+			switch (type) {
+				case 'string':
 					return acc.set(queryProperty, {
-						dictionary: dictionaryDefinition,
+						dictionary,
 						dataTransformer: new StringDataTransformer(),
 					});
-				}
-
-				const { type, dictionary } = dictionaryDefinition;
-
-				switch (type) {
-					case 'string':
-						return acc.set(queryProperty, {
-							dictionary,
-							dataTransformer: new StringDataTransformer(),
-						});
-					case 'number':
-						return acc.set(queryProperty, {
-							dictionary,
-							dataTransformer: new NumberDataTransformer(),
-						});
-					case 'boolean':
-						return acc.set(queryProperty, {
-							dictionary,
-							dataTransformer: new BooleanDataTransformer(),
-						});
-					case 'ISOCalendarDate':
-						return acc.set(queryProperty, {
-							dictionary,
-							dataTransformer: new ISOCalendarDateDataTransformer(),
-						});
-					case 'ISOCalendarDateTime':
-						return acc.set(queryProperty, {
-							dictionary,
-							dataTransformer: new ISOCalendarDateTimeDataTransformer(
-								dictionaryDefinition.dbFormat,
-							),
-						});
-					case 'ISOTime':
-						return acc.set(queryProperty, {
-							dictionary,
-							dataTransformer: new ISOTimeDataTransformer(dictionaryDefinition.dbFormat),
-						});
-					default:
-						return acc;
-				}
-			},
-			dictPaths,
-		);
+				case 'number':
+					return acc.set(queryProperty, {
+						dictionary,
+						dataTransformer: new NumberDataTransformer(),
+					});
+				case 'boolean':
+					return acc.set(queryProperty, {
+						dictionary,
+						dataTransformer: new BooleanDataTransformer(),
+					});
+				case 'ISOCalendarDate':
+					return acc.set(queryProperty, {
+						dictionary,
+						dataTransformer: new ISOCalendarDateDataTransformer(),
+					});
+				case 'ISOCalendarDateTime':
+					return acc.set(queryProperty, {
+						dictionary,
+						dataTransformer: new ISOCalendarDateTimeDataTransformer(dictionaryDefinition.dbFormat),
+					});
+				case 'ISOTime':
+					return acc.set(queryProperty, {
+						dictionary,
+						dataTransformer: new ISOTimeDataTransformer(dictionaryDefinition.dbFormat),
+					});
+				default:
+					return acc;
+			}
+		}, dictPaths);
 	}
 
 	/**
