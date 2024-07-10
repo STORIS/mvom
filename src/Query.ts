@@ -74,15 +74,12 @@ export interface QueryExecutionResult {
 // #endregion
 
 /** A query object */
-class Query<
-	TSchema extends Schema<TSchemaDefinition> | null,
-	TSchemaDefinition extends SchemaDefinition,
-> {
+class Query<TSchema extends Schema<SchemaDefinition> | null> {
 	/** Connection instance to run query on */
 	private readonly connection: Connection;
 
 	/** Schema used for query */
-	private readonly schema: Schema<SchemaDefinition> | null;
+	private readonly schema: TSchema;
 
 	/** File to run query against */
 	private readonly file: string;
