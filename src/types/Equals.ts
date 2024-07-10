@@ -34,7 +34,7 @@ type FunctionComparisonEquals<A, B> =
 		T,
 	>() => T extends FunctionComparisonEqualsWrapped<B> ? 1 : 2
 		? true
-		: false;
+		: { error: 'Types are not equal'; expected: A; actual: B };
 
 /**
  * makes `T` invariant for use in conditional types
@@ -60,9 +60,9 @@ type InvariantComparisonEquals<Expected, Actual> =
 		? IsAny<Expected | Actual> extends true
 			? IsAny<Expected> extends true
 				? true
-				: false
+				: { error: 'Types are not equal'; expected: Expected; actual: Actual }
 			: true
-		: false;
+		: { error: 'Types are not equal'; expected: Expected; actual: Actual };
 
 /**
  * Checks if two types are equal at the type level.
