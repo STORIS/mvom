@@ -56,7 +56,7 @@ export interface FilterOperators<TValue> {
 	$nin?: TValue[];
 }
 
-export interface RootFilterOperators<TSchema extends Schema<SchemaDefinition> | null> {
+export interface RootFilterOperators<TSchema extends Schema | null> {
 	/** Used to combine conditions with an and */
 	$and?: Filter<TSchema>[];
 	/** Used to combine conditions with an or */
@@ -82,13 +82,13 @@ type InferDictionaryType<TDictionaryDefinition extends DictionaryDefinition> =
 								? ISOCalendarDateTime
 								: never;
 
-type InferDictionariesType<TSchema extends Schema<SchemaDefinition>> =
+type InferDictionariesType<TSchema extends Schema> =
 	TSchema extends Schema<SchemaDefinition, infer TDictionariesOption>
 		? { [K in keyof TDictionariesOption]: InferDictionaryType<TDictionariesOption[K]> }
 		: never;
 
-export type Filter<TSchema extends Schema<SchemaDefinition> | null> = RootFilterOperators<TSchema> &
-	((TSchema extends Schema<SchemaDefinition>
+export type Filter<TSchema extends Schema | null> = RootFilterOperators<TSchema> &
+	((TSchema extends Schema
 		? FlattenDocument<TSchema> & InferDictionariesType<TSchema> extends infer O
 			? { [Key in keyof O]?: Condition<NonNullable<O[Key]>> }
 			: never
@@ -106,7 +106,7 @@ export interface QueryExecutionResult {
 // #endregion
 
 /** A query object */
-class Query<TSchema extends Schema<SchemaDefinition> | null> {
+class Query<TSchema extends Schema | null> {
 	/** Connection instance to run query on */
 	private readonly connection: Connection;
 

@@ -8,7 +8,7 @@ import type { Assert, MvRecord } from '../types';
 
 const { am, vm, svm } = mockDelimiters;
 
-class DocumentSubclass<TSchema extends Schema<SchemaDefinition> | null> extends Document<TSchema> {
+class DocumentSubclass<TSchema extends Schema | null> extends Document<TSchema> {
 	public constructor(schema: TSchema, options: DocumentConstructorOptions<TSchema>) {
 		super(schema, options);
 	}

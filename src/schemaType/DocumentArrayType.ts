@@ -2,13 +2,12 @@ import { cloneDeep, get as getIn, isPlainObject, set as setIn } from 'lodash';
 import Document from '../Document';
 import type { ForeignKeyDbDefinition } from '../ForeignKeyDbTransformer';
 import type Schema from '../Schema';
-import type { SchemaDefinition } from '../Schema';
 import type { MvRecord } from '../types';
 import { ensureArray } from '../utils';
 import BaseSchemaType from './BaseSchemaType';
 
 /** A Document Array Schema Type */
-class DocumentArrayType<TSchema extends Schema<SchemaDefinition>> extends BaseSchemaType {
+class DocumentArrayType<TSchema extends Schema> extends BaseSchemaType {
 	/** An instance of Schema representing the document structure of the array's contents */
 	private readonly valueSchema: TSchema;
 
