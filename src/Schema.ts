@@ -33,13 +33,13 @@ import type { DataTransformer, DecryptFn, EncryptFn, FlattenObject, MarkRequired
 
 // #region Types
 type SchemaTypeDefinition =
-	| Schema<SchemaDefinition, DictionariesOption>
+	| Schema<SchemaDefinition>
 	| SchemaTypeDefinitionScalar
 	| SchemaDefinition
 	| SchemaTypeDefinitionArray;
 
 type SchemaTypeDefinitionArray =
-	| Schema<SchemaDefinition, DictionariesOption>[]
+	| Schema<SchemaDefinition>[]
 	| SchemaTypeDefinitionScalar[]
 	| SchemaTypeDefinitionScalar[][]
 	| SchemaDefinition[];
@@ -132,22 +132,22 @@ type InferSchemaType<TSchemaTypeDefinition> =
 						? InferRequiredType<TSchemaTypeDefinition, ISOCalendarDateTime>
 						: TSchemaTypeDefinition extends SchemaTypeDefinitionISOTime
 							? InferRequiredType<TSchemaTypeDefinition, ISOTime>
-							: TSchemaTypeDefinition extends Schema<infer TSubSchemaDefinition, DictionariesOption>
-								? InferDocumentObject<Schema<TSubSchemaDefinition, DictionariesOption>>
+							: TSchemaTypeDefinition extends Schema<infer TSubSchemaDefinition>
+								? InferDocumentObject<Schema<TSubSchemaDefinition>>
 								: TSchemaTypeDefinition extends SchemaTypeDefinitionArray
 									? InferSchemaType<TSchemaTypeDefinition[0]>[]
 									: TSchemaTypeDefinition extends SchemaDefinition
-										? InferDocumentObject<Schema<TSchemaTypeDefinition, DictionariesOption>>
+										? InferDocumentObject<Schema<TSchemaTypeDefinition>>
 										: never;
 
 /** Infer the shape of a `Document` instance based upon the Schema it was instantiated with */
-export type InferDocumentObject<TSchema extends Schema<SchemaDefinition, DictionariesOption>> =
-	TSchema extends Schema<infer TSchemaDefinition, DictionariesOption>
+export type InferDocumentObject<TSchema extends Schema<SchemaDefinition>> =
+	TSchema extends Schema<infer TSchemaDefinition>
 		? { [K in keyof TSchemaDefinition]: InferSchemaType<TSchemaDefinition[K]> }
 		: never;
 
 /** Infer the shape of a `Model` instance based upon the Schema it was instantiated with */
-export type InferModelObject<TSchema extends Schema<SchemaDefinition, DictionariesOption>> = {
+export type InferModelObject<TSchema extends Schema<SchemaDefinition>> = {
 	_id: string;
 	__v: string;
 } & InferDocumentObject<TSchema> extends infer O
@@ -155,13 +155,13 @@ export type InferModelObject<TSchema extends Schema<SchemaDefinition, Dictionari
 	: never;
 
 /** Flatten a document to string keyPath (i.e. { "foo.bar.baz": number }) */
-export type FlattenDocument<TSchema extends Schema<SchemaDefinition, DictionariesOption>> =
+export type FlattenDocument<TSchema extends Schema<SchemaDefinition>> =
 	InferDocumentObject<TSchema> extends infer O extends Record<string, unknown>
 		? FlattenObject<O>
 		: never;
 
 /** Infer the string keyPaths of a schema */
-export type InferSchemaPaths<TSchema extends Schema<SchemaDefinition, DictionariesOption>> =
+export type InferSchemaPaths<TSchema extends Schema<SchemaDefinition>> =
 	keyof FlattenDocument<TSchema>;
 // #endregion
 
@@ -189,7 +189,7 @@ class Schema<
 	private readonly positionPaths: Map<string, number[]>;
 
 	/** Map of all subdocument schemas represented in this Schema with parentPath as key */
-	private readonly subdocumentSchemas: Map<string, Schema<SchemaDefinition, DictionariesOption>>;
+	private readonly subdocumentSchemas: Map<string, Schema<SchemaDefinition>>;
 
 	/** Optional function to use for encryption of sensitive data */
 	private readonly encrypt?: EncryptFn;
@@ -368,7 +368,7 @@ class Schema<
 	private castArray(
 		castee: SchemaTypeDefinitionArray,
 		keyPath: string,
-	): ArrayType | NestedArrayType | DocumentArrayType<Schema<SchemaDefinition, DictionariesOption>> {
+	): ArrayType | NestedArrayType | DocumentArrayType<Schema<SchemaDefinition>> {
 		if (castee.length !== 1) {
 			// a schema array definition must contain exactly one value of language-type object (which includes arrays)
 			throw new InvalidParameterError({
@@ -470,7 +470,7 @@ class Schema<
 
 	/** Perform ancillary updates needed when a subdocument is in the Schema definition */
 	private handleSubDocumentSchemas<
-		TSchema extends Schema<TSubdocumentSchemaDefinition, DictionariesOption>,
+		TSchema extends Schema<TSubdocumentSchemaDefinition>,
 		TSubdocumentSchemaDefinition extends SchemaDefinition,
 	>(schema: TSchema, keyPath: string) {
 		this.subdocumentSchemas.set(keyPath, schema);
@@ -489,7 +489,7 @@ class Schema<
 
 	/** Merge subdocument schema dictionaries with the parent schema's dictionaries */
 	private mergeSchemaDictionaries<
-		TSchema extends Schema<TSubdocumentSchemaDefinition, DictionariesOption>,
+		TSchema extends Schema<TSubdocumentSchemaDefinition>,
 		TSubdocumentSchemaDefinition extends SchemaDefinition,
 	>(schema: TSchema, keyPath: string) {
 		this.dictPaths = Array.from(schema.dictPaths).reduce(

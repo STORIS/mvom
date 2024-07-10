@@ -2,19 +2,15 @@ import { assignIn, cloneDeep, get as getIn, set as setIn } from 'lodash';
 import { TransformDataError } from './errors';
 import ForeignKeyDbTransformer from './ForeignKeyDbTransformer';
 import type Schema from './Schema';
-import type { DictionariesOption, InferDocumentObject, SchemaDefinition } from './Schema';
+import type { InferDocumentObject, SchemaDefinition } from './Schema';
 import type { DbServerDelimiters, MvRecord } from './types';
 
 // #region Types
 /** Type of data property for constructing a document dependent upon the schema */
-export type DocumentData<TSchema extends Schema<SchemaDefinition, DictionariesOption> | null> =
-	TSchema extends Schema<SchemaDefinition, DictionariesOption>
-		? InferDocumentObject<TSchema>
-		: never;
+export type DocumentData<TSchema extends Schema<SchemaDefinition> | null> =
+	TSchema extends Schema<SchemaDefinition> ? InferDocumentObject<TSchema> : never;
 
-export interface DocumentConstructorOptions<
-	TSchema extends Schema<SchemaDefinition, DictionariesOption> | null,
-> {
+export interface DocumentConstructorOptions<TSchema extends Schema<SchemaDefinition> | null> {
 	data?: DocumentData<TSchema>;
 	record?: MvRecord;
 	isSubdocument?: boolean;
@@ -30,17 +26,17 @@ export interface BuildForeignKeyDefinitionsResult {
  * An intersection type that combines the `Document` class instance with the
  * inferred shape of the document object based on the schema definition.
  */
-type DocumentCompositeValue<TSchema extends Schema<SchemaDefinition, DictionariesOption> | null> =
-	TSchema extends Schema<SchemaDefinition, DictionariesOption>
+type DocumentCompositeValue<TSchema extends Schema<SchemaDefinition> | null> =
+	TSchema extends Schema<SchemaDefinition>
 		? Document<TSchema> & InferDocumentObject<TSchema>
 		: Document<TSchema>;
 // #endregion
 
 /** A document object */
-class Document<TSchema extends Schema<SchemaDefinition, DictionariesOption> | null> {
+class Document<TSchema extends Schema<SchemaDefinition> | null> {
 	[key: string]: unknown;
 
-	public _raw: TSchema extends Schema<SchemaDefinition, DictionariesOption> ? undefined : MvRecord;
+	public _raw: TSchema extends Schema<SchemaDefinition> ? undefined : MvRecord;
 
 	/** Array of any errors which occurred during transformation from the database */
 	public _transformationErrors: TransformDataError[];
@@ -66,12 +62,9 @@ class Document<TSchema extends Schema<SchemaDefinition, DictionariesOption> | nu
 			_transformationErrors: { configurable: false, enumerable: false, writable: false },
 		});
 
-		this._raw = (schema == null ? this.#record : undefined) as TSchema extends Schema<
-			SchemaDefinition,
-			DictionariesOption
-		>
-			? undefined
-			: MvRecord;
+		this._raw = (
+			schema == null ? this.#record : undefined
+		) as TSchema extends Schema<SchemaDefinition> ? undefined : MvRecord;
 
 		this.#transformRecordToDocument();
 
@@ -80,23 +73,23 @@ class Document<TSchema extends Schema<SchemaDefinition, DictionariesOption> | nu
 	}
 
 	/** Create a new Subdocument instance from a record array */
-	public static createSubdocumentFromRecord<
-		TSchema extends Schema<SchemaDefinition, DictionariesOption> | null,
-	>(schema: TSchema, record: MvRecord): DocumentCompositeValue<TSchema> {
+	public static createSubdocumentFromRecord<TSchema extends Schema<SchemaDefinition> | null>(
+		schema: TSchema,
+		record: MvRecord,
+	): DocumentCompositeValue<TSchema> {
 		return new Document(schema, { record, isSubdocument: true }) as DocumentCompositeValue<TSchema>;
 	}
 
 	/** Create a new Subdocument instance from data */
-	public static createSubdocumentFromData<
-		TSchema extends Schema<SchemaDefinition, DictionariesOption>,
-	>(schema: TSchema, data: DocumentData<TSchema>): DocumentCompositeValue<TSchema> {
+	public static createSubdocumentFromData<TSchema extends Schema<SchemaDefinition>>(
+		schema: TSchema,
+		data: DocumentData<TSchema>,
+	): DocumentCompositeValue<TSchema> {
 		return new Document(schema, { data, isSubdocument: true }) as DocumentCompositeValue<TSchema>;
 	}
 
 	/** Create a new Document instance from a record string */
-	public static createDocumentFromRecordString<
-		TSchema extends Schema<SchemaDefinition, DictionariesOption> | null,
-	>(
+	public static createDocumentFromRecordString<TSchema extends Schema<SchemaDefinition> | null>(
 		schema: TSchema,
 		recordString: string,
 		dbServerDelimiters: DbServerDelimiters,

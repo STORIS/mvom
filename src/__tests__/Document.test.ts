@@ -2,15 +2,13 @@ import mockDelimiters from '#test/mockDelimiters';
 import type { BuildForeignKeyDefinitionsResult, DocumentConstructorOptions } from '../Document';
 import Document from '../Document';
 import { TransformDataError } from '../errors';
-import type { DictionariesOption, SchemaDefinition } from '../Schema';
+import type { SchemaDefinition } from '../Schema';
 import Schema from '../Schema';
 import type { Assert, MvRecord } from '../types';
 
 const { am, vm, svm } = mockDelimiters;
 
-class DocumentSubclass<
-	TSchema extends Schema<SchemaDefinition, DictionariesOption> | null,
-> extends Document<TSchema> {
+class DocumentSubclass<TSchema extends Schema<SchemaDefinition> | null> extends Document<TSchema> {
 	public constructor(schema: TSchema, options: DocumentConstructorOptions<TSchema>) {
 		super(schema, options);
 	}

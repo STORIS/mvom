@@ -1,14 +1,12 @@
 import { cloneDeep, isPlainObject, set as setIn } from 'lodash';
 import Document from '../Document';
 import type Schema from '../Schema';
-import type { DictionariesOption, SchemaDefinition } from '../Schema';
+import type { SchemaDefinition } from '../Schema';
 import type { MvRecord } from '../types';
 import BaseSchemaType from './BaseSchemaType';
 
 /** Embedded Schema Type */
-class EmbeddedType<
-	TSchema extends Schema<SchemaDefinition, DictionariesOption>,
-> extends BaseSchemaType {
+class EmbeddedType<TSchema extends Schema<SchemaDefinition>> extends BaseSchemaType {
 	/** An instance of Schema representing the the document structure of embedded object contents */
 	private readonly valueSchema: TSchema;
 

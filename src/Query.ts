@@ -2,7 +2,6 @@ import type Connection from './Connection';
 import { InvalidParameterError, QueryLimitError } from './errors';
 import type LogHandler from './LogHandler';
 import type {
-	DictionariesOption,
 	DictionaryDefinition,
 	DictionaryTypeDefinitionBoolean,
 	DictionaryTypeDefinitionISOCalendarDate,
@@ -107,7 +106,7 @@ export interface QueryExecutionResult {
 // #endregion
 
 /** A query object */
-class Query<TSchema extends Schema<SchemaDefinition, DictionariesOption> | null> {
+class Query<TSchema extends Schema<SchemaDefinition> | null> {
 	/** Connection instance to run query on */
 	private readonly connection: Connection;
 
@@ -216,7 +215,7 @@ class Query<TSchema extends Schema<SchemaDefinition, DictionariesOption> | null>
 			return null;
 		}
 
-		const andConditions = Object.entries<unknown>(criteria).map(([queryProperty, queryValue]) => {
+		const andConditions = Object.entries(criteria).map(([queryProperty, queryValue]) => {
 			if (queryProperty === '$or' || queryProperty === '$and') {
 				if (!Array.isArray(queryValue) || queryValue.length === 0) {
 					throw new TypeError(`The value of the ${queryProperty} property must be an array`);
@@ -242,8 +241,8 @@ class Query<TSchema extends Schema<SchemaDefinition, DictionariesOption> | null>
 			}
 
 			// if query value is an object then it should contain one or more pairs of operator and value
-			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-			const operatorConditions = Object.entries(queryValue!).map(([operator, mvValue]) => {
+
+			const operatorConditions = Object.entries(queryValue).map(([operator, mvValue]) => {
 				switch (operator) {
 					case '$eq':
 						return this.formatCondition(queryProperty, '=', mvValue);
