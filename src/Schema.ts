@@ -29,14 +29,7 @@ import type {
 	SchemaTypeDefinitionScalar,
 	SchemaTypeDefinitionString,
 } from './schemaType';
-import type {
-	DataTransformer,
-	DecryptFn,
-	EncryptFn,
-	FromPaths,
-	MarkRequired,
-	ToPaths,
-} from './types';
+import type { DataTransformer, DecryptFn, EncryptFn, FlattenObject, MarkRequired } from './types';
 
 // #region Types
 type SchemaTypeDefinition =
@@ -150,14 +143,14 @@ export type InferModelObject<TSchema extends Schema<SchemaDefinition>> = {
 	: never;
 
 /** Flatten a document to string keyPath (i.e. { "foo.bar.baz": number }) */
-export type FlattenDocument<TObject extends Record<string, unknown>> = FromPaths<ToPaths<TObject>>;
-/** Flatten a schema's output to string keyPath (i.e. { "foo.bar.baz": number }) */
-type FlattenSchema<TSchema extends Schema<SchemaDefinition>> = FlattenDocument<
-	InferDocumentObject<TSchema>
->;
+export type FlattenDocument<TSchema extends Schema<SchemaDefinition>> =
+	InferDocumentObject<TSchema> extends infer O extends Record<string, unknown>
+		? FlattenObject<O>
+		: never;
+
 /** Infer the string keyPath's of a schema */
 export type InferSchemaPaths<TSchema extends Schema<SchemaDefinition>> =
-	keyof FlattenSchema<TSchema>;
+	keyof FlattenDocument<TSchema>;
 // #endregion
 
 /** Schema constructor */

@@ -1,7 +1,7 @@
 import type Connection from './Connection';
 import { InvalidParameterError, QueryLimitError } from './errors';
 import type LogHandler from './LogHandler';
-import type { FlattenDocument, InferDocumentObject, SchemaDefinition } from './Schema';
+import type { FlattenDocument, SchemaDefinition } from './Schema';
 import type Schema from './Schema';
 import type { DbDocument, DbSubroutineInputFind, DbSubroutineSetupOptions } from './types';
 
@@ -53,7 +53,7 @@ export type Condition<TValue> = TValue | TValue[] | FilterOperators<TValue>;
 
 export type Filter<TSchema extends Schema<SchemaDefinition> | null> = RootFilterOperators<TSchema> &
 	((TSchema extends Schema<SchemaDefinition>
-		? FlattenDocument<InferDocumentObject<TSchema>> extends infer O
+		? FlattenDocument<TSchema> extends infer O
 			? { [Key in keyof O]?: Condition<NonNullable<O[Key]>> }
 			: never
 		: Record<string, never>) & { _id?: Condition<string> });

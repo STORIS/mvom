@@ -1242,7 +1242,7 @@ describe('utility types', () => {
 			});
 
 			const test1: Assert<
-				FlattenDocument<InferDocumentObject<typeof schema>>,
+				FlattenDocument<typeof schema>,
 				{
 					booleanOptional: boolean | null;
 					booleanRequired: boolean;

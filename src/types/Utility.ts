@@ -33,3 +33,6 @@ export type ToPaths<
 export type FromPaths<T extends { path: string; type: unknown }> = {
 	[P in T['path']]: Extract<T, { path: P }>['type'];
 };
+
+/** Flatten an object to string keyPath (i.e. { "foo.bar.baz": number }) */
+export type FlattenObject<TObject extends Record<string, unknown>> = FromPaths<ToPaths<TObject>>;
