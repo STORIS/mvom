@@ -466,10 +466,10 @@ class Schema<
 	}
 
 	/** Perform ancillary updates needed when a subdocument is in the Schema definition */
-	private handleSubDocumentSchemas<
-		TSchema extends Schema<TSubdocumentSchemaDefinition>,
-		TSubdocumentSchemaDefinition extends SchemaDefinition,
-	>(schema: TSchema, keyPath: string) {
+	private handleSubDocumentSchemas<TSchema extends Schema<SchemaDefinition>>(
+		schema: TSchema,
+		keyPath: string,
+	) {
 		this.subdocumentSchemas.set(keyPath, schema);
 		this.mergeSchemaDictionaries(schema, keyPath);
 	}
@@ -485,10 +485,10 @@ class Schema<
 	}
 
 	/** Merge subdocument schema dictionaries with the parent schema's dictionaries */
-	private mergeSchemaDictionaries<
-		TSchema extends Schema<TSubdocumentSchemaDefinition>,
-		TSubdocumentSchemaDefinition extends SchemaDefinition,
-	>(schema: TSchema, keyPath: string) {
+	private mergeSchemaDictionaries<TSchema extends Schema<SchemaDefinition>>(
+		schema: TSchema,
+		keyPath: string,
+	) {
 		this.dictPaths = Array.from(schema.dictPaths).reduce(
 			(acc, [subDictPath, subDictTypeDetail]) => {
 				const dictKey = `${keyPath}.${subDictPath}`;
