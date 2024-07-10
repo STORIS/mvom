@@ -5,32 +5,35 @@ import { DataValidationError } from './errors';
 import type LogHandler from './LogHandler';
 import Query, { type Filter, type QueryConstructorOptions } from './Query';
 import type Schema from './Schema';
-import type { InferModelObject, SchemaDefinition } from './Schema';
+import type { DictionariesOption, InferModelObject, SchemaDefinition } from './Schema';
 import type { DbServerDelimiters, DbSubroutineUserDefinedOptions } from './types';
 import { ensureArray } from './utils';
 
 // #region Types
-export interface ModelConstructorOptions<TSchema extends Schema<SchemaDefinition> | null> {
+export interface ModelConstructorOptions<
+	TSchema extends Schema<SchemaDefinition, DictionariesOption> | null,
+> {
 	_id?: string | null;
 	__v?: string | null;
 	data?: DocumentData<TSchema>;
 	record?: string;
 }
 
-export type ModelConstructor<TSchema extends Schema<SchemaDefinition> | null> = ReturnType<
-	typeof compileModel<TSchema>
->;
+export type ModelConstructor<TSchema extends Schema<SchemaDefinition, DictionariesOption> | null> =
+	ReturnType<typeof compileModel<TSchema>>;
 
 /**
  * An intersection type that combines the `Model` class instance with the
  * inferred shape of the model object based on the schema definition.
  */
-type ModelCompositeValue<TSchema extends Schema<SchemaDefinition> | null> =
-	TSchema extends Schema<SchemaDefinition>
+type ModelCompositeValue<TSchema extends Schema<SchemaDefinition, DictionariesOption> | null> =
+	TSchema extends Schema<SchemaDefinition, DictionariesOption>
 		? InstanceType<ModelConstructor<TSchema>> & InferModelObject<TSchema>
 		: InstanceType<ModelConstructor<TSchema>>;
 
-export interface ModelFindAndCountResult<TSchema extends Schema<SchemaDefinition> | null> {
+export interface ModelFindAndCountResult<
+	TSchema extends Schema<SchemaDefinition, DictionariesOption> | null,
+> {
 	/** Number of documents returned */
 	count: number;
 	/** Model instances for the returned documents */
@@ -54,7 +57,7 @@ export type ModelSaveOptions = ModelDatabaseExecutionOptions;
 // #endregion
 
 /** Define a new model */
-const compileModel = <TSchema extends Schema<SchemaDefinition> | null>(
+const compileModel = <TSchema extends Schema<SchemaDefinition, DictionariesOption> | null>(
 	connection: Connection,
 	schema: TSchema,
 	file: string,

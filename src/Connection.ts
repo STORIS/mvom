@@ -30,7 +30,7 @@ import {
 import type { Logger } from './LogHandler';
 import LogHandler from './LogHandler';
 import type Schema from './Schema';
-import type { SchemaDefinition } from './Schema';
+import type { DictionariesOption, SchemaDefinition } from './Schema';
 import type {
 	DbServerDelimiters,
 	DbServerLimits,
@@ -350,7 +350,7 @@ class Connection {
 	}
 
 	/** Define a new model */
-	public model<TSchema extends Schema<SchemaDefinition> | null>(
+	public model<TSchema extends Schema<SchemaDefinition, DictionariesOption> | null>(
 		schema: TSchema,
 		file: string,
 	): ModelConstructor<TSchema> {
