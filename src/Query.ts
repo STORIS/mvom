@@ -2,6 +2,7 @@ import type Connection from './Connection';
 import { InvalidParameterError, QueryLimitError } from './errors';
 import type LogHandler from './LogHandler';
 import type {
+	DictionariesOption,
 	DictionaryDefinition,
 	DictionaryTypeDefinitionBoolean,
 	DictionaryTypeDefinitionISOCalendarDate,
@@ -16,7 +17,6 @@ import type {
 	SchemaDefinition,
 } from './Schema';
 import type Schema from './Schema';
-import type {} from './schemaType';
 import type { DbDocument, DbSubroutineInputFind, DbSubroutineSetupOptions } from './types';
 
 // #region Types
@@ -82,14 +82,13 @@ type InferDictionaryType<TDictionaryDefinition extends DictionaryDefinition> =
 								? ISOCalendarDateTime
 								: never;
 
-type InferDictionariesType<TSchema extends Schema> =
-	TSchema extends Schema<SchemaDefinition, infer TDictionariesOption>
-		? { [K in keyof TDictionariesOption]: InferDictionaryType<TDictionariesOption[K]> }
-		: never;
+type InferDictionariesType<TDictionariesOption extends DictionariesOption> = {
+	[K in keyof TDictionariesOption]: InferDictionaryType<TDictionariesOption[K]>;
+};
 
 export type Filter<TSchema extends Schema | null> = RootFilterOperators<TSchema> &
-	((TSchema extends Schema
-		? FlattenDocument<TSchema> & InferDictionariesType<TSchema> extends infer O
+	((TSchema extends Schema<SchemaDefinition, infer TDictionariesOption>
+		? FlattenDocument<TSchema> & InferDictionariesType<TDictionariesOption> extends infer O
 			? { [Key in keyof O]?: Condition<NonNullable<O[Key]>> }
 			: never
 		: Record<string, never>) & { _id?: Condition<string> });
