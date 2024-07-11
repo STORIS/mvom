@@ -32,7 +32,7 @@ import type {
 import type { DataTransformer, DecryptFn, EncryptFn, FlattenObject, MarkRequired } from './types';
 
 // #region Types
-type SchemaTypeDefinition =
+export type SchemaTypeDefinition =
 	| Schema
 	| SchemaTypeDefinitionScalar
 	| SchemaDefinition
@@ -140,10 +140,18 @@ type InferSchemaType<TSchemaTypeDefinition> =
 										? InferDocumentObject<Schema<TSchemaTypeDefinition>>
 										: never;
 
-/** Infer the shape of a `Document` instance based upon the Schema it was instantiated with */
-export type InferDocumentObject<TSchema extends Schema> =
+/**
+ * Infer the shape of a `Document` instance based upon the Schema it was instantiated with
+ *
+ * Allows a constraint to be specified to filter the output to only include properties of a specific type
+ */
+export type InferDocumentObject<TSchema extends Schema, TConstraint = SchemaTypeDefinition> =
 	TSchema extends Schema<infer TSchemaDefinition>
-		? { [K in keyof TSchemaDefinition]: InferSchemaType<TSchemaDefinition[K]> }
+		? {
+				[K in keyof TSchemaDefinition as TSchemaDefinition[K] extends TConstraint
+					? K
+					: never]: InferSchemaType<TSchemaDefinition[K]>;
+			}
 		: never;
 
 /** Infer the shape of a `Model` instance based upon the Schema it was instantiated with */
@@ -154,9 +162,13 @@ export type InferModelObject<TSchema extends Schema> = {
 	? { [K in keyof O]: O[K] }
 	: never;
 
-/** Flatten a document to string keyPath (i.e. { "foo.bar.baz": number }) */
-export type FlattenDocument<TSchema extends Schema> =
-	InferDocumentObject<TSchema> extends infer O extends Record<string, unknown>
+/**
+ * Flatten a document to string keyPath (i.e. { "foo.bar.baz": number })
+ *
+ * Allows a constraint to be specified to filter the output to only include properties of a specific type
+ */
+export type FlattenDocument<TSchema extends Schema, TConstraint = SchemaTypeDefinition> =
+	InferDocumentObject<TSchema, TConstraint> extends infer O extends Record<string, unknown>
 		? FlattenObject<O>
 		: never;
 

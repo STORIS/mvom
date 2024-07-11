@@ -124,6 +124,7 @@ describe('constructor', () => {
 				[propertyName1]: { type: 'string', path: 1 },
 			});
 			const selectionCritieria: Filter<typeof schema> = {
+				// @ts-expect-error: Testing invalid input
 				[propertyName1]: propertyValue1,
 			};
 
@@ -1686,7 +1687,9 @@ describe('exec', () => {
 describe('utility types', () => {
 	describe('Filter', () => {
 		test('should construct filter type from a single schema property', () => {
-			const schema = new Schema({ stringProp: { type: 'string', path: '1' } });
+			const schema = new Schema({
+				stringProp: { type: 'string', path: '1', dictionary: 'STRING_PROP' },
+			});
 
 			const test1: Equals<
 				Filter<typeof schema>,
@@ -1716,7 +1719,7 @@ describe('utility types', () => {
 
 		test('should construct filter type from both a schema property and a dictionary', () => {
 			const schema = new Schema(
-				{ stringProp: { type: 'string', path: '1' } },
+				{ stringProp: { type: 'string', path: '1', dictionary: 'STRING_PROP' } },
 				{ dictionaries: { stringDictionary: 'STRING_DICTIONARY' } },
 			);
 			const test1: Equals<
@@ -1726,6 +1729,24 @@ describe('utility types', () => {
 					$or?: Filter<typeof schema>[];
 					stringProp?: Condition<string>;
 					stringDictionary?: Condition<string>;
+					_id?: Condition<string>;
+				}
+			> = true;
+			expect(test1).toBe(true);
+		});
+
+		test('should construct filter type excluding schema properties that do not have a dictionary defined', () => {
+			const schema = new Schema({
+				hasDictionary: { type: 'string', path: '1', dictionary: 'STRING_PROP' },
+				noDictionary: { type: 'string', path: '2' },
+			});
+
+			const test1: Equals<
+				Filter<typeof schema>,
+				{
+					$and?: Filter<typeof schema>[];
+					$or?: Filter<typeof schema>[];
+					hasDictionary?: Condition<string>;
 					_id?: Condition<string>;
 				}
 			> = true;
@@ -1774,48 +1795,123 @@ describe('utility types', () => {
 		test('should construct filter type from mixed schema', () => {
 			const schema = new Schema(
 				{
-					booleanOptional: { type: 'boolean', path: '1' },
-					booleanRequired: { type: 'boolean', path: '2', required: true },
-					stringOptional: { type: 'string', path: '3' },
-					stringRequired: { type: 'string', path: '4', required: true },
-					numberOptional: { type: 'number', path: '5' },
-					numberRequired: { type: 'number', path: '6', required: true },
-					isoCalendarDateOptional: { type: 'ISOCalendarDate', path: '7' },
-					isoCalendarDateRequired: { type: 'ISOCalendarDate', path: '8', required: true },
-					isoTimeOptional: { type: 'ISOTime', path: '9' },
-					isoTimeRequired: { type: 'ISOTime', path: '10', required: true },
-					isoCalendarDateTimeOptional: { type: 'ISOCalendarDateTime', path: '11' },
-					isoCalendarDateTimeRequired: { type: 'ISOCalendarDateTime', path: '12', required: true },
-					arrayOptional: [{ type: 'string', path: '13' }],
-					arrayRequired: [{ type: 'string', path: '14', required: true }],
-					nestedArrayOptional: [[{ type: 'string', path: '15' }]],
-					nestedArrayRequired: [[{ type: 'string', path: '16', required: true }]],
+					booleanOptional: { type: 'boolean', path: '1', dictionary: 'BOOLEAN_OPTIONAL' },
+					booleanRequired: {
+						type: 'boolean',
+						path: '2',
+						dictionary: 'BOOLEAN_REQUIRED',
+						required: true,
+					},
+					stringOptional: { type: 'string', path: '3', dictionary: 'STRING_OPTIONAL' },
+					stringRequired: {
+						type: 'string',
+						path: '4',
+						dictionary: 'STRING_REQUIRED',
+						required: true,
+					},
+					numberOptional: { type: 'number', path: '5', dictionary: 'NUMBER_OPTIONAL' },
+					numberRequired: {
+						type: 'number',
+						path: '6',
+						dictionary: 'NUMBER_REQUIRED',
+						required: true,
+					},
+					isoCalendarDateOptional: {
+						type: 'ISOCalendarDate',
+						path: '7',
+						dictionary: 'ISO_CALENDAR_DATE_OPTIONAL',
+					},
+					isoCalendarDateRequired: {
+						type: 'ISOCalendarDate',
+						path: '8',
+						dictionary: 'ISO_CALENDAR_DATE_REQUIRED',
+						required: true,
+					},
+					isoTimeOptional: { type: 'ISOTime', path: '9', dictionary: 'ISO_TIME_OPTIONAL' },
+					isoTimeRequired: {
+						type: 'ISOTime',
+						path: '10',
+						dictionary: 'ISO_TIME_REQUIRED',
+						required: true,
+					},
+					isoCalendarDateTimeOptional: {
+						type: 'ISOCalendarDateTime',
+						path: '11',
+						dictionary: 'ISO_CALENDAR_DATE_TIME_OPTIONAL',
+					},
+					isoCalendarDateTimeRequired: {
+						type: 'ISOCalendarDateTime',
+						path: '12',
+						dictionary: 'ISO_CALENDAR_DATE_TIME_REQUIRED',
+						required: true,
+					},
+					arrayOptional: [{ type: 'string', path: '13', dictionary: 'ARRAY_OPTIONAL' }],
+					arrayRequired: [
+						{ type: 'string', path: '14', dictionary: 'ARRAY_REQUIRED', required: true },
+					],
+					nestedArrayOptional: [
+						[{ type: 'string', path: '15', dictionary: 'NESTED_ARRAY_OPTIONAL' }],
+					],
+					nestedArrayRequired: [
+						[{ type: 'string', path: '16', dictionary: 'NESTED_ARRAY_REQUIRED', required: true }],
+					],
 					embeddedOptional: new Schema({
-						innerEmbeddedProp: { type: 'string', path: '17' },
+						innerEmbeddedProp: { type: 'string', path: '17', dictionary: 'EMBEDDED_OPTIONAL' },
 					}),
 					embeddedRequired: new Schema({
-						innerEmbeddedProp: { type: 'string', path: '18', required: true },
+						innerEmbeddedProp: {
+							type: 'string',
+							path: '18',
+							dictionary: 'EMBEDDED_REQUIRED',
+							required: true,
+						},
 					}),
 					documentArrayOptional: [
 						{
-							docStringProp: { type: 'string', path: '19' },
-							docNumberProp: { type: 'number', path: '20' },
+							docStringProp: {
+								type: 'string',
+								path: '19',
+								dictionary: 'DOCUMENT_ARRAY_STRING_OPTIONAL',
+							},
+							docNumberProp: {
+								type: 'number',
+								path: '20',
+								dictionary: 'DOCUMENT_ARRAY_NUMBER_OPTIONAL',
+							},
 						},
 					],
 					documentArrayRequired: [
 						{
-							docStringProp: { type: 'string', path: '21', required: true },
-							docNumberProp: { type: 'number', path: '22' },
+							docStringProp: {
+								type: 'string',
+								path: '21',
+								dictionary: 'DOCUMENT_ARRAY_STRING_REQUIRED',
+								required: true,
+							},
+							docNumberProp: {
+								type: 'number',
+								path: '22',
+								dictionary: 'DOCUMENT_ARRAY_NUMBER_REQUIRED',
+							},
 						},
 					],
 					documentArraySchemaOptional: [
 						new Schema({
-							docStringProp: { type: 'string', path: '23' },
+							docStringProp: {
+								type: 'string',
+								path: '23',
+								dictionary: 'DOCUMENT_ARRAY_SCHEMA_OPTIONAL',
+							},
 						}),
 					],
 					documentArraySchemaRequired: [
 						new Schema({
-							docStringProp: { type: 'string', path: '24', required: true },
+							docStringProp: {
+								type: 'string',
+								path: '24',
+								required: true,
+								dictionary: 'DOCUMENT_ARRAY_SCHEMA_REQUIRED',
+							},
 						}),
 					],
 				},
@@ -1883,7 +1979,9 @@ describe('utility types', () => {
 
 	describe('SortCriteria', () => {
 		test('should construct sort criteria with a single schema property', () => {
-			const schema = new Schema({ stringProp: { type: 'string', path: '1' } });
+			const schema = new Schema({
+				stringProp: { type: 'string', path: '1', dictionary: 'STRING_PROP' },
+			});
 
 			const test1: Equals<SortCriteria<typeof schema>, ['stringProp' | '_id', -1 | 1][]> = true;
 			expect(test1).toBe(true);
@@ -1900,13 +1998,23 @@ describe('utility types', () => {
 
 		test('should construct sort criteria from both a schema property and a dictionary', () => {
 			const schema = new Schema(
-				{ stringProp: { type: 'string', path: '1' } },
+				{ stringProp: { type: 'string', path: '1', dictionary: 'STRING_PROP' } },
 				{ dictionaries: { stringDictionary: 'STRING_DICTIONARY' } },
 			);
 			const test1: Equals<
 				SortCriteria<typeof schema>,
 				['stringProp' | 'stringDictionary' | '_id', -1 | 1][]
 			> = true;
+			expect(test1).toBe(true);
+		});
+
+		test('should construct sort criteria excluding schema properties that do not have a dictionary defined', () => {
+			const schema = new Schema({
+				hasDictionary: { type: 'string', path: '1', dictionary: 'STRING_PROP' },
+				noDictionary: { type: 'string', path: '2' },
+			});
+
+			const test1: Equals<SortCriteria<typeof schema>, ['hasDictionary' | '_id', -1 | 1][]> = true;
 			expect(test1).toBe(true);
 		});
 
@@ -1953,48 +2061,123 @@ describe('utility types', () => {
 		test('should construct sort criteria from mixed schema', () => {
 			const schema = new Schema(
 				{
-					booleanOptional: { type: 'boolean', path: '1' },
-					booleanRequired: { type: 'boolean', path: '2', required: true },
-					stringOptional: { type: 'string', path: '3' },
-					stringRequired: { type: 'string', path: '4', required: true },
-					numberOptional: { type: 'number', path: '5' },
-					numberRequired: { type: 'number', path: '6', required: true },
-					isoCalendarDateOptional: { type: 'ISOCalendarDate', path: '7' },
-					isoCalendarDateRequired: { type: 'ISOCalendarDate', path: '8', required: true },
-					isoTimeOptional: { type: 'ISOTime', path: '9' },
-					isoTimeRequired: { type: 'ISOTime', path: '10', required: true },
-					isoCalendarDateTimeOptional: { type: 'ISOCalendarDateTime', path: '11' },
-					isoCalendarDateTimeRequired: { type: 'ISOCalendarDateTime', path: '12', required: true },
-					arrayOptional: [{ type: 'string', path: '13' }],
-					arrayRequired: [{ type: 'string', path: '14', required: true }],
-					nestedArrayOptional: [[{ type: 'string', path: '15' }]],
-					nestedArrayRequired: [[{ type: 'string', path: '16', required: true }]],
+					booleanOptional: { type: 'boolean', path: '1', dictionary: 'BOOLEAN_OPTIONAL' },
+					booleanRequired: {
+						type: 'boolean',
+						path: '2',
+						dictionary: 'BOOLEAN_REQUIRED',
+						required: true,
+					},
+					stringOptional: { type: 'string', path: '3', dictionary: 'STRING_OPTIONAL' },
+					stringRequired: {
+						type: 'string',
+						path: '4',
+						dictionary: 'STRING_REQUIRED',
+						required: true,
+					},
+					numberOptional: { type: 'number', path: '5', dictionary: 'NUMBER_OPTIONAL' },
+					numberRequired: {
+						type: 'number',
+						path: '6',
+						dictionary: 'NUMBER_REQUIRED',
+						required: true,
+					},
+					isoCalendarDateOptional: {
+						type: 'ISOCalendarDate',
+						path: '7',
+						dictionary: 'ISO_CALENDAR_DATE_OPTIONAL',
+					},
+					isoCalendarDateRequired: {
+						type: 'ISOCalendarDate',
+						path: '8',
+						dictionary: 'ISO_CALENDAR_DATE_REQUIRED',
+						required: true,
+					},
+					isoTimeOptional: { type: 'ISOTime', path: '9', dictionary: 'ISO_TIME_OPTIONAL' },
+					isoTimeRequired: {
+						type: 'ISOTime',
+						path: '10',
+						dictionary: 'ISO_TIME_REQUIRED',
+						required: true,
+					},
+					isoCalendarDateTimeOptional: {
+						type: 'ISOCalendarDateTime',
+						path: '11',
+						dictionary: 'ISO_CALENDAR_DATE_TIME_OPTIONAL',
+					},
+					isoCalendarDateTimeRequired: {
+						type: 'ISOCalendarDateTime',
+						path: '12',
+						dictionary: 'ISO_CALENDAR_DATE_TIME_REQUIRED',
+						required: true,
+					},
+					arrayOptional: [{ type: 'string', path: '13', dictionary: 'ARRAY_OPTIONAL' }],
+					arrayRequired: [
+						{ type: 'string', path: '14', dictionary: 'ARRAY_REQUIRED', required: true },
+					],
+					nestedArrayOptional: [
+						[{ type: 'string', path: '15', dictionary: 'NESTED_ARRAY_OPTIONAL' }],
+					],
+					nestedArrayRequired: [
+						[{ type: 'string', path: '16', dictionary: 'NESTED_ARRAY_REQUIRED', required: true }],
+					],
 					embeddedOptional: new Schema({
-						innerEmbeddedProp: { type: 'string', path: '17' },
+						innerEmbeddedProp: { type: 'string', path: '17', dictionary: 'EMBEDDED_OPTIONAL' },
 					}),
 					embeddedRequired: new Schema({
-						innerEmbeddedProp: { type: 'string', path: '18', required: true },
+						innerEmbeddedProp: {
+							type: 'string',
+							path: '18',
+							dictionary: 'EMBEDDED_REQUIRED',
+							required: true,
+						},
 					}),
 					documentArrayOptional: [
 						{
-							docStringProp: { type: 'string', path: '19' },
-							docNumberProp: { type: 'number', path: '20' },
+							docStringProp: {
+								type: 'string',
+								path: '19',
+								dictionary: 'DOCUMENT_ARRAY_STRING_OPTIONAL',
+							},
+							docNumberProp: {
+								type: 'number',
+								path: '20',
+								dictionary: 'DOCUMENT_ARRAY_NUMBER_OPTIONAL',
+							},
 						},
 					],
 					documentArrayRequired: [
 						{
-							docStringProp: { type: 'string', path: '21', required: true },
-							docNumberProp: { type: 'number', path: '22' },
+							docStringProp: {
+								type: 'string',
+								path: '21',
+								dictionary: 'DOCUMENT_ARRAY_STRING_REQUIRED',
+								required: true,
+							},
+							docNumberProp: {
+								type: 'number',
+								path: '22',
+								dictionary: 'DOCUMENT_ARRAY_NUMBER_REQUIRED',
+							},
 						},
 					],
 					documentArraySchemaOptional: [
 						new Schema({
-							docStringProp: { type: 'string', path: '23' },
+							docStringProp: {
+								type: 'string',
+								path: '23',
+								dictionary: 'DOCUMENT_ARRAY_SCHEMA_OPTIONAL',
+							},
 						}),
 					],
 					documentArraySchemaRequired: [
 						new Schema({
-							docStringProp: { type: 'string', path: '24', required: true },
+							docStringProp: {
+								type: 'string',
+								path: '24',
+								required: true,
+								dictionary: 'DOCUMENT_ARRAY_SCHEMA_REQUIRED',
+							},
 						}),
 					],
 				},

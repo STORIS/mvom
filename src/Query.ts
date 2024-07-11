@@ -15,8 +15,10 @@ import type {
 	ISOCalendarDateTime,
 	ISOTime,
 	SchemaDefinition,
+	SchemaTypeDefinition,
 } from './Schema';
 import type Schema from './Schema';
+import type { SchemaTypeDefinitionScalar } from './schemaType';
 import type { DbDocument, DbSubroutineInputFind, DbSubroutineSetupOptions } from './types';
 
 // #region Types
@@ -65,6 +67,7 @@ export interface RootFilterOperators<TSchema extends Schema | null> {
 
 export type Condition<TValue> = TValue | TValue[] | FilterOperators<TValue>;
 
+/** Infer the type of a dictionary */
 type InferDictionaryType<TDictionaryDefinition extends DictionaryDefinition> =
 	TDictionaryDefinition extends string
 		? string
@@ -82,17 +85,27 @@ type InferDictionaryType<TDictionaryDefinition extends DictionaryDefinition> =
 								? ISOCalendarDateTime
 								: never;
 
+/** Infer the type of additional schema dictionaries */
 type InferDictionariesType<TDictionariesOption extends DictionariesOption> = {
 	[K in keyof TDictionariesOption]: InferDictionaryType<TDictionariesOption[K]>;
 };
 
+/** Type which will produce a flattened document of only scalars with dictionaries */
+type FlattenedDocumentDictionaries<TSchema extends Schema> = FlattenDocument<
+	TSchema,
+	Exclude<SchemaTypeDefinition, SchemaTypeDefinitionScalar> | { dictionary: string }
+>;
+
+/** Query Filter */
 export type Filter<TSchema extends Schema | null> = RootFilterOperators<TSchema> &
 	((TSchema extends Schema<SchemaDefinition, infer TDictionariesOption>
-		? FlattenDocument<TSchema> & InferDictionariesType<TDictionariesOption> extends infer O
+		? FlattenedDocumentDictionaries<TSchema> &
+				InferDictionariesType<TDictionariesOption> extends infer O
 			? { [Key in keyof O]?: Condition<NonNullable<O[Key]>> }
 			: never
 		: Record<string, never>) & { _id?: Condition<string> });
 
+/** Sort criteria */
 export type SortCriteria<TSchema extends Schema | null> = [
 	Exclude<keyof Filter<TSchema>, keyof RootFilterOperators<TSchema>> & string,
 	-1 | 1,
