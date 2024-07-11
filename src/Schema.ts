@@ -334,7 +334,7 @@ class Schema<TSchemaDefinition extends SchemaDefinition> {
 	private castArray(
 		castee: SchemaTypeDefinitionArray,
 		keyPath: string,
-	): ArrayType | NestedArrayType | DocumentArrayType<Schema<SchemaDefinition>, SchemaDefinition> {
+	): ArrayType | NestedArrayType | DocumentArrayType<Schema<SchemaDefinition>> {
 		if (castee.length !== 1) {
 			// a schema array definition must contain exactly one value of language-type object (which includes arrays)
 			throw new InvalidParameterError({
