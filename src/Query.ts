@@ -94,7 +94,7 @@ export type Filter<TSchema extends Schema | null> = RootFilterOperators<TSchema>
 		: Record<string, never>) & { _id?: Condition<string> });
 
 export type SortCriteria<TSchema extends Schema | null> = [
-	Exclude<keyof Filter<TSchema>, '$and' | '$or'> & string,
+	Exclude<keyof Filter<TSchema>, keyof RootFilterOperators<TSchema>> & string,
 	-1 | 1,
 ][];
 
