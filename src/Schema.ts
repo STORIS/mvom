@@ -119,7 +119,7 @@ type InferStringType<TString extends SchemaTypeDefinitionString> =
 	TString['enum'] extends readonly (infer E)[] ? E : string;
 
 /** Infer the output type of a schema type definition */
-type InferSchemaType<TSchemaTypeDefinition> =
+type InferSchemaType<TSchemaTypeDefinition, TConstraint> =
 	TSchemaTypeDefinition extends SchemaTypeDefinitionBoolean
 		? InferRequiredType<TSchemaTypeDefinition, boolean>
 		: TSchemaTypeDefinition extends SchemaTypeDefinitionString
@@ -133,11 +133,11 @@ type InferSchemaType<TSchemaTypeDefinition> =
 						: TSchemaTypeDefinition extends SchemaTypeDefinitionISOTime
 							? InferRequiredType<TSchemaTypeDefinition, ISOTime>
 							: TSchemaTypeDefinition extends Schema<infer TSubSchemaDefinition>
-								? InferDocumentObject<Schema<TSubSchemaDefinition>>
+								? InferDocumentObject<Schema<TSubSchemaDefinition>, TConstraint>
 								: TSchemaTypeDefinition extends SchemaTypeDefinitionArray
-									? InferSchemaType<TSchemaTypeDefinition[0]>[]
+									? InferSchemaType<TSchemaTypeDefinition[0], TConstraint>[]
 									: TSchemaTypeDefinition extends SchemaDefinition
-										? InferDocumentObject<Schema<TSchemaTypeDefinition>>
+										? InferDocumentObject<Schema<TSchemaTypeDefinition>, TConstraint>
 										: never;
 
 /**
@@ -150,7 +150,7 @@ export type InferDocumentObject<TSchema extends Schema, TConstraint = SchemaType
 		? {
 				[K in keyof TSchemaDefinition as TSchemaDefinition[K] extends TConstraint
 					? K
-					: never]: InferSchemaType<TSchemaDefinition[K]>;
+					: never]: InferSchemaType<TSchemaDefinition[K], TConstraint>;
 			}
 		: never;
 

@@ -1753,6 +1753,31 @@ describe('utility types', () => {
 			expect(test1).toBe(true);
 		});
 
+		test('should construct filter type excluding embedded schema properties that do not have a dictionary defined', () => {
+			const schema = new Schema({
+				embedded: {
+					hasDictionary: { type: 'string', path: '1', dictionary: 'STRING_PROP' },
+					noDictionary: { type: 'string', path: '2' },
+				},
+				schema: new Schema({
+					hasDictionary: { type: 'string', path: '1', dictionary: 'STRING_PROP' },
+					noDictionary: { type: 'string', path: '2' },
+				}),
+			});
+
+			const test1: Equals<
+				Filter<typeof schema>,
+				{
+					$and?: Filter<typeof schema>[];
+					$or?: Filter<typeof schema>[];
+					'embedded.hasDictionary'?: Condition<string>;
+					'schema.hasDictionary'?: Condition<string>;
+					_id?: Condition<string>;
+				}
+			> = true;
+			expect(test1).toBe(true);
+		});
+
 		test('should construct filter type from all possible dictionary formats', () => {
 			const schema = new Schema(
 				{},
@@ -2015,6 +2040,25 @@ describe('utility types', () => {
 			});
 
 			const test1: Equals<SortCriteria<typeof schema>, ['hasDictionary' | '_id', -1 | 1][]> = true;
+			expect(test1).toBe(true);
+		});
+
+		test('should construct sort criteria excluding embedded schema properties that do not have a dictionary defined', () => {
+			const schema = new Schema({
+				embedded: {
+					hasDictionary: { type: 'string', path: '1', dictionary: 'STRING_PROP' },
+					noDictionary: { type: 'string', path: '2' },
+				},
+				schema: new Schema({
+					hasDictionary: { type: 'string', path: '1', dictionary: 'STRING_PROP' },
+					noDictionary: { type: 'string', path: '2' },
+				}),
+			});
+
+			const test1: Equals<
+				SortCriteria<typeof schema>,
+				['embedded.hasDictionary' | 'schema.hasDictionary' | '_id', -1 | 1][]
+			> = true;
 			expect(test1).toBe(true);
 		});
 
