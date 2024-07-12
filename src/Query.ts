@@ -103,11 +103,11 @@ export type Filter<TSchema extends Schema | null> = RootFilterOperators<TSchema>
 				InferDictionariesType<TDictionariesOption> extends infer O
 			? { [Key in keyof O]?: Condition<NonNullable<O[Key]>> }
 			: never
-		: Record<string, never>) & { _id?: Condition<string> });
+		: Record<never, never>) & { _id?: Condition<string> });
 
 /** Sort criteria */
 export type SortCriteria<TSchema extends Schema | null> = [
-	Exclude<keyof Filter<TSchema>, keyof RootFilterOperators<TSchema>> & string,
+	Extract<Exclude<keyof Filter<TSchema>, keyof RootFilterOperators<TSchema>>, string>,
 	-1 | 1,
 ][];
 
