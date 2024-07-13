@@ -1,5 +1,4 @@
 import type { BuildForeignKeyDefinitionsResult } from '../Document';
-import type { GenericObject } from '.';
 
 export interface DbSubroutineUserDefinedOptions {
 	option1?: string;
@@ -17,7 +16,7 @@ export interface DbSubroutineSetupOptions {
 	maxReturnPayloadSize?: number;
 }
 
-export interface DbSubroutinePayload<TSubroutineInput extends GenericObject> {
+export interface DbSubroutinePayload<TSubroutineInput extends object> {
 	subroutineId: string;
 	setupOptions: DbSubroutineSetupOptions;
 	teardownOptions: Record<string, never>;

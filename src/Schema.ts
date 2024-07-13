@@ -29,17 +29,17 @@ import type {
 	SchemaTypeDefinitionScalar,
 	SchemaTypeDefinitionString,
 } from './schemaType';
-import type { DataTransformer, DecryptFn, EncryptFn, MarkRequired } from './types';
+import type { DataTransformer, DecryptFn, EncryptFn, FlattenObject, MarkRequired } from './types';
 
 // #region Types
-type SchemaTypeDefinition =
-	| Schema<SchemaDefinition>
+export type SchemaTypeDefinition =
+	| Schema
 	| SchemaTypeDefinitionScalar
 	| SchemaDefinition
 	| SchemaTypeDefinitionArray;
 
 type SchemaTypeDefinitionArray =
-	| Schema<SchemaDefinition>[]
+	| Schema[]
 	| SchemaTypeDefinitionScalar[]
 	| SchemaTypeDefinitionScalar[][]
 	| SchemaDefinition[];
@@ -65,18 +65,30 @@ type PickAndMark<T extends SchemaTypeDefinitionScalar, K extends keyof T = never
 	'dictionary'
 >;
 
+export type DictionaryTypeDefinitionString = PickAndMark<SchemaTypeDefinitionString>;
+export type DictionaryTypeDefinitionNumber = PickAndMark<SchemaTypeDefinitionNumber>;
+export type DictionaryTypeDefinitionBoolean = PickAndMark<SchemaTypeDefinitionBoolean>;
+export type DictionaryTypeDefinitionISOCalendarDate =
+	PickAndMark<SchemaTypeDefinitionISOCalendarDate>;
+export type DictionaryTypeDefinitionISOCalendarDateTime = PickAndMark<
+	SchemaTypeDefinitionISOCalendarDateTime,
+	'dbFormat'
+>;
+export type DictionaryTypeDefinitionISOTime = PickAndMark<SchemaTypeDefinitionISOTime, 'dbFormat'>;
+
 export type DictionaryTypeDefinition =
-	| PickAndMark<SchemaTypeDefinitionString>
-	| PickAndMark<SchemaTypeDefinitionNumber>
-	| PickAndMark<SchemaTypeDefinitionBoolean>
-	| PickAndMark<SchemaTypeDefinitionISOCalendarDate>
-	| PickAndMark<SchemaTypeDefinitionISOCalendarDateTime, 'dbFormat'>
-	| PickAndMark<SchemaTypeDefinitionISOTime, 'dbFormat'>;
+	| DictionaryTypeDefinitionString
+	| DictionaryTypeDefinitionNumber
+	| DictionaryTypeDefinitionBoolean
+	| DictionaryTypeDefinitionISOCalendarDate
+	| DictionaryTypeDefinitionISOCalendarDateTime
+	| DictionaryTypeDefinitionISOTime;
 
 export type DictionaryDefinition = string | DictionaryTypeDefinition;
 
-export interface SchemaConstructorOptions {
-	dictionaries?: Record<string, DictionaryDefinition>;
+export type DictionariesOption = Record<string, DictionaryDefinition>;
+export interface SchemaConstructorOptions<TDictionaries extends DictionariesOption> {
+	dictionaries?: TDictionaries;
 	idMatch?: RegExp;
 	idForeignKey?: SchemaForeignKeyDefinition | SchemaCompoundForeignKeyDefinition;
 	encrypt?: EncryptFn;
@@ -107,7 +119,7 @@ type InferStringType<TString extends SchemaTypeDefinitionString> =
 	TString['enum'] extends readonly (infer E)[] ? E : string;
 
 /** Infer the output type of a schema type definition */
-type InferSchemaType<TSchemaTypeDefinition> =
+type InferSchemaType<TSchemaTypeDefinition, TConstraint> =
 	TSchemaTypeDefinition extends SchemaTypeDefinitionBoolean
 		? InferRequiredType<TSchemaTypeDefinition, boolean>
 		: TSchemaTypeDefinition extends SchemaTypeDefinitionString
@@ -121,30 +133,54 @@ type InferSchemaType<TSchemaTypeDefinition> =
 						: TSchemaTypeDefinition extends SchemaTypeDefinitionISOTime
 							? InferRequiredType<TSchemaTypeDefinition, ISOTime>
 							: TSchemaTypeDefinition extends Schema<infer TSubSchemaDefinition>
-								? InferDocumentObject<Schema<TSubSchemaDefinition>>
+								? InferDocumentObject<Schema<TSubSchemaDefinition>, TConstraint>
 								: TSchemaTypeDefinition extends SchemaTypeDefinitionArray
-									? InferSchemaType<TSchemaTypeDefinition[0]>[]
+									? InferSchemaType<TSchemaTypeDefinition[0], TConstraint>[]
 									: TSchemaTypeDefinition extends SchemaDefinition
-										? InferDocumentObject<Schema<TSchemaTypeDefinition>>
+										? InferDocumentObject<Schema<TSchemaTypeDefinition>, TConstraint>
 										: never;
 
-/** Infer the shape of a `Document` instance based upon the Schema it was instantiated with */
-export type InferDocumentObject<TSchema extends Schema<SchemaDefinition>> =
+/**
+ * Infer the shape of a `Document` instance based upon the Schema it was instantiated with
+ *
+ * Allows a constraint to be specified to filter the output to only include properties of a specific type
+ */
+export type InferDocumentObject<TSchema extends Schema, TConstraint = SchemaTypeDefinition> =
 	TSchema extends Schema<infer TSchemaDefinition>
-		? { [K in keyof TSchemaDefinition]: InferSchemaType<TSchemaDefinition[K]> }
+		? {
+				[K in keyof TSchemaDefinition as TSchemaDefinition[K] extends TConstraint
+					? K
+					: never]: InferSchemaType<TSchemaDefinition[K], TConstraint>;
+			}
 		: never;
 
 /** Infer the shape of a `Model` instance based upon the Schema it was instantiated with */
-export type InferModelObject<TSchema extends Schema<SchemaDefinition>> = {
+export type InferModelObject<TSchema extends Schema> = {
 	_id: string;
 	__v: string;
 } & InferDocumentObject<TSchema> extends infer O
 	? { [K in keyof O]: O[K] }
 	: never;
+
+/**
+ * Flatten a document to string keyPath (i.e. { "foo.bar.baz": number })
+ *
+ * Allows a constraint to be specified to filter the output to only include properties of a specific type
+ */
+export type FlattenDocument<TSchema extends Schema, TConstraint = SchemaTypeDefinition> =
+	InferDocumentObject<TSchema, TConstraint> extends infer O extends Record<string, unknown>
+		? FlattenObject<O>
+		: never;
+
+/** Infer the string keyPaths of a schema */
+export type InferSchemaPaths<TSchema extends Schema> = keyof FlattenDocument<TSchema>;
 // #endregion
 
 /** Schema constructor */
-class Schema<TSchemaDefinition extends SchemaDefinition> {
+class Schema<
+	TSchemaDefinition extends SchemaDefinition = SchemaDefinition,
+	TDictionaries extends DictionariesOption = Record<never, never>,
+> {
 	/** Key/value pairs of schema object path structure and associated multivalue dictionary ids */
 	public dictPaths: Map<string, DictionaryTypeDetail>;
 
@@ -164,7 +200,7 @@ class Schema<TSchemaDefinition extends SchemaDefinition> {
 	private readonly positionPaths: Map<string, number[]>;
 
 	/** Map of all subdocument schemas represented in this Schema with parentPath as key */
-	private readonly subdocumentSchemas: Map<string, Schema<SchemaDefinition>>;
+	private readonly subdocumentSchemas: Map<string, Schema>;
 
 	/** Optional function to use for encryption of sensitive data */
 	private readonly encrypt?: EncryptFn;
@@ -174,7 +210,13 @@ class Schema<TSchemaDefinition extends SchemaDefinition> {
 
 	public constructor(
 		definition: TSchemaDefinition,
-		{ dictionaries = {}, idForeignKey, idMatch, encrypt, decrypt }: SchemaConstructorOptions = {},
+		{
+			dictionaries,
+			idForeignKey,
+			idMatch,
+			encrypt,
+			decrypt,
+		}: SchemaConstructorOptions<TDictionaries> = {},
 	) {
 		this.idForeignKey = idForeignKey;
 		this.idMatch = idMatch;
@@ -231,7 +273,7 @@ class Schema<TSchemaDefinition extends SchemaDefinition> {
 
 	/** Build the dictionary path map for additional dictionaries provided as schema options */
 	private buildDictionaryPaths(
-		dictionaries: Record<string, DictionaryDefinition>,
+		dictionaries: DictionariesOption = {},
 	): Map<string, DictionaryTypeDetail> {
 		// Add reference for _id --> @ID by default
 		const dictPaths = new Map<string, DictionaryTypeDetail>([
@@ -334,7 +376,7 @@ class Schema<TSchemaDefinition extends SchemaDefinition> {
 	private castArray(
 		castee: SchemaTypeDefinitionArray,
 		keyPath: string,
-	): ArrayType | NestedArrayType | DocumentArrayType<Schema<SchemaDefinition>> {
+	): ArrayType | NestedArrayType | DocumentArrayType<Schema> {
 		if (castee.length !== 1) {
 			// a schema array definition must contain exactly one value of language-type object (which includes arrays)
 			throw new InvalidParameterError({
@@ -435,10 +477,7 @@ class Schema<TSchemaDefinition extends SchemaDefinition> {
 	}
 
 	/** Perform ancillary updates needed when a subdocument is in the Schema definition */
-	private handleSubDocumentSchemas<
-		TSchema extends Schema<TSubdocumentSchemaDefinition>,
-		TSubdocumentSchemaDefinition extends SchemaDefinition,
-	>(schema: TSchema, keyPath: string) {
+	private handleSubDocumentSchemas<TSchema extends Schema>(schema: TSchema, keyPath: string) {
 		this.subdocumentSchemas.set(keyPath, schema);
 		this.mergeSchemaDictionaries(schema, keyPath);
 	}
@@ -454,10 +493,7 @@ class Schema<TSchemaDefinition extends SchemaDefinition> {
 	}
 
 	/** Merge subdocument schema dictionaries with the parent schema's dictionaries */
-	private mergeSchemaDictionaries<
-		TSchema extends Schema<TSubdocumentSchemaDefinition>,
-		TSubdocumentSchemaDefinition extends SchemaDefinition,
-	>(schema: TSchema, keyPath: string) {
+	private mergeSchemaDictionaries<TSchema extends Schema>(schema: TSchema, keyPath: string) {
 		this.dictPaths = Array.from(schema.dictPaths).reduce(
 			(acc, [subDictPath, subDictTypeDetail]) => {
 				const dictKey = `${keyPath}.${subDictPath}`;

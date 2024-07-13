@@ -4,11 +4,11 @@ import Document from '../Document';
 import { TransformDataError } from '../errors';
 import type { SchemaDefinition } from '../Schema';
 import Schema from '../Schema';
-import type { Assert, MvRecord } from '../types';
+import type { Equals, MvRecord } from '../types';
 
 const { am, vm, svm } = mockDelimiters;
 
-class DocumentSubclass<TSchema extends Schema<SchemaDefinition> | null> extends Document<TSchema> {
+class DocumentSubclass<TSchema extends Schema | null> extends Document<TSchema> {
 	public constructor(schema: TSchema, options: DocumentConstructorOptions<TSchema>) {
 		super(schema, options);
 	}
@@ -992,11 +992,11 @@ describe('type inference', () => {
 		type DocumentResult = typeof document;
 
 		// _raw should be MvRecord since there is no schema
-		const test1: Assert<DocumentResult['_raw'], MvRecord> = true;
+		const test1: Equals<DocumentResult['_raw'], MvRecord> = true;
 		expect(test1).toBe(true);
 
 		// any other property should be unknown
-		const test2: Assert<DocumentResult['otherProp'], unknown> = true;
+		const test2: Equals<DocumentResult['otherProp'], unknown> = true;
 		expect(test2).toBe(true);
 	});
 
@@ -1009,19 +1009,19 @@ describe('type inference', () => {
 		type DocumentResult = typeof document;
 
 		// prop1 should be string | null
-		const test1: Assert<DocumentResult['prop1'], string | null> = true;
+		const test1: Equals<DocumentResult['prop1'], string | null> = true;
 		expect(test1).toBe(true);
 
 		// prop2 should be number | null
-		const test2: Assert<DocumentResult['prop2'], number | null> = true;
+		const test2: Equals<DocumentResult['prop2'], number | null> = true;
 		expect(test2).toBe(true);
 
 		// _raw should be undefined since there is a schema
-		const test3: Assert<DocumentResult['_raw'], undefined> = true;
+		const test3: Equals<DocumentResult['_raw'], undefined> = true;
 		expect(test3).toBe(true);
 
 		// any other property should be unknown
-		const test4: Assert<DocumentResult['otherProp'], unknown> = true;
+		const test4: Equals<DocumentResult['otherProp'], unknown> = true;
 		expect(test4).toBe(true);
 	});
 });

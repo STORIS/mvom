@@ -14,7 +14,7 @@ import { DataValidationError } from '../errors';
 import type LogHandler from '../LogHandler';
 import Schema from '../Schema';
 import type { SchemaDefinition } from '../Schema';
-import type { Assert, GenericObject, MvRecord } from '../types';
+import type { Equals, MvRecord } from '../types';
 
 const connectionMock = mockDeep<Connection>();
 const logHandlerMock = mock<LogHandler>();
@@ -188,7 +188,11 @@ describe('find', () => {
 
 		const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
 		const maxReturnPayloadSize = 10_000;
-		const options: ModelFindOptions = { maxReturnPayloadSize, userDefined, requestId };
+		const options: ModelFindOptions<typeof schema> = {
+			maxReturnPayloadSize,
+			userDefined,
+			requestId,
+		};
 
 		const documents = await Model.find({}, options);
 		documents.forEach((document) => {
@@ -275,7 +279,11 @@ describe('findAndCount', () => {
 
 		const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
 		const maxReturnPayloadSize = 10_000;
-		const options: ModelFindOptions = { maxReturnPayloadSize, userDefined, requestId };
+		const options: ModelFindOptions<typeof schema> = {
+			maxReturnPayloadSize,
+			userDefined,
+			requestId,
+		};
 
 		const { count, documents } = await Model.findAndCount({}, options);
 		expect(count).toBe(2);
@@ -678,7 +686,7 @@ describe('save', () => {
 		const err = new Error('Test error');
 		connectionMock.executeDbSubroutine.mockRejectedValue(err);
 
-		const error = await getError<Error & { other: GenericObject }>(async () => model.save());
+		const error = await getError<Error & { other: unknown }>(async () => model.save());
 
 		expect(error).not.toBeInstanceOf(NoErrorThrownError);
 		expect(error).toBeInstanceOf(Error);
@@ -951,19 +959,19 @@ describe('type inference', () => {
 			type Result = NonNullable<Awaited<ReturnType<typeof Model.deleteById>>>;
 
 			// prop1 should be string | null
-			const test1: Assert<Result['prop1'], string | null> = true;
+			const test1: Equals<Result['prop1'], string | null> = true;
 			expect(test1).toBe(true);
 
 			// prop2 should be number | null
-			const test2: Assert<Result['prop2'], number | null> = true;
+			const test2: Equals<Result['prop2'], number | null> = true;
 			expect(test2).toBe(true);
 
 			// _raw should be undefined since there is a schema
-			const test3: Assert<Result['_raw'], undefined> = true;
+			const test3: Equals<Result['_raw'], undefined> = true;
 			expect(test3).toBe(true);
 
 			// any other property should be unknown
-			const test4: Assert<Result['otherProp'], unknown> = true;
+			const test4: Equals<Result['otherProp'], unknown> = true;
 			expect(test4).toBe(true);
 		});
 
@@ -972,19 +980,19 @@ describe('type inference', () => {
 			type Result = Awaited<ReturnType<typeof Model.find>>[0];
 
 			// prop1 should be string | null
-			const test1: Assert<Result['prop1'], string | null> = true;
+			const test1: Equals<Result['prop1'], string | null> = true;
 			expect(test1).toBe(true);
 
 			// prop2 should be number | null
-			const test2: Assert<Result['prop2'], number | null> = true;
+			const test2: Equals<Result['prop2'], number | null> = true;
 			expect(test2).toBe(true);
 
 			// _raw should be undefined since there is a schema
-			const test3: Assert<Result['_raw'], undefined> = true;
+			const test3: Equals<Result['_raw'], undefined> = true;
 			expect(test3).toBe(true);
 
 			// any other property should be unknown
-			const test4: Assert<Result['otherProp'], unknown> = true;
+			const test4: Equals<Result['otherProp'], unknown> = true;
 			expect(test4).toBe(true);
 		});
 
@@ -993,19 +1001,19 @@ describe('type inference', () => {
 			type Result = Awaited<ReturnType<typeof Model.findAndCount>>['documents'][0];
 
 			// prop1 should be string | null
-			const test1: Assert<Result['prop1'], string | null> = true;
+			const test1: Equals<Result['prop1'], string | null> = true;
 			expect(test1).toBe(true);
 
 			// prop2 should be number | null
-			const test2: Assert<Result['prop2'], number | null> = true;
+			const test2: Equals<Result['prop2'], number | null> = true;
 			expect(test2).toBe(true);
 
 			// _raw should be undefined since there is a schema
-			const test3: Assert<Result['_raw'], undefined> = true;
+			const test3: Equals<Result['_raw'], undefined> = true;
 			expect(test3).toBe(true);
 
 			// any other property should be unknown
-			const test4: Assert<Result['otherProp'], unknown> = true;
+			const test4: Equals<Result['otherProp'], unknown> = true;
 			expect(test4).toBe(true);
 		});
 
@@ -1014,19 +1022,19 @@ describe('type inference', () => {
 			type Result = NonNullable<Awaited<ReturnType<typeof Model.findById>>>;
 
 			// prop1 should be string | null
-			const test1: Assert<Result['prop1'], string | null> = true;
+			const test1: Equals<Result['prop1'], string | null> = true;
 			expect(test1).toBe(true);
 
 			// prop2 should be number | null
-			const test2: Assert<Result['prop2'], number | null> = true;
+			const test2: Equals<Result['prop2'], number | null> = true;
 			expect(test2).toBe(true);
 
 			// _raw should be undefined since there is a schema
-			const test3: Assert<Result['_raw'], undefined> = true;
+			const test3: Equals<Result['_raw'], undefined> = true;
 			expect(test3).toBe(true);
 
 			// any other property should be unknown
-			const test4: Assert<Result['otherProp'], unknown> = true;
+			const test4: Equals<Result['otherProp'], unknown> = true;
 			expect(test4).toBe(true);
 		});
 
@@ -1035,19 +1043,19 @@ describe('type inference', () => {
 			type Result = NonNullable<Awaited<ReturnType<typeof Model.findByIds>>[0]>;
 
 			// prop1 should be string | null
-			const test1: Assert<Result['prop1'], string | null> = true;
+			const test1: Equals<Result['prop1'], string | null> = true;
 			expect(test1).toBe(true);
 
 			// prop2 should be number | null
-			const test2: Assert<Result['prop2'], number | null> = true;
+			const test2: Equals<Result['prop2'], number | null> = true;
 			expect(test2).toBe(true);
 
 			// _raw should be undefined since there is a schema
-			const test3: Assert<Result['_raw'], undefined> = true;
+			const test3: Equals<Result['_raw'], undefined> = true;
 			expect(test3).toBe(true);
 
 			// any other property should be unknown
-			const test4: Assert<Result['otherProp'], unknown> = true;
+			const test4: Equals<Result['otherProp'], unknown> = true;
 			expect(test4).toBe(true);
 		});
 
@@ -1056,19 +1064,19 @@ describe('type inference', () => {
 			type Result = Awaited<ReturnType<InstanceType<typeof Model>['save']>>;
 
 			// prop1 should be string | null
-			const test1: Assert<Result['prop1'], string | null> = true;
+			const test1: Equals<Result['prop1'], string | null> = true;
 			expect(test1).toBe(true);
 
 			// prop2 should be number | null
-			const test2: Assert<Result['prop2'], number | null> = true;
+			const test2: Equals<Result['prop2'], number | null> = true;
 			expect(test2).toBe(true);
 
 			// _raw should be undefined since there is a schema
-			const test3: Assert<Result['_raw'], undefined> = true;
+			const test3: Equals<Result['_raw'], undefined> = true;
 			expect(test3).toBe(true);
 
 			// any other property should be unknown
-			const test4: Assert<Result['otherProp'], unknown> = true;
+			const test4: Equals<Result['otherProp'], unknown> = true;
 			expect(test4).toBe(true);
 		});
 	});
@@ -1079,11 +1087,11 @@ describe('type inference', () => {
 			type Result = NonNullable<Awaited<ReturnType<typeof Model.deleteById>>>;
 
 			// _raw should be MvRecord since there is no schema
-			const test1: Assert<Result['_raw'], MvRecord> = true;
+			const test1: Equals<Result['_raw'], MvRecord> = true;
 			expect(test1).toBe(true);
 
 			// any other property should be unknown
-			const test2: Assert<Result['otherProp'], unknown> = true;
+			const test2: Equals<Result['otherProp'], unknown> = true;
 			expect(test2).toBe(true);
 		});
 
@@ -1092,11 +1100,11 @@ describe('type inference', () => {
 			type Result = Awaited<ReturnType<typeof Model.find>>[0];
 
 			// _raw should be MvRecord since there is no schema
-			const test1: Assert<Result['_raw'], MvRecord> = true;
+			const test1: Equals<Result['_raw'], MvRecord> = true;
 			expect(test1).toBe(true);
 
 			// any other property should be unknown
-			const test2: Assert<Result['otherProp'], unknown> = true;
+			const test2: Equals<Result['otherProp'], unknown> = true;
 			expect(test2).toBe(true);
 		});
 
@@ -1105,11 +1113,11 @@ describe('type inference', () => {
 			type Result = Awaited<ReturnType<typeof Model.findAndCount>>['documents'][0];
 
 			// _raw should be MvRecord since there is no schema
-			const test1: Assert<Result['_raw'], MvRecord> = true;
+			const test1: Equals<Result['_raw'], MvRecord> = true;
 			expect(test1).toBe(true);
 
 			// any other property should be unknown
-			const test2: Assert<Result['otherProp'], unknown> = true;
+			const test2: Equals<Result['otherProp'], unknown> = true;
 			expect(test2).toBe(true);
 		});
 
@@ -1118,11 +1126,11 @@ describe('type inference', () => {
 			type Result = NonNullable<Awaited<ReturnType<typeof Model.findById>>>;
 
 			// _raw should be MvRecord since there is no schema
-			const test1: Assert<Result['_raw'], MvRecord> = true;
+			const test1: Equals<Result['_raw'], MvRecord> = true;
 			expect(test1).toBe(true);
 
 			// any other property should be unknown
-			const test2: Assert<Result['otherProp'], unknown> = true;
+			const test2: Equals<Result['otherProp'], unknown> = true;
 			expect(test2).toBe(true);
 		});
 
@@ -1131,11 +1139,11 @@ describe('type inference', () => {
 			type Result = NonNullable<Awaited<ReturnType<typeof Model.findByIds>>[0]>;
 
 			// _raw should be MvRecord since there is no schema
-			const test1: Assert<Result['_raw'], MvRecord> = true;
+			const test1: Equals<Result['_raw'], MvRecord> = true;
 			expect(test1).toBe(true);
 
 			// any other property should be unknown
-			const test2: Assert<Result['otherProp'], unknown> = true;
+			const test2: Equals<Result['otherProp'], unknown> = true;
 			expect(test2).toBe(true);
 		});
 
@@ -1144,11 +1152,11 @@ describe('type inference', () => {
 			type Result = Awaited<ReturnType<InstanceType<typeof Model>['save']>>;
 
 			// _raw should be MvRecord since there is no schema
-			const test1: Assert<Result['_raw'], MvRecord> = true;
+			const test1: Equals<Result['_raw'], MvRecord> = true;
 			expect(test1).toBe(true);
 
 			// any other property should be unknown
-			const test2: Assert<Result['otherProp'], unknown> = true;
+			const test2: Equals<Result['otherProp'], unknown> = true;
 			expect(test2).toBe(true);
 		});
 	});

@@ -5,19 +5,19 @@ import { DataValidationError } from './errors';
 import type LogHandler from './LogHandler';
 import Query, { type Filter, type QueryConstructorOptions } from './Query';
 import type Schema from './Schema';
-import type { InferModelObject, SchemaDefinition } from './Schema';
+import type { InferModelObject } from './Schema';
 import type { DbServerDelimiters, DbSubroutineUserDefinedOptions } from './types';
 import { ensureArray } from './utils';
 
 // #region Types
-export interface ModelConstructorOptions<TSchema extends Schema<SchemaDefinition> | null> {
+export interface ModelConstructorOptions<TSchema extends Schema | null> {
 	_id?: string | null;
 	__v?: string | null;
 	data?: DocumentData<TSchema>;
 	record?: string;
 }
 
-export type ModelConstructor<TSchema extends Schema<SchemaDefinition> | null> = ReturnType<
+export type ModelConstructor<TSchema extends Schema | null> = ReturnType<
 	typeof compileModel<TSchema>
 >;
 
@@ -25,12 +25,11 @@ export type ModelConstructor<TSchema extends Schema<SchemaDefinition> | null> = 
  * An intersection type that combines the `Model` class instance with the
  * inferred shape of the model object based on the schema definition.
  */
-type ModelCompositeValue<TSchema extends Schema<SchemaDefinition> | null> =
-	TSchema extends Schema<SchemaDefinition>
-		? InstanceType<ModelConstructor<TSchema>> & InferModelObject<TSchema>
-		: InstanceType<ModelConstructor<TSchema>>;
+type ModelCompositeValue<TSchema extends Schema | null> = TSchema extends Schema
+	? InstanceType<ModelConstructor<TSchema>> & InferModelObject<TSchema>
+	: InstanceType<ModelConstructor<TSchema>>;
 
-export interface ModelFindAndCountResult<TSchema extends Schema<SchemaDefinition> | null> {
+export interface ModelFindAndCountResult<TSchema extends Schema | null> {
 	/** Number of documents returned */
 	count: number;
 	/** Model instances for the returned documents */
@@ -44,7 +43,8 @@ export interface ModelDatabaseExecutionOptions {
 	maxReturnPayloadSize?: number;
 }
 export type ModelDeleteByIdOptions = ModelDatabaseExecutionOptions;
-export type ModelFindOptions = QueryConstructorOptions & ModelDatabaseExecutionOptions;
+export type ModelFindOptions<TSchema extends Schema | null> = QueryConstructorOptions<TSchema> &
+	ModelDatabaseExecutionOptions;
 export interface ModelFindByIdOptions extends ModelDatabaseExecutionOptions {
 	/** Array of projection properties */
 	projection?: string[];
@@ -54,7 +54,7 @@ export type ModelSaveOptions = ModelDatabaseExecutionOptions;
 // #endregion
 
 /** Define a new model */
-const compileModel = <TSchema extends Schema<SchemaDefinition> | null>(
+const compileModel = <TSchema extends Schema | null>(
 	connection: Connection,
 	schema: TSchema,
 	file: string,
@@ -169,8 +169,8 @@ const compileModel = <TSchema extends Schema<SchemaDefinition> | null>(
 
 		/** Find documents via query */
 		public static async find(
-			selectionCriteria: Filter = {},
-			options: ModelFindOptions = {},
+			selectionCriteria: Filter<TSchema> = {} as Filter<TSchema>,
+			options: ModelFindOptions<TSchema> = {},
 		): Promise<ModelCompositeValue<TSchema>[]> {
 			const { maxReturnPayloadSize, requestId, userDefined, ...queryConstructorOptions } = options;
 			const query = new Query(
@@ -195,8 +195,8 @@ const compileModel = <TSchema extends Schema<SchemaDefinition> | null>(
 
 		/** Find documents via query, returning them along with a count */
 		public static async findAndCount(
-			selectionCriteria: Filter = {},
-			options: ModelFindOptions = {},
+			selectionCriteria: Filter<TSchema> = {} as Filter<TSchema>,
+			options: ModelFindOptions<TSchema> = {},
 		): Promise<ModelFindAndCountResult<TSchema>> {
 			const { maxReturnPayloadSize, requestId, userDefined, ...queryConstructorOptions } = options;
 			const query = new Query(
