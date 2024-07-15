@@ -482,26 +482,22 @@ class Connection {
 	private handleAxiosError(err: AxiosError): never {
 		if (err.code === 'ETIMEDOUT') {
 			this.logHandler.error(`Timeout error occurred in MVIS request: ${err.message}`);
-			throw new TimeoutError({ message: err.message });
+			throw new TimeoutError(err, { message: err.message });
 		}
 
 		this.logHandler.error(`Error occurred in MVIS request: ${err.message}`);
-		throw new MvisError({
-			message: err.message,
-			mvisRequest: err.request,
-			mvisResponse: err.response,
-		});
+		throw new MvisError(err, { message: err.message });
 	}
 
 	/** Handle an unknown error */
 	private handleUnexpectedError(err: unknown): never {
 		if (err instanceof Error) {
 			this.logHandler.error(`Error occurred in MVIS request: ${err.message}`);
-			throw new UnknownError({ message: err.message });
+			throw new UnknownError(err, { message: err.message });
 		}
 
 		this.logHandler.error('Unknown error occurred in MVIS request');
-		throw new UnknownError();
+		throw new UnknownError(err);
 	}
 }
 

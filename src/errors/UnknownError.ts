@@ -7,11 +7,14 @@ interface UnknownErrorConstructorOptions {
 // #endregion
 
 class UnknownError extends BaseError {
-	public constructor({
-		message = 'An unknown error has occurred',
-	}: UnknownErrorConstructorOptions = {}) {
+	public constructor(
+		cause: unknown,
+		{ message = 'An unknown error has occurred' }: UnknownErrorConstructorOptions = {},
+	) {
 		const name = 'UnknownError';
 		super(message, name);
+
+		this.cause = cause;
 	}
 }
 
