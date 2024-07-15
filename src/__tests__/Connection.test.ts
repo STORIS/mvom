@@ -862,7 +862,7 @@ describe('executeDbSubroutine', () => {
 				},
 				{ requestId },
 			),
-		).rejects.toThrow(MvisError);
+		).rejects.toThrow(new MvisError(err, { message: err.message }));
 	});
 
 	test('should throw TimeoutError if axios call rejects with an AxiosError that is a timeout', async () => {
@@ -907,7 +907,7 @@ describe('executeDbSubroutine', () => {
 				},
 				{ requestId },
 			),
-		).rejects.toThrow(TimeoutError);
+		).rejects.toThrow(new TimeoutError(err, { message: err.message }));
 	});
 
 	test("should throw UnknownError with error's message if axios call rejects with an Error other than an AxiosError", async () => {
@@ -952,7 +952,7 @@ describe('executeDbSubroutine', () => {
 				},
 				{ requestId },
 			),
-		).rejects.toThrow(new UnknownError({ message: errMsg }));
+		).rejects.toThrow(new UnknownError(err, { message: errMsg }));
 	});
 
 	test('should throw UnknownError if axios call rejects with something other than an error', async () => {
@@ -996,7 +996,7 @@ describe('executeDbSubroutine', () => {
 				},
 				{ requestId },
 			),
-		).rejects.toThrow(UnknownError);
+		).rejects.toThrow(new UnknownError(errMsg));
 	});
 });
 
