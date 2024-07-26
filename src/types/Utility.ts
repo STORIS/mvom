@@ -30,3 +30,22 @@ export type FromPaths<T extends { path: string; type: unknown }> = {
 
 /** Flatten an object to string keyPath (i.e. { "foo.bar.baz": number }) */
 export type FlattenObject<TObject extends Record<string, unknown>> = FromPaths<ToPaths<TObject>>;
+
+/** Make composite types user friendly in the editor by constructing a new type with object keys */
+export type Remap<T> = T extends infer O ? { [Key in keyof O]: O[Key] } : never;
+
+/** Deeply mark all nullable properties as optional */
+export type DeepOptionalNullable<TObject> = Remap<
+	{
+		[Key in keyof TObject as null extends TObject[Key] ? Key : never]?: TObject[Key];
+	} & {
+		[Key in keyof TObject as null extends TObject[Key] ? never : Key]: TObject[Key] extends Record<
+			string,
+			unknown
+		>
+			? DeepOptionalNullable<TObject[Key]>
+			: TObject[Key] extends (infer U extends Record<string, unknown>)[]
+				? DeepOptionalNullable<U>[]
+				: TObject[Key];
+	}
+>;

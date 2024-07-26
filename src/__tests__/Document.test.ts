@@ -1,8 +1,12 @@
 import mockDelimiters from '#test/mockDelimiters';
-import type { BuildForeignKeyDefinitionsResult, DocumentConstructorOptions } from '../Document';
+import type {
+	BuildForeignKeyDefinitionsResult,
+	DocumentConstructorOptions,
+	DocumentData,
+} from '../Document';
 import Document from '../Document';
 import { TransformDataError } from '../errors';
-import type { SchemaDefinition } from '../Schema';
+import type { ISOCalendarDate, ISOCalendarDateTime, ISOTime, SchemaDefinition } from '../Schema';
 import Schema from '../Schema';
 import type { Equals, MvRecord } from '../types';
 
@@ -1023,5 +1027,111 @@ describe('type inference', () => {
 		// any other property should be unknown
 		const test4: Equals<DocumentResult['otherProp'], unknown> = true;
 		expect(test4).toBe(true);
+	});
+});
+
+describe('utility types', () => {
+	describe('DocumentData', () => {
+		test('should convert optional schema properties to have optional modifier', () => {
+			const schema = new Schema({
+				boolean: { type: 'boolean', path: 1 },
+				string: { type: 'string', path: 2 },
+				number: { type: 'number', path: 3 },
+				isoCalendarDate: { type: 'ISOCalendarDate', path: 4 },
+				isoTime: { type: 'ISOTime', path: 5 },
+				isoCalendarDateTime: { type: 'ISOCalendarDateTime', path: 6 },
+			});
+
+			const test1: Equals<
+				DocumentData<typeof schema>,
+				{
+					boolean?: boolean | null;
+					string?: string | null;
+					number?: number | null;
+					isoCalendarDate?: ISOCalendarDate | null;
+					isoTime?: ISOTime | null;
+					isoCalendarDateTime?: ISOCalendarDateTime | null;
+				}
+			> = true;
+			expect(test1).toBe(true);
+		});
+
+		test('should convert optional schema properties to have optional modifier in deep schemas', () => {
+			const schema = new Schema({
+				booleanOptional: { type: 'boolean', path: '1' },
+				booleanRequired: { type: 'boolean', path: '2', required: true },
+				stringOptional: { type: 'string', path: '3' },
+				stringRequired: { type: 'string', path: '4', required: true },
+				numberOptional: { type: 'number', path: '5' },
+				numberRequired: { type: 'number', path: '6', required: true },
+				isoCalendarDateOptional: { type: 'ISOCalendarDate', path: '7' },
+				isoCalendarDateRequired: { type: 'ISOCalendarDate', path: '8', required: true },
+				isoTimeOptional: { type: 'ISOTime', path: '9' },
+				isoTimeRequired: { type: 'ISOTime', path: '10', required: true },
+				isoCalendarDateTimeOptional: { type: 'ISOCalendarDateTime', path: '11' },
+				isoCalendarDateTimeRequired: { type: 'ISOCalendarDateTime', path: '12', required: true },
+				arrayOptional: [{ type: 'string', path: '13' }],
+				arrayRequired: [{ type: 'string', path: '14', required: true }],
+				nestedArrayOptional: [[{ type: 'string', path: '15' }]],
+				nestedArrayRequired: [[{ type: 'string', path: '16', required: true }]],
+				embeddedOptional: new Schema({
+					innerEmbeddedProp: { type: 'string', path: '17' },
+				}),
+				embeddedRequired: new Schema({
+					innerEmbeddedProp: { type: 'string', path: '18', required: true },
+				}),
+				documentArrayOptional: [
+					{
+						docStringProp: { type: 'string', path: '19' },
+						docNumberProp: { type: 'number', path: '20' },
+					},
+				],
+				documentArrayRequired: [
+					{
+						docStringProp: { type: 'string', path: '21', required: true },
+						docNumberProp: { type: 'number', path: '22' },
+					},
+				],
+				documentArraySchemaOptional: [
+					new Schema({
+						docStringProp: { type: 'string', path: '23' },
+					}),
+				],
+				documentArraySchemaRequired: [
+					new Schema({
+						docStringProp: { type: 'string', path: '24', required: true },
+					}),
+				],
+			});
+
+			const test1: Equals<
+				DocumentData<typeof schema>,
+				{
+					booleanOptional?: boolean | null;
+					booleanRequired: boolean;
+					stringOptional?: string | null;
+					stringRequired: string;
+					numberOptional?: number | null;
+					numberRequired: number;
+					isoCalendarDateOptional?: ISOCalendarDate | null;
+					isoCalendarDateRequired: ISOCalendarDate;
+					isoTimeOptional?: ISOTime | null;
+					isoTimeRequired: ISOTime;
+					isoCalendarDateTimeOptional?: ISOCalendarDateTime | null;
+					isoCalendarDateTimeRequired: ISOCalendarDateTime;
+					arrayOptional: (string | null)[];
+					arrayRequired: string[];
+					nestedArrayOptional: (string | null)[][];
+					nestedArrayRequired: string[][];
+					embeddedOptional: { innerEmbeddedProp?: string | null };
+					embeddedRequired: { innerEmbeddedProp: string };
+					documentArrayOptional: { docStringProp?: string | null; docNumberProp?: number | null }[];
+					documentArrayRequired: { docStringProp: string; docNumberProp?: number | null }[];
+					documentArraySchemaOptional: { docStringProp?: string | null }[];
+					documentArraySchemaRequired: { docStringProp: string }[];
+				}
+			> = true;
+			expect(test1).toBe(true);
+		});
 	});
 });

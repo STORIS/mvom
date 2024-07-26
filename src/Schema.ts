@@ -29,7 +29,14 @@ import type {
 	SchemaTypeDefinitionScalar,
 	SchemaTypeDefinitionString,
 } from './schemaType';
-import type { DataTransformer, DecryptFn, EncryptFn, FlattenObject, MarkRequired } from './types';
+import type {
+	DataTransformer,
+	DecryptFn,
+	EncryptFn,
+	FlattenObject,
+	MarkRequired,
+	Remap,
+} from './types';
 
 // #region Types
 export type SchemaTypeDefinition =
@@ -65,16 +72,18 @@ type PickAndMark<T extends SchemaTypeDefinitionScalar, K extends keyof T = never
 	'dictionary'
 >;
 
-export type DictionaryTypeDefinitionString = PickAndMark<SchemaTypeDefinitionString>;
-export type DictionaryTypeDefinitionNumber = PickAndMark<SchemaTypeDefinitionNumber>;
-export type DictionaryTypeDefinitionBoolean = PickAndMark<SchemaTypeDefinitionBoolean>;
-export type DictionaryTypeDefinitionISOCalendarDate =
-	PickAndMark<SchemaTypeDefinitionISOCalendarDate>;
-export type DictionaryTypeDefinitionISOCalendarDateTime = PickAndMark<
-	SchemaTypeDefinitionISOCalendarDateTime,
-	'dbFormat'
+export type DictionaryTypeDefinitionString = Remap<PickAndMark<SchemaTypeDefinitionString>>;
+export type DictionaryTypeDefinitionNumber = Remap<PickAndMark<SchemaTypeDefinitionNumber>>;
+export type DictionaryTypeDefinitionBoolean = Remap<PickAndMark<SchemaTypeDefinitionBoolean>>;
+export type DictionaryTypeDefinitionISOCalendarDate = Remap<
+	PickAndMark<SchemaTypeDefinitionISOCalendarDate>
 >;
-export type DictionaryTypeDefinitionISOTime = PickAndMark<SchemaTypeDefinitionISOTime, 'dbFormat'>;
+export type DictionaryTypeDefinitionISOCalendarDateTime = Remap<
+	PickAndMark<SchemaTypeDefinitionISOCalendarDateTime, 'dbFormat'>
+>;
+export type DictionaryTypeDefinitionISOTime = Remap<
+	PickAndMark<SchemaTypeDefinitionISOTime, 'dbFormat'>
+>;
 
 export type DictionaryTypeDefinition =
 	| DictionaryTypeDefinitionString
@@ -155,12 +164,12 @@ export type InferDocumentObject<TSchema extends Schema, TConstraint = SchemaType
 		: never;
 
 /** Infer the shape of a `Model` instance based upon the Schema it was instantiated with */
-export type InferModelObject<TSchema extends Schema> = {
-	_id: string;
-	__v: string;
-} & InferDocumentObject<TSchema> extends infer O
-	? { [K in keyof O]: O[K] }
-	: never;
+export type InferModelObject<TSchema extends Schema> = Remap<
+	{
+		_id: string;
+		__v: string;
+	} & InferDocumentObject<TSchema>
+>;
 
 /**
  * Flatten a document to string keyPath (i.e. { "foo.bar.baz": number })
