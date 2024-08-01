@@ -19,6 +19,7 @@ class RecordNotFoundError extends BaseError {
 	}: RecordNotFoundErrorConstructorOptions) {
 		const name = 'RecordNotFoundError';
 		super(message, name);
+
 		this.filename = filename;
 		this.recordId = recordId;
 	}
