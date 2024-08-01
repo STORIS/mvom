@@ -671,7 +671,7 @@ describe('save', () => {
 
 		const id = 'id';
 		// @ts-expect-error: intentionally invalid data to trigger validation failure
-		const model = new Model({ _id: id, data: { prop1: 'prop1-value' } });
+		const model = new Model({ _id: id, data: { prop1: 1337 } });
 		model.validate = () => new Map([['prop1', ['Not good']]]);
 
 		await expect(model.save()).rejects.toThrow(DataValidationError);

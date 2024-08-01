@@ -3,12 +3,12 @@ import { TransformDataError } from './errors';
 import ForeignKeyDbTransformer from './ForeignKeyDbTransformer';
 import type Schema from './Schema';
 import type { InferDocumentObject } from './Schema';
-import type { DbServerDelimiters, MvRecord } from './types';
+import type { DbServerDelimiters, DeepOptionalNullable, MvRecord } from './types';
 
 // #region Types
 /** Type of data property for constructing a document dependent upon the schema */
 export type DocumentData<TSchema extends Schema | null> = TSchema extends Schema
-	? InferDocumentObject<TSchema>
+	? DeepOptionalNullable<InferDocumentObject<TSchema>>
 	: never;
 
 export interface DocumentConstructorOptions<TSchema extends Schema | null> {
