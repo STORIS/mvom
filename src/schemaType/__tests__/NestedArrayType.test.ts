@@ -1,13 +1,9 @@
-import { mock } from 'jest-mock-extended';
 import { NumberType, StringType } from '..';
-import type Document from '../../Document';
 import type { ForeignKeyDbDefinition } from '../../ForeignKeyDbTransformer';
 import type { MvRecord } from '../../types';
 import NestedArrayType from '../NestedArrayType';
 import type { SchemaTypeDefinitionNumber } from '../NumberType';
 import type { SchemaTypeDefinitionString } from '../StringType';
-
-const documentMock = mock<Document>();
 
 describe('get', () => {
 	describe('no encryption', () => {
@@ -175,7 +171,7 @@ describe('transformForeignKeyDefinitionsToDb', () => {
 });
 
 describe('validate', () => {
-	test('should return errors defined by value schema validators when data is an un-nested array', async () => {
+	test('should return errors defined by value schema validators when data is an un-nested array', () => {
 		const valueSchemaDefinition: SchemaTypeDefinitionNumber = {
 			type: 'number',
 			path: '2.2',
@@ -187,12 +183,17 @@ describe('validate', () => {
 
 		const value = [null, null, 1.23];
 
-		const validationResult = await nestedArrayType.validate(value, documentMock);
-		expect(validationResult).toContain('Property is required');
-		expect(validationResult).toHaveLength(2);
+		const expected = new Map([
+			['0.0', ['Property is required']],
+			['1.0', ['Property is required']],
+		]);
+
+		const validationResult = nestedArrayType.validate(value);
+		expect(validationResult).toEqual(expected);
+		expect(validationResult.size).toBe(2);
 	});
 
-	test('should return errors defined by value schema validators when data is a nested array', async () => {
+	test('should return errors defined by value schema validators when data is a nested array', () => {
 		const valueSchemaDefinition: SchemaTypeDefinitionNumber = {
 			type: 'number',
 			path: '2.2',
@@ -208,12 +209,18 @@ describe('validate', () => {
 			[1.23, 4.56],
 		];
 
-		const validationResult = await nestedArrayType.validate(value, documentMock);
-		expect(validationResult).toContain('Property is required');
-		expect(validationResult).toHaveLength(4);
+		const expected = new Map([
+			['0.0', ['Property is required']],
+			['0.1', ['Property is required']],
+			['1.0', ['Property is required']],
+			['1.1', ['Property is required']],
+		]);
+		const validationResult = nestedArrayType.validate(value);
+		expect(validationResult).toEqual(expected);
+		expect(validationResult.size).toBe(4);
 	});
 
-	test('should have no errors if value schema validators pass', async () => {
+	test('should have no errors if value schema validators pass', () => {
 		const valueSchemaDefinition: SchemaTypeDefinitionNumber = {
 			type: 'number',
 			path: '2.2',
@@ -228,7 +235,7 @@ describe('validate', () => {
 			[7.89, 12.34],
 		];
 
-		const validationResult = await nestedArrayType.validate(value, documentMock);
-		expect(validationResult).toHaveLength(0);
+		const validationResult = nestedArrayType.validate(value);
+		expect(validationResult.size).toBe(0);
 	});
 });

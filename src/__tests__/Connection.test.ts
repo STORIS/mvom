@@ -27,7 +27,8 @@ import type { Logger } from '../LogHandler';
 jest.mock('axios');
 jest.mock('crypto');
 
-const mockDeploymentManager = mock<DeploymentManager>();
+const subroutineName = 'mvom_main@01234567';
+const mockDeploymentManager = mock<DeploymentManager>({ subroutineName });
 jest.mock('../DeploymentManager', () => ({ createDeploymentManager: () => mockDeploymentManager }));
 
 const mockedAxios = axios as jest.Mocked<typeof axios>;
@@ -209,6 +210,20 @@ describe('createConnection', () => {
 	});
 });
 
+describe('subroutineName getter', () => {
+	test('should return the subroutine name', () => {
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
+
+		expect(connection.subroutineName).toBe(subroutineName);
+	});
+});
+
 describe('open', () => {
 	test('should throw ConnectionError if connection is not closed', async () => {
 		const connection = Connection.createConnection(
@@ -236,6 +251,8 @@ describe('open', () => {
 		);
 
 		await expect(connection.open({ requestId })).rejects.toThrow(InvalidServerFeaturesError);
+
+		expect(mockDeploymentManager.validateDeployment).toHaveBeenCalledTimes(1);
 	});
 
 	test('should open new connection', async () => {
@@ -276,6 +293,48 @@ describe('open', () => {
 
 		await connection.open({ requestId });
 		expect(connection.status).toBe(ConnectionStatus.connected);
+
+		expect(mockDeploymentManager.validateDeployment).toHaveBeenCalledTimes(1);
+	});
+
+	test('should bypass deployment validation and open new connection', async () => {
+		when<any, any[]>(mockedAxiosInstance.post)
+			.calledWith(
+				expect.anything(),
+				expect.objectContaining({
+					input: expect.objectContaining({
+						subroutineId: expect.stringContaining('getServerInfo'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
+					}),
+				}),
+			)
+			.mockResolvedValue({
+				data: {
+					output: {
+						date: 19791,
+						time: 43200000,
+						delimiters: mockDelimiters,
+						limits: { maxSort: 20, maxWith: 512, maxSentenceLength: 9247 },
+					},
+				},
+			});
+
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
+
+		await connection.open({ requestId, validateDeployment: false });
+		expect(connection.status).toBe(ConnectionStatus.connected);
+
+		expect(mockDeploymentManager.validateDeployment).not.toHaveBeenCalled();
 	});
 });
 
@@ -430,7 +489,7 @@ describe('executeDbSubroutine', () => {
 
 		await connection.open();
 		expect(mockedAxiosInstance.post).toHaveBeenCalledWith(
-			expect.anything(),
+			subroutineName,
 			{
 				input: {
 					subroutineId: 'getServerInfo',
@@ -803,7 +862,7 @@ describe('executeDbSubroutine', () => {
 				},
 				{ requestId },
 			),
-		).rejects.toThrow(MvisError);
+		).rejects.toThrow(new MvisError(err, { message: err.message }));
 	});
 
 	test('should throw TimeoutError if axios call rejects with an AxiosError that is a timeout', async () => {
@@ -848,7 +907,7 @@ describe('executeDbSubroutine', () => {
 				},
 				{ requestId },
 			),
-		).rejects.toThrow(TimeoutError);
+		).rejects.toThrow(new TimeoutError(err, { message: err.message }));
 	});
 
 	test("should throw UnknownError with error's message if axios call rejects with an Error other than an AxiosError", async () => {
@@ -893,7 +952,7 @@ describe('executeDbSubroutine', () => {
 				},
 				{ requestId },
 			),
-		).rejects.toThrow(new UnknownError({ message: errMsg }));
+		).rejects.toThrow(new UnknownError(err, { message: errMsg }));
 	});
 
 	test('should throw UnknownError if axios call rejects with something other than an error', async () => {
@@ -937,7 +996,7 @@ describe('executeDbSubroutine', () => {
 				},
 				{ requestId },
 			),
-		).rejects.toThrow(UnknownError);
+		).rejects.toThrow(new UnknownError(errMsg));
 	});
 });
 

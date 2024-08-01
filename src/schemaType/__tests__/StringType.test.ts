@@ -1,10 +1,6 @@
-import { mock } from 'jest-mock-extended';
-import type Document from '../../Document';
 import type { ForeignKeyDbDefinition } from '../../ForeignKeyDbTransformer';
 import type { SchemaTypeDefinitionString } from '../StringType';
 import StringType from '../StringType';
-
-const documentMock = mock<Document>();
 
 describe('transformFromDb', () => {
 	test('should return null if value is null and no enum is defined', () => {
@@ -112,7 +108,7 @@ describe('transformForeignKeyDefinitionsToDb', () => {
 
 describe('validations', () => {
 	describe('required validations', () => {
-		test('should return error message if required is true and value is null', async () => {
+		test('should return error message if required is true and value is null', () => {
 			const definition: SchemaTypeDefinitionString = {
 				type: 'string',
 				path: '2',
@@ -122,10 +118,10 @@ describe('validations', () => {
 
 			const value = null;
 
-			expect(await stringType.validate(value, documentMock)).toContain('Property is required');
+			expect(stringType.validate(value)).toContain('Property is required');
 		});
 
-		test('should return error message if required is true and value is empty string', async () => {
+		test('should return error message if required is true and value is empty string', () => {
 			const definition: SchemaTypeDefinitionString = {
 				type: 'string',
 				path: '2',
@@ -135,10 +131,10 @@ describe('validations', () => {
 
 			const value = '';
 
-			expect(await stringType.validate(value, documentMock)).toContain('Property is required');
+			expect(stringType.validate(value)).toContain('Property is required');
 		});
 
-		test('should not return error message if required is true and value is populated with a string', async () => {
+		test('should not return error message if required is true and value is populated with a string', () => {
 			const definition: SchemaTypeDefinitionString = {
 				type: 'string',
 				path: '2',
@@ -148,10 +144,10 @@ describe('validations', () => {
 
 			const value = 'foo';
 
-			expect(await stringType.validate(value, documentMock)).not.toContain('Property is required');
+			expect(stringType.validate(value)).not.toContain('Property is required');
 		});
 
-		test('should not return error message if required is false and value is null', async () => {
+		test('should not return error message if required is false and value is null', () => {
 			const definition: SchemaTypeDefinitionString = {
 				type: 'string',
 				path: '2',
@@ -161,10 +157,10 @@ describe('validations', () => {
 
 			const value = null;
 
-			expect(await stringType.validate(value, documentMock)).not.toContain('Property is required');
+			expect(stringType.validate(value)).not.toContain('Property is required');
 		});
 
-		test('should not return error message if required is false and value is empty string', async () => {
+		test('should not return error message if required is false and value is empty string', () => {
 			const definition: SchemaTypeDefinitionString = {
 				type: 'string',
 				path: '2',
@@ -174,12 +170,12 @@ describe('validations', () => {
 
 			const value = '';
 
-			expect(await stringType.validate(value, documentMock)).not.toContain('Property is required');
+			expect(stringType.validate(value)).not.toContain('Property is required');
 		});
 	});
 
 	describe('enum validations', () => {
-		test('should not return error message if value is null', async () => {
+		test('should not return error message if value is null', () => {
 			const definition: SchemaTypeDefinitionString = {
 				type: 'string',
 				path: '2',
@@ -189,12 +185,12 @@ describe('validations', () => {
 
 			const value = null;
 
-			expect(await stringType.validate(value, documentMock)).not.toContain(
+			expect(stringType.validate(value)).not.toContain(
 				'Value not present in list of allowed values',
 			);
 		});
 
-		test('should not return error message if enum is null', async () => {
+		test('should not return error message if enum is null', () => {
 			const definition: SchemaTypeDefinitionString = {
 				type: 'string',
 				path: '2',
@@ -203,12 +199,12 @@ describe('validations', () => {
 
 			const value = 'foo';
 
-			expect(await stringType.validate(value, documentMock)).not.toContain(
+			expect(stringType.validate(value)).not.toContain(
 				'Value not present in list of allowed values',
 			);
 		});
 
-		test('should not return error message if enum is defined and value is in enum', async () => {
+		test('should not return error message if enum is defined and value is in enum', () => {
 			const definition: SchemaTypeDefinitionString = {
 				type: 'string',
 				path: '2',
@@ -218,12 +214,12 @@ describe('validations', () => {
 
 			const value = 'foo';
 
-			expect(await stringType.validate(value, documentMock)).not.toContain(
+			expect(stringType.validate(value)).not.toContain(
 				'Value not present in list of allowed values',
 			);
 		});
 
-		test('should return error message if enum is defined and value is not in enum', async () => {
+		test('should return error message if enum is defined and value is not in enum', () => {
 			const definition: SchemaTypeDefinitionString = {
 				type: 'string',
 				path: '2',
@@ -233,14 +229,12 @@ describe('validations', () => {
 
 			const value = 'baz';
 
-			expect(await stringType.validate(value, documentMock)).toContain(
-				'Value not present in list of allowed values',
-			);
+			expect(stringType.validate(value)).toContain('Value not present in list of allowed values');
 		});
 	});
 
 	describe('regex validations', () => {
-		test('should not return error message if value is null', async () => {
+		test('should not return error message if value is null', () => {
 			const definition: SchemaTypeDefinitionString = {
 				type: 'string',
 				path: '2',
@@ -250,12 +244,10 @@ describe('validations', () => {
 
 			const value = null;
 
-			expect(await stringType.validate(value, documentMock)).not.toContain(
-				'Value does not match pattern',
-			);
+			expect(stringType.validate(value)).not.toContain('Value does not match pattern');
 		});
 
-		test('should not return error message if match qualifier is null', async () => {
+		test('should not return error message if match qualifier is null', () => {
 			const definition: SchemaTypeDefinitionString = {
 				type: 'string',
 				path: '2',
@@ -264,12 +256,10 @@ describe('validations', () => {
 
 			const value = 'foo';
 
-			expect(await stringType.validate(value, documentMock)).not.toContain(
-				'Value does not match pattern',
-			);
+			expect(stringType.validate(value)).not.toContain('Value does not match pattern');
 		});
 
-		test('should not return error message if value matches match qualifier', async () => {
+		test('should not return error message if value matches match qualifier', () => {
 			const definition: SchemaTypeDefinitionString = {
 				type: 'string',
 				path: '2',
@@ -279,12 +269,10 @@ describe('validations', () => {
 
 			const value = 'foo';
 
-			expect(await stringType.validate(value, documentMock)).not.toContain(
-				'Value does not match pattern',
-			);
+			expect(stringType.validate(value)).not.toContain('Value does not match pattern');
 		});
 
-		test('should return error message if match qualifier is defined and value does not match', async () => {
+		test('should return error message if match qualifier is defined and value does not match', () => {
 			const definition: SchemaTypeDefinitionString = {
 				type: 'string',
 				path: '2',
@@ -294,9 +282,7 @@ describe('validations', () => {
 
 			const value = 'bar';
 
-			expect(await stringType.validate(value, documentMock)).toContain(
-				'Value does not match pattern',
-			);
+			expect(stringType.validate(value)).toContain('Value does not match pattern');
 		});
 	});
 });

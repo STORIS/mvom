@@ -1,13 +1,9 @@
-import { mock } from 'jest-mock-extended';
 import { NumberType, StringType } from '..';
-import type Document from '../../Document';
 import type { ForeignKeyDbDefinition } from '../../ForeignKeyDbTransformer';
 import type { MvRecord } from '../../types';
 import ArrayType from '../ArrayType';
 import type { SchemaTypeDefinitionNumber } from '../NumberType';
 import type { SchemaTypeDefinitionString } from '../StringType';
-
-const documentMock = mock<Document>();
 
 describe('get', () => {
 	describe('attribute based path', () => {
@@ -194,7 +190,7 @@ describe('transformForeignKeyDefinitionsToDb', () => {
 });
 
 describe('validate', () => {
-	test('should return errors defined by value schema validators', async () => {
+	test('should return errors defined by value schema validators as a map with the index as the key and string array of errors as the value', () => {
 		const valueSchemaDefinition: SchemaTypeDefinitionNumber = {
 			type: 'number',
 			path: '2.2',
@@ -206,12 +202,15 @@ describe('validate', () => {
 
 		const value = [null, null, 1.23];
 
-		const validationResult = await arrayType.validate(value, documentMock);
-		expect(validationResult).toContain('Property is required');
-		expect(validationResult).toHaveLength(2);
+		const validationResult = arrayType.validate(value);
+		const expected = new Map<string, string[]>([
+			['0', ['Property is required']],
+			['1', ['Property is required']],
+		]);
+		expect(validationResult).toEqual(expected);
 	});
 
-	test('should have no errors if value schema validators pass', async () => {
+	test('should have no errors if value schema validators pass', () => {
 		const valueSchemaDefinition: SchemaTypeDefinitionNumber = {
 			type: 'number',
 			path: '2.2',
@@ -223,7 +222,7 @@ describe('validate', () => {
 
 		const value = [1.23, 4.56, 7.89];
 
-		const validationResult = await arrayType.validate(value, documentMock);
-		expect(validationResult).toHaveLength(0);
+		const validationResult = arrayType.validate(value);
+		expect(validationResult.size).toBe(0);
 	});
 });

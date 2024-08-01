@@ -1,15 +1,19 @@
 import mockDelimiters from '#test/mockDelimiters';
-import type { BuildForeignKeyDefinitionsResult, DocumentConstructorOptions } from '../Document';
+import type {
+	BuildForeignKeyDefinitionsResult,
+	DocumentConstructorOptions,
+	DocumentData,
+} from '../Document';
 import Document from '../Document';
 import { TransformDataError } from '../errors';
-import type { SchemaDefinition } from '../Schema';
+import type { ISOCalendarDate, ISOCalendarDateTime, ISOTime, SchemaDefinition } from '../Schema';
 import Schema from '../Schema';
-import type { MvRecord } from '../types';
+import type { Equals, MvRecord } from '../types';
 
 const { am, vm, svm } = mockDelimiters;
 
-class DocumentSubclass extends Document {
-	public constructor(schema: Schema | null, options: DocumentConstructorOptions) {
+class DocumentSubclass<TSchema extends Schema | null> extends Document<TSchema> {
+	public constructor(schema: TSchema, options: DocumentConstructorOptions<TSchema>) {
 		super(schema, options);
 	}
 }
@@ -447,7 +451,7 @@ describe('transformDocumentToRecord', () => {
 	});
 
 	test('should transform document with schema to record', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			prop1: { type: 'string', path: '1' },
 			prop2: { type: 'number', path: '2', dbDecimals: 2 },
 			array: [{ type: 'string', path: '3' }],
@@ -462,14 +466,14 @@ describe('transformDocumentToRecord', () => {
 					prop2: { type: 'number', path: '8', dbDecimals: 2 },
 				},
 			],
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition);
 
 		const data = {
 			prop1: 'foo',
 			prop2: 1.23,
 			array: ['bar', 'baz'],
-			nestedArray: [['qux', 'quux'], 'quz'],
+			nestedArray: [['qux', 'quux'], ['quz']],
 			nestedObject: { prop1: 'corge', prop2: 2.34 },
 			subdocumentArray: [
 				{ prop1: 'grault', prop2: 3.45 },
@@ -783,11 +787,11 @@ describe('buildForeignKeyDefinitions', () => {
 });
 
 describe('validate', () => {
-	test('should return no errors if schema is null', async () => {
+	test('should return no errors if schema is null', () => {
 		const document = new DocumentSubclass(null, { record: [] });
 
 		const expected = new Map();
-		expect(await document.validate()).toEqual(expected);
+		expect(document.validate()).toEqual(expected);
 	});
 
 	describe('id matching validation', () => {
@@ -798,23 +802,23 @@ describe('validate', () => {
 			idMatch: /^foo$/,
 		});
 
-		test('should return error if id match is specified and id does not match pattern', async () => {
+		test('should return error if id match is specified and id does not match pattern', () => {
 			const document = new DocumentSubclass(schema, { data: { _id: 'id', prop1: 'foo' } });
 
-			const expected = new Map([['_id', 'Document id does not match pattern']]);
-			expect(await document.validate()).toEqual(expected);
+			const expected = new Map([['_id', ['Document id does not match pattern']]]);
+			expect(document.validate()).toEqual(expected);
 		});
 
-		test('should not return error if id match is specified and id matches pattern', async () => {
+		test('should not return error if id match is specified and id matches pattern', () => {
 			const document = new DocumentSubclass(schema, { data: { _id: 'foo', prop1: 'foo' } });
 
 			const expected = new Map();
-			expect(await document.validate()).toEqual(expected);
+			expect(document.validate()).toEqual(expected);
 		});
 	});
 
 	describe('schema type validation', () => {
-		test('should return error at property if schemaType validation fails', async () => {
+		test('should return error at property if schemaType validation fails', () => {
 			const definition: SchemaDefinition = {
 				prop1: { type: 'string', path: '1', required: true },
 			};
@@ -822,10 +826,10 @@ describe('validate', () => {
 			const document = new DocumentSubclass(schema, { record: [] });
 
 			const expected = new Map([['prop1', ['Property is required']]]);
-			expect(await document.validate()).toEqual(expected);
+			expect(document.validate()).toEqual(expected);
 		});
 
-		test('should not return error at property if schemaType validation is successful', async () => {
+		test('should not return error at property if schemaType validation is successful', () => {
 			const definition: SchemaDefinition = {
 				prop1: { type: 'string', path: '1', required: true },
 			};
@@ -833,10 +837,10 @@ describe('validate', () => {
 			const document = new DocumentSubclass(schema, { record: ['foo'] });
 
 			const expected = new Map();
-			expect(await document.validate()).toEqual(expected);
+			expect(document.validate()).toEqual(expected);
 		});
 
-		test('should return thrown error message if schemaType validation throws an error', async () => {
+		test('should return thrown error message in an array if schemaType validation throws an error', async () => {
 			// mock StringType.validate to throw
 			jest.resetModules();
 			const err = new Error('Test error message');
@@ -856,8 +860,278 @@ describe('validate', () => {
 			});
 			const document = new DocumentSubclass(schema, { data: { prop1: 'foo' } });
 
-			const expected = new Map([['prop1', 'Test error message']]);
-			expect(await document.validate()).toEqual(expected);
+			const expected = new Map([['prop1', ['Test error message']]]);
+			expect(document.validate()).toEqual(expected);
+		});
+
+		test('return error at property & unravel nested errors if schemaType validation fails', () => {
+			const passingSchema = new Schema({
+				prop1: { type: 'string', path: '15', required: true },
+				prop2: { type: 'number', path: '16', dbDecimals: 2, required: true },
+			});
+			const failingSchema = new Schema({
+				prop1: [{ type: 'string', path: '17', required: true }],
+				prop2: { type: 'number', path: '18', dbDecimals: 2, required: true },
+			});
+
+			const passingDocumentArraySchema = new Schema({
+				prop1: [{ type: 'string', path: '19', required: true }],
+				prop2: [{ type: 'number', path: '20', dbDecimals: 2, required: true }],
+			});
+			const failingDocumentArraySchema = new Schema({
+				prop1: [{ type: 'string', path: '21', required: true }],
+				prop2: { type: 'number', path: '22', dbDecimals: 2, required: true },
+			});
+			const definition: SchemaDefinition = {
+				passingProp: { type: 'string', path: '1', required: true },
+				failingProp: { type: 'number', path: '2', dbDecimals: 2, required: true },
+				passingArray: [{ type: 'string', path: '3', required: true }],
+				failingArray: [{ type: 'string', path: '4', required: true }],
+				passingNestedArray: [[{ type: 'string', path: '5', required: true }]],
+				failingNestedArray: [[{ type: 'string', path: '6', required: true }]],
+				passingObject: {
+					prop1: [{ type: 'number', path: '7', required: true }],
+					prop2: { type: 'number', path: '8', required: true },
+				},
+				failingObject: {
+					prop1: [{ type: 'number', path: '9', required: true }],
+					prop2: { type: 'number', path: '10', required: true },
+				},
+				passingObjectArray: [
+					{
+						prop1: [{ type: 'string', path: '11', required: true }],
+						prop2: { type: 'number', path: '12', dbDecimals: 2, required: true },
+					},
+				],
+				failingObjectDocumentArray: [
+					{
+						prop1: [{ type: 'string', path: '13', required: true }],
+						prop2: { type: 'number', path: '14', dbDecimals: 2, required: true },
+					},
+				],
+				passingSchema,
+				failingSchema,
+				passingSchemaDocumentArray: [passingDocumentArraySchema],
+				failingSchemaDocumentArray: [failingDocumentArraySchema],
+			};
+			const schema = new Schema(definition);
+			const record = [
+				'55', // passingProp
+				null, // failingProp
+				['foo', 'bar'], // passingArray
+				[null, null], // failingArray
+				[
+					['bing', 'bong'],
+					['bong', 'bing'],
+				], // passingNestedArray
+				[
+					// failing nested array
+					[null, 'yup'],
+					['bong', 'hello', null],
+					'hello',
+					null,
+				],
+				['5', '10'], // passingObject.prop1
+				'5', // passingObject.prop2
+				[null, '5', null], // failingObject.prop1
+				null, // failingObject.prop2
+				[['5', '6']], // passingObjectDocumentArray.prop1
+				[[`5`]], // passingObjectDocumentArray.prop2
+				[
+					// failingObjectDocumentArray.prop1
+					['5', null, '5'],
+					[null, '5', null],
+				],
+				['5', null], // failingObjectDocumentArray.prop2
+				['5', '10'], // passingSchema.prop1
+				'5', // passingSchema.prop2
+				[null, '5', null], // failingSchema.prop1
+				null, // failingSchema.prop2
+				['5', '10'], // passingSchemaDocumentArray.prop1
+				'5', // passingSchemaDocumentArray.prop2
+				[
+					[null, '5', null],
+					['5', null, '5'],
+				], // failingSchemaDocumentArray.prop1
+				[null, null], // failingSchemaDocumentArray.prop2
+			];
+			const document = new DocumentSubclass(schema, {
+				record,
+			});
+
+			const expected = new Map([
+				['failingProp', ['Property is required']],
+				['failingArray.0', ['Property is required']],
+				['failingArray.1', ['Property is required']],
+				['failingNestedArray.0.0', ['Property is required']],
+				['failingNestedArray.1.2', ['Property is required']],
+				['failingNestedArray.3.0', ['Property is required']],
+				['failingObject.prop1.0', ['Property is required']],
+				['failingObject.prop1.2', ['Property is required']],
+				['failingObject.prop2', ['Property is required']],
+				['failingObjectDocumentArray.0.prop1.1', ['Property is required']],
+				['failingObjectDocumentArray.1.prop1.0', ['Property is required']],
+				['failingObjectDocumentArray.1.prop1.2', ['Property is required']],
+				['failingObjectDocumentArray.1.prop2', ['Property is required']],
+				['failingObjectDocumentArray.1.prop2', ['Property is required']],
+				['failingSchema.prop1.0', ['Property is required']],
+				['failingSchema.prop1.2', ['Property is required']],
+				['failingSchema.prop2', ['Property is required']],
+				['failingSchemaDocumentArray.0.prop1.0', ['Property is required']],
+				['failingSchemaDocumentArray.0.prop1.2', ['Property is required']],
+				['failingSchemaDocumentArray.1.prop1.1', ['Property is required']],
+				['failingSchemaDocumentArray.0.prop1.2', ['Property is required']],
+				['failingSchemaDocumentArray.0.prop2', ['Property is required']],
+				['failingSchemaDocumentArray.1.prop2', ['Property is required']],
+			]);
+
+			expect(document.validate()).toEqual(expected);
+		});
+	});
+});
+
+describe('type inference', () => {
+	test('should infer type without schema', () => {
+		const document = Document.createDocumentFromRecordString(null, `foo${am}123`, mockDelimiters);
+		type DocumentResult = typeof document;
+
+		// _raw should be MvRecord since there is no schema
+		const test1: Equals<DocumentResult['_raw'], MvRecord> = true;
+		expect(test1).toBe(true);
+
+		// any other property should be unknown
+		const test2: Equals<DocumentResult['otherProp'], unknown> = true;
+		expect(test2).toBe(true);
+	});
+
+	test('should infer type with schema', () => {
+		const schema = new Schema({
+			prop1: { type: 'string', path: '1' },
+			prop2: { type: 'number', path: '2', dbDecimals: 2 },
+		});
+		const document = Document.createDocumentFromRecordString(schema, `foo${am}123`, mockDelimiters);
+		type DocumentResult = typeof document;
+
+		// prop1 should be string | null
+		const test1: Equals<DocumentResult['prop1'], string | null> = true;
+		expect(test1).toBe(true);
+
+		// prop2 should be number | null
+		const test2: Equals<DocumentResult['prop2'], number | null> = true;
+		expect(test2).toBe(true);
+
+		// _raw should be undefined since there is a schema
+		const test3: Equals<DocumentResult['_raw'], undefined> = true;
+		expect(test3).toBe(true);
+
+		// any other property should be unknown
+		const test4: Equals<DocumentResult['otherProp'], unknown> = true;
+		expect(test4).toBe(true);
+	});
+});
+
+describe('utility types', () => {
+	describe('DocumentData', () => {
+		test('should convert optional schema properties to have optional modifier', () => {
+			const schema = new Schema({
+				boolean: { type: 'boolean', path: 1 },
+				string: { type: 'string', path: 2 },
+				number: { type: 'number', path: 3 },
+				isoCalendarDate: { type: 'ISOCalendarDate', path: 4 },
+				isoTime: { type: 'ISOTime', path: 5 },
+				isoCalendarDateTime: { type: 'ISOCalendarDateTime', path: 6 },
+			});
+
+			const test1: Equals<
+				DocumentData<typeof schema>,
+				{
+					boolean?: boolean | null;
+					string?: string | null;
+					number?: number | null;
+					isoCalendarDate?: ISOCalendarDate | null;
+					isoTime?: ISOTime | null;
+					isoCalendarDateTime?: ISOCalendarDateTime | null;
+				}
+			> = true;
+			expect(test1).toBe(true);
+		});
+
+		test('should convert optional schema properties to have optional modifier in deep schemas', () => {
+			const schema = new Schema({
+				booleanOptional: { type: 'boolean', path: '1' },
+				booleanRequired: { type: 'boolean', path: '2', required: true },
+				stringOptional: { type: 'string', path: '3' },
+				stringRequired: { type: 'string', path: '4', required: true },
+				numberOptional: { type: 'number', path: '5' },
+				numberRequired: { type: 'number', path: '6', required: true },
+				isoCalendarDateOptional: { type: 'ISOCalendarDate', path: '7' },
+				isoCalendarDateRequired: { type: 'ISOCalendarDate', path: '8', required: true },
+				isoTimeOptional: { type: 'ISOTime', path: '9' },
+				isoTimeRequired: { type: 'ISOTime', path: '10', required: true },
+				isoCalendarDateTimeOptional: { type: 'ISOCalendarDateTime', path: '11' },
+				isoCalendarDateTimeRequired: { type: 'ISOCalendarDateTime', path: '12', required: true },
+				arrayOptional: [{ type: 'string', path: '13' }],
+				arrayRequired: [{ type: 'string', path: '14', required: true }],
+				nestedArrayOptional: [[{ type: 'string', path: '15' }]],
+				nestedArrayRequired: [[{ type: 'string', path: '16', required: true }]],
+				embeddedOptional: new Schema({
+					innerEmbeddedProp: { type: 'string', path: '17' },
+				}),
+				embeddedRequired: new Schema({
+					innerEmbeddedProp: { type: 'string', path: '18', required: true },
+				}),
+				documentArrayOptional: [
+					{
+						docStringProp: { type: 'string', path: '19' },
+						docNumberProp: { type: 'number', path: '20' },
+					},
+				],
+				documentArrayRequired: [
+					{
+						docStringProp: { type: 'string', path: '21', required: true },
+						docNumberProp: { type: 'number', path: '22' },
+					},
+				],
+				documentArraySchemaOptional: [
+					new Schema({
+						docStringProp: { type: 'string', path: '23' },
+					}),
+				],
+				documentArraySchemaRequired: [
+					new Schema({
+						docStringProp: { type: 'string', path: '24', required: true },
+					}),
+				],
+			});
+
+			const test1: Equals<
+				DocumentData<typeof schema>,
+				{
+					booleanOptional?: boolean | null;
+					booleanRequired: boolean;
+					stringOptional?: string | null;
+					stringRequired: string;
+					numberOptional?: number | null;
+					numberRequired: number;
+					isoCalendarDateOptional?: ISOCalendarDate | null;
+					isoCalendarDateRequired: ISOCalendarDate;
+					isoTimeOptional?: ISOTime | null;
+					isoTimeRequired: ISOTime;
+					isoCalendarDateTimeOptional?: ISOCalendarDateTime | null;
+					isoCalendarDateTimeRequired: ISOCalendarDateTime;
+					arrayOptional: (string | null)[];
+					arrayRequired: string[];
+					nestedArrayOptional: (string | null)[][];
+					nestedArrayRequired: string[][];
+					embeddedOptional: { innerEmbeddedProp?: string | null };
+					embeddedRequired: { innerEmbeddedProp: string };
+					documentArrayOptional: { docStringProp?: string | null; docNumberProp?: number | null }[];
+					documentArrayRequired: { docStringProp: string; docNumberProp?: number | null }[];
+					documentArraySchemaOptional: { docStringProp?: string | null }[];
+					documentArraySchemaRequired: { docStringProp: string }[];
+				}
+			> = true;
+			expect(test1).toBe(true);
 		});
 	});
 });

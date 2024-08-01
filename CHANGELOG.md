@@ -7,9 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.0.0-rc.2] - 2024-04-03
-
-### Breaking Changes
+### Breaking changes
 
 - Minimum Node version is now 18.0.0 ([#620](https://github.com/STORIS/mvom/pull/620))
 

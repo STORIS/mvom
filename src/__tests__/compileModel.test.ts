@@ -14,11 +14,11 @@ import { DataValidationError } from '../errors';
 import type LogHandler from '../LogHandler';
 import Schema from '../Schema';
 import type { SchemaDefinition } from '../Schema';
-import type { GenericObject } from '../types';
+import type { Equals, MvRecord } from '../types';
 
 const connectionMock = mockDeep<Connection>();
 const logHandlerMock = mock<LogHandler>();
-const schemaDefinition: SchemaDefinition = {
+const schemaDefinition = {
 	prop1: {
 		type: 'string',
 		path: 1,
@@ -26,7 +26,7 @@ const schemaDefinition: SchemaDefinition = {
 		foreignKey: { file: 'FK_FILE', entityName: 'prop1' },
 	},
 	prop2: { type: 'number', path: 2, dictionary: 'prop2Dictionary' },
-};
+} satisfies SchemaDefinition;
 const schema = new Schema(schemaDefinition);
 const filename = 'test.file';
 const requestId = 'requestId';
@@ -188,7 +188,11 @@ describe('find', () => {
 
 		const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
 		const maxReturnPayloadSize = 10_000;
-		const options: ModelFindOptions = { maxReturnPayloadSize, userDefined, requestId };
+		const options: ModelFindOptions<typeof schema> = {
+			maxReturnPayloadSize,
+			userDefined,
+			requestId,
+		};
 
 		const documents = await Model.find({}, options);
 		documents.forEach((document) => {
@@ -275,7 +279,11 @@ describe('findAndCount', () => {
 
 		const userDefined = { option1: 'foo', option2: 'bar', option3: 'baz' };
 		const maxReturnPayloadSize = 10_000;
-		const options: ModelFindOptions = { maxReturnPayloadSize, userDefined, requestId };
+		const options: ModelFindOptions<typeof schema> = {
+			maxReturnPayloadSize,
+			userDefined,
+			requestId,
+		};
 
 		const { count, documents } = await Model.findAndCount({}, options);
 		expect(count).toBe(2);
@@ -662,8 +670,9 @@ describe('save', () => {
 		const Model = compileModel(connectionMock, schema, filename, mockDelimiters, logHandlerMock);
 
 		const id = 'id';
-		const model = new Model({ _id: id, data: { prop1: 'prop1-value' } });
-		model.validate = () => Promise.resolve(new Map([['prop1', 'Not good']]));
+		// @ts-expect-error: intentionally invalid data to trigger validation failure
+		const model = new Model({ _id: id, data: { prop1: 1337 } });
+		model.validate = () => new Map([['prop1', ['Not good']]]);
 
 		await expect(model.save()).rejects.toThrow(DataValidationError);
 	});
@@ -677,7 +686,7 @@ describe('save', () => {
 		const err = new Error('Test error');
 		connectionMock.executeDbSubroutine.mockRejectedValue(err);
 
-		const error = await getError<Error & { other: GenericObject }>(async () => model.save());
+		const error = await getError<Error & { other: unknown }>(async () => model.save());
 
 		expect(error).not.toBeInstanceOf(NoErrorThrownError);
 		expect(error).toBeInstanceOf(Error);
@@ -939,6 +948,216 @@ describe('save', () => {
 				},
 				{ maxReturnPayloadSize, userDefined, requestId },
 			);
+		});
+	});
+});
+
+describe('type inference', () => {
+	describe('with schema', () => {
+		test('deleteById', () => {
+			const Model = compileModel(connectionMock, schema, filename, mockDelimiters, logHandlerMock);
+			type Result = NonNullable<Awaited<ReturnType<typeof Model.deleteById>>>;
+
+			// prop1 should be string | null
+			const test1: Equals<Result['prop1'], string | null> = true;
+			expect(test1).toBe(true);
+
+			// prop2 should be number | null
+			const test2: Equals<Result['prop2'], number | null> = true;
+			expect(test2).toBe(true);
+
+			// _raw should be undefined since there is a schema
+			const test3: Equals<Result['_raw'], undefined> = true;
+			expect(test3).toBe(true);
+
+			// any other property should be unknown
+			const test4: Equals<Result['otherProp'], unknown> = true;
+			expect(test4).toBe(true);
+		});
+
+		test('find', () => {
+			const Model = compileModel(connectionMock, schema, filename, mockDelimiters, logHandlerMock);
+			type Result = Awaited<ReturnType<typeof Model.find>>[0];
+
+			// prop1 should be string | null
+			const test1: Equals<Result['prop1'], string | null> = true;
+			expect(test1).toBe(true);
+
+			// prop2 should be number | null
+			const test2: Equals<Result['prop2'], number | null> = true;
+			expect(test2).toBe(true);
+
+			// _raw should be undefined since there is a schema
+			const test3: Equals<Result['_raw'], undefined> = true;
+			expect(test3).toBe(true);
+
+			// any other property should be unknown
+			const test4: Equals<Result['otherProp'], unknown> = true;
+			expect(test4).toBe(true);
+		});
+
+		test('findAndCount', () => {
+			const Model = compileModel(connectionMock, schema, filename, mockDelimiters, logHandlerMock);
+			type Result = Awaited<ReturnType<typeof Model.findAndCount>>['documents'][0];
+
+			// prop1 should be string | null
+			const test1: Equals<Result['prop1'], string | null> = true;
+			expect(test1).toBe(true);
+
+			// prop2 should be number | null
+			const test2: Equals<Result['prop2'], number | null> = true;
+			expect(test2).toBe(true);
+
+			// _raw should be undefined since there is a schema
+			const test3: Equals<Result['_raw'], undefined> = true;
+			expect(test3).toBe(true);
+
+			// any other property should be unknown
+			const test4: Equals<Result['otherProp'], unknown> = true;
+			expect(test4).toBe(true);
+		});
+
+		test('findById', () => {
+			const Model = compileModel(connectionMock, schema, filename, mockDelimiters, logHandlerMock);
+			type Result = NonNullable<Awaited<ReturnType<typeof Model.findById>>>;
+
+			// prop1 should be string | null
+			const test1: Equals<Result['prop1'], string | null> = true;
+			expect(test1).toBe(true);
+
+			// prop2 should be number | null
+			const test2: Equals<Result['prop2'], number | null> = true;
+			expect(test2).toBe(true);
+
+			// _raw should be undefined since there is a schema
+			const test3: Equals<Result['_raw'], undefined> = true;
+			expect(test3).toBe(true);
+
+			// any other property should be unknown
+			const test4: Equals<Result['otherProp'], unknown> = true;
+			expect(test4).toBe(true);
+		});
+
+		test('findByIds', () => {
+			const Model = compileModel(connectionMock, schema, filename, mockDelimiters, logHandlerMock);
+			type Result = NonNullable<Awaited<ReturnType<typeof Model.findByIds>>[0]>;
+
+			// prop1 should be string | null
+			const test1: Equals<Result['prop1'], string | null> = true;
+			expect(test1).toBe(true);
+
+			// prop2 should be number | null
+			const test2: Equals<Result['prop2'], number | null> = true;
+			expect(test2).toBe(true);
+
+			// _raw should be undefined since there is a schema
+			const test3: Equals<Result['_raw'], undefined> = true;
+			expect(test3).toBe(true);
+
+			// any other property should be unknown
+			const test4: Equals<Result['otherProp'], unknown> = true;
+			expect(test4).toBe(true);
+		});
+
+		test('save', () => {
+			const Model = compileModel(connectionMock, schema, filename, mockDelimiters, logHandlerMock);
+			type Result = Awaited<ReturnType<InstanceType<typeof Model>['save']>>;
+
+			// prop1 should be string | null
+			const test1: Equals<Result['prop1'], string | null> = true;
+			expect(test1).toBe(true);
+
+			// prop2 should be number | null
+			const test2: Equals<Result['prop2'], number | null> = true;
+			expect(test2).toBe(true);
+
+			// _raw should be undefined since there is a schema
+			const test3: Equals<Result['_raw'], undefined> = true;
+			expect(test3).toBe(true);
+
+			// any other property should be unknown
+			const test4: Equals<Result['otherProp'], unknown> = true;
+			expect(test4).toBe(true);
+		});
+	});
+
+	describe('without schema', () => {
+		test('deleteById', () => {
+			const Model = compileModel(connectionMock, null, filename, mockDelimiters, logHandlerMock);
+			type Result = NonNullable<Awaited<ReturnType<typeof Model.deleteById>>>;
+
+			// _raw should be MvRecord since there is no schema
+			const test1: Equals<Result['_raw'], MvRecord> = true;
+			expect(test1).toBe(true);
+
+			// any other property should be unknown
+			const test2: Equals<Result['otherProp'], unknown> = true;
+			expect(test2).toBe(true);
+		});
+
+		test('find', () => {
+			const Model = compileModel(connectionMock, null, filename, mockDelimiters, logHandlerMock);
+			type Result = Awaited<ReturnType<typeof Model.find>>[0];
+
+			// _raw should be MvRecord since there is no schema
+			const test1: Equals<Result['_raw'], MvRecord> = true;
+			expect(test1).toBe(true);
+
+			// any other property should be unknown
+			const test2: Equals<Result['otherProp'], unknown> = true;
+			expect(test2).toBe(true);
+		});
+
+		test('findAndCount', () => {
+			const Model = compileModel(connectionMock, null, filename, mockDelimiters, logHandlerMock);
+			type Result = Awaited<ReturnType<typeof Model.findAndCount>>['documents'][0];
+
+			// _raw should be MvRecord since there is no schema
+			const test1: Equals<Result['_raw'], MvRecord> = true;
+			expect(test1).toBe(true);
+
+			// any other property should be unknown
+			const test2: Equals<Result['otherProp'], unknown> = true;
+			expect(test2).toBe(true);
+		});
+
+		test('findById', () => {
+			const Model = compileModel(connectionMock, null, filename, mockDelimiters, logHandlerMock);
+			type Result = NonNullable<Awaited<ReturnType<typeof Model.findById>>>;
+
+			// _raw should be MvRecord since there is no schema
+			const test1: Equals<Result['_raw'], MvRecord> = true;
+			expect(test1).toBe(true);
+
+			// any other property should be unknown
+			const test2: Equals<Result['otherProp'], unknown> = true;
+			expect(test2).toBe(true);
+		});
+
+		test('findByIds', () => {
+			const Model = compileModel(connectionMock, null, filename, mockDelimiters, logHandlerMock);
+			type Result = NonNullable<Awaited<ReturnType<typeof Model.findByIds>>[0]>;
+
+			// _raw should be MvRecord since there is no schema
+			const test1: Equals<Result['_raw'], MvRecord> = true;
+			expect(test1).toBe(true);
+
+			// any other property should be unknown
+			const test2: Equals<Result['otherProp'], unknown> = true;
+			expect(test2).toBe(true);
+		});
+
+		test('save', () => {
+			const Model = compileModel(connectionMock, null, filename, mockDelimiters, logHandlerMock);
+			type Result = Awaited<ReturnType<InstanceType<typeof Model>['save']>>;
+
+			// _raw should be MvRecord since there is no schema
+			const test1: Equals<Result['_raw'], MvRecord> = true;
+			expect(test1).toBe(true);
+
+			// any other property should be unknown
+			const test2: Equals<Result['otherProp'], unknown> = true;
+			expect(test2).toBe(true);
 		});
 	});
 });

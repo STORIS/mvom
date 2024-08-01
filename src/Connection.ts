@@ -42,7 +42,6 @@ import type {
 	DbSubroutineResponseTypes,
 	DbSubroutineResponseTypesMap,
 	DbSubroutineSetupOptions,
-	GenericObject,
 } from './types';
 
 // #region Types
@@ -79,7 +78,6 @@ interface ConnectionConstructorOptions {
 }
 
 export enum ConnectionStatus {
-	// convert to enum when transitioning class to TS
 	disconnected = 'disconnected',
 	connected = 'connected',
 	connecting = 'connecting',
@@ -101,7 +99,13 @@ interface RequestOptions {
 	requestId?: string;
 }
 
-export type OpenOptions = RequestOptions;
+export interface OpenOptions extends RequestOptions {
+	/**
+	 * Validate the multivalue subroutine deployment before opening the connection
+	 * @defaultValue `true`
+	 */
+	validateDeployment?: boolean;
+}
 
 export type DbServerInfoOptions = RequestOptions;
 
@@ -177,6 +181,11 @@ class Connection {
 		this.logHandler.debug('creating new connection instance');
 	}
 
+	/** Returns the subroutine name that is used on the multivalue server */
+	public get subroutineName(): string {
+		return this.deploymentManager.subroutineName;
+	}
+
 	/** Create a connection */
 	public static createConnection(
 		/** URL of the MVIS which facilitates access to the mv database */
@@ -231,7 +240,9 @@ class Connection {
 	}
 
 	/** Open a database connection */
-	public async open({ requestId }: OpenOptions = {}): Promise<void> {
+	public async open(options: OpenOptions = {}): Promise<void> {
+		const { requestId, validateDeployment = true } = options;
+
 		if (this.status !== ConnectionStatus.disconnected) {
 			this.logHandler.error('Connection is not closed');
 			throw new ConnectionError({ message: 'Connection is not closed' });
@@ -240,13 +251,11 @@ class Connection {
 		this.logHandler.info('opening connection');
 		this.status = ConnectionStatus.connecting;
 
-		const isValid = await this.deploymentManager.validateDeployment();
-		if (!isValid) {
-			// prevent connection attempt if features are invalid
-			this.logHandler.info('MVIS has not been configured for use with MVOM');
-			this.logHandler.error('Connection will not be opened');
-			this.status = ConnectionStatus.disconnected;
-			throw new InvalidServerFeaturesError();
+		if (validateDeployment) {
+			this.logHandler.info('Validating deployment');
+			await this.validateDeployment();
+		} else {
+			this.logHandler.info('Skipping deployment validation');
 		}
 
 		this.status = ConnectionStatus.connected;
@@ -304,11 +313,7 @@ class Connection {
 		try {
 			response = await this.axiosInstance.post<
 				DbSubroutineResponseTypes | DbSubroutineResponseError
-			>(
-				this.deploymentManager.subroutineName,
-				{ input: data },
-				{ headers: { 'X-MVIS-Trace-Id': requestId } },
-			);
+			>(this.subroutineName, { input: data }, { headers: { 'X-MVIS-Trace-Id': requestId } });
 		} catch (err) {
 			return axios.isAxiosError(err) ? this.handleAxiosError(err) : this.handleUnexpectedError(err);
 		}
@@ -344,10 +349,10 @@ class Connection {
 	}
 
 	/** Define a new model */
-	public model<TSchema extends GenericObject>(
-		schema: Schema | null,
+	public model<TSchema extends Schema | null>(
+		schema: TSchema,
 		file: string,
-	): ModelConstructor {
+	): ModelConstructor<TSchema> {
 		if (this.status !== ConnectionStatus.connected || this.dbServerInfo == null) {
 			this.logHandler.error('Cannot create model until database connection has been established');
 			throw new Error('Cannot create model until database connection has been established');
@@ -355,7 +360,19 @@ class Connection {
 
 		const { delimiters } = this.dbServerInfo;
 
-		return compileModel<TSchema>(this, schema, file, delimiters, this.logHandler);
+		return compileModel(this, schema, file, delimiters, this.logHandler);
+	}
+
+	/** Validate the multivalue subroutine deployment */
+	private async validateDeployment(): Promise<void> {
+		const isValid = await this.deploymentManager.validateDeployment();
+		if (!isValid) {
+			// prevent connection attempt if features are invalid
+			this.logHandler.info('MVIS has not been configured for use with MVOM');
+			this.logHandler.error('Connection will not be opened');
+			this.status = ConnectionStatus.disconnected;
+			throw new InvalidServerFeaturesError();
+		}
 	}
 
 	/** Get the db server information (date, time, etc.) */
@@ -465,26 +482,22 @@ class Connection {
 	private handleAxiosError(err: AxiosError): never {
 		if (err.code === 'ETIMEDOUT') {
 			this.logHandler.error(`Timeout error occurred in MVIS request: ${err.message}`);
-			throw new TimeoutError({ message: err.message });
+			throw new TimeoutError(err, { message: err.message });
 		}
 
 		this.logHandler.error(`Error occurred in MVIS request: ${err.message}`);
-		throw new MvisError({
-			message: err.message,
-			mvisRequest: err.request,
-			mvisResponse: err.response,
-		});
+		throw new MvisError(err, { message: err.message });
 	}
 
 	/** Handle an unknown error */
 	private handleUnexpectedError(err: unknown): never {
 		if (err instanceof Error) {
 			this.logHandler.error(`Error occurred in MVIS request: ${err.message}`);
-			throw new UnknownError({ message: err.message });
+			throw new UnknownError(err, { message: err.message });
 		}
 
 		this.logHandler.error('Unknown error occurred in MVIS request');
-		throw new UnknownError();
+		throw new UnknownError(err);
 	}
 }
 

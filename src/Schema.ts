@@ -29,10 +29,17 @@ import type {
 	SchemaTypeDefinitionScalar,
 	SchemaTypeDefinitionString,
 } from './schemaType';
-import type { DataTransformer, DecryptFn, EncryptFn, MarkRequired } from './types';
+import type {
+	DataTransformer,
+	DecryptFn,
+	EncryptFn,
+	FlattenObject,
+	MarkRequired,
+	Remap,
+} from './types';
 
 // #region Types
-type SchemaTypeDefinition =
+export type SchemaTypeDefinition =
 	| Schema
 	| SchemaTypeDefinitionScalar
 	| SchemaDefinition
@@ -42,9 +49,9 @@ type SchemaTypeDefinitionArray =
 	| Schema[]
 	| SchemaTypeDefinitionScalar[]
 	| SchemaTypeDefinitionScalar[][]
-	| SchemaDefinition[]
-	| SchemaDefinition[][];
+	| SchemaDefinition[];
 
+// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style -- Record cannot circularly reference itself so index signature must be used. refer here: https://github.com/microsoft/TypeScript/pull/33050#issuecomment-714348057 for additional information
 export interface SchemaDefinition {
 	[x: string]: SchemaTypeDefinition;
 }
@@ -65,18 +72,32 @@ type PickAndMark<T extends SchemaTypeDefinitionScalar, K extends keyof T = never
 	'dictionary'
 >;
 
+export type DictionaryTypeDefinitionString = Remap<PickAndMark<SchemaTypeDefinitionString>>;
+export type DictionaryTypeDefinitionNumber = Remap<PickAndMark<SchemaTypeDefinitionNumber>>;
+export type DictionaryTypeDefinitionBoolean = Remap<PickAndMark<SchemaTypeDefinitionBoolean>>;
+export type DictionaryTypeDefinitionISOCalendarDate = Remap<
+	PickAndMark<SchemaTypeDefinitionISOCalendarDate>
+>;
+export type DictionaryTypeDefinitionISOCalendarDateTime = Remap<
+	PickAndMark<SchemaTypeDefinitionISOCalendarDateTime, 'dbFormat'>
+>;
+export type DictionaryTypeDefinitionISOTime = Remap<
+	PickAndMark<SchemaTypeDefinitionISOTime, 'dbFormat'>
+>;
+
 export type DictionaryTypeDefinition =
-	| PickAndMark<SchemaTypeDefinitionString>
-	| PickAndMark<SchemaTypeDefinitionNumber>
-	| PickAndMark<SchemaTypeDefinitionBoolean>
-	| PickAndMark<SchemaTypeDefinitionISOCalendarDate>
-	| PickAndMark<SchemaTypeDefinitionISOCalendarDateTime, 'dbFormat'>
-	| PickAndMark<SchemaTypeDefinitionISOTime, 'dbFormat'>;
+	| DictionaryTypeDefinitionString
+	| DictionaryTypeDefinitionNumber
+	| DictionaryTypeDefinitionBoolean
+	| DictionaryTypeDefinitionISOCalendarDate
+	| DictionaryTypeDefinitionISOCalendarDateTime
+	| DictionaryTypeDefinitionISOTime;
 
 export type DictionaryDefinition = string | DictionaryTypeDefinition;
 
-export interface SchemaConstructorOptions {
-	dictionaries?: Record<string, DictionaryDefinition>;
+export type DictionariesOption = Record<string, DictionaryDefinition>;
+export interface SchemaConstructorOptions<TDictionaries extends DictionariesOption> {
+	dictionaries?: TDictionaries;
 	idMatch?: RegExp;
 	idForeignKey?: SchemaForeignKeyDefinition | SchemaCompoundForeignKeyDefinition;
 	encrypt?: EncryptFn;
@@ -87,10 +108,85 @@ interface DictionaryTypeDetail {
 	dictionary: string;
 	dataTransformer: DataTransformer;
 }
+
+/** Format of ISOCalendarDate output */
+export type ISOCalendarDate = `${number}-${number}-${number}`;
+/** Format of ISOTime output */
+export type ISOTime = `${number}:${number}:${number}.${number}`;
+/** Format of ISOCalendarDateTime output */
+export type ISOCalendarDateTime = `${ISOCalendarDate}T${ISOTime}`;
+
+/** Infer whether a schema type definition is required and union the result with null if it is not */
+type InferRequiredType<TScalar, TType> = TScalar extends { required: true } ? TType : TType | null;
+
+/**
+ * Infer the output of a string type definition with specific handling for enumerations
+ * If an enumeration is a readonly array, the return type of the definition will be a union
+ * of the array elements. Otherwise, the return type will be a string.
+ */
+type InferStringType<TString extends SchemaTypeDefinitionString> =
+	TString['enum'] extends readonly (infer E)[] ? E : string;
+
+/** Infer the output type of a schema type definition */
+type InferSchemaType<TSchemaTypeDefinition, TConstraint> =
+	TSchemaTypeDefinition extends SchemaTypeDefinitionBoolean
+		? InferRequiredType<TSchemaTypeDefinition, boolean>
+		: TSchemaTypeDefinition extends SchemaTypeDefinitionString
+			? InferRequiredType<TSchemaTypeDefinition, InferStringType<TSchemaTypeDefinition>>
+			: TSchemaTypeDefinition extends SchemaTypeDefinitionNumber
+				? InferRequiredType<TSchemaTypeDefinition, number>
+				: TSchemaTypeDefinition extends SchemaTypeDefinitionISOCalendarDate
+					? InferRequiredType<TSchemaTypeDefinition, ISOCalendarDate>
+					: TSchemaTypeDefinition extends SchemaTypeDefinitionISOCalendarDateTime
+						? InferRequiredType<TSchemaTypeDefinition, ISOCalendarDateTime>
+						: TSchemaTypeDefinition extends SchemaTypeDefinitionISOTime
+							? InferRequiredType<TSchemaTypeDefinition, ISOTime>
+							: TSchemaTypeDefinition extends Schema<infer TSubSchemaDefinition>
+								? InferDocumentObject<Schema<TSubSchemaDefinition>, TConstraint>
+								: TSchemaTypeDefinition extends SchemaTypeDefinitionArray
+									? InferSchemaType<TSchemaTypeDefinition[0], TConstraint>[]
+									: TSchemaTypeDefinition extends SchemaDefinition
+										? InferDocumentObject<Schema<TSchemaTypeDefinition>, TConstraint>
+										: never;
+
+/**
+ * Infer the shape of a `Document` instance based upon the Schema it was instantiated with
+ *
+ * Allows a constraint to be specified to filter the output to only include properties of a specific type
+ */
+export type InferDocumentObject<TSchema extends Schema, TConstraint = SchemaTypeDefinition> =
+	TSchema extends Schema<infer TSchemaDefinition>
+		? {
+				[K in keyof TSchemaDefinition as TSchemaDefinition[K] extends TConstraint
+					? K
+					: never]: InferSchemaType<TSchemaDefinition[K], TConstraint>;
+			}
+		: never;
+
+/** Infer the shape of a `Model` instance based upon the Schema it was instantiated with */
+export type InferModelObject<TSchema extends Schema> = Remap<
+	{ _id: string; __v: string } & InferDocumentObject<TSchema>
+>;
+
+/**
+ * Flatten a document to string keyPath (i.e. { "foo.bar.baz": number })
+ *
+ * Allows a constraint to be specified to filter the output to only include properties of a specific type
+ */
+export type FlattenDocument<TSchema extends Schema, TConstraint = SchemaTypeDefinition> =
+	InferDocumentObject<TSchema, TConstraint> extends infer O extends Record<string, unknown>
+		? FlattenObject<O>
+		: never;
+
+/** Infer the string keyPaths of a schema */
+export type InferSchemaPaths<TSchema extends Schema> = keyof FlattenDocument<TSchema>;
 // #endregion
 
 /** Schema constructor */
-class Schema {
+class Schema<
+	TSchemaDefinition extends SchemaDefinition = SchemaDefinition,
+	TDictionaries extends DictionariesOption = Record<never, never>,
+> {
 	/** Key/value pairs of schema object path structure and associated multivalue dictionary ids */
 	public dictPaths: Map<string, DictionaryTypeDetail>;
 
@@ -104,7 +200,7 @@ class Schema {
 	public readonly idMatch?: RegExp;
 
 	/** The schema definition passed to the constructor */
-	private readonly definition: SchemaDefinition;
+	private readonly definition: TSchemaDefinition;
 
 	/** Map of the compiled schema object position paths */
 	private readonly positionPaths: Map<string, number[]>;
@@ -119,8 +215,14 @@ class Schema {
 	private readonly decrypt?: DecryptFn;
 
 	public constructor(
-		definition: SchemaDefinition,
-		{ dictionaries = {}, idForeignKey, idMatch, encrypt, decrypt }: SchemaConstructorOptions = {},
+		definition: TSchemaDefinition,
+		{
+			dictionaries,
+			idForeignKey,
+			idMatch,
+			encrypt,
+			decrypt,
+		}: SchemaConstructorOptions<TDictionaries> = {},
 	) {
 		this.idForeignKey = idForeignKey;
 		this.idMatch = idMatch;
@@ -177,7 +279,7 @@ class Schema {
 
 	/** Build the dictionary path map for additional dictionaries provided as schema options */
 	private buildDictionaryPaths(
-		dictionaries: Record<string, DictionaryDefinition>,
+		dictionaries: DictionariesOption = {},
 	): Map<string, DictionaryTypeDetail> {
 		// Add reference for _id --> @ID by default
 		const dictPaths = new Map<string, DictionaryTypeDetail>([
@@ -280,7 +382,7 @@ class Schema {
 	private castArray(
 		castee: SchemaTypeDefinitionArray,
 		keyPath: string,
-	): ArrayType | NestedArrayType | DocumentArrayType {
+	): ArrayType | NestedArrayType | DocumentArrayType<Schema> {
 		if (castee.length !== 1) {
 			// a schema array definition must contain exactly one value of language-type object (which includes arrays)
 			throw new InvalidParameterError({
@@ -381,7 +483,7 @@ class Schema {
 	}
 
 	/** Perform ancillary updates needed when a subdocument is in the Schema definition */
-	private handleSubDocumentSchemas(schema: Schema, keyPath: string) {
+	private handleSubDocumentSchemas<TSchema extends Schema>(schema: TSchema, keyPath: string) {
 		this.subdocumentSchemas.set(keyPath, schema);
 		this.mergeSchemaDictionaries(schema, keyPath);
 	}
@@ -397,7 +499,7 @@ class Schema {
 	}
 
 	/** Merge subdocument schema dictionaries with the parent schema's dictionaries */
-	private mergeSchemaDictionaries(schema: Schema, keyPath: string) {
+	private mergeSchemaDictionaries<TSchema extends Schema>(schema: TSchema, keyPath: string) {
 		this.dictPaths = Array.from(schema.dictPaths).reduce(
 			(acc, [subDictPath, subDictTypeDetail]) => {
 				const dictKey = `${keyPath}.${subDictPath}`;

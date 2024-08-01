@@ -1,5 +1,4 @@
 import { ISOCalendarDateTimeDataTransformer } from '../dataTransformers';
-import type Document from '../Document';
 import type { ScalarTypeConstructorOptions } from './BaseScalarType';
 import BaseScalarType from './BaseScalarType';
 import type { SchemaTypeDefinitionBase } from './BaseSchemaType';
@@ -40,10 +39,7 @@ class ISOCalendarDateTimeType extends BaseScalarType {
 	}
 
 	/** ISOCalendarDateTime data type validator */
-	protected override validateType = async (
-		value: unknown,
-		document: Document,
-	): Promise<boolean> => {
+	protected override validateType = (value: unknown): boolean => {
 		if (value == null) {
 			return true;
 		}
@@ -55,14 +51,10 @@ class ISOCalendarDateTimeType extends BaseScalarType {
 
 		const [datePart, timePart] = value.split('T');
 
-		const partsValidations = (
-			await Promise.all([
-				this.isoCalendarDateType.validate(datePart, document),
-				this.isoTimeType.validate(timePart, document),
-			])
-		).flat();
+		const dateValidationResult = this.isoCalendarDateType.validate(datePart);
+		const timeValidationResult = this.isoTimeType.validate(timePart);
 
-		return partsValidations.length === 0;
+		return dateValidationResult.length === 0 && timeValidationResult.length === 0;
 	};
 }
 

@@ -1,4 +1,3 @@
-import type Document from '../Document';
 import type { ForeignKeyDbDefinition } from '../ForeignKeyDbTransformer';
 import type { MvRecord } from '../types';
 import { ensureArray } from '../utils';
@@ -41,14 +40,19 @@ class NestedArrayType extends BaseScalarArrayType {
 	}
 
 	/** Validate the nested array */
-	public async validate(value: unknown, document: Document): Promise<string[]> {
-		return (
-			await Promise.all(
-				ensureArray(value)
-					.flat(Infinity)
-					.map((arrayItem) => this.valueSchemaType.validate(arrayItem, document)),
-			)
-		).flat();
+	public validate(value: unknown): Map<string, string[]> {
+		return ensureArray(value).reduce<Map<string, string[]>>((acc, arrayItem, index) => {
+			ensureArray(arrayItem).forEach((nestedArrayItem, nestedIndex) => {
+				const result = this.valueSchemaType.validate(nestedArrayItem);
+
+				if (result.length > 0) {
+					const key = `${index}.${nestedIndex}`;
+					acc.set(key, result);
+				}
+			});
+
+			return acc;
+		}, new Map());
 	}
 }
 

@@ -31,7 +31,7 @@ const expectedXsrfToken = '3c2a0741-f1a5-4d52-9145-b508e4fbc845';
 const expectedCookie = `XSRF-TOKEN=${expectedXsrfToken}; Path=/`;
 
 beforeEach(() => {
-	// @ts-ignore: mock not respecting overload
+	// @ts-expect-error: mock not respecting overload
 	mockedFs.readdirSync.mockReturnValue([mvomFileName]);
 
 	mockedAxios.create.mockReturnValue(mockedAxiosInstance);
@@ -56,7 +56,7 @@ describe('createDeploymentManager', () => {
 	});
 
 	test('should throw error if mvom main subroutine is not found', () => {
-		// @ts-ignore: mock not respecting overload
+		// @ts-expect-error: mock not respecting overload
 		mockedFs.readdirSync.mockReturnValue(['unexpected_file_name']);
 
 		expect(() => {
@@ -322,7 +322,7 @@ describe('deploy', () => {
 			.mockResolvedValue({ data: { ctlgprograms: [] } });
 
 		const source = 'source code';
-		// @ts-ignore: mock not respecting overload
+		// @ts-expect-error: mock not respecting overload
 		mockedFs.readFile.mockResolvedValue(source);
 
 		const deploymentManager = DeploymentManager.createDeploymentManager(
@@ -383,7 +383,7 @@ describe('deploy', () => {
 			.mockResolvedValue({ data: { ctlgprograms: [] } });
 
 		const source = 'source code';
-		// @ts-ignore: mock not respecting overload
+		// @ts-expect-error: mock not respecting overload
 		mockedFs.readFile.mockResolvedValue(source);
 
 		const deploymentManager = DeploymentManager.createDeploymentManager(
@@ -444,7 +444,7 @@ describe('deploy', () => {
 			.mockResolvedValue({ data: { ctlgprograms: [] } });
 
 		const source = 'source code';
-		// @ts-ignore: mock not respecting overload
+		// @ts-expect-error: mock not respecting overload
 		mockedFs.readFile.mockResolvedValue(source);
 
 		const deploymentManager = DeploymentManager.createDeploymentManager(
@@ -489,7 +489,7 @@ describe('deploy', () => {
 			.mockResolvedValue({ data: { ctlgprograms: [subroutineName] } });
 
 		const source = 'source code';
-		// @ts-ignore: mock not respecting overload
+		// @ts-expect-error: mock not respecting overload
 		mockedFs.readFile.mockResolvedValue(source);
 
 		const deploymentManager = DeploymentManager.createDeploymentManager(

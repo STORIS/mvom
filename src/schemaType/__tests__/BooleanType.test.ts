@@ -1,9 +1,5 @@
-import { mock } from 'jest-mock-extended';
-import type Document from '../../Document';
 import type { SchemaTypeDefinitionBoolean } from '../BooleanType';
 import BooleanType from '../BooleanType';
-
-const documentMock = mock<Document>();
 
 describe('transformFromDb', () => {
 	const definition: SchemaTypeDefinitionBoolean = {
@@ -98,7 +94,7 @@ describe('transformToQuery', () => {
 
 describe('validations', () => {
 	describe('required validations', () => {
-		test('should return error message if required is true and value is null', async () => {
+		test('should return error message if required is true and value is null', () => {
 			const definition: SchemaTypeDefinitionBoolean = {
 				type: 'boolean',
 				path: '2',
@@ -108,10 +104,10 @@ describe('validations', () => {
 
 			const value = null;
 
-			expect(await booleanType.validate(value, documentMock)).toContain('Property is required');
+			expect(booleanType.validate(value)).toContain('Property is required');
 		});
 
-		test('should not return error message if required is true and value is populated with a boolean value', async () => {
+		test('should not return error message if required is true and value is populated with a boolean value', () => {
 			const definition: SchemaTypeDefinitionBoolean = {
 				type: 'boolean',
 				path: '2',
@@ -121,10 +117,10 @@ describe('validations', () => {
 
 			const value = true;
 
-			expect(await booleanType.validate(value, documentMock)).not.toContain('Property is required');
+			expect(booleanType.validate(value)).not.toContain('Property is required');
 		});
 
-		test('should not return error message if required is false and value is null', async () => {
+		test('should not return error message if required is false and value is null', () => {
 			const definition: SchemaTypeDefinitionBoolean = {
 				type: 'boolean',
 				path: '2',
@@ -134,7 +130,7 @@ describe('validations', () => {
 
 			const value = null;
 
-			expect(await booleanType.validate(value, documentMock)).not.toContain('Property is required');
+			expect(booleanType.validate(value)).not.toContain('Property is required');
 		});
 	});
 });

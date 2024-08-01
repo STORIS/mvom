@@ -1,4 +1,3 @@
-import type Document from '../Document';
 import type { ForeignKeyDbDefinition } from '../ForeignKeyDbTransformer';
 import type { MvRecord } from '../types';
 import { ensureArray } from '../utils';
@@ -34,12 +33,16 @@ class ArrayType extends BaseScalarArrayType {
 	}
 
 	/** Validate the array */
-	public async validate(value: unknown, document: Document): Promise<string[]> {
-		return (
-			await Promise.all(
-				ensureArray(value).map((arrayItem) => this.valueSchemaType.validate(arrayItem, document)),
-			)
-		).flat();
+	public validate(value: unknown): Map<string, string[]> {
+		return ensureArray(value).reduce<Map<string, string[]>>((acc, arrayItem, index) => {
+			const result = this.valueSchemaType.validate(arrayItem);
+
+			if (result.length > 0) {
+				const key = String(index);
+				acc.set(key, result);
+			}
+			return acc;
+		}, new Map());
 	}
 }
 

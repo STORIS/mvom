@@ -1,21 +1,34 @@
-import type { ModelConstructor } from './compileModel';
+import type Connection from './Connection';
 import { InvalidParameterError, QueryLimitError } from './errors';
 import type LogHandler from './LogHandler';
 import type {
-	DbDocument,
-	DbSubroutineInputFind,
-	DbSubroutineSetupOptions,
-	GenericObject,
-} from './types';
+	DictionariesOption,
+	DictionaryDefinition,
+	DictionaryTypeDefinitionBoolean,
+	DictionaryTypeDefinitionISOCalendarDate,
+	DictionaryTypeDefinitionISOCalendarDateTime,
+	DictionaryTypeDefinitionISOTime,
+	DictionaryTypeDefinitionNumber,
+	DictionaryTypeDefinitionString,
+	FlattenDocument,
+	ISOCalendarDate,
+	ISOCalendarDateTime,
+	ISOTime,
+	SchemaDefinition,
+	SchemaTypeDefinition,
+} from './Schema';
+import type Schema from './Schema';
+import type { SchemaTypeDefinitionScalar } from './schemaType';
+import type { DbDocument, DbSubroutineInputFind, DbSubroutineSetupOptions } from './types';
 
 // #region Types
-export interface QueryConstructorOptions {
+export interface QueryConstructorOptions<TSchema extends Schema | null> {
 	/** Skip the first _n_ results */
 	skip?: number | null;
 	/** Return only _n_ results */
 	limit?: number | null;
 	/** Sort criteria */
-	sort?: SortCriteria;
+	sort?: SortCriteria<TSchema>;
 	/** Return only the indicated properties */
 	projection?: string[];
 }
@@ -45,7 +58,7 @@ export interface FilterOperators<TValue> {
 	$nin?: TValue[];
 }
 
-export interface RootFilterOperators<TSchema extends GenericObject = GenericObject> {
+export interface RootFilterOperators<TSchema extends Schema | null> {
 	/** Used to combine conditions with an and */
 	$and?: Filter<TSchema>[];
 	/** Used to combine conditions with an or */
@@ -54,11 +67,49 @@ export interface RootFilterOperators<TSchema extends GenericObject = GenericObje
 
 export type Condition<TValue> = TValue | TValue[] | FilterOperators<TValue>;
 
-export type Filter<TSchema extends GenericObject = GenericObject> = RootFilterOperators<TSchema> & {
-	[key in keyof TSchema]?: Condition<TSchema[key]>;
+/** Infer the type of a dictionary */
+type InferDictionaryType<TDictionaryDefinition extends DictionaryDefinition> =
+	TDictionaryDefinition extends string
+		? string
+		: TDictionaryDefinition extends DictionaryTypeDefinitionString
+			? string
+			: TDictionaryDefinition extends DictionaryTypeDefinitionNumber
+				? number
+				: TDictionaryDefinition extends DictionaryTypeDefinitionBoolean
+					? boolean
+					: TDictionaryDefinition extends DictionaryTypeDefinitionISOCalendarDate
+						? ISOCalendarDate
+						: TDictionaryDefinition extends DictionaryTypeDefinitionISOTime
+							? ISOTime
+							: TDictionaryDefinition extends DictionaryTypeDefinitionISOCalendarDateTime
+								? ISOCalendarDateTime
+								: never;
+
+/** Infer the type of additional schema dictionaries */
+type InferDictionariesType<TDictionariesOption extends DictionariesOption> = {
+	[K in keyof TDictionariesOption]: InferDictionaryType<TDictionariesOption[K]>;
 };
 
-export type SortCriteria = [string, -1 | 1][];
+/** Type which will produce a flattened document of only scalars with dictionaries */
+type FlattenedDocumentDictionaries<TSchema extends Schema> = FlattenDocument<
+	TSchema,
+	Exclude<SchemaTypeDefinition, SchemaTypeDefinitionScalar> | { dictionary: string }
+>;
+
+/** Query Filter */
+export type Filter<TSchema extends Schema | null> = RootFilterOperators<TSchema> &
+	((TSchema extends Schema<SchemaDefinition, infer TDictionariesOption>
+		? FlattenedDocumentDictionaries<TSchema> &
+				InferDictionariesType<TDictionariesOption> extends infer O
+			? { [Key in keyof O]?: Condition<NonNullable<O[Key]>> }
+			: never
+		: Record<never, never>) & { _id?: Condition<string> });
+
+/** Sort criteria */
+export type SortCriteria<TSchema extends Schema | null> = [
+	Extract<Exclude<keyof Filter<TSchema>, keyof RootFilterOperators<TSchema>>, string>,
+	-1 | 1,
+][];
 
 export type QueryExecutionOptions = DbSubroutineSetupOptions;
 export interface QueryExecutionResult {
@@ -70,9 +121,15 @@ export interface QueryExecutionResult {
 // #endregion
 
 /** A query object */
-class Query<TSchema extends GenericObject = GenericObject> {
-	/** Model constructor to use with query */
-	private readonly Model: ModelConstructor;
+class Query<TSchema extends Schema | null> {
+	/** Connection instance to run query on */
+	private readonly connection: Connection;
+
+	/** Schema used for query */
+	private readonly schema: TSchema;
+
+	/** File to run query against */
+	private readonly file: string;
 
 	/** Log handler instance used for diagnostic logging */
 	private readonly logHandler: LogHandler;
@@ -84,7 +141,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 	private readonly sort: string | null;
 
 	/** Sort criteria passed to constructor */
-	private readonly sortCriteria?: SortCriteria;
+	private readonly sortCriteria?: SortCriteria<TSchema>;
 
 	/** Limit the result set to this number of items */
 	private readonly limit?: number | null;
@@ -99,14 +156,18 @@ class Query<TSchema extends GenericObject = GenericObject> {
 	private conditionCount = 0;
 
 	public constructor(
-		Model: ModelConstructor,
+		connection: Connection,
+		schema: TSchema,
+		file: string,
 		logHandler: LogHandler,
 		selectionCriteria: Filter<TSchema>,
-		options: QueryConstructorOptions = {},
+		options: QueryConstructorOptions<TSchema> = {},
 	) {
 		const { sort, limit, skip, projection } = options;
 
-		this.Model = Model;
+		this.connection = connection;
+		this.schema = schema;
+		this.file = file;
 		this.logHandler = logHandler;
 		this.limit = limit;
 		this.skip = skip;
@@ -120,7 +181,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 	/** Execute query */
 	public async exec(options: QueryExecutionOptions = {}): Promise<QueryExecutionResult> {
 		const { maxReturnPayloadSize, requestId, userDefined } = options;
-		let queryCommand = `select ${this.Model.file}`;
+		let queryCommand = `select ${this.file}`;
 		if (this.selection != null) {
 			queryCommand = `${queryCommand} with ${this.selection}`;
 		}
@@ -131,12 +192,12 @@ class Query<TSchema extends GenericObject = GenericObject> {
 		await this.validateQuery(queryCommand, requestId);
 
 		const projection =
-			this.projection != null && this.Model.schema != null
-				? this.Model.schema.transformPathsToDbPositions(this.projection)
+			this.projection != null && this.schema != null
+				? this.schema.transformPathsToDbPositions(this.projection)
 				: null;
 
 		const executionOptions: DbSubroutineInputFind = {
-			filename: this.Model.file,
+			filename: this.file,
 			queryCommand,
 			...(this.skip != null && { skip: this.skip }),
 			...(this.limit != null && { limit: this.limit }),
@@ -150,11 +211,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 		};
 
 		this.logHandler.debug(`executing query "${queryCommand}"`);
-		const data = await this.Model.connection.executeDbSubroutine(
-			'find',
-			executionOptions,
-			setupOptions,
-		);
+		const data = await this.connection.executeDbSubroutine('find', executionOptions, setupOptions);
 
 		return {
 			count: data.count,
@@ -223,9 +280,9 @@ class Query<TSchema extends GenericObject = GenericObject> {
 						this.validateLikeCondition(mvValue);
 						return this.formatCondition(queryProperty, 'like', `...'${mvValue}'`);
 					case '$in':
-						return this.formatConditionList(queryProperty, '=', mvValue, 'or');
+						return this.formatConditionList(queryProperty, '=', mvValue as unknown[], 'or');
 					case '$nin':
-						return this.formatConditionList(queryProperty, '#', mvValue, 'and');
+						return this.formatConditionList(queryProperty, '#', mvValue as unknown[], 'and');
 					default:
 						// unknown operator
 						throw new TypeError('Invalid conditional operator specified');
@@ -241,7 +298,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 	}
 
 	/** Format the sort criteria object into a string to use in multivalue query */
-	private formatSortCriteria(criteria?: SortCriteria): string | null {
+	private formatSortCriteria(criteria?: SortCriteria<TSchema>): string | null {
 		if (criteria == null || criteria.length === 0) {
 			return null;
 		}
@@ -317,7 +374,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 	 * @throws {link InvalidParameterError} Nonexistent schema property or property does not have a dictionary specified
 	 */
 	private getDictionaryId(property: string): string {
-		const dictionaryTypeDetail = this.Model.schema?.dictPaths.get(property);
+		const dictionaryTypeDetail = this.schema?.dictPaths.get(property);
 		if (dictionaryTypeDetail == null) {
 			throw new InvalidParameterError({
 				message: 'Nonexistent schema property or property does not have a dictionary specified',
@@ -330,7 +387,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 
 	/** Transform query constant to internal u2 format (if applicable) */
 	private transformToQuery(property: string, constant: unknown): unknown {
-		const dictionaryTypeDetail = this.Model.schema?.dictPaths.get(property);
+		const dictionaryTypeDetail = this.schema?.dictPaths.get(property);
 		if (dictionaryTypeDetail == null) {
 			throw new InvalidParameterError({
 				message: 'Nonexistent schema property or property does not have a dictionary specified',
@@ -343,7 +400,7 @@ class Query<TSchema extends GenericObject = GenericObject> {
 
 	/** Validate the query before execution */
 	private async validateQuery(query: string, requestId?: string): Promise<void> {
-		const { maxSort, maxWith, maxSentenceLength } = await this.Model.connection.getDbLimits({
+		const { maxSort, maxWith, maxSentenceLength } = await this.connection.getDbLimits({
 			requestId,
 		});
 

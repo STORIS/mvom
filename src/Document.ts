@@ -2,11 +2,17 @@ import { assignIn, cloneDeep, get as getIn, set as setIn } from 'lodash';
 import { TransformDataError } from './errors';
 import ForeignKeyDbTransformer from './ForeignKeyDbTransformer';
 import type Schema from './Schema';
-import type { DbServerDelimiters, GenericObject, MvRecord } from './types';
+import type { InferDocumentObject } from './Schema';
+import type { DbServerDelimiters, DeepOptionalNullable, MvRecord } from './types';
 
 // #region Types
-export interface DocumentConstructorOptions {
-	data?: GenericObject;
+/** Type of data property for constructing a document dependent upon the schema */
+export type DocumentData<TSchema extends Schema | null> = TSchema extends Schema
+	? DeepOptionalNullable<InferDocumentObject<TSchema>>
+	: never;
+
+export interface DocumentConstructorOptions<TSchema extends Schema | null> {
+	data?: DocumentData<TSchema>;
 	record?: MvRecord;
 	isSubdocument?: boolean;
 }
@@ -16,19 +22,27 @@ export interface BuildForeignKeyDefinitionsResult {
 	entityName: string;
 	entityIds: string[];
 }
+
+/**
+ * An intersection type that combines the `Document` class instance with the
+ * inferred shape of the document object based on the schema definition.
+ */
+type DocumentCompositeValue<TSchema extends Schema | null> = TSchema extends Schema
+	? Document<TSchema> & InferDocumentObject<TSchema>
+	: Document<TSchema>;
 // #endregion
 
 /** A document object */
-class Document {
+class Document<TSchema extends Schema | null> {
 	[key: string]: unknown;
 
-	public _raw?: MvRecord;
+	public _raw: TSchema extends Schema ? undefined : MvRecord;
 
 	/** Array of any errors which occurred during transformation from the database */
 	public _transformationErrors: TransformDataError[];
 
 	/** Schema instance which defined this document */
-	readonly #schema: Schema | null;
+	readonly #schema: TSchema;
 
 	/** Record array of multivalue data */
 	#record: MvRecord;
@@ -36,7 +50,7 @@ class Document {
 	/** Indicates whether this document is a subdocument of a composing parent */
 	readonly #isSubdocument: boolean;
 
-	protected constructor(schema: Schema | null, options: DocumentConstructorOptions) {
+	protected constructor(schema: TSchema, options: DocumentConstructorOptions<TSchema>) {
 		const { data = {}, record, isSubdocument = false } = options;
 
 		this.#schema = schema;
@@ -48,6 +62,10 @@ class Document {
 			_transformationErrors: { configurable: false, enumerable: false, writable: false },
 		});
 
+		this._raw = (schema == null ? this.#record : undefined) as TSchema extends Schema
+			? undefined
+			: MvRecord;
+
 		this.#transformRecordToDocument();
 
 		// load the data passed to constructor into document instance
@@ -55,24 +73,30 @@ class Document {
 	}
 
 	/** Create a new Subdocument instance from a record array */
-	public static createSubdocumentFromRecord(schema: Schema, record: MvRecord): Document {
-		return new Document(schema, { record, isSubdocument: true });
+	public static createSubdocumentFromRecord<TSchema extends Schema | null>(
+		schema: TSchema,
+		record: MvRecord,
+	): DocumentCompositeValue<TSchema> {
+		return new Document(schema, { record, isSubdocument: true }) as DocumentCompositeValue<TSchema>;
 	}
 
 	/** Create a new Subdocument instance from data */
-	public static createSubdocumentFromData(schema: Schema, data: GenericObject): Document {
-		return new Document(schema, { data, isSubdocument: true });
+	public static createSubdocumentFromData<TSchema extends Schema>(
+		schema: TSchema,
+		data: DocumentData<TSchema>,
+	): DocumentCompositeValue<TSchema> {
+		return new Document(schema, { data, isSubdocument: true }) as DocumentCompositeValue<TSchema>;
 	}
 
 	/** Create a new Document instance from a record string */
-	public static createDocumentFromRecordString(
-		schema: Schema,
+	public static createDocumentFromRecordString<TSchema extends Schema | null>(
+		schema: TSchema,
 		recordString: string,
 		dbServerDelimiters: DbServerDelimiters,
-	): Document {
+	): DocumentCompositeValue<TSchema> {
 		const record = Document.convertMvStringToArray(recordString, dbServerDelimiters);
 
-		return new Document(schema, { record });
+		return new Document(schema, { record }) as DocumentCompositeValue<TSchema>;
 	}
 
 	/** Convert a multivalue string to an array */
@@ -106,7 +130,7 @@ class Document {
 
 							return valueArray.map((subvalue) => (subvalue === '' ? null : subvalue));
 						});
-				  });
+					});
 
 		return record;
 	}
@@ -121,7 +145,7 @@ class Document {
 						return schemaType.set(record, schemaType.cast(value));
 					},
 					this.#isSubdocument ? [] : cloneDeep(this.#record),
-			  );
+				);
 	}
 
 	/** Build a list of foreign key definitions to be used by the database for foreign key validation */
@@ -179,8 +203,8 @@ class Document {
 	}
 
 	/** Validate document for errors */
-	public async validate(): Promise<Map<string, string | string[]>> {
-		const documentErrors = new Map<string, string | string[]>();
+	public validate(): Map<string, string[]> {
+		const documentErrors = new Map<string, string[]>();
 
 		if (this.#schema !== null) {
 			if (
@@ -188,52 +212,62 @@ class Document {
 				this.#schema.idMatch != null &&
 				!this.#schema.idMatch.test(this._id)
 			) {
-				documentErrors.set('_id', 'Document id does not match pattern');
+				documentErrors.set('_id', ['Document id does not match pattern']);
 			}
-			await Promise.all(
-				Array.from(this.#schema.paths).map(async ([keyPath, schemaType]) => {
-					let value: unknown = getIn(this, keyPath, null);
-					// cast to complex data type if necessary
-					try {
-						value = schemaType.cast(value);
-						setIn(this, keyPath, value);
 
-						const errors = await schemaType.validate(value, this);
-						if (errors.length > 0) {
-							documentErrors.set(keyPath, errors);
-						}
-					} catch (err) {
-						// an error was thrown - return the message from that error in the documentErrors list
-						documentErrors.set(keyPath, err.message);
+			Array.from(this.#schema.paths).forEach(([keyPath, schemaType]) => {
+				const originalValue: unknown = getIn(this, keyPath, null);
+				// cast to complex data type if necessary
+				try {
+					const castValue = schemaType.cast(originalValue);
+					setIn(this, keyPath, castValue);
+
+					const validationResult = schemaType.validate(castValue);
+					if (validationResult instanceof Map) {
+						validationResult.forEach((errors, key) => {
+							if (errors.length > 0) {
+								documentErrors.set(`${keyPath}.${key}`, errors);
+							}
+						});
+					} else if (validationResult.length > 0) {
+						documentErrors.set(keyPath, validationResult);
 					}
-				}),
-			);
+				} catch (err) {
+					// an error was thrown - return the message from that error in an array in the documentErrors list
+					documentErrors.set(keyPath, [err.message]);
+				}
+			});
 		}
 		return documentErrors;
 	}
 
 	/** Apply schema structure using record to document instance */
 	#transformRecordToDocument() {
-		const plainDocument =
-			this.#schema === null
-				? { _raw: this.#record }
-				: Array.from(this.#schema.paths).reduce((document, [keyPath, schemaType]) => {
-						let setValue;
-						try {
-							setValue = schemaType.get(this.#record);
-						} catch (err) {
-							if (err instanceof TransformDataError) {
-								// if this was an error in data transformation, set the value to null and add to transformationErrors list
-								setValue = null;
-								this._transformationErrors.push(err);
-							} else {
-								// otherwise rethrow any other type of error
-								throw err;
-							}
-						}
-						setIn(document, keyPath, setValue);
-						return document;
-				  }, {});
+		if (this.#schema == null) {
+			// if this is a document without a schema, there is nothing to transform
+			return;
+		}
+
+		const plainDocument = Array.from(this.#schema.paths).reduce(
+			(document, [keyPath, schemaType]) => {
+				let setValue;
+				try {
+					setValue = schemaType.get(this.#record);
+				} catch (err) {
+					if (err instanceof TransformDataError) {
+						// if this was an error in data transformation, set the value to null and add to transformationErrors list
+						setValue = null;
+						this._transformationErrors.push(err);
+					} else {
+						// otherwise rethrow any other type of error
+						throw err;
+					}
+				}
+				setIn(document, keyPath, setValue);
+				return document;
+			},
+			{},
+		);
 
 		assignIn(this, plainDocument);
 	}
