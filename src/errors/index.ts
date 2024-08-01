@@ -7,6 +7,7 @@ export { default as InvalidServerFeaturesError } from './InvalidServerFeaturesEr
 export { default as MvisError } from './MvisError';
 export { default as QueryLimitError } from './QueryLimitError';
 export { default as RecordLockedError } from './RecordLockedError';
+export { default as RecordNotFoundError } from './RecordNotFoundError';
 export { default as RecordVersionError } from './RecordVersionError';
 export { default as TimeoutError } from './TimeoutError';
 export { default as TransformDataError } from './TransformDataError';
