@@ -1,0 +1,64 @@
+subroutine mvom_increment(options, output)
+* increment values and return a document given a filename, the paths to the values to increment, and the values to increment by
+{% include "../../constants/udo.njk" %}
+{% include "../../constants/error.njk" %}
+
+* get the filename from the options
+if udoGetProperty(options, 'filename', filename, type) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go returnFromSub
+end
+
+* get the recordId from the options
+if udoGetProperty(options, 'id', recordId, type) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go returnFromSub
+end
+
+* get the number of retries to perform if the record is locked
+if udoGetProperty(options, 'retry', retry, type) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go returnFromSub
+end
+
+* get the retry delay between retries
+if udoGetProperty(options, 'retryDelay', retryDelay, type) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go returnFromSub
+end
+
+* get the increment operations
+if udoGetProperty(options, 'incrementOperations', operations, type) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go returnFromSub
+end
+
+* open the file
+open filename to f.file on error
+  call error_handler(ERROR_FILE_OPEN, output)
+  go returnFromSub
+end else
+  call error_handler(ERROR_FILE_OPEN, output)
+  go returnFromSub
+end
+
+* read and lock the record from the file
+tries=0
+lockSuccessful=0
+
+loop
+  readu record from f.file, recordId on error
+    call error_handler(ERROR_RECORD_READ, output)
+    go closeAndReturnFromSub
+  end then
+  end else
+  end
+repeat
+
+
+closeAndReturnFromSub:
+close f.file on error null
+* fall through to return
+
+returnFromSub:
+return; * returning to caller
