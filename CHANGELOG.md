@@ -7,17 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0-rc.0]
+
 ### Breaking changes
 
 - Minimum Node version is now 18.0.0 ([#620](https://github.com/STORIS/mvom/pull/620))
 
+### Fixed
+
+- Fix handling of projection to ensure the correct data attributes are projected ([#653](https://github.com/STORIS/mvom/pull/653))
+
 ### Docs
 
-- Upgraded to Docusaurus v3.2.1 because V2 does not support Node 18 ([#620](https://github.com/STORIS/mvom/pull/620)).
+- Upgraded to Docusaurus v3.2.1 because V2 does not support Node 18 ([#620](https://github.com/STORIS/mvom/pull/620))
+
+### TypeScript
+
+- Infer output object types based upon Schema definition ([#697](https://github.com/STORIS/mvom/pull/697), [#720](https://github.com/STORIS/mvom/pull/720), and [#732](https://github.com/STORIS/mvom/pull/732))
+- Add type inference for query conditions ([#719](https://github.com/STORIS/mvom/pull/719))
 
 ### Added
 
-- Add node 20 to the CI matrix
+- Add node 20 to the CI matrix ([#620](https://github.com/STORIS/mvom/pull/620))
+- Improve error messaging for validation errors ([#642](https://github.com/STORIS/mvom/pull/642))
+- Make validators synchronous to improve performance ([#701](https://github.com/STORIS/mvom/pull/701))
+- Allow bypassing deployment validation and expose basic subroutine name on connection instance ([#709](https://github.com/STORIS/mvom/pull/709))
+- Include cause in MvisError, TimeoutError, and UnknownError ([#724](https://github.com/STORIS/mvom/pull/724))
 
 ## [2.0.0-rc.1] - 2023-05-05
 
@@ -447,7 +462,8 @@ We've graduated from Alpha to Beta! Semver has been updated so breaking vs. non-
 
 Initial alpha release of this library! Thanks for using it!
 
-[unreleased]: https://github.com/storis/mvom/compare/2.0.0-rc.1...HEAD
+[unreleased]: https://github.com/storis/mvom/compare/3.0.0-rc.0...HEAD
+[3.0.0-rc.0]: https://github.com/storis/mvom/compare/2.0.0-rc.1...3.0.0-rc.0
 [2.0.0-rc.1]: https://github.com/storis/mvom/compare/2.0.0-rc.0...2.0.0-rc.1
 [2.0.0-rc.0]: https://github.com/storis/mvom/compare/2.0.0-alpha.7...2.0.0-rc.0
 [2.0.0-alpha.7]: https://github.com/storis/mvom/compare/2.0.0-alpha.6...2.0.0-alpha.7
