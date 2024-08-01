@@ -447,8 +447,7 @@ We've graduated from Alpha to Beta! Semver has been updated so breaking vs. non-
 
 Initial alpha release of this library! Thanks for using it!
 
-[unreleased]: https://github.com/storis/mvom/compare/2.0.0-rc.2...HEAD
-[2.0.0-rc.2]: https://github.com/storis/mvom/compare/2.0.0-rc.1...2.0.0-rc.2
+[unreleased]: https://github.com/storis/mvom/compare/2.0.0-rc.1...HEAD
 [2.0.0-rc.1]: https://github.com/storis/mvom/compare/2.0.0-rc.0...2.0.0-rc.1
 [2.0.0-rc.0]: https://github.com/storis/mvom/compare/2.0.0-alpha.7...2.0.0-rc.0
 [2.0.0-alpha.7]: https://github.com/storis/mvom/compare/2.0.0-alpha.6...2.0.0-alpha.7
