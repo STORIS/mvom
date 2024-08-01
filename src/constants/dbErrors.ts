@@ -30,7 +30,7 @@ const dbErrors: Record<string, DbError> = {
 	},
 	recordWriteUnknown: { code: 19, message: 'Unknown error writing database record' },
 	maxPayloadExceeded: { code: 20, message: 'Maximum return payload size exceeded' },
-	recordNotFoundError: { code: 21, message: 'Database record not found' },
+	recordNotFound: { code: 21, message: 'Database record not found' },
 };
 
 export default dbErrors;
