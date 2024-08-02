@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0-rc.3]
+
+- Adjust `SchemaFilterKeys` type to exclude non-string keys and use `SchemaFilterKeys` in construction of `SortCriteria` type ([#747](https://github.com/STORIS/mvom/pull/747))
+
+### TypeScript
+
 ## [3.0.0-rc.2]
 
 ### TypeScript
@@ -474,7 +480,8 @@ We've graduated from Alpha to Beta! Semver has been updated so breaking vs. non-
 
 Initial alpha release of this library! Thanks for using it!
 
-[unreleased]: https://github.com/storis/mvom/compare/3.0.0-rc.2...HEAD
+[unreleased]: https://github.com/storis/mvom/compare/3.0.0-rc.3...HEAD
+[3.0.0-rc.3]: https://github.com/storis/mvom/compare/3.0.0-rc.2...3.0.0-rc.3
 [3.0.0-rc.2]: https://github.com/storis/mvom/compare/3.0.0-rc.1...3.0.0-rc.2
 [3.0.0-rc.1]: https://github.com/storis/mvom/compare/3.0.0-rc.0...3.0.0-rc.1
 [3.0.0-rc.0]: https://github.com/storis/mvom/compare/2.0.0-rc.1...3.0.0-rc.0
