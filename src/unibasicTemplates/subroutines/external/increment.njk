@@ -16,7 +16,7 @@ if udoGetProperty(options, 'id', recordId, type) then
 end
 
 * get the number of retries to perform if the record is locked
-if udoGetProperty(options, 'retry', retry, type) then
+if udoGetProperty(options, 'retry', retryMax, type) then
   call error_handler(ERROR_MALFORMED_INPUT, output)
   go returnFromSub
 end
@@ -47,11 +47,23 @@ tries=0
 lockSuccessful=0
 
 loop
+  *** a layer of abstraction where an internal subroutine is called and returns status of the read.
+  *** This layer will handle the retry loop
   readu record from f.file, recordId on error
     call error_handler(ERROR_RECORD_READ, output)
     go closeAndReturnFromSub
+  end locked
+    if tries > retryMax then
+      call error_handler(ERROR_RECORD_LOCKED, output)
+      go closeAndReturnFromSub
+    end else
+      tries+= 1
+    end
   end then
+    * call increment internal subroutine
   end else
+    call error_handler(ERROR_RECORD_NOT_FOUND, output)
+    go closeAndReturnFromSub
   end
 repeat
 
