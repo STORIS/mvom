@@ -5,6 +5,13 @@ export {
 	type DocumentConstructorOptions,
 	type DocumentCompositeValue,
 } from './Document';
+export type {
+	SchemaFilter,
+	SchemaFilterKeys,
+	Filter,
+	QueryConstructorOptions,
+	SortCriteria,
+} from './Query';
 export {
 	default as Schema,
 	type SchemaDefinition,
