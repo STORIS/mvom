@@ -1,8 +1,14 @@
 export { default as Connection } from './Connection';
-export { default as Document } from './Document';
+export {
+	default as Document,
+	type DocumentData,
+	type DocumentConstructorOptions,
+	type DocumentCompositeValue,
+} from './Document';
 export {
 	default as Schema,
 	type SchemaDefinition,
+	type DictionariesOption,
 	type SchemaConstructorOptions,
 	type ISOCalendarDate,
 	type ISOCalendarDateTime,
@@ -12,7 +18,12 @@ export {
 	type InferModelObject,
 	type InferSchemaPaths,
 } from './Schema';
-export type { ModelConstructor } from './compileModel';
+export type {
+	ModelConstructor,
+	ModelConstructorOptions,
+	Model,
+	ModelCompositeValue,
+} from './compileModel';
 export {
 	MvisError,
 	DataValidationError,

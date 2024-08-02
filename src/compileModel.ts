@@ -21,11 +21,13 @@ export type ModelConstructor<TSchema extends Schema | null> = ReturnType<
 	typeof compileModel<TSchema>
 >;
 
+export type Model<TSchema extends Schema | null> = InstanceType<ModelConstructor<TSchema>>;
+
 /**
  * An intersection type that combines the `Model` class instance with the
  * inferred shape of the model object based on the schema definition.
  */
-type ModelCompositeValue<TSchema extends Schema | null> = TSchema extends Schema
+export type ModelCompositeValue<TSchema extends Schema | null> = TSchema extends Schema
 	? InstanceType<ModelConstructor<TSchema>> & InferModelObject<TSchema>
 	: InstanceType<ModelConstructor<TSchema>>;
 
