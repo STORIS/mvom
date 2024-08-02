@@ -337,6 +337,7 @@ describe('transformPathsToDbPositions', () => {
 	const definition: SchemaDefinition = {
 		stringProp: { type: 'string', path: '1' },
 		stringValueProp: { type: 'string', path: '14.2' },
+		stringSubValueProp: { type: 'string', path: '14.2.3' },
 		numberProp: { type: 'number', path: '2' },
 		booleanProp: { type: 'boolean', path: '3' },
 		isoCalendarDateProp: { type: 'ISOCalendarDate', path: '4' },
@@ -385,6 +386,89 @@ describe('transformPathsToDbPositions', () => {
 
 	test('should return no positions if dotted path is not in schema', () => {
 		expect(schema.transformPathsToDbPositions(['not.here'])).toEqual([]);
+	});
+});
+
+describe('transformPathsToOrdinalPositions', () => {
+	const embeddedDefinition: SchemaDefinition = {
+		innerEmbeddedProp: { type: 'string', path: '9' },
+	};
+	const documentArrayDefinition: SchemaDefinition = {
+		docStringProp: { type: 'string', path: '12' },
+		docNumberProp: { type: 'number', path: '13' },
+	};
+	const definition: SchemaDefinition = {
+		stringProp: { type: 'string', path: '1' },
+		stringValueProp: { type: 'string', path: '14.2' },
+		stringSubvalueProp: { type: 'string', path: '14.2.3' },
+		stringArrayValueProp: [{ type: 'string', path: '15.2' }],
+		numberProp: { type: 'number', path: '2' },
+		booleanProp: { type: 'boolean', path: '3' },
+		isoCalendarDateProp: { type: 'ISOCalendarDate', path: '4' },
+		isoTimeProp: { type: 'ISOTime', path: '5' },
+		isoCalendarDateTimeProp: { type: 'ISOCalendarDateTime', path: '6' },
+		arrayProp: [{ type: 'string', path: '7' }],
+		nestedArrayProp: [[{ type: 'string', path: '8' }]],
+		embeddedProp: new Schema(embeddedDefinition),
+		documentArrayProp: [
+			{
+				docStringProp: { type: 'string', path: '10' },
+				docNumberProp: { type: 'number', path: '11' },
+			},
+		],
+		documentArraySchemaProp: [new Schema(documentArrayDefinition)],
+	};
+	const schema = new Schema(definition);
+
+	test('should return no positions if path list is empty', () => {
+		expect(schema.transformPathsToOrdinalPositions([])).toEqual([]);
+	});
+
+	test('should return positions of specified path', () => {
+		expect(schema.transformPathsToOrdinalPositions(['stringProp'])).toEqual(['1']);
+	});
+
+	test('should return positions of multiple paths', () => {
+		expect(schema.transformPathsToOrdinalPositions(['stringProp', 'booleanProp'])).toEqual([
+			'1',
+			'3',
+		]);
+	});
+
+	test('should return positions of embedded documents', () => {
+		expect(schema.transformPathsToOrdinalPositions(['embeddedProp'])).toEqual(['9']);
+	});
+
+	test('should return positions of embedded document properties', () => {
+		expect(schema.transformPathsToOrdinalPositions(['embeddedProp.innerEmbeddedProp'])).toEqual([
+			'9',
+		]);
+	});
+
+	test('should return positions of document arrays', () => {
+		expect(schema.transformPathsToOrdinalPositions(['documentArrayProp'])).toEqual(['10', '11']);
+	});
+
+	test('should return positions of document array properties', () => {
+		expect(schema.transformPathsToOrdinalPositions(['documentArrayProp.docStringProp'])).toEqual([
+			'10',
+		]);
+	});
+
+	test('should return no positions if dotted path is not in schema', () => {
+		expect(schema.transformPathsToOrdinalPositions(['not.here'])).toEqual([]);
+	});
+
+	test('should return correct ordinal position if path is to a value', () => {
+		expect(schema.transformPathsToOrdinalPositions(['stringValueProp'])).toEqual(['14.2']);
+	});
+
+	test('should return correct ordinal position if path is to a subvalue', () => {
+		expect(schema.transformPathsToOrdinalPositions(['stringSubvalueProp'])).toEqual(['14.2.3']);
+	});
+
+	test('should return correct ordinal position for array at value position', () => {
+		expect(schema.transformPathsToOrdinalPositions(['stringArrayValueProp'])).toEqual(['15.2']);
 	});
 });
 

@@ -278,6 +278,61 @@ class Schema<
 		return [...positions];
 	}
 
+	/** Transform the paths to ordinal positions. Returning a '.' delimited string. Ex. "1.2.3"  */
+	public transformPathsToOrdinalPositions(paths: string[]): string[] {
+		if (paths.length === 0) {
+			return [];
+		}
+
+		const positionPaths = this.getPositionPaths();
+		const positionKeys = Array.from(positionPaths.keys());
+
+		const positions = paths.reduce((acc, positionPath) => {
+			if (positionPaths.has(positionPath)) {
+				// find the key in position paths
+				// add position
+				const ordinalPath =
+					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+					positionPaths.get(positionPath)!;
+				acc.add(this.buildOrdinalPathString(ordinalPath));
+			} else if (!positionPath.includes('.')) {
+				// if the property is a parent key, we will add positions for all children
+				// e.g we only pass property "name" to return all data for name.first, name.last, etc.
+				const matchedPositionPaths = positionKeys.filter(
+					(key) => key.split('.')[0] === positionPath,
+				);
+				matchedPositionPaths.forEach((key) => {
+					// add child position
+					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+					const ordinalPath = positionPaths.get(key)!;
+					acc.add(this.buildOrdinalPathString(ordinalPath));
+				});
+			}
+			return acc;
+		}, new Set<string>());
+
+		return [...positions];
+	}
+
+	private buildOrdinalPathString(ordinalPath: number[]): string {
+		if (ordinalPath.length === 0) {
+			return '';
+		}
+
+		const [attributePosition, valuePosition, subvaluePosition] = ordinalPath;
+		if (ordinalPath.length === 1) {
+			return `${attributePosition + 1}`;
+		}
+		if (ordinalPath.length === 2) {
+			return `${attributePosition + 1}.${valuePosition + 1}`;
+		}
+		if (ordinalPath.length === 3) {
+			return `${attributePosition + 1}.${valuePosition + 1}.${subvaluePosition + 1}`;
+		}
+
+		return '';
+	}
+
 	/** Build the dictionary path map for additional dictionaries provided as schema options */
 	private buildDictionaryPaths(
 		dictionaries: DictionariesOption = {},
