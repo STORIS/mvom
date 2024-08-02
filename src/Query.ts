@@ -96,14 +96,20 @@ type FlattenedDocumentDictionaries<TSchema extends Schema> = FlattenDocument<
 	Exclude<SchemaTypeDefinition, SchemaTypeDefinitionScalar> | { dictionary: string }
 >;
 
+export type SchemaFilter<TSchema extends Schema | null> = (TSchema extends Schema<
+	SchemaDefinition,
+	infer TDictionariesOption
+>
+	? FlattenedDocumentDictionaries<TSchema> &
+			InferDictionariesType<TDictionariesOption> extends infer O
+		? { [Key in keyof O]?: Condition<NonNullable<O[Key]>> }
+		: never
+	: Record<never, never>) & { _id?: Condition<string> };
+export type SchemaFilterKeys<TSchema extends Schema | null> = keyof SchemaFilter<TSchema>;
+
 /** Query Filter */
 export type Filter<TSchema extends Schema | null> = RootFilterOperators<TSchema> &
-	((TSchema extends Schema<SchemaDefinition, infer TDictionariesOption>
-		? FlattenedDocumentDictionaries<TSchema> &
-				InferDictionariesType<TDictionariesOption> extends infer O
-			? { [Key in keyof O]?: Condition<NonNullable<O[Key]>> }
-			: never
-		: Record<never, never>) & { _id?: Condition<string> });
+	SchemaFilter<TSchema>;
 
 /** Sort criteria */
 export type SortCriteria<TSchema extends Schema | null> = [
