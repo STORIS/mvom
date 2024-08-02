@@ -27,7 +27,7 @@ export interface BuildForeignKeyDefinitionsResult {
  * An intersection type that combines the `Document` class instance with the
  * inferred shape of the document object based on the schema definition.
  */
-type DocumentCompositeValue<TSchema extends Schema | null> = TSchema extends Schema
+export type DocumentCompositeValue<TSchema extends Schema | null> = TSchema extends Schema
 	? Document<TSchema> & InferDocumentObject<TSchema>
 	: Document<TSchema>;
 // #endregion
