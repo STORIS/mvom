@@ -31,6 +31,11 @@ export interface DbSubroutineOutputFindByIds {
 }
 export type DbSubroutineResponseFindByIds = DbSubroutineResponse<DbSubroutineOutputFindByIds>;
 
+export interface DbSubroutineOutputIncrement {
+	result: DbDocument | null;
+}
+export type DbSubroutineResponseIncrement = DbSubroutineResponse<DbSubroutineOutputIncrement>;
+
 export interface DbSubroutineOutputReadFileContentsById {
 	result: string;
 }
@@ -76,6 +81,7 @@ export type DbSubroutineResponseTypes =
 	| DbSubroutineResponseFind
 	| DbSubroutineResponseFindById
 	| DbSubroutineResponseFindByIds
+	| DbSubroutineResponseIncrement
 	| DbSubroutineResponseReadFileContentsById
 	| DbSubroutineResponseGetServerInfo
 	| DbSubroutineResponseSave;
@@ -85,6 +91,7 @@ export interface DbSubroutineResponseTypesMap {
 	find: DbSubroutineResponseFind;
 	findById: DbSubroutineResponseFindById;
 	findByIds: DbSubroutineResponseFindByIds;
+	increment: DbSubroutineResponseIncrement;
 	readFileContentsById: DbSubroutineResponseReadFileContentsById;
 	getServerInfo: DbSubroutineResponseGetServerInfo;
 	save: DbSubroutineResponseSave;
