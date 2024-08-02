@@ -21,8 +21,8 @@ class DbServerError extends BaseError {
 		const message =
 			'message' in options
 				? options.message
-				: Object.values(dbErrors).find((errorObj) => errorObj.code === +options.errorCode)
-						?.message ?? 'Unknown database server error';
+				: (Object.values(dbErrors).find((errorObj) => errorObj.code === +options.errorCode)
+						?.message ?? 'Unknown database server error');
 
 		super(message, name);
 	}
