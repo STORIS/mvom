@@ -105,17 +105,17 @@ export type SchemaFilter<TSchema extends Schema | null> = (TSchema extends Schem
 		? { [Key in keyof O]?: Condition<NonNullable<O[Key]>> }
 		: never
 	: Record<never, never>) & { _id?: Condition<string> };
-export type SchemaFilterKeys<TSchema extends Schema | null> = keyof SchemaFilter<TSchema>;
+export type SchemaFilterKeys<TSchema extends Schema | null> = Extract<
+	keyof SchemaFilter<TSchema>,
+	string
+>;
 
 /** Query Filter */
 export type Filter<TSchema extends Schema | null> = RootFilterOperators<TSchema> &
 	SchemaFilter<TSchema>;
 
 /** Sort criteria */
-export type SortCriteria<TSchema extends Schema | null> = [
-	Extract<Exclude<keyof Filter<TSchema>, keyof RootFilterOperators<TSchema>>, string>,
-	-1 | 1,
-][];
+export type SortCriteria<TSchema extends Schema | null> = [SchemaFilterKeys<TSchema>, -1 | 1][];
 
 export type QueryExecutionOptions = DbSubroutineSetupOptions;
 export interface QueryExecutionResult {
