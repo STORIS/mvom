@@ -5,8 +5,13 @@ import { DataValidationError } from './errors';
 import type LogHandler from './LogHandler';
 import Query, { type Filter, type QueryConstructorOptions } from './Query';
 import type Schema from './Schema';
-import type { InferModelObject } from './Schema';
-import type { DbServerDelimiters, DbSubroutineUserDefinedOptions } from './types';
+import type { FlattenDocument, InferModelObject, SchemaDefinition } from './Schema';
+import type { SchemaTypeDefinitionNumber } from './schemaType';
+import type {
+	DbServerDelimiters,
+	DbSubroutineInputIncrementOperation,
+	DbSubroutineUserDefinedOptions,
+} from './types';
 import { ensureArray } from './utils';
 
 // #region Types
@@ -51,6 +56,25 @@ export interface ModelFindByIdOptions extends ModelDatabaseExecutionOptions {
 	/** Array of projection properties */
 	projection?: string[];
 }
+export interface ModelIncrementOptions extends ModelDatabaseExecutionOptions {
+	/**
+	 * number retries to perform when record is locked
+	 * @defaultValue 5
+	 */
+	retry?: number;
+	/**
+	 * between retries in seconds when record is locked
+	 * @defaultValue 1
+	 */
+	retryDelay?: number;
+}
+
+export type IncrementOperation<TSchema extends Schema | null> = TSchema extends Schema
+	? {
+			path: keyof FlattenDocument<TSchema, Schema | SchemaDefinition | SchemaTypeDefinitionNumber>;
+			value: number;
+		}
+	: never;
 export type ModelReadFileContentsByIdOptions = ModelDatabaseExecutionOptions;
 export type ModelSaveOptions = ModelDatabaseExecutionOptions;
 // #endregion
@@ -288,6 +312,47 @@ const compileModel = <TSchema extends Schema | null>(
 			});
 		}
 
+		/** Increment fields in a document by values
+		 * @throws {Error} if schema is not defined
+		 * @throws {Error} if no result is returned from increment operation
+		 */
+		public static async increment(
+			id: string,
+			operations: IncrementOperation<TSchema>[],
+			options: ModelIncrementOptions = {},
+		): Promise<ModelCompositeValue<TSchema>> {
+			const { maxReturnPayloadSize, requestId, userDefined, retry = 5, retryDelay = 1 } = options;
+			if (this.schema == null) {
+				throw new Error('Schema must be defined to perform increment operations');
+			}
+
+			const transformedOperations = this.#formatIncrementOperations(operations);
+
+			const data = await this.connection.executeDbSubroutine(
+				'increment',
+				{
+					filename: this.file,
+					id,
+					operations: transformedOperations,
+					retry,
+					retryDelay,
+				},
+				{
+					...(maxReturnPayloadSize != null && { maxReturnPayloadSize }),
+					...(requestId != null && { requestId }),
+					...(userDefined && { userDefined }),
+				},
+			);
+			if (data.result == null) {
+				throw new Error(
+					`No result returned from increment operation for file ${this.file} and id ${id}`,
+				);
+			}
+
+			const { _id, __v, record } = data.result;
+			return this.#createModelFromRecordString(record, _id, __v);
+		}
+
 		/** Read a DIR file type record directly from file system as Base64 string by its id */
 		public static async readFileContentsById(
 			id: string,
@@ -324,6 +389,33 @@ const compileModel = <TSchema extends Schema | null>(
 			return projection != null && this.schema != null
 				? this.schema.transformPathsToDbPositions(projection)
 				: null;
+		}
+
+		/**
+		 * Format increment operations to be sent to the database
+		 */
+		static #formatIncrementOperations(
+			operations: IncrementOperation<TSchema>[],
+		): DbSubroutineInputIncrementOperation[] {
+			if (this.schema == null) {
+				// should never get here because increment also checks for null schema, but just in case.
+				throw new Error('Schema must be defined to perform increment operations');
+			}
+
+			return operations.map(({ path, value }) => {
+				if (this.schema == null) {
+					// still need to check for null schema here, but should never get here. Just return the path b/c there'd be nothing to do with it.
+					return {
+						path,
+						value,
+					};
+				}
+				return {
+					// passing one path to transform so get the first element of the returned array. The IncrementOperation type won't allow for parent properties, so should only ever get a single path back from transformation
+					path: this.schema.transformPathsToOrdinalPositions([path])[0],
+					value,
+				};
+			});
 		}
 
 		/** Save a document to the database */
