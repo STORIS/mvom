@@ -18,6 +18,7 @@ import {
 	InvalidServerFeaturesError,
 	MvisError,
 	RecordLockedError,
+	RecordNotFoundError,
 	RecordVersionError,
 	TimeoutError,
 	UnknownError,
@@ -773,6 +774,53 @@ describe('executeDbSubroutine', () => {
 				{ requestId },
 			),
 		).rejects.toThrow(DbServerError);
+	});
+
+	test('should throw RecordNotFoundError when that code is returned from db during an increment', async () => {
+		when<any, any[]>(mockedAxiosInstance.post)
+			.calledWith(
+				expect.anything(),
+				expect.objectContaining({
+					input: expect.objectContaining({
+						subroutineId: expect.stringContaining('increment'),
+					}),
+				}),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
+					}),
+				}),
+			)
+			.mockResolvedValue({
+				data: {
+					output: { errorCode: dbErrors.recordNotFound.code },
+				},
+			});
+
+		const connection = Connection.createConnection(
+			mvisUrl,
+			mvisAdminUrl,
+			mvisAdminUsername,
+			mvisAdminPassword,
+			account,
+		);
+		await connection.open({ requestId });
+
+		const filename = 'filename';
+		const id = 'id';
+		await expect(
+			connection.executeDbSubroutine(
+				'increment',
+				{
+					filename,
+					id,
+					operations: [{ path: 'path', value: 2 }],
+					retry: 5,
+					retryDelay: 1,
+				},
+				{ requestId },
+			),
+		).rejects.toThrow(RecordNotFoundError);
 	});
 
 	test('should throw DbServerError for other returned codes', async () => {

@@ -23,6 +23,7 @@ import {
 	InvalidServerFeaturesError,
 	MvisError,
 	RecordLockedError,
+	RecordNotFoundError,
 	RecordVersionError,
 	TimeoutError,
 	UnknownError,
@@ -34,6 +35,7 @@ import type {
 	DbServerDelimiters,
 	DbServerLimits,
 	DbSubroutineInputDeleteById,
+	DbSubroutineInputIncrement,
 	DbSubroutineInputOptionsMap,
 	DbSubroutineInputSave,
 	DbSubroutineOutputErrorForeignKey,
@@ -411,6 +413,7 @@ class Connection {
 	 * @throws {@link RecordLockedError} A record was locked and could not be updated
 	 * @throws {@link RecordVersionError} A record changed between being read and written and could not be updated
 	 * @throws {@link DbServerError} An error was encountered on the database server
+	 * @throws {@link RecordNotFoundError} A record was not found and could not be updated
 	 */
 	private handleDbServerError<
 		TResponse extends DbSubroutineResponseTypes,
@@ -468,6 +471,11 @@ class Connection {
 					throw new DbServerError({
 						message: `Maximum return payload size of ${maxReturnPayloadSize} exceeded`,
 					});
+				}
+				case dbErrors.recordNotFound.code: {
+					const { filename, id } = options as DbSubroutineInputIncrement;
+					this.logHandler.debug(`record ${id} not found from ${filename} when incrementing`);
+					throw new RecordNotFoundError({ filename, recordId: id });
 				}
 				default:
 					this.logHandler.error(
