@@ -625,7 +625,7 @@ describe('increment', () => {
 
 	const testSchema = new Schema(testSchemaDefinition);
 
-	test('should return null if database returns null', async () => {
+	test('should throw error if database returns null', async () => {
 		const Model = compileModel(
 			connectionMock,
 			testSchema,
@@ -634,7 +634,7 @@ describe('increment', () => {
 			logHandlerMock,
 		);
 		connectionMock.executeDbSubroutine.mockResolvedValue({ result: null });
-		expect(await Model.increment('id', [{ path: 'prop2', value: 3 }])).toBeNull();
+		await expect(Model.increment('id', [{ path: 'prop2', value: 3 }])).rejects.toThrow(Error);
 	});
 
 	test('should transform key paths to ordinal positions based on IncrementOperations passed in', async () => {
