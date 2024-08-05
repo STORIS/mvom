@@ -314,6 +314,7 @@ const compileModel = <TSchema extends Schema | null>(
 
 		/** Increment fields in a document by values
 		 * @throws {Error} if schema is not defined
+		 * @throws {Error} if no result is returned from increment operation
 		 */
 		public static async increment(
 			id: string,
