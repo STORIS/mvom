@@ -337,7 +337,6 @@ describe('transformPathsToDbPositions', () => {
 	const definition: SchemaDefinition = {
 		stringProp: { type: 'string', path: '1' },
 		stringValueProp: { type: 'string', path: '14.2' },
-		stringSubValueProp: { type: 'string', path: '14.2.3' },
 		numberProp: { type: 'number', path: '2' },
 		booleanProp: { type: 'boolean', path: '3' },
 		isoCalendarDateProp: { type: 'ISOCalendarDate', path: '4' },
