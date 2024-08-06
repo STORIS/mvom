@@ -180,7 +180,10 @@ export type FlattenDocument<TSchema extends Schema, TConstraint = SchemaTypeDefi
 		: never;
 
 /** Infer the string keyPaths of a schema */
-export type InferSchemaPaths<TSchema extends Schema> = keyof FlattenDocument<TSchema>;
+export type InferSchemaPaths<TSchema extends Schema> = Extract<
+	keyof FlattenDocument<TSchema>,
+	string
+>;
 // #endregion
 
 /** Schema constructor */
@@ -283,7 +286,7 @@ class Schema<
 	 * @throws {Error} Invalid path provided
 	 */
 	public transformPathToOrdinalPosition(
-		path: Extract<InferSchemaPaths<Schema<TSchemaDefinition, TDictionaries>>, string>,
+		path: InferSchemaPaths<Schema<TSchemaDefinition, TDictionaries>>,
 	): `${number}.${number}.${number}` {
 		const positionPaths = this.getPositionPaths();
 
