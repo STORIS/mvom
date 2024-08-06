@@ -287,13 +287,11 @@ class Schema<
 	): `${number}.${number}.${number}` {
 		const positionPaths = this.getPositionPaths();
 
-		if (!positionPaths.has(path)) {
+		const ordinalPath = positionPaths.get(path);
+		if (ordinalPath == null) {
 			throw new Error('Invalid path provided');
 		}
 
-		const ordinalPath =
-			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-			positionPaths.get(path)!;
 		const [attributePosition, valuePosition = 0, subvaluePosition = 0] = ordinalPath;
 		return `${attributePosition + 1}.${valuePosition + 1}.${subvaluePosition + 1}`;
 	}
