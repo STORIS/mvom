@@ -391,7 +391,6 @@ const compileModel = <TSchema extends Schema | null>(
 			operations: IncrementOperation<TSchema>[],
 		): DbSubroutineInputIncrementOperation[] {
 			if (this.schema == null) {
-				// should never get here because increment also checks for null schema, but just in case.
 				throw new Error('Schema must be defined to perform increment operations');
 			}
 			const incrementSchema = this.schema;
