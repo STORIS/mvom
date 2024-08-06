@@ -118,8 +118,7 @@ loop while processCount lt operationsCount
   end
 
   * parse out path.
-  pathMatchTest = path match "1n'.'1n'.'1n"
-  if pathMatchTest eq 0 then
+  if not(path match "1n'.'1n'.'1n") then
     call error_handler(ERROR_MALFORMED_INPUT, output)
     go closeReleaseAndReturnFromSub
   end
