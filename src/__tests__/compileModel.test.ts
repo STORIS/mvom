@@ -966,8 +966,8 @@ describe('type inference', () => {
 			const test2: Equals<Result['prop2'], number | null> = true;
 			expect(test2).toBe(true);
 
-			// _raw should be undefined since there is a schema
-			const test3: Equals<Result['_raw'], undefined> = true;
+			// _raw should be never since there is a schema
+			const test3: Equals<Result['_raw'], never> = true;
 			expect(test3).toBe(true);
 
 			// any other property should be unknown
@@ -987,8 +987,8 @@ describe('type inference', () => {
 			const test2: Equals<Result['prop2'], number | null> = true;
 			expect(test2).toBe(true);
 
-			// _raw should be undefined since there is a schema
-			const test3: Equals<Result['_raw'], undefined> = true;
+			// _raw should be never since there is a schema
+			const test3: Equals<Result['_raw'], never> = true;
 			expect(test3).toBe(true);
 
 			// any other property should be unknown
@@ -1008,8 +1008,8 @@ describe('type inference', () => {
 			const test2: Equals<Result['prop2'], number | null> = true;
 			expect(test2).toBe(true);
 
-			// _raw should be undefined since there is a schema
-			const test3: Equals<Result['_raw'], undefined> = true;
+			// _raw should be never since there is a schema
+			const test3: Equals<Result['_raw'], never> = true;
 			expect(test3).toBe(true);
 
 			// any other property should be unknown
@@ -1029,8 +1029,8 @@ describe('type inference', () => {
 			const test2: Equals<Result['prop2'], number | null> = true;
 			expect(test2).toBe(true);
 
-			// _raw should be undefined since there is a schema
-			const test3: Equals<Result['_raw'], undefined> = true;
+			// _raw should be never since there is a schema
+			const test3: Equals<Result['_raw'], never> = true;
 			expect(test3).toBe(true);
 
 			// any other property should be unknown
@@ -1050,8 +1050,8 @@ describe('type inference', () => {
 			const test2: Equals<Result['prop2'], number | null> = true;
 			expect(test2).toBe(true);
 
-			// _raw should be undefined since there is a schema
-			const test3: Equals<Result['_raw'], undefined> = true;
+			// _raw should be never since there is a schema
+			const test3: Equals<Result['_raw'], never> = true;
 			expect(test3).toBe(true);
 
 			// any other property should be unknown
@@ -1071,8 +1071,8 @@ describe('type inference', () => {
 			const test2: Equals<Result['prop2'], number | null> = true;
 			expect(test2).toBe(true);
 
-			// _raw should be undefined since there is a schema
-			const test3: Equals<Result['_raw'], undefined> = true;
+			// _raw should be never since there is a schema
+			const test3: Equals<Result['_raw'], never> = true;
 			expect(test3).toBe(true);
 
 			// any other property should be unknown
