@@ -40,6 +40,7 @@ export {
 	InvalidParameterError,
 	InvalidServerFeaturesError,
 	RecordLockedError,
+	RecordNotFoundError,
 	RecordVersionError,
 	TimeoutError,
 	TransformDataError,
