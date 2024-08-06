@@ -36,7 +36,7 @@ export type DocumentCompositeValue<TSchema extends Schema | null> = TSchema exte
 class Document<TSchema extends Schema | null> {
 	[key: string]: unknown;
 
-	public _raw: TSchema extends Schema ? undefined : MvRecord;
+	public _raw!: TSchema extends Schema ? never : MvRecord;
 
 	/** Array of any errors which occurred during transformation from the database */
 	public _transformationErrors: TransformDataError[];
@@ -62,9 +62,9 @@ class Document<TSchema extends Schema | null> {
 			_transformationErrors: { configurable: false, enumerable: false, writable: false },
 		});
 
-		this._raw = (schema == null ? this.#record : undefined) as TSchema extends Schema
-			? undefined
-			: MvRecord;
+		if (schema == null) {
+			this._raw = this.#record as TSchema extends Schema ? never : MvRecord;
+		}
 
 		this.#transformRecordToDocument();
 
