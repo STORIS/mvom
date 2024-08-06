@@ -71,7 +71,10 @@ export interface ModelIncrementOptions extends ModelDatabaseExecutionOptions {
 
 export type IncrementOperation<TSchema extends Schema | null> = TSchema extends Schema
 	? {
-			path: keyof FlattenDocument<TSchema, Schema | SchemaDefinition | SchemaTypeDefinitionNumber>;
+			path: Extract<
+				keyof FlattenDocument<TSchema, Schema | SchemaDefinition | SchemaTypeDefinitionNumber>,
+				string
+			>;
 			value: number;
 		}
 	: never;
