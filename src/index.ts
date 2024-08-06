@@ -30,6 +30,7 @@ export type {
 	ModelConstructorOptions,
 	Model,
 	ModelCompositeValue,
+	IncrementOperation,
 } from './compileModel';
 export {
 	MvisError,
