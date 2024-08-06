@@ -59,7 +59,7 @@ end then
     originalRecordHash = ''
   end else
     if digest('MD5', originalRecord, 1, originalRecordHash) then
-      errorCode = ERROR_DIGEST_HASH
+      call error_handler(ERROR_DIGEST_HASH, output)
       go closeReleaseAndReturnFromSub
     end
 
