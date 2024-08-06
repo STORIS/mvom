@@ -419,7 +419,7 @@ describe('transformPathsToOrdinalPositions', () => {
 	} satisfies SchemaDefinition;
 	const schema = new Schema(definition);
 
-	test('should throw error if path list is empty', () => {
+	test('should throw error if invalid path provided', () => {
 		// @ts-expect-error: intentionally passing invalid argument to test
 		expect(() => schema.transformPathToOrdinalPosition('bad-path')).toThrow(Error);
 	});
