@@ -341,11 +341,6 @@ const compileModel = <TSchema extends Schema | null>(
 					...(userDefined && { userDefined }),
 				},
 			);
-			if (data.result == null) {
-				throw new Error(
-					`No result returned from increment operation for file ${this.file} and id ${id}`,
-				);
-			}
 
 			const { _id, __v, record } = data.result;
 			return this.#createModelFromRecordString(record, _id, __v);

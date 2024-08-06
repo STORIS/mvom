@@ -32,7 +32,7 @@ export interface DbSubroutineOutputFindByIds {
 export type DbSubroutineResponseFindByIds = DbSubroutineResponse<DbSubroutineOutputFindByIds>;
 
 export interface DbSubroutineOutputIncrement {
-	result: DbDocument | null;
+	result: DbDocument;
 }
 export type DbSubroutineResponseIncrement = DbSubroutineResponse<DbSubroutineOutputIncrement>;
 
