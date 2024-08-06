@@ -58,12 +58,12 @@ export interface ModelFindByIdOptions extends ModelDatabaseExecutionOptions {
 }
 export interface ModelIncrementOptions extends ModelDatabaseExecutionOptions {
 	/**
-	 * number retries to perform when record is locked
+	 * Number of retries to perform when record is locked
 	 * @defaultValue 5
 	 */
 	retry?: number;
 	/**
-	 * between retries in seconds when record is locked
+	 * Delay between retries in seconds when record is locked
 	 * @defaultValue 1
 	 */
 	retryDelay?: number;
@@ -312,7 +312,8 @@ const compileModel = <TSchema extends Schema | null>(
 			});
 		}
 
-		/** Increment fields in a document by values
+		/**
+		 * Increment fields in a document by values
 		 * @throws {Error} if schema is not defined
 		 * @throws {Error} if no result is returned from increment operation
 		 */
@@ -322,9 +323,6 @@ const compileModel = <TSchema extends Schema | null>(
 			options: ModelIncrementOptions = {},
 		): Promise<ModelCompositeValue<TSchema>> {
 			const { maxReturnPayloadSize, requestId, userDefined, retry = 5, retryDelay = 1 } = options;
-			if (this.schema == null) {
-				throw new Error('Schema must be defined to perform increment operations');
-			}
 
 			const transformedOperations = this.#formatIncrementOperations(operations);
 
@@ -401,21 +399,13 @@ const compileModel = <TSchema extends Schema | null>(
 				// should never get here because increment also checks for null schema, but just in case.
 				throw new Error('Schema must be defined to perform increment operations');
 			}
+			const incrementSchema = this.schema;
 
-			return operations.map(({ path, value }) => {
-				if (this.schema == null) {
-					// still need to check for null schema here, but should never get here. Just return the path b/c there'd be nothing to do with it.
-					return {
-						path,
-						value,
-					};
-				}
-				return {
-					// passing one path to transform so get the first element of the returned array. The IncrementOperation type won't allow for parent properties, so should only ever get a single path back from transformation
-					path: this.schema.transformPathsToOrdinalPositions([path])[0],
-					value,
-				};
-			});
+			return operations.map(({ path, value }) => ({
+				// passing one path to transform so get the first element of the returned array. The IncrementOperation type won't allow for parent properties, so should only ever get a single path back from transformation
+				path: incrementSchema.transformPathsToOrdinalPositions([path])[0],
+				value,
+			}));
 		}
 
 		/** Save a document to the database */

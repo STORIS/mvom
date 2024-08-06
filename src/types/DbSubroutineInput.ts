@@ -48,11 +48,11 @@ export interface DbSubroutineInputFindByIds {
 
 export interface DbSubroutineInputIncrementOperation {
 	/**
-	 * ordinal path to the field to increment ex. 1.2.3
+	 * Ordinal path to the field to increment ex. 1.2.3
 	 */
 	path: string;
 	/**
-	 * numeric value to increment by
+	 * Numeric value to increment by
 	 */
 	value: number;
 }
@@ -62,11 +62,11 @@ export interface DbSubroutineInputIncrement {
 	id: string;
 	operations: DbSubroutineInputIncrementOperation[];
 	/**
-	 * number of retries to perform
+	 * Number of retries to perform
 	 */
 	retry: number;
 	/**
-	 * delay between retries in seconds
+	 * Delay between retries in seconds
 	 */
 	retryDelay: number;
 }
