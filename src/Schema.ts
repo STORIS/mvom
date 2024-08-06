@@ -180,7 +180,10 @@ export type FlattenDocument<TSchema extends Schema, TConstraint = SchemaTypeDefi
 		: never;
 
 /** Infer the string keyPaths of a schema */
-export type InferSchemaPaths<TSchema extends Schema> = keyof FlattenDocument<TSchema>;
+export type InferSchemaPaths<TSchema extends Schema> = Extract<
+	keyof FlattenDocument<TSchema>,
+	string
+>;
 // #endregion
 
 /** Schema constructor */
@@ -276,6 +279,24 @@ class Schema<
 		}, new Set<number>());
 
 		return [...positions];
+	}
+
+	/**
+	 * Transform the path to its ordinal position. Returning a '.' delimited string. Ex. "1.2.3"
+	 * @throws {Error} Invalid path provided
+	 */
+	public transformPathToOrdinalPosition(
+		path: InferSchemaPaths<Schema<TSchemaDefinition, TDictionaries>>,
+	): `${number}.${number}.${number}` {
+		const positionPaths = this.getPositionPaths();
+
+		const ordinalPath = positionPaths.get(path);
+		if (ordinalPath == null) {
+			throw new Error('Invalid path provided');
+		}
+
+		const [attributePosition, valuePosition = 0, subvaluePosition = 0] = ordinalPath;
+		return `${attributePosition + 1}.${valuePosition + 1}.${subvaluePosition + 1}`;
 	}
 
 	/** Build the dictionary path map for additional dictionaries provided as schema options */

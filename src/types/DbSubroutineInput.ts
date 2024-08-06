@@ -46,6 +46,31 @@ export interface DbSubroutineInputFindByIds {
 	projection: number[] | null;
 }
 
+export interface DbSubroutineInputIncrementOperation {
+	/**
+	 * Ordinal path to the field to increment ex. 1.2.3
+	 */
+	path: string;
+	/**
+	 * Numeric value to increment by
+	 */
+	value: number;
+}
+
+export interface DbSubroutineInputIncrement {
+	filename: string;
+	id: string;
+	operations: DbSubroutineInputIncrementOperation[];
+	/**
+	 * Number of retries to perform
+	 */
+	retry: number;
+	/**
+	 * Delay between retries in seconds
+	 */
+	retryDelay: number;
+}
+
 export interface DbSubroutineInputReadFileContentsById {
 	filename: string;
 	id: string;
@@ -66,6 +91,7 @@ export type DbActionSubroutineInputTypes = DbSubroutinePayload<
 	| DbSubroutineInputFind
 	| DbSubroutineInputFindById
 	| DbSubroutineInputFindByIds
+	| DbSubroutineInputIncrement
 	| DbSubroutineInputReadFileContentsById
 	| DbSubroutineInputGetServerInfo
 >;
@@ -75,6 +101,7 @@ export interface DbSubroutineInputOptionsMap {
 	find: DbSubroutineInputFind;
 	findById: DbSubroutineInputFindById;
 	findByIds: DbSubroutineInputFindByIds;
+	increment: DbSubroutineInputIncrement;
 	readFileContentsById: DbSubroutineInputReadFileContentsById;
 	getServerInfo: DbSubroutineInputGetServerInfo;
 	save: DbSubroutineInputSave;

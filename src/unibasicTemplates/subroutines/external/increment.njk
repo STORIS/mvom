@@ -1,0 +1,188 @@
+subroutine mvom_increment(options, output)
+* increment values and return the updated document given a filename, the paths to the values to increment, and the values to increment by
+{% include "../../constants/udo.njk" %}
+{% include "../../constants/error.njk" %}
+{% include "../../constants/status.njk" %}
+
+* get the filename from the options
+if udoGetProperty(options, 'filename', filename, type) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go returnFromSub
+end
+
+* get the recordId from the options
+if udoGetProperty(options, 'id', recordId, type) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go returnFromSub
+end
+
+* get the number of retries to perform if the record is locked
+if udoGetProperty(options, 'retry', retryMax, type) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go returnFromSub
+end
+
+* get the retry delay between retries
+if udoGetProperty(options, 'retryDelay', retryDelay, type) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go returnFromSub
+end
+
+* get the array of operations from the options
+if udoGetProperty(options, 'operations', operations, type) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go returnFromSub
+end
+
+operationsCount = 0
+begin case
+  case type ne UDO_ARRAY
+    call error_handler(ERROR_MALFORMED_INPUT, output)
+    go returnFromSub
+  case udoArrayGetSize(operations, operationsCount) ne UDO_SUCCESS
+    call error_handler(ERROR_UDO, output)
+    go returnFromSub
+end case
+
+* make sure the array of operations passed in wasn't empty
+if operationsCount eq 0 then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go returnFromSub
+end
+
+* open the file
+open filename to f.file on error
+  call error_handler(ERROR_FILE_OPEN, output)
+  go returnFromSub
+end else
+  call error_handler(ERROR_FILE_OPEN, output)
+  go returnFromSub
+end
+
+* read and lock the record from the file
+tries = 0
+
+loop
+  readu record from f.file, recordId on error
+    call error_handler(ERROR_RECORD_READ, output)
+    go closeAndReturnFromSub
+  end locked
+    if tries > retryMax then
+      call error_handler(ERROR_RECORD_LOCKED, output)
+      go closeAndReturnFromSub
+    end else
+      tries+= 1
+      sleep retryDelay
+    end
+  end then
+    * lock successful get out of read lock loop
+    exit
+  end else
+    * record not found
+    call error_handler(ERROR_RECORD_NOT_FOUND, output)
+    go closeReleaseAndReturnFromSub
+  end
+repeat
+
+* increment fields
+processCount = 0
+loop while processCount lt operationsCount
+  processCount += 1
+
+  * get the next operation from the array
+  if udoArrayGetNextItem(operations, operation, type) ne UDO_SUCCESS then
+    call error_handler(ERROR_UDO, output)
+    go closeReleaseAndReturnFromSub
+  end
+
+  * get the path
+  if udoGetProperty(operation, 'path', path, type) then
+    call error_handler(ERROR_MALFORMED_INPUT, output)
+    go closeReleaseAndReturnFromSub
+  end
+  * path must be a string
+  if type ne UDO_STRING then
+    call error_handler(ERROR_MALFORMED_INPUT, output)
+    go closeReleaseAndReturnFromSub
+  end
+
+  * get the value to increment by
+  if udoGetProperty(operation, 'value', value, type) then
+    call error_handler(ERROR_MALFORMED_INPUT, output)
+    go closeReleaseAndReturnFromSub
+  end
+  * value must be numeric
+  if type ne UDO_NUMBER then
+    call error_handler(ERROR_MALFORMED_INPUT, output)
+    go closeReleaseAndReturnFromSub
+  end
+
+  * parse out path.
+  if not(path match "1n'.'1n'.'1n") then
+    call error_handler(ERROR_MALFORMED_INPUT, output)
+    go closeReleaseAndReturnFromSub
+  end
+  * get attribute position
+  attributePosition = field(path, '.', 1, 1)
+  * get value position
+  valuePosition = field(path, '.', 2, 1)
+  * get subvalue position
+  subvaluePosition = field(path, '.', 3, 1)
+
+  * perform incrementing
+  record<attributePosition, valuePosition, subvaluePosition>+= value
+repeat
+
+* create null projection
+if udoCreate(UDO_NULL, projection) then
+  call error_handler(ERROR_UDO, output)
+  go closeAndReturnFromSub
+end
+
+* write out record
+write record on f.file, recordId on error
+  statusCode = status()
+  begin case
+    case statusCode eq STATUS_WRITE_SYSTEM_ERROR
+      call error_handler(ERROR_RECORD_WRITE, output)
+    case statusCode eq STATUS_WRITE_TRIGGER_CONSTRAINT
+      call error_handler(ERROR_RECORD_WRITE_TRIGGER_CONSTRAINT, output)
+    case statusCode eq STATUS_WRITE_TRIGGER_ERROR
+      call error_handler(ERROR_RECORD_WRITE_TRIGGER_ERROR, output)
+    case statusCode eq STATUS_WRITE_DUPLICATE_INDEX
+      call error_handler(ERROR_RECORD_WRITE_DUPLICATE_INDEX, output)
+    case 1
+      * Unknown error status code
+      call error_handler(ERROR_RECORD_WRITE_UNKNOWN, output)
+  end case
+
+  go closeAndReturnFromSub
+end
+
+close f.file on error null
+
+* format the modified record into an object structure
+call format_document(record, recordId, projection, document, errorCode)
+if errorCode then
+  call error_handler(errorCode, output)
+  go returnFromSub
+end
+
+* set the result property
+if udoSetProperty(output, 'result', document) then
+  call error_handler(ERROR_UDO, output)
+  go returnFromSub
+end
+
+go returnFromSub;* skip close and release behaviors
+
+closeReleaseAndReturnFromSub:
+release f.file, recordId on error null
+* fall through to close and return
+
+closeAndReturnFromSub:
+close f.file on error null
+* fall through to return
+
+returnFromSub:
+return; * returning to caller

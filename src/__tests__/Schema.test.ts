@@ -388,6 +388,67 @@ describe('transformPathsToDbPositions', () => {
 	});
 });
 
+describe('transformPathsToOrdinalPositions', () => {
+	const embeddedDefinition = {
+		innerEmbeddedProp: { type: 'string', path: '9' },
+	} satisfies SchemaDefinition;
+	const documentArrayDefinition = {
+		docStringProp: { type: 'string', path: '12' },
+		docNumberProp: { type: 'number', path: '13' },
+	} satisfies SchemaDefinition;
+	const definition = {
+		stringProp: { type: 'string', path: '1' },
+		stringValueProp: { type: 'string', path: '14.2' },
+		stringSubvalueProp: { type: 'string', path: '14.2.3' },
+		stringArrayValueProp: [{ type: 'string', path: '15.2' }],
+		numberProp: { type: 'number', path: '2' },
+		booleanProp: { type: 'boolean', path: '3' },
+		isoCalendarDateProp: { type: 'ISOCalendarDate', path: '4' },
+		isoTimeProp: { type: 'ISOTime', path: '5' },
+		isoCalendarDateTimeProp: { type: 'ISOCalendarDateTime', path: '6' },
+		arrayProp: [{ type: 'string', path: '7' }],
+		nestedArrayProp: [[{ type: 'string', path: '8' }]],
+		embeddedProp: new Schema(embeddedDefinition),
+		documentArrayProp: [
+			{
+				docStringProp: { type: 'string', path: '10' },
+				docNumberProp: { type: 'number', path: '11' },
+			},
+		],
+		documentArraySchemaProp: [new Schema(documentArrayDefinition)],
+	} satisfies SchemaDefinition;
+	const schema = new Schema(definition);
+
+	test('should throw error if invalid path provided', () => {
+		// @ts-expect-error: intentionally passing invalid argument to test
+		expect(() => schema.transformPathToOrdinalPosition('bad-path')).toThrow(Error);
+	});
+
+	test('should return position of specified path filling in value and subvalue positions to 1 if not specified', () => {
+		expect(schema.transformPathToOrdinalPosition('stringProp')).toBe('1.1.1');
+	});
+
+	test('should return positions of embedded document properties', () => {
+		expect(schema.transformPathToOrdinalPosition('embeddedProp.innerEmbeddedProp')).toBe('9.1.1');
+	});
+
+	test('should return positions of document array properties', () => {
+		expect(schema.transformPathToOrdinalPosition('documentArrayProp.docStringProp')).toBe('10.1.1');
+	});
+
+	test('should return correct ordinal position if path is to a value', () => {
+		expect(schema.transformPathToOrdinalPosition('stringValueProp')).toBe('14.2.1');
+	});
+
+	test('should return correct ordinal position if path is to a subvalue', () => {
+		expect(schema.transformPathToOrdinalPosition('stringSubvalueProp')).toBe('14.2.3');
+	});
+
+	test('should return correct ordinal position for array at value position', () => {
+		expect(schema.transformPathToOrdinalPosition('stringArrayValueProp')).toBe('15.2.1');
+	});
+});
+
 describe('utility types', () => {
 	describe('InferDocumentObject', () => {
 		describe('scalars', () => {

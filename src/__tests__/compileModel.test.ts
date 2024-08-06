@@ -609,6 +609,58 @@ describe('findByIds', () => {
 	});
 });
 
+describe('increment', () => {
+	const testSchemaDefinition = {
+		prop1: {
+			type: 'string',
+			path: 1,
+			dictionary: 'prop1Dictionary',
+			foreignKey: { file: 'FK_FILE', entityName: 'prop1' },
+		},
+		prop2: { type: 'number', path: 2, dictionary: 'prop2Dictionary' },
+		nestedDocument: {
+			prop3: { type: 'number', path: 3 },
+		},
+	} satisfies SchemaDefinition;
+
+	const testSchema = new Schema(testSchemaDefinition);
+
+	test('should transform key paths to ordinal positions based on IncrementOperations passed in', async () => {
+		const Model = compileModel(
+			connectionMock,
+			testSchema,
+			filename,
+			mockDelimiters,
+			logHandlerMock,
+		);
+		connectionMock.executeDbSubroutine.mockResolvedValue({
+			result: { _id: 'id', __v: 'version1', record: '' },
+		});
+		await Model.increment('id', [{ path: 'prop2', value: 3 }]);
+		expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
+			'increment',
+			{
+				filename,
+				id: 'id',
+				operations: [{ path: '2.1.1', value: 3 }],
+				retry: 5,
+				retryDelay: 1,
+			},
+			{},
+		);
+	});
+
+	test('should throw error if schema is not defined', async () => {
+		const Model = compileModel(connectionMock, null, filename, mockDelimiters, logHandlerMock);
+		connectionMock.executeDbSubroutine.mockResolvedValue({
+			result: { _id: 'id', __v: 'version1', record: '' },
+		});
+		// @ts-expect-error: intentionally invalid data to trigger error due to no schema being defined
+		await expect(Model.increment('id', [{ path: 'prop2', value: 3 }])).rejects.toThrow(Error);
+		expect(connectionMock.executeDbSubroutine).not.toHaveBeenCalled();
+	});
+});
+
 describe('readFileContentsById', () => {
 	test('should return string from database', async () => {
 		const Model = compileModel(connectionMock, schema, filename, mockDelimiters, logHandlerMock);
