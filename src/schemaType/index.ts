@@ -1,6 +1,10 @@
 export { default as ArrayType } from './ArrayType';
 export { default as BaseScalarArrayType } from './BaseScalarArrayType';
-export { default as BaseScalarType, type SchemaTypeDefinitionScalar } from './BaseScalarType';
+export {
+	default as BaseScalarType,
+	type SchemaTypeDefinitionScalar,
+	type SchemaTypePath,
+} from './BaseScalarType';
 export { default as BaseSchemaType } from './BaseSchemaType';
 export { default as BooleanType, type SchemaTypeDefinitionBoolean } from './BooleanType';
 export { default as DocumentArrayType } from './DocumentArrayType';

@@ -28,6 +28,7 @@ import type {
 	SchemaTypeDefinitionNumber,
 	SchemaTypeDefinitionScalar,
 	SchemaTypeDefinitionString,
+	SchemaTypePath,
 } from './schemaType';
 import type {
 	DataTransformer,
@@ -203,7 +204,7 @@ class Schema<
 	private readonly definition: TSchemaDefinition;
 
 	/** Map of the compiled schema object position paths */
-	private readonly positionPaths: Map<string, number[]>;
+	private readonly positionPaths: Map<string, SchemaTypePath>;
 
 	/** Map of all subdocument schemas represented in this Schema with parentPath as key */
 	private readonly subdocumentSchemas: Map<string, Schema>;
@@ -237,7 +238,7 @@ class Schema<
 	}
 
 	/** Get all multivalue data paths in this schema and its subdocument schemas */
-	public getMvPaths(): number[][] {
+	public getMvPaths(): SchemaTypePath[] {
 		return Array.from(this.subdocumentSchemas.values()).reduce(
 			(mvPaths, schema) => mvPaths.concat(schema.getMvPaths()),
 			Array.from(this.positionPaths.values()).slice(),
@@ -337,7 +338,7 @@ class Schema<
 	 * Get all positionPaths with path as key and position array as value including children schemas
 	 * e.g. parent field 'foo' has a child schema which has ["bar",[2]], the returned positionPath will be ["foo.bar",[2]].
 	 */
-	private getPositionPaths(): Map<string, number[]> {
+	private getPositionPaths(): Map<string, SchemaTypePath> {
 		// merge the positionPaths from subdocumentSchemas with parentPath appended by the childPath recursively
 		return Array.from(this.subdocumentSchemas.entries()).reduce((mvPaths, [parentKey, schema]) => {
 			const childrenPositions = schema.getPositionPaths();
@@ -467,9 +468,7 @@ class Schema<
 		}
 
 		// add to mvPath array
-		if (schemaTypeValue.path != null) {
-			this.positionPaths.set(keyPath, schemaTypeValue.path);
-		}
+		this.positionPaths.set(keyPath, schemaTypeValue.path);
 
 		// update dictPaths
 		if (schemaTypeValue.dictionary != null) {
