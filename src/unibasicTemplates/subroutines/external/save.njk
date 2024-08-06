@@ -102,8 +102,8 @@ end
 
 * create null projection
 if udoCreate(UDO_NULL, projection) then
-   call error_handler(ERROR_UDO, output)
-   go closeAndReturnFromSub
+  call error_handler(ERROR_UDO, output)
+  go closeAndReturnFromSub
 end
 
 * write out record

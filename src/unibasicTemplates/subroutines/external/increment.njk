@@ -73,7 +73,6 @@ loop
     end else
       tries+= 1
       sleep retryDelay
-      continue; * try again
     end
   end then
     * lock successful get out of read lock loop
@@ -81,7 +80,7 @@ loop
   end else
     * record not found
     call error_handler(ERROR_RECORD_NOT_FOUND, output)
-    go closeAndReturnFromSub
+    go closeReleaseAndReturnFromSub
   end
 repeat
 
@@ -119,6 +118,11 @@ loop while processCount lt operationsCount
   end
 
   * parse out path.
+  pathMatchTest = path match "1n'.'1n'.'1n"
+  if pathMatchTest eq 0 then
+    call error_handler(ERROR_MALFORMED_INPUT, output)
+    go closeReleaseAndReturnFromSub
+  end
   * get attribute position
   attributePosition = field(path, '.', 1, 1)
   * get value position
@@ -132,8 +136,8 @@ repeat
 
 * create null projection
 if udoCreate(UDO_NULL, projection) then
-   call error_handler(ERROR_UDO, output)
-   go closeAndReturnFromSub
+  call error_handler(ERROR_UDO, output)
+  go closeAndReturnFromSub
 end
 
 * write out record
