@@ -8,7 +8,7 @@ import type {
 	MvDataType,
 	MvRecord,
 } from '../types';
-import BaseSchemaType, { type Validator } from './BaseSchemaType';
+import BaseSchemaType, { type SchemaTypeDefinitionPath, type Validator } from './BaseSchemaType';
 import type { SchemaTypeDefinitionBoolean } from './BooleanType';
 import type { SchemaTypeDefinitionISOCalendarDateTime } from './ISOCalendarDateTimeType';
 import type { SchemaTypeDefinitionISOCalendarDate } from './ISOCalendarDateType';
@@ -31,6 +31,8 @@ export type SchemaTypeDefinitionScalar =
 	| SchemaTypeDefinitionString;
 
 type RecordSetType = string | null | (string | null | (string | null)[])[];
+
+export type SchemaTypePath = [number] | [number, number] | [number, number, number];
 // #endregion
 
 /** Abstract Scalar Schema Type */
@@ -39,7 +41,7 @@ abstract class BaseScalarType extends BaseSchemaType implements DataTransformer 
 	public readonly definition: SchemaTypeDefinitionScalar;
 
 	/** 0-indexed Array path */
-	public readonly path: number[];
+	public readonly path: SchemaTypePath;
 
 	/** Multivalue dictionary id */
 	public readonly dictionary: string | null;
@@ -172,17 +174,19 @@ abstract class BaseScalarType extends BaseSchemaType implements DataTransformer 
 	 * Convert a 1-index string array path definition (e.g. '1.1.1') to a 0-index array path definition (e.g. [0, 0, 0])
 	 * @throws {@link InvalidParameterError} Path definition must be a string of integers split by periods
 	 */
-	private normalizeMvPath(path: string | number): number[] {
-		return toPath(path).map((val) => {
-			const numVal = +val;
-			if (!Number.isInteger(numVal) || numVal < 1) {
-				throw new InvalidParameterError({
-					message: 'Path definition must be a string of integers split by periods',
-					parameterName: 'path',
-				});
-			}
-			return numVal - 1;
-		});
+	private normalizeMvPath(path: SchemaTypeDefinitionPath): SchemaTypePath {
+		return toPath(path)
+			.slice(0, 3)
+			.map((val) => {
+				const numVal = +val;
+				if (!Number.isInteger(numVal) || numVal < 1) {
+					throw new InvalidParameterError({
+						message: 'Path definition must be a string of integers split by periods',
+						parameterName: 'path',
+					});
+				}
+				return numVal - 1;
+			}) as SchemaTypePath;
 	}
 
 	/** Encrypt a transformed property */

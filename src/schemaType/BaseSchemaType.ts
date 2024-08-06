@@ -3,8 +3,14 @@ import type { MvAttribute, MvRecord } from '../types';
 import { ensureArray } from '../utils';
 
 // #region types
+export type SchemaTypeDefinitionPath =
+	| `${number}`
+	| `${number}.${number}`
+	| `${number}.${number}.${number}`
+	| number;
+
 export interface SchemaTypeDefinitionBase {
-	path: `${number}` | `${number}.${number}` | `${number}.${number}.${number}` | number;
+	path: SchemaTypeDefinitionPath;
 	dictionary?: string;
 	required?: boolean;
 	encrypted?: boolean;
