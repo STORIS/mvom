@@ -7,11 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [3.0.0-rc.3]
+## [3.0.0-rc.4]
 
-- Adjust `SchemaFilterKeys` type to exclude non-string keys and use `SchemaFilterKeys` in construction of `SortCriteria` type ([#747](https://github.com/STORIS/mvom/pull/747))
+### Fixed
+
+- Properly handle a failure in basic digest function when saving ([#753](https://github.com/STORIS/mvom/pull/753))
+- Fix regression in `_raw` property of `Document` that was no longer conditionally assigning property ([#754](https://github.com/STORIS/mvom/pull/754))
 
 ### TypeScript
+
+- Improve the type of schema type property `path` to be a union of numeric tuples instead of a numeric array ([#751](https://github.com/STORIS/mvom/pull/751))
+
+## [3.0.0-rc.3]
+
+### TypeScript
+
+- Adjust `SchemaFilterKeys` type to exclude non-string keys and use `SchemaFilterKeys` in construction of `SortCriteria` type ([#747](https://github.com/STORIS/mvom/pull/747))
 
 ## [3.0.0-rc.2]
 
@@ -480,7 +491,8 @@ We've graduated from Alpha to Beta! Semver has been updated so breaking vs. non-
 
 Initial alpha release of this library! Thanks for using it!
 
-[unreleased]: https://github.com/storis/mvom/compare/3.0.0-rc.3...HEAD
+[unreleased]: https://github.com/storis/mvom/compare/3.0.0-rc.4...HEAD
+[3.0.0-rc.4]: https://github.com/storis/mvom/compare/3.0.0-rc.3...3.0.0-rc.4
 [3.0.0-rc.3]: https://github.com/storis/mvom/compare/3.0.0-rc.2...3.0.0-rc.3
 [3.0.0-rc.2]: https://github.com/storis/mvom/compare/3.0.0-rc.1...3.0.0-rc.2
 [3.0.0-rc.1]: https://github.com/storis/mvom/compare/3.0.0-rc.0...3.0.0-rc.1
