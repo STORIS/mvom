@@ -420,42 +420,32 @@ describe('transformPathsToOrdinalPositions', () => {
 	const schema = new Schema(definition);
 
 	test('should throw error if path list is empty', () => {
-		expect(() => schema.transformPathsToOrdinalPositions([])).toThrow(Error);
+		// @ts-expect-error: intentionally passing invalid argument to test
+		expect(() => schema.transformPathToOrdinalPosition('bad-path')).toThrow(Error);
 	});
 
 	test('should return position of specified path filling in value and subvalue positions to 1 if not specified', () => {
-		expect(schema.transformPathsToOrdinalPositions(['stringProp'])).toEqual(['1.1.1']);
-	});
-
-	test('should return positions of multiple paths', () => {
-		expect(schema.transformPathsToOrdinalPositions(['stringProp', 'booleanProp'])).toEqual([
-			'1.1.1',
-			'3.1.1',
-		]);
+		expect(schema.transformPathToOrdinalPosition('stringProp')).toBe('1.1.1');
 	});
 
 	test('should return positions of embedded document properties', () => {
-		expect(schema.transformPathsToOrdinalPositions(['embeddedProp.innerEmbeddedProp'])).toEqual([
-			'9.1.1',
-		]);
+		expect(schema.transformPathToOrdinalPosition('embeddedProp.innerEmbeddedProp')).toBe('9.1.1');
 	});
 
 	test('should return positions of document array properties', () => {
-		expect(schema.transformPathsToOrdinalPositions(['documentArrayProp.docStringProp'])).toEqual([
-			'10.1.1',
-		]);
+		expect(schema.transformPathToOrdinalPosition('documentArrayProp.docStringProp')).toBe('10.1.1');
 	});
 
 	test('should return correct ordinal position if path is to a value', () => {
-		expect(schema.transformPathsToOrdinalPositions(['stringValueProp'])).toEqual(['14.2.1']);
+		expect(schema.transformPathToOrdinalPosition('stringValueProp')).toBe('14.2.1');
 	});
 
 	test('should return correct ordinal position if path is to a subvalue', () => {
-		expect(schema.transformPathsToOrdinalPositions(['stringSubvalueProp'])).toEqual(['14.2.3']);
+		expect(schema.transformPathToOrdinalPosition('stringSubvalueProp')).toBe('14.2.3');
 	});
 
 	test('should return correct ordinal position for array at value position', () => {
-		expect(schema.transformPathsToOrdinalPositions(['stringArrayValueProp'])).toEqual(['15.2.1']);
+		expect(schema.transformPathToOrdinalPosition('stringArrayValueProp')).toBe('15.2.1');
 	});
 });
 

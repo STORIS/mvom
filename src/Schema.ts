@@ -279,35 +279,23 @@ class Schema<
 	}
 
 	/**
-	 * Transform the paths to ordinal positions. Returning a '.' delimited string. Ex. "1.2.3"
-	 * @throws {Error} No paths provided
+	 * Transform the path to its ordinal position. Returning a '.' delimited string. Ex. "1.2.3"
 	 * @throws {Error} Invalid path provided
 	 */
-	public transformPathsToOrdinalPositions(
-		paths: Extract<InferSchemaPaths<Schema<TSchemaDefinition, TDictionaries>>, string>[],
-	): `${number}.${number}.${number}`[] {
-		if (paths.length === 0) {
-			throw new Error('No paths provided');
-		}
-
+	public transformPathToOrdinalPosition(
+		path: Extract<InferSchemaPaths<Schema<TSchemaDefinition, TDictionaries>>, string>,
+	): `${number}.${number}.${number}` {
 		const positionPaths = this.getPositionPaths();
 
-		const positions = paths.reduce((acc, positionPath) => {
-			if (positionPaths.has(positionPath)) {
-				// find the key in position paths
-				// add position
-				const ordinalPath =
-					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-					positionPaths.get(positionPath)!;
-				const [attributePosition, valuePosition = 0, subvaluePosition = 0] = ordinalPath;
-				acc.add(`${attributePosition + 1}.${valuePosition + 1}.${subvaluePosition + 1}`);
-			} else {
-				throw new Error('Invalid path provided');
-			}
-			return acc;
-		}, new Set<`${number}.${number}.${number}`>());
+		if (!positionPaths.has(path)) {
+			throw new Error('Invalid path provided');
+		}
 
-		return [...positions];
+		const ordinalPath =
+			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+			positionPaths.get(path)!;
+		const [attributePosition, valuePosition = 0, subvaluePosition = 0] = ordinalPath;
+		return `${attributePosition + 1}.${valuePosition + 1}.${subvaluePosition + 1}`;
 	}
 
 	/** Build the dictionary path map for additional dictionaries provided as schema options */

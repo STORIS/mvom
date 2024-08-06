@@ -397,8 +397,7 @@ const compileModel = <TSchema extends Schema | null>(
 			const incrementSchema = this.schema;
 
 			return operations.map(({ path, value }) => ({
-				// passing one path to transform so get the first element of the returned array. The IncrementOperation type won't allow for parent properties, so should only ever get a single path back from transformation
-				path: incrementSchema.transformPathsToOrdinalPositions([path])[0],
+				path: incrementSchema.transformPathToOrdinalPosition(path),
 				value,
 			}));
 		}
