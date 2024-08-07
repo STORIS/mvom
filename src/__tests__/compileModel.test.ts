@@ -611,13 +611,13 @@ describe('findByIds', () => {
 
 describe('increment', () => {
 	const testSchemaDefinition = {
-		prop1: {
+		prop1: { type: 'number', path: 1, dictionary: 'prop1Dictionary' },
+		prop2: {
 			type: 'string',
-			path: 1,
+			path: 2,
 			dictionary: 'prop1Dictionary',
 			foreignKey: { file: 'FK_FILE', entityName: 'prop1' },
 		},
-		prop2: { type: 'number', path: 2, dictionary: 'prop2Dictionary' },
 		nestedDocument: {
 			prop3: { type: 'number', path: 3 },
 		},
@@ -634,15 +634,16 @@ describe('increment', () => {
 			logHandlerMock,
 		);
 		connectionMock.executeDbSubroutine.mockResolvedValue({
-			result: { _id: 'id', __v: 'version1', record: '' },
+			originalDocument: { _id: 'id', __v: 'version1', record: '' },
+			updatedDocument: { _id: 'id', __v: 'version2', record: '' },
 		});
-		await Model.increment('id', [{ path: 'prop2', value: 3 }]);
+		await Model.increment('id', [{ path: 'prop1', value: 3 }]);
 		expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 			'increment',
 			{
 				filename,
 				id: 'id',
-				operations: [{ path: '2.1.1', value: 3 }],
+				operations: [{ path: '1.1.1', value: 3 }],
 				retry: 5,
 				retryDelay: 1,
 			},
@@ -656,8 +657,44 @@ describe('increment', () => {
 			result: { _id: 'id', __v: 'version1', record: '' },
 		});
 		// @ts-expect-error: intentionally invalid data to trigger error due to no schema being defined
-		await expect(Model.increment('id', [{ path: 'prop2', value: 3 }])).rejects.toThrow(Error);
+		await expect(Model.increment('id', [{ path: 'prop1', value: 3 }])).rejects.toThrow(Error);
 		expect(connectionMock.executeDbSubroutine).not.toHaveBeenCalled();
+	});
+
+	test('should return both the original and updated document', async () => {
+		const Model = compileModel(
+			connectionMock,
+			testSchema,
+			filename,
+			mockDelimiters,
+			logHandlerMock,
+		);
+		connectionMock.executeDbSubroutine.mockResolvedValue({
+			originalDocument: { _id: 'id', __v: 'version1', record: '1' },
+			updatedDocument: { _id: 'id', __v: 'version2', record: '4' },
+		});
+		const { originalDocument, updatedDocument } = await Model.increment('id', [
+			{ path: 'prop1', value: 3 },
+		]);
+		expect(originalDocument).toBeInstanceOf(Model);
+		expect(originalDocument._id).toBe('id');
+		expect(originalDocument.__v).toBe('version1');
+		expect(originalDocument.prop1).toBe(1);
+		expect(updatedDocument).toBeInstanceOf(Model);
+		expect(updatedDocument._id).toBe('id');
+		expect(updatedDocument.__v).toBe('version2');
+		expect(updatedDocument.prop1).toBe(4);
+		expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
+			'increment',
+			{
+				filename,
+				id: 'id',
+				operations: [{ path: '1.1.1', value: 3 }],
+				retry: 5,
+				retryDelay: 1,
+			},
+			{},
+		);
 	});
 });
 
