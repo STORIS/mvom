@@ -31,6 +31,7 @@ export type {
 	Model,
 	ModelCompositeValue,
 	IncrementOperation,
+	ModelIncrementResult,
 } from './compileModel';
 export {
 	MvisError,
