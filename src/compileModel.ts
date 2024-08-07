@@ -43,6 +43,11 @@ export interface ModelFindAndCountResult<TSchema extends Schema | null> {
 	documents: ModelCompositeValue<TSchema>[];
 }
 
+export interface ModelIncrementResult<TSchema extends Schema | null> {
+	originalDocument: ModelCompositeValue<TSchema>;
+	updatedDocument: ModelCompositeValue<TSchema>;
+}
+
 export interface ModelDatabaseExecutionOptions {
 	userDefined?: DbSubroutineUserDefinedOptions;
 	requestId?: string;
@@ -324,7 +329,7 @@ const compileModel = <TSchema extends Schema | null>(
 			id: string,
 			operations: IncrementOperation<TSchema>[],
 			options: ModelIncrementOptions = {},
-		): Promise<ModelCompositeValue<TSchema>> {
+		): Promise<ModelIncrementResult<TSchema>> {
 			const { maxReturnPayloadSize, requestId, userDefined, retry = 5, retryDelay = 1 } = options;
 
 			const transformedOperations = this.#formatIncrementOperations(operations);
@@ -345,8 +350,15 @@ const compileModel = <TSchema extends Schema | null>(
 				},
 			);
 
-			const { _id, __v, record } = data.result;
-			return this.#createModelFromRecordString(record, _id, __v);
+			const {
+				originalDocument: { __v: originalVersion, record: originalRecord },
+				updatedDocument: { __v: updatedVersion, record: updatedRecord },
+			} = data;
+
+			return {
+				originalDocument: this.#createModelFromRecordString(originalRecord, id, originalVersion),
+				updatedDocument: this.#createModelFromRecordString(updatedRecord, id, updatedVersion),
+			};
 		}
 
 		/** Read a DIR file type record directly from file system as Base64 string by its id */

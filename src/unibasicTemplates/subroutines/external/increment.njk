@@ -83,6 +83,25 @@ loop
   end
 repeat
 
+* create null projection
+if udoCreate(UDO_NULL, projection) then
+  call error_handler(ERROR_UDO, output)
+  go closeAndReturnFromSub
+end
+
+* format the original record into an object structure
+call format_document(record, recordId, projection, document, errorCode)
+if errorCode then
+  call error_handler(errorCode, output)
+  go returnFromSub
+end
+
+* set the originalDocument property
+if udoSetProperty(output, 'originalDocument', document) then
+  call error_handler(ERROR_UDO, output)
+  go returnFromSub
+end
+
 * increment fields
 processCount = 0
 loop while processCount lt operationsCount
@@ -132,12 +151,6 @@ loop while processCount lt operationsCount
   record<attributePosition, valuePosition, subvaluePosition>+= value
 repeat
 
-* create null projection
-if udoCreate(UDO_NULL, projection) then
-  call error_handler(ERROR_UDO, output)
-  go closeAndReturnFromSub
-end
-
 * write out record
 call write_record(record, recordId, f.file, errorCode)
 if errorCode then
@@ -154,8 +167,8 @@ if errorCode then
   go returnFromSub
 end
 
-* set the result property
-if udoSetProperty(output, 'result', document) then
+* set the updatedDocument property
+if udoSetProperty(output, 'updatedDocument', document) then
   call error_handler(ERROR_UDO, output)
   go returnFromSub
 end

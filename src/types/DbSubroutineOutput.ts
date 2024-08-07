@@ -32,7 +32,8 @@ export interface DbSubroutineOutputFindByIds {
 export type DbSubroutineResponseFindByIds = DbSubroutineResponse<DbSubroutineOutputFindByIds>;
 
 export interface DbSubroutineOutputIncrement {
-	result: DbDocument;
+	originalDocument: DbDocument;
+	updatedDocument: DbDocument;
 }
 export type DbSubroutineResponseIncrement = DbSubroutineResponse<DbSubroutineOutputIncrement>;
 
