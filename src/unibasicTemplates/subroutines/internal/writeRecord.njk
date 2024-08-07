@@ -1,0 +1,26 @@
+subroutine write_record(record, recordId, f.file, errorCode)
+* write a record to the file provided and check status
+{% include "../../constants/error.njk" %}
+{% include "../../constants/status.njk" %}
+
+errorCode = ''
+
+write record on f.file, recordId on error
+  statusCode = status()
+  begin case
+    case statusCode eq STATUS_WRITE_SYSTEM_ERROR
+      errorCode = ERROR_RECORD_WRITE
+    case statusCode eq STATUS_WRITE_TRIGGER_CONSTRAINT
+      errorCode = ERROR_RECORD_WRITE_TRIGGER_CONSTRAINT
+    case statusCode eq STATUS_WRITE_TRIGGER_ERROR
+      errorCode = ERROR_RECORD_WRITE_TRIGGER_ERROR
+    case statusCode eq STATUS_WRITE_DUPLICATE_INDEX
+      errorCode = ERROR_RECORD_WRITE_DUPLICATE_INDEX
+    case 1
+      * Unknown error status code
+      errorCode = ERROR_RECORD_WRITE_UNKNOWN
+  end case
+end
+
+returnFromSub:
+return; * returning to caller
