@@ -30,8 +30,6 @@ const schemaDefinition = {
         dictionary: 'STRING_ASSOC_PROP1',
         required: true,
       },
-    },
-    {
       associativeProperty2: {
         type: 'number',
         path: 2,
