@@ -1,7 +1,7 @@
 {
   "name": "mvom",
   "private": true,
-  "version": "3.0.0-rc.4",
+  "version": "3.0.0-rc.5",
   "description": "Multivalue Object Mapper",
   "main": "index.js",
   "engines": {

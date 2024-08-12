@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0-rc.5]
+
+### Added
+
+- New `RecordNotFoundError` error was created to be thrown when a record cannot be found in the database. [#740](https://github.com/STORIS/mvom/pull/740)
+- New Increment operation is now supported on numeric fields. The operation will increment the value at the path specified by the amount specified and will return both the original and updated documents. [#750](https://github.com/STORIS/mvom/pull/750), [#757](https://github.com/STORIS/mvom/pull/757), [#758](https://github.com/STORIS/mvom/pull/758)
+- New internal unibasic subroutine `writeRecord` was created to be shared by `save` and `increment` operations for writes to the database. [#756](https://github.com/STORIS/mvom/pull/756)
+
 ## [3.0.0-rc.4]
 
 ### Fixed
@@ -491,7 +499,8 @@ We've graduated from Alpha to Beta! Semver has been updated so breaking vs. non-
 
 Initial alpha release of this library! Thanks for using it!
 
-[unreleased]: https://github.com/storis/mvom/compare/3.0.0-rc.4...HEAD
+[unreleased]: https://github.com/storis/mvom/compare/3.0.0-rc.5...HEAD
+[3.0.0-rc.5]: https://github.com/storis/mvom/compare/3.0.0-rc.4...3.0.0-rc.5
 [3.0.0-rc.4]: https://github.com/storis/mvom/compare/3.0.0-rc.3...3.0.0-rc.4
 [3.0.0-rc.3]: https://github.com/storis/mvom/compare/3.0.0-rc.2...3.0.0-rc.3
 [3.0.0-rc.2]: https://github.com/storis/mvom/compare/3.0.0-rc.1...3.0.0-rc.2
