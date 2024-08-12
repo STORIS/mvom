@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0-rc.5]
+
+### Added
+
+- New `RecordNotFoundError` error was created to be thrown when a record cannot be found in the database. [#740](https://github.com/STORIS/mvom/pull/740)
+- New Increment operation is now supported on numeric fields. The operation will increment the value at the path specified by the amount specified. [#750](https://github.com/STORIS/mvom/pull/750)
+- New internal unibasic subroutine `writeRecord` was created to be shared by `save` and `increment` operations for writes to the database. [#756](https://github.com/STORIS/mvom/pull/756)
+- `increment` operation returns both the original and updated document. [#757](https://github.com/STORIS/mvom/pull/757)
+- Exporting the `ModelIncrementResult` type from the main entry point. [#758](https://github.com/STORIS/mvom/pull/758)
+
 ## [3.0.0-rc.4]
 
 ### Fixed
