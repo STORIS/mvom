@@ -48,7 +48,7 @@ const schema = new Schema({
   onHand: { type: 'number', path: 2 },
   purchaseCounts: {
     total: { type: 'number', path: 3 },
-  }
+  },
 });
 
 const Item = connection.model(schema, 'ITEM');
@@ -56,8 +56,10 @@ const Item = connection.model(schema, 'ITEM');
 const result = await Item.increment('0001', [{ path: 'onHand', value: 1 }]);
 
 // incrementing nested property purchaseCounts.total
-const nestedPropertyIncrementResult = await Item.increment('0001', [{ path: 'purchaseCounts.total', value: 1 }]);
+const nestedPropertyIncrementResult = await Item.increment('0001', [
+  { path: 'purchaseCounts.total', value: 1 },
+]);
 
 // invalid increment operation - type error will be shown because description is not a numeric path
-const willNotWork = await Item.increment('0001', [{path: 'description', value: 1 }]);
+const willNotWork = await Item.increment('0001', [{ path: 'description', value: 1 }]);
 ```
