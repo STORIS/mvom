@@ -14,7 +14,7 @@ The `increment` static method is available on all `Model` classes. It allows a c
 ### Syntax
 
 ```ts
-increment(id: string, operations: IncrementOperation<TSchema>[], options?: ModelIncrementOptions): Promise<ModelIncrementResult<TSchema>>
+static increment(id: string, operations: IncrementOperation<TSchema>[], options?: ModelIncrementOptions): Promise<ModelIncrementResult<TSchema>>
 ```
 
 ### Parameters
@@ -59,5 +59,5 @@ const result = await Item.increment('0001', [{ path: 'onHand', value: 1 }]);
 const nestedPropertyIncrementResult = await Item.increment('0001', [{ path: 'purchaseCounts.total', value: 1 }]);
 
 // invalid increment operation - type error will be shown because description is not a numeric path
-const willNotWork = await Item.increment('0001', [{path: 'description', value: 1 }])
+const willNotWork = await Item.increment('0001', [{path: 'description', value: 1 }]);
 ```
