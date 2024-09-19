@@ -55,4 +55,4 @@ export type {
 	SchemaTypeDefinitionNumber,
 	SchemaTypeDefinitionString,
 } from './schemaType';
-export type { EncryptFn, DecryptFn } from './types';
+export type { EncryptFn, DecryptFn, MvRecord } from './types';
