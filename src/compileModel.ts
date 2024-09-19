@@ -11,6 +11,7 @@ import type {
 	DbServerDelimiters,
 	DbSubroutineInputIncrementOperation,
 	DbSubroutineUserDefinedOptions,
+	Remap,
 } from './types';
 import { ensureArray } from './utils';
 
@@ -28,13 +29,19 @@ export type ModelConstructor<TSchema extends Schema | null> = ReturnType<
 
 export type Model<TSchema extends Schema | null> = InstanceType<ModelConstructor<TSchema>>;
 
+/** Used as an intersection type to make _id & __v properties required */
+export interface RequiredModelMeta {
+	_id: string;
+	__v: string;
+}
+
 /**
  * An intersection type that combines the `Model` class instance with the
  * inferred shape of the model object based on the schema definition.
  */
-export type ModelCompositeValue<TSchema extends Schema | null> = TSchema extends Schema
-	? InstanceType<ModelConstructor<TSchema>> & InferModelObject<TSchema>
-	: InstanceType<ModelConstructor<TSchema>>;
+export type ModelCompositeValue<TSchema extends Schema | null> = Remap<
+	Model<TSchema> & (TSchema extends Schema ? InferModelObject<TSchema> : RequiredModelMeta)
+>;
 
 export interface ModelFindAndCountResult<TSchema extends Schema | null> {
 	/** Number of documents returned */
@@ -389,7 +396,11 @@ const compileModel = <TSchema extends Schema | null>(
 			_id: string,
 			__v?: string | null,
 		): ModelCompositeValue<TSchema> {
-			return new Model({ _id, __v, record: recordString }) as ModelCompositeValue<TSchema>;
+			return new Model({
+				_id,
+				__v,
+				record: recordString,
+			}) as unknown as ModelCompositeValue<TSchema>;
 		}
 
 		/** Format projection option */
