@@ -52,11 +52,12 @@ class StringType extends BaseScalarType {
 	}
 
 	/** String required validator */
-	protected override validateRequired = (value: unknown): boolean =>
-		!this.required || (value != null && value !== '');
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types -- Use any instead of unknown to avoid type errors in enum validation
+	protected override validateRequired = (value: any): boolean =>
+		!this.required || this.enum?.includes(value) || (value != null && value !== '');
 
 	/** Enum validator */
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Use any instead of unknown to avoid type errors in enum validation
 	private validateEnum = (value: any): boolean =>
 		// skip validation on nullish values because a required validation error, if applicable, is more helpful
 		value == null || this.enum == null || this.enum.includes(value);
