@@ -36,6 +36,7 @@ describe('constructor', () => {
 	describe('errors', () => {
 		test('should throw InvalidParameterError if array definition contains multiple elements', () => {
 			const definition: SchemaDefinition = {
+				// @ts-expect-error: intentionally passing invalid argument to test
 				prop1: [
 					{ type: 'string', path: '1' },
 					{ type: 'string', path: '2' },
@@ -50,6 +51,7 @@ describe('constructor', () => {
 		test('should throw InvalidParameterError if nested array definition contains multiple elements', () => {
 			const definition: SchemaDefinition = {
 				prop1: [
+					// @ts-expect-error: intentionally passing invalid argument to test
 					[
 						{ type: 'string', path: '1' },
 						{ type: 'string', path: '2' },

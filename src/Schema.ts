@@ -48,10 +48,10 @@ export type SchemaTypeDefinition =
 	| SchemaTypeDefinitionArray;
 
 type SchemaTypeDefinitionArray =
-	| Schema[]
-	| SchemaTypeDefinitionScalar[]
-	| SchemaTypeDefinitionScalar[][]
-	| SchemaDefinition[];
+	| readonly [Schema]
+	| readonly [SchemaTypeDefinitionScalar]
+	| readonly [[SchemaTypeDefinitionScalar]]
+	| readonly [SchemaDefinition];
 
 // eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style -- Record cannot circularly reference itself so index signature must be used. refer here: https://github.com/microsoft/TypeScript/pull/33050#issuecomment-714348057 for additional information
 export interface SchemaDefinition {
@@ -378,7 +378,7 @@ class Schema<
 			const newKey = prev != null ? `${prev}.${key}` : key;
 
 			if (Array.isArray(value)) {
-				return acc.set(newKey, this.castArray(value, newKey));
+				return acc.set(newKey, this.castArray(value as SchemaTypeDefinitionArray, newKey));
 			}
 
 			if (this.isScalarDefinition(value)) {
@@ -392,7 +392,7 @@ class Schema<
 				return acc.set(newKey, new EmbeddedType(value));
 			}
 
-			const nestedPaths = this.buildPaths(value, newKey);
+			const nestedPaths = this.buildPaths(value as SchemaDefinition, newKey);
 
 			return new Map([...acc, ...nestedPaths]);
 		}, new Map<string, BaseSchemaType>());
