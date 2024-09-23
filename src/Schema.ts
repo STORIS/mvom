@@ -1,3 +1,4 @@
+import type { RequiredModelMeta } from './compileModel';
 import {
 	BooleanDataTransformer,
 	ISOCalendarDateDataTransformer,
@@ -166,7 +167,7 @@ export type InferDocumentObject<TSchema extends Schema, TConstraint = SchemaType
 
 /** Infer the shape of a `Model` instance based upon the Schema it was instantiated with */
 export type InferModelObject<TSchema extends Schema> = Remap<
-	{ _id: string; __v: string } & InferDocumentObject<TSchema>
+	InferDocumentObject<TSchema> & RequiredModelMeta
 >;
 
 /**

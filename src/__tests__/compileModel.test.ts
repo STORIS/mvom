@@ -1055,13 +1055,19 @@ describe('type inference', () => {
 			const test2: Equals<Result['prop2'], number | null> = true;
 			expect(test2).toBe(true);
 
-			// _raw should be never since there is a schema
-			const test3: Equals<Result['_raw'], never> = true;
+			const test3: Equals<Result['_id'], string> = true;
 			expect(test3).toBe(true);
 
-			// any other property should be unknown
-			const test4: Equals<Result['otherProp'], unknown> = true;
+			const test4: Equals<Result['__v'], string> = true;
 			expect(test4).toBe(true);
+
+			// _raw should be never since there is a schema
+			const test5: Equals<Result['_raw'], never> = true;
+			expect(test5).toBe(true);
+
+			// any other property should be unknown
+			const test6: Equals<Result['otherProp'], unknown> = true;
+			expect(test6).toBe(true);
 		});
 
 		test('find', () => {
@@ -1076,13 +1082,19 @@ describe('type inference', () => {
 			const test2: Equals<Result['prop2'], number | null> = true;
 			expect(test2).toBe(true);
 
-			// _raw should be never since there is a schema
-			const test3: Equals<Result['_raw'], never> = true;
+			const test3: Equals<Result['_id'], string> = true;
 			expect(test3).toBe(true);
 
-			// any other property should be unknown
-			const test4: Equals<Result['otherProp'], unknown> = true;
+			const test4: Equals<Result['__v'], string> = true;
 			expect(test4).toBe(true);
+
+			// _raw should be never since there is a schema
+			const test5: Equals<Result['_raw'], never> = true;
+			expect(test5).toBe(true);
+
+			// any other property should be unknown
+			const test6: Equals<Result['otherProp'], unknown> = true;
+			expect(test6).toBe(true);
 		});
 
 		test('findAndCount', () => {
@@ -1097,13 +1109,19 @@ describe('type inference', () => {
 			const test2: Equals<Result['prop2'], number | null> = true;
 			expect(test2).toBe(true);
 
-			// _raw should be never since there is a schema
-			const test3: Equals<Result['_raw'], never> = true;
+			const test3: Equals<Result['_id'], string> = true;
 			expect(test3).toBe(true);
 
-			// any other property should be unknown
-			const test4: Equals<Result['otherProp'], unknown> = true;
+			const test4: Equals<Result['__v'], string> = true;
 			expect(test4).toBe(true);
+
+			// _raw should be never since there is a schema
+			const test5: Equals<Result['_raw'], never> = true;
+			expect(test5).toBe(true);
+
+			// any other property should be unknown
+			const test6: Equals<Result['otherProp'], unknown> = true;
+			expect(test6).toBe(true);
 		});
 
 		test('findById', () => {
@@ -1118,13 +1136,19 @@ describe('type inference', () => {
 			const test2: Equals<Result['prop2'], number | null> = true;
 			expect(test2).toBe(true);
 
-			// _raw should be never since there is a schema
-			const test3: Equals<Result['_raw'], never> = true;
+			const test3: Equals<Result['_id'], string> = true;
 			expect(test3).toBe(true);
 
-			// any other property should be unknown
-			const test4: Equals<Result['otherProp'], unknown> = true;
+			const test4: Equals<Result['__v'], string> = true;
 			expect(test4).toBe(true);
+
+			// _raw should be never since there is a schema
+			const test5: Equals<Result['_raw'], never> = true;
+			expect(test5).toBe(true);
+
+			// any other property should be unknown
+			const test6: Equals<Result['otherProp'], unknown> = true;
+			expect(test6).toBe(true);
 		});
 
 		test('findByIds', () => {
@@ -1139,13 +1163,19 @@ describe('type inference', () => {
 			const test2: Equals<Result['prop2'], number | null> = true;
 			expect(test2).toBe(true);
 
-			// _raw should be never since there is a schema
-			const test3: Equals<Result['_raw'], never> = true;
+			const test3: Equals<Result['_id'], string> = true;
 			expect(test3).toBe(true);
 
-			// any other property should be unknown
-			const test4: Equals<Result['otherProp'], unknown> = true;
+			const test4: Equals<Result['__v'], string> = true;
 			expect(test4).toBe(true);
+
+			// _raw should be never since there is a schema
+			const test5: Equals<Result['_raw'], never> = true;
+			expect(test5).toBe(true);
+
+			// any other property should be unknown
+			const test6: Equals<Result['otherProp'], unknown> = true;
+			expect(test6).toBe(true);
 		});
 
 		test('save', () => {
@@ -1160,13 +1190,19 @@ describe('type inference', () => {
 			const test2: Equals<Result['prop2'], number | null> = true;
 			expect(test2).toBe(true);
 
-			// _raw should be never since there is a schema
-			const test3: Equals<Result['_raw'], never> = true;
+			const test3: Equals<Result['_id'], string> = true;
 			expect(test3).toBe(true);
 
-			// any other property should be unknown
-			const test4: Equals<Result['otherProp'], unknown> = true;
+			const test4: Equals<Result['__v'], string> = true;
 			expect(test4).toBe(true);
+
+			// _raw should be never since there is a schema
+			const test5: Equals<Result['_raw'], never> = true;
+			expect(test5).toBe(true);
+
+			// any other property should be unknown
+			const test6: Equals<Result['otherProp'], unknown> = true;
+			expect(test6).toBe(true);
 		});
 	});
 
@@ -1179,9 +1215,15 @@ describe('type inference', () => {
 			const test1: Equals<Result['_raw'], MvRecord> = true;
 			expect(test1).toBe(true);
 
-			// any other property should be unknown
-			const test2: Equals<Result['otherProp'], unknown> = true;
+			const test2: Equals<Result['_id'], string> = true;
 			expect(test2).toBe(true);
+
+			const test3: Equals<Result['__v'], string> = true;
+			expect(test3).toBe(true);
+
+			// any other property should be unknown
+			const test4: Equals<Result['otherProp'], unknown> = true;
+			expect(test4).toBe(true);
 		});
 
 		test('find', () => {
@@ -1192,9 +1234,15 @@ describe('type inference', () => {
 			const test1: Equals<Result['_raw'], MvRecord> = true;
 			expect(test1).toBe(true);
 
-			// any other property should be unknown
-			const test2: Equals<Result['otherProp'], unknown> = true;
+			const test2: Equals<Result['_id'], string> = true;
 			expect(test2).toBe(true);
+
+			const test3: Equals<Result['__v'], string> = true;
+			expect(test3).toBe(true);
+
+			// any other property should be unknown
+			const test4: Equals<Result['otherProp'], unknown> = true;
+			expect(test4).toBe(true);
 		});
 
 		test('findAndCount', () => {
@@ -1205,9 +1253,15 @@ describe('type inference', () => {
 			const test1: Equals<Result['_raw'], MvRecord> = true;
 			expect(test1).toBe(true);
 
-			// any other property should be unknown
-			const test2: Equals<Result['otherProp'], unknown> = true;
+			const test2: Equals<Result['_id'], string> = true;
 			expect(test2).toBe(true);
+
+			const test3: Equals<Result['__v'], string> = true;
+			expect(test3).toBe(true);
+
+			// any other property should be unknown
+			const test4: Equals<Result['otherProp'], unknown> = true;
+			expect(test4).toBe(true);
 		});
 
 		test('findById', () => {
@@ -1218,9 +1272,15 @@ describe('type inference', () => {
 			const test1: Equals<Result['_raw'], MvRecord> = true;
 			expect(test1).toBe(true);
 
-			// any other property should be unknown
-			const test2: Equals<Result['otherProp'], unknown> = true;
+			const test2: Equals<Result['_id'], string> = true;
 			expect(test2).toBe(true);
+
+			const test3: Equals<Result['__v'], string> = true;
+			expect(test3).toBe(true);
+
+			// any other property should be unknown
+			const test4: Equals<Result['otherProp'], unknown> = true;
+			expect(test4).toBe(true);
 		});
 
 		test('findByIds', () => {
@@ -1231,9 +1291,15 @@ describe('type inference', () => {
 			const test1: Equals<Result['_raw'], MvRecord> = true;
 			expect(test1).toBe(true);
 
-			// any other property should be unknown
-			const test2: Equals<Result['otherProp'], unknown> = true;
+			const test2: Equals<Result['_id'], string> = true;
 			expect(test2).toBe(true);
+
+			const test3: Equals<Result['__v'], string> = true;
+			expect(test3).toBe(true);
+
+			// any other property should be unknown
+			const test4: Equals<Result['otherProp'], unknown> = true;
+			expect(test4).toBe(true);
 		});
 
 		test('save', () => {
@@ -1244,9 +1310,15 @@ describe('type inference', () => {
 			const test1: Equals<Result['_raw'], MvRecord> = true;
 			expect(test1).toBe(true);
 
-			// any other property should be unknown
-			const test2: Equals<Result['otherProp'], unknown> = true;
+			const test2: Equals<Result['_id'], string> = true;
 			expect(test2).toBe(true);
+
+			const test3: Equals<Result['__v'], string> = true;
+			expect(test3).toBe(true);
+
+			// any other property should be unknown
+			const test4: Equals<Result['otherProp'], unknown> = true;
+			expect(test4).toBe(true);
 		});
 	});
 });
