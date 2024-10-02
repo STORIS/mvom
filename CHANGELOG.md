@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0-rc.6]
+
+### Added
+
+- Export `MvRecord` type from index ([#791](https://github.com/STORIS/mvom/pull/791))
+- Allow for required empty string enumerations ([#789](https://github.com/STORIS/mvom/pull/789))
+
+### Fixed
+
+- Switch the type definition of array schema properties to readonly tuples ([#794](https://github.com/STORIS/mvom/pull/794))
+- Add `_id` and `__v` to types for schemaless models ([#790](https://github.com/STORIS/mvom/pull/790))
+
 ## [3.0.0-rc.5]
 
 ### Added
@@ -499,7 +511,8 @@ We've graduated from Alpha to Beta! Semver has been updated so breaking vs. non-
 
 Initial alpha release of this library! Thanks for using it!
 
-[unreleased]: https://github.com/storis/mvom/compare/3.0.0-rc.5...HEAD
+[unreleased]: https://github.com/storis/mvom/compare/3.0.0-rc.6...HEAD
+[3.0.0-rc.6]: https://github.com/storis/mvom/compare/3.0.0-rc.5...3.0.0-rc.6
 [3.0.0-rc.5]: https://github.com/storis/mvom/compare/3.0.0-rc.4...3.0.0-rc.5
 [3.0.0-rc.4]: https://github.com/storis/mvom/compare/3.0.0-rc.3...3.0.0-rc.4
 [3.0.0-rc.3]: https://github.com/storis/mvom/compare/3.0.0-rc.2...3.0.0-rc.3
