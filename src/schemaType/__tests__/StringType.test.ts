@@ -134,6 +134,20 @@ describe('validations', () => {
 			expect(stringType.validate(value)).toContain('Property is required');
 		});
 
+		test('should return error message if required is true, value is empty string, and enumeration does not contain empty string', () => {
+			const definition: SchemaTypeDefinitionString = {
+				type: 'string',
+				path: '2',
+				required: true,
+				enum: ['foo', 'bar'],
+			};
+			const stringType = new StringType(definition);
+
+			const value = '';
+
+			expect(stringType.validate(value)).toContain('Property is required');
+		});
+
 		test('should not return error message if required is true and value is populated with a string', () => {
 			const definition: SchemaTypeDefinitionString = {
 				type: 'string',
@@ -165,6 +179,20 @@ describe('validations', () => {
 				type: 'string',
 				path: '2',
 				required: false,
+			};
+			const stringType = new StringType(definition);
+
+			const value = '';
+
+			expect(stringType.validate(value)).not.toContain('Property is required');
+		});
+
+		test('should not return error message if required is true, value is empty string, and enumeration contains empty string', () => {
+			const definition: SchemaTypeDefinitionString = {
+				type: 'string',
+				path: '2',
+				required: true,
+				enum: ['', 'foo', 'bar'],
 			};
 			const stringType = new StringType(definition);
 
