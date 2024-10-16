@@ -36,6 +36,9 @@ import type {
 	DecryptFn,
 	EncryptFn,
 	FlattenObject,
+	ISOCalendarDate,
+	ISOCalendarDateTime,
+	ISOTime,
 	MarkRequired,
 	Remap,
 } from './types';
@@ -110,13 +113,6 @@ interface DictionaryTypeDetail {
 	dictionary: string;
 	dataTransformer: DataTransformer;
 }
-
-/** Format of ISOCalendarDate output */
-export type ISOCalendarDate = `${number}-${number}-${number}`;
-/** Format of ISOTime output */
-export type ISOTime = `${number}:${number}:${number}.${number}`;
-/** Format of ISOCalendarDateTime output */
-export type ISOCalendarDateTime = `${ISOCalendarDate}T${ISOTime}`;
 
 /** Infer whether a schema type definition is required and union the result with null if it is not */
 type InferRequiredType<TScalar, TType> = TScalar extends { required: true } ? TType : TType | null;

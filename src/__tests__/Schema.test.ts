@@ -12,9 +12,6 @@ import type {
 	InferDocumentObject,
 	InferModelObject,
 	InferSchemaPaths,
-	ISOCalendarDate,
-	ISOCalendarDateTime,
-	ISOTime,
 	SchemaDefinition,
 } from '../Schema';
 import Schema from '../Schema';
@@ -30,7 +27,7 @@ import {
 	NumberType,
 	StringType,
 } from '../schemaType';
-import type { Equals } from '../types';
+import type { Equals, ISOCalendarDate, ISOCalendarDateTime, ISOTime } from '../types';
 
 describe('constructor', () => {
 	describe('errors', () => {

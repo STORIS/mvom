@@ -6,9 +6,9 @@ import type {
 } from '../Document';
 import Document from '../Document';
 import { TransformDataError } from '../errors';
-import type { ISOCalendarDate, ISOCalendarDateTime, ISOTime, SchemaDefinition } from '../Schema';
+import type { SchemaDefinition } from '../Schema';
 import Schema from '../Schema';
-import type { Equals, MvRecord } from '../types';
+import type { Equals, ISOCalendarDate, ISOCalendarDateTime, ISOTime, MvRecord } from '../types';
 
 const { am, vm, svm } = mockDelimiters;
 

@@ -5,9 +5,14 @@ import { InvalidParameterError, QueryLimitError } from '../errors';
 import type LogHandler from '../LogHandler';
 import type { Condition, Filter, QueryExecutionOptions, SortCriteria } from '../Query';
 import Query from '../Query';
-import type { ISOCalendarDate, ISOCalendarDateTime, ISOTime } from '../Schema';
 import Schema from '../Schema';
-import type { DbSubroutineOutputFind, Equals } from '../types';
+import type {
+	DbSubroutineOutputFind,
+	Equals,
+	ISOCalendarDate,
+	ISOCalendarDateTime,
+	ISOTime,
+} from '../types';
 
 const connectionMock = mockDeep<Connection>();
 const filename = 'filename';
