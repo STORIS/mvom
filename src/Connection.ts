@@ -44,6 +44,9 @@ import type {
 	DbSubroutineResponseTypes,
 	DbSubroutineResponseTypesMap,
 	DbSubroutineSetupOptions,
+	ISOCalendarDate,
+	ISOCalendarDateTime,
+	ISOTime,
 } from './types';
 
 // #region Types
@@ -327,21 +330,26 @@ class Connection {
 	}
 
 	/** Get the current ISOCalendarDate from the database */
-	public async getDbDate({ requestId }: GetDbDateOptions = {}): Promise<string> {
+	public async getDbDate({ requestId }: GetDbDateOptions = {}): Promise<ISOCalendarDate> {
 		const { timeDrift } = await this.getDbServerInfo({ requestId });
-		return format(addMilliseconds(Date.now(), timeDrift), ISOCalendarDateFormat);
+		return format(addMilliseconds(Date.now(), timeDrift), ISOCalendarDateFormat) as ISOCalendarDate;
 	}
 
 	/** Get the current ISOCalendarDateTime from the database */
-	public async getDbDateTime({ requestId }: GetDbDateTimeOptions = {}): Promise<string> {
+	public async getDbDateTime({
+		requestId,
+	}: GetDbDateTimeOptions = {}): Promise<ISOCalendarDateTime> {
 		const { timeDrift } = await this.getDbServerInfo({ requestId });
-		return format(addMilliseconds(Date.now(), timeDrift), ISOCalendarDateTimeFormat);
+		return format(
+			addMilliseconds(Date.now(), timeDrift),
+			ISOCalendarDateTimeFormat,
+		) as ISOCalendarDateTime;
 	}
 
 	/** Get the current ISOTime from the database */
-	public async getDbTime({ requestId }: GetDbTimeOptions = {}): Promise<string> {
+	public async getDbTime({ requestId }: GetDbTimeOptions = {}): Promise<ISOTime> {
 		const { timeDrift } = await this.getDbServerInfo({ requestId });
-		return format(addMilliseconds(Date.now(), timeDrift), ISOTimeFormat);
+		return format(addMilliseconds(Date.now(), timeDrift), ISOTimeFormat) as ISOTime;
 	}
 
 	/** Get the multivalue database server limits */
