@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0]
+
+### Added
+
+- Change output of `Connection` date/time methods to use the `ISOCalendarDate`, `ISOCalendarDateTime`, and `ISOTime` templated string literal types as return values to ensure consistency with inferred schema types ([#805](https://github.com/STORIS/mvom/pull/805))
+
 ## [3.0.0-rc.6]
 
 ### Added
@@ -511,7 +517,8 @@ We've graduated from Alpha to Beta! Semver has been updated so breaking vs. non-
 
 Initial alpha release of this library! Thanks for using it!
 
-[unreleased]: https://github.com/storis/mvom/compare/3.0.0-rc.6...HEAD
+[unreleased]: https://github.com/storis/mvom/compare/3.0.0...HEAD
+[3.0.0]: https://github.com/storis/mvom/compare/3.0.0-rc.6...3.0.0
 [3.0.0-rc.6]: https://github.com/storis/mvom/compare/3.0.0-rc.5...3.0.0-rc.6
 [3.0.0-rc.5]: https://github.com/storis/mvom/compare/3.0.0-rc.4...3.0.0-rc.5
 [3.0.0-rc.4]: https://github.com/storis/mvom/compare/3.0.0-rc.3...3.0.0-rc.4
