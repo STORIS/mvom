@@ -566,12 +566,12 @@ describe('utility types', () => {
 
 				// required should not be nullable
 				const schema2 = new Schema({
-					isoCalendarDateTimeProp: { type: 'ISOCalendarDateTime', path: '1' },
+					isoCalendarDateTimeProp: { type: 'ISOCalendarDateTime', path: '1', required: true },
 				});
 				const test2: Equals<
 					InferDocumentObject<typeof schema2>,
 					{
-						isoCalendarDateTimeProp: ISOCalendarDateTime | null;
+						isoCalendarDateTimeProp: ISOCalendarDateTime;
 					}
 				> = true;
 				expect(test2).toBe(true);
@@ -965,14 +965,14 @@ describe('utility types', () => {
 
 				// required should not be nullable
 				const schema2 = new Schema({
-					isoCalendarDateTimeProp: { type: 'ISOCalendarDateTime', path: '1' },
+					isoCalendarDateTimeProp: { type: 'ISOCalendarDateTime', path: '1', required: true },
 				});
 				const test2: Equals<
 					InferModelObject<typeof schema2>,
 					{
 						_id: string;
 						__v: string;
-						isoCalendarDateTimeProp: ISOCalendarDateTime | null;
+						isoCalendarDateTimeProp: ISOCalendarDateTime;
 					}
 				> = true;
 				expect(test2).toBe(true);
