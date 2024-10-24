@@ -27,7 +27,7 @@ import {
 	NumberType,
 	StringType,
 } from '../schemaType';
-import type { Equals, ISOCalendarDate, ISOCalendarDateTime, ISOTime } from '../types';
+import type { Equals, ISOCalendarDate, ISOCalendarDateTime, ISOTime, MvRecord } from '../types';
 
 describe('constructor', () => {
 	describe('errors', () => {
@@ -828,6 +828,13 @@ describe('utility types', () => {
 				expect(test1).toBe(true);
 			});
 		});
+
+		describe('null schema', () => {
+			test('should have the _raw property', () => {
+				const test1: Equals<InferDocumentObject<null>, { _raw: MvRecord }> = true;
+				expect(test1).toBe(true);
+			});
+		});
 	});
 
 	describe('InferModelObject', () => {
@@ -837,7 +844,7 @@ describe('utility types', () => {
 				const schema1 = new Schema({ stringProp: { type: 'string', path: '1' } });
 				const test1: Equals<
 					InferModelObject<typeof schema1>,
-					{ _id: string; __v: string; stringProp: string | null }
+					{ _id: string; __v: string; _originalRecordString: string; stringProp: string | null }
 				> = true;
 				expect(test1).toBe(true);
 
@@ -845,7 +852,7 @@ describe('utility types', () => {
 				const schema2 = new Schema({ stringProp: { type: 'string', path: '1', required: true } });
 				const test2: Equals<
 					InferModelObject<typeof schema2>,
-					{ _id: string; __v: string; stringProp: string }
+					{ _id: string; __v: string; _originalRecordString: string; stringProp: string }
 				> = true;
 				expect(test2).toBe(true);
 
@@ -855,7 +862,12 @@ describe('utility types', () => {
 				});
 				const test3: Equals<
 					InferModelObject<typeof schema3>,
-					{ _id: string; __v: string; stringProp: 'foo' | 'bar' | null }
+					{
+						_id: string;
+						__v: string;
+						_originalRecordString: string;
+						stringProp: 'foo' | 'bar' | null;
+					}
 				> = true;
 				expect(test3).toBe(true);
 
@@ -865,7 +877,7 @@ describe('utility types', () => {
 				});
 				const test4: Equals<
 					InferModelObject<typeof schema4>,
-					{ _id: string; __v: string; stringProp: 'foo' | 'bar' }
+					{ _id: string; __v: string; _originalRecordString: string; stringProp: 'foo' | 'bar' }
 				> = true;
 				expect(test4).toBe(true);
 			});
@@ -875,7 +887,7 @@ describe('utility types', () => {
 				const schema1 = new Schema({ numberProp: { type: 'number', path: '1' } });
 				const test1: Equals<
 					InferModelObject<typeof schema1>,
-					{ _id: string; __v: string; numberProp: number | null }
+					{ _id: string; __v: string; _originalRecordString: string; numberProp: number | null }
 				> = true;
 				expect(test1).toBe(true);
 
@@ -883,7 +895,7 @@ describe('utility types', () => {
 				const schema2 = new Schema({ numberProp: { type: 'number', path: '1', required: true } });
 				const test2: Equals<
 					InferModelObject<typeof schema2>,
-					{ _id: string; __v: string; numberProp: number }
+					{ _id: string; __v: string; _originalRecordString: string; numberProp: number }
 				> = true;
 				expect(test2).toBe(true);
 			});
@@ -893,7 +905,7 @@ describe('utility types', () => {
 				const schema1 = new Schema({ booleanProp: { type: 'boolean', path: '1' } });
 				const test1: Equals<
 					InferModelObject<typeof schema1>,
-					{ _id: string; __v: string; booleanProp: boolean | null }
+					{ _id: string; __v: string; _originalRecordString: string; booleanProp: boolean | null }
 				> = true;
 				expect(test1).toBe(true);
 
@@ -901,7 +913,7 @@ describe('utility types', () => {
 				const schema2 = new Schema({ booleanProp: { type: 'boolean', path: '1', required: true } });
 				const test2: Equals<
 					InferModelObject<typeof schema2>,
-					{ _id: string; __v: string; booleanProp: boolean }
+					{ _id: string; __v: string; _originalRecordString: string; booleanProp: boolean }
 				> = true;
 				expect(test2).toBe(true);
 			});
@@ -911,7 +923,12 @@ describe('utility types', () => {
 				const schema1 = new Schema({ isoCalendarDateProp: { type: 'ISOCalendarDate', path: '1' } });
 				const test1: Equals<
 					InferModelObject<typeof schema1>,
-					{ _id: string; __v: string; isoCalendarDateProp: ISOCalendarDate | null }
+					{
+						_id: string;
+						__v: string;
+						_originalRecordString: string;
+						isoCalendarDateProp: ISOCalendarDate | null;
+					}
 				> = true;
 				expect(test1).toBe(true);
 
@@ -921,7 +938,12 @@ describe('utility types', () => {
 				});
 				const test2: Equals<
 					InferModelObject<typeof schema2>,
-					{ _id: string; __v: string; isoCalendarDateProp: ISOCalendarDate }
+					{
+						_id: string;
+						__v: string;
+						_originalRecordString: string;
+						isoCalendarDateProp: ISOCalendarDate;
+					}
 				> = true;
 				expect(test2).toBe(true);
 			});
@@ -931,11 +953,7 @@ describe('utility types', () => {
 				const schema1 = new Schema({ isoTimeProp: { type: 'ISOTime', path: '1' } });
 				const test1: Equals<
 					InferModelObject<typeof schema1>,
-					{
-						_id: string;
-						__v: string;
-						isoTimeProp: ISOTime | null;
-					}
+					{ _id: string; __v: string; _originalRecordString: string; isoTimeProp: ISOTime | null }
 				> = true;
 				expect(test1).toBe(true);
 
@@ -943,7 +961,7 @@ describe('utility types', () => {
 				const schema2 = new Schema({ isoTimeProp: { type: 'ISOTime', path: '1', required: true } });
 				const test2: Equals<
 					InferModelObject<typeof schema2>,
-					{ _id: string; __v: string; isoTimeProp: ISOTime }
+					{ _id: string; __v: string; _originalRecordString: string; isoTimeProp: ISOTime }
 				> = true;
 				expect(test2).toBe(true);
 			});
@@ -958,6 +976,7 @@ describe('utility types', () => {
 					{
 						_id: string;
 						__v: string;
+						_originalRecordString: string;
 						isoCalendarDateTimeProp: ISOCalendarDateTime | null;
 					}
 				> = true;
@@ -972,6 +991,7 @@ describe('utility types', () => {
 					{
 						_id: string;
 						__v: string;
+						_originalRecordString: string;
 						isoCalendarDateTimeProp: ISOCalendarDateTime;
 					}
 				> = true;
@@ -987,7 +1007,12 @@ describe('utility types', () => {
 				});
 				const test1: Equals<
 					InferModelObject<typeof schema1>,
-					{ _id: string; __v: string; embeddedProp: { innerEmbeddedProp: string | null } }
+					{
+						_id: string;
+						__v: string;
+						_originalRecordString: string;
+						embeddedProp: { innerEmbeddedProp: string | null };
+					}
 				> = true;
 				expect(test1).toBe(true);
 
@@ -999,7 +1024,12 @@ describe('utility types', () => {
 				});
 				const test2: Equals<
 					InferModelObject<typeof schema2>,
-					{ _id: string; __v: string; embeddedProp: { innerEmbeddedProp: string } }
+					{
+						_id: string;
+						__v: string;
+						_originalRecordString: string;
+						embeddedProp: { innerEmbeddedProp: string };
+					}
 				> = true;
 				expect(test2).toBe(true);
 			});
@@ -1011,7 +1041,12 @@ describe('utility types', () => {
 				});
 				const test1: Equals<
 					InferModelObject<typeof schema1>,
-					{ _id: string; __v: string; embeddedProp: { innerEmbeddedProp: string | null } }
+					{
+						_id: string;
+						__v: string;
+						_originalRecordString: string;
+						embeddedProp: { innerEmbeddedProp: string | null };
+					}
 				> = true;
 				expect(test1).toBe(true);
 
@@ -1021,7 +1056,12 @@ describe('utility types', () => {
 				});
 				const test2: Equals<
 					InferModelObject<typeof schema2>,
-					{ _id: string; __v: string; embeddedProp: { innerEmbeddedProp: string } }
+					{
+						_id: string;
+						__v: string;
+						_originalRecordString: string;
+						embeddedProp: { innerEmbeddedProp: string };
+					}
 				> = true;
 				expect(test2).toBe(true);
 			});
@@ -1040,6 +1080,7 @@ describe('utility types', () => {
 					{
 						_id: string;
 						__v: string;
+						_originalRecordString: string;
 						embeddedProp: { innerEmbeddedProp: { deepEmbeddedProp: string | null } };
 					}
 				> = true;
@@ -1058,6 +1099,7 @@ describe('utility types', () => {
 					{
 						_id: string;
 						__v: string;
+						_originalRecordString: string;
 						embeddedProp: { innerEmbeddedProp: { deepEmbeddedProp: string } };
 					}
 				> = true;
@@ -1071,7 +1113,7 @@ describe('utility types', () => {
 				const schema1 = new Schema({ arrayProp: [{ type: 'string', path: '1' }] });
 				const test1: Equals<
 					InferModelObject<typeof schema1>,
-					{ _id: string; __v: string; arrayProp: (string | null)[] }
+					{ _id: string; __v: string; _originalRecordString: string; arrayProp: (string | null)[] }
 				> = true;
 				expect(test1).toBe(true);
 
@@ -1079,7 +1121,7 @@ describe('utility types', () => {
 				const schema2 = new Schema({ arrayProp: [{ type: 'string', path: '1', required: true }] });
 				const test2: Equals<
 					InferModelObject<typeof schema2>,
-					{ _id: string; __v: string; arrayProp: string[] }
+					{ _id: string; __v: string; _originalRecordString: string; arrayProp: string[] }
 				> = true;
 				expect(test2).toBe(true);
 			});
@@ -1089,7 +1131,12 @@ describe('utility types', () => {
 				const schema1 = new Schema({ nestedArrayProp: [[{ type: 'string', path: '1' }]] });
 				const test1: Equals<
 					InferModelObject<typeof schema1>,
-					{ _id: string; __v: string; nestedArrayProp: (string | null)[][] }
+					{
+						_id: string;
+						__v: string;
+						_originalRecordString: string;
+						nestedArrayProp: (string | null)[][];
+					}
 				> = true;
 				expect(test1).toBe(true);
 
@@ -1099,7 +1146,7 @@ describe('utility types', () => {
 				});
 				const test2: Equals<
 					InferModelObject<typeof schema2>,
-					{ _id: string; __v: string; nestedArrayProp: string[][] }
+					{ _id: string; __v: string; _originalRecordString: string; nestedArrayProp: string[][] }
 				> = true;
 				expect(test2).toBe(true);
 			});
@@ -1119,6 +1166,7 @@ describe('utility types', () => {
 					{
 						_id: string;
 						__v: string;
+						_originalRecordString: string;
 						documentArrayProp: { docStringProp: string | null; docNumberProp: number | null }[];
 					}
 				> = true;
@@ -1138,6 +1186,7 @@ describe('utility types', () => {
 					{
 						_id: string;
 						__v: string;
+						_originalRecordString: string;
 						documentArrayProp: { docStringProp: string; docNumberProp: number | null }[];
 					}
 				> = true;
@@ -1151,7 +1200,12 @@ describe('utility types', () => {
 				});
 				const test1: Equals<
 					InferModelObject<typeof schema1>,
-					{ _id: string; __v: string; documentArraySchemaProp: { docStringProp: string | null }[] }
+					{
+						_id: string;
+						__v: string;
+						_originalRecordString: string;
+						documentArraySchemaProp: { docStringProp: string | null }[];
+					}
 				> = true;
 				expect(test1).toBe(true);
 
@@ -1163,7 +1217,12 @@ describe('utility types', () => {
 				});
 				const test2: Equals<
 					InferModelObject<typeof schema2>,
-					{ _id: string; __v: string; documentArraySchemaProp: { docStringProp: string }[] }
+					{
+						_id: string;
+						__v: string;
+						_originalRecordString: string;
+						documentArraySchemaProp: { docStringProp: string }[];
+					}
 				> = true;
 				expect(test2).toBe(true);
 			});
@@ -1223,6 +1282,7 @@ describe('utility types', () => {
 					{
 						_id: string;
 						__v: string;
+						_originalRecordString: string;
 						booleanOptional: boolean | null;
 						booleanRequired: boolean;
 						stringOptional: string | null;
@@ -1246,6 +1306,16 @@ describe('utility types', () => {
 						documentArraySchemaOptional: { docStringProp: string | null }[];
 						documentArraySchemaRequired: { docStringProp: string }[];
 					}
+				> = true;
+				expect(test1).toBe(true);
+			});
+		});
+
+		describe('null schema', () => {
+			test('should have the _raw property', () => {
+				const test1: Equals<
+					InferModelObject<null>,
+					{ _id: string; __v: string; _originalRecordString: string; _raw: MvRecord }
 				> = true;
 				expect(test1).toBe(true);
 			});
