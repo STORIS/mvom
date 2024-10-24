@@ -29,11 +29,11 @@ export type ModelConstructor<TSchema extends Schema | null> = ReturnType<
 
 export type Model<TSchema extends Schema | null> = InstanceType<ModelConstructor<TSchema>>;
 
-/** Used as an intersection type to make _id & __v properties required */
-export interface RequiredModelMeta {
-	_id: string;
-	__v: string;
-}
+type RequiredModelMetaProperties = '_id' | '__v' | '_originalRecordString';
+/** Used as an intersection type to make specific model properties required */
+export type RequiredModelMeta = {
+	[K in RequiredModelMetaProperties]: NonNullable<Model<Schema>[K]>;
+};
 
 /**
  * An intersection type that combines the `Model` class instance with the
