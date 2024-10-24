@@ -40,7 +40,7 @@ export type RequiredModelMeta = {
  * inferred shape of the model object based on the schema definition.
  */
 export type ModelCompositeValue<TSchema extends Schema | null> = Remap<
-	Model<TSchema> & (TSchema extends Schema ? InferModelObject<TSchema> : RequiredModelMeta)
+	Model<TSchema> & InferModelObject<TSchema>
 >;
 
 export interface ModelFindAndCountResult<TSchema extends Schema | null> {

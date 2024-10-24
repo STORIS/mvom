@@ -7,9 +7,9 @@ import type { DbServerDelimiters, DeepOptionalNullable, MvRecord } from './types
 
 // #region Types
 /** Type of data property for constructing a document dependent upon the schema */
-export type DocumentData<TSchema extends Schema | null> = TSchema extends Schema
-	? DeepOptionalNullable<InferDocumentObject<TSchema>>
-	: never;
+export type DocumentData<TSchema extends Schema | null> = DeepOptionalNullable<
+	InferDocumentObject<TSchema>
+>;
 
 export interface DocumentConstructorOptions<TSchema extends Schema | null> {
 	data?: DocumentData<TSchema>;
@@ -27,9 +27,8 @@ export interface BuildForeignKeyDefinitionsResult {
  * An intersection type that combines the `Document` class instance with the
  * inferred shape of the document object based on the schema definition.
  */
-export type DocumentCompositeValue<TSchema extends Schema | null> = TSchema extends Schema
-	? Document<TSchema> & InferDocumentObject<TSchema>
-	: Document<TSchema>;
+export type DocumentCompositeValue<TSchema extends Schema | null> = Document<TSchema> &
+	InferDocumentObject<TSchema>;
 // #endregion
 
 /** A document object */
