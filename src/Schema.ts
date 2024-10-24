@@ -40,6 +40,7 @@ import type {
 	ISOCalendarDateTime,
 	ISOTime,
 	MarkRequired,
+	MvRecord,
 	Remap,
 } from './types';
 
@@ -152,17 +153,17 @@ type InferSchemaType<TSchemaTypeDefinition, TConstraint> =
  *
  * Allows a constraint to be specified to filter the output to only include properties of a specific type
  */
-export type InferDocumentObject<TSchema extends Schema, TConstraint = SchemaTypeDefinition> =
+export type InferDocumentObject<TSchema extends Schema | null, TConstraint = SchemaTypeDefinition> =
 	TSchema extends Schema<infer TSchemaDefinition>
 		? {
 				[K in keyof TSchemaDefinition as TSchemaDefinition[K] extends TConstraint
 					? K
 					: never]: InferSchemaType<TSchemaDefinition[K], TConstraint>;
 			}
-		: never;
+		: { _raw: MvRecord };
 
 /** Infer the shape of a `Model` instance based upon the Schema it was instantiated with */
-export type InferModelObject<TSchema extends Schema> = Remap<
+export type InferModelObject<TSchema extends Schema | null> = Remap<
 	InferDocumentObject<TSchema> & RequiredModelMeta
 >;
 

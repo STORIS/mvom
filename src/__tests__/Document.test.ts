@@ -1133,5 +1133,10 @@ describe('utility types', () => {
 			> = true;
 			expect(test1).toBe(true);
 		});
+
+		test('should have a _raw property if schema is null', () => {
+			const test1: Equals<DocumentData<null>, { _raw: MvRecord }> = true;
+			expect(test1).toBe(true);
+		});
 	});
 });
