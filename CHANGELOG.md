@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.1]
+
+- Improve inferred types for \_raw property ([#820](https://github.com/STORIS/mvom/pull/820))
+
 ## [3.0.0]
 
 ### Added
@@ -517,7 +521,8 @@ We've graduated from Alpha to Beta! Semver has been updated so breaking vs. non-
 
 Initial alpha release of this library! Thanks for using it!
 
-[unreleased]: https://github.com/storis/mvom/compare/3.0.0...HEAD
+[unreleased]: https://github.com/storis/mvom/compare/3.0.1...HEAD
+[3.0.1]: https://github.com/storis/mvom/compare/3.0.0...3.0.1
 [3.0.0]: https://github.com/storis/mvom/compare/3.0.0-rc.6...3.0.0
 [3.0.0-rc.6]: https://github.com/storis/mvom/compare/3.0.0-rc.5...3.0.0-rc.6
 [3.0.0-rc.5]: https://github.com/storis/mvom/compare/3.0.0-rc.4...3.0.0-rc.5
