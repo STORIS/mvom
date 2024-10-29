@@ -27,7 +27,7 @@ import {
 	NumberType,
 	StringType,
 } from '../schemaType';
-import type { Equals, ISOCalendarDate, ISOCalendarDateTime, ISOTime } from '../types';
+import type { Equals, ISOCalendarDate, ISOCalendarDateTime, ISOTime, MvRecord } from '../types';
 
 describe('constructor', () => {
 	describe('errors', () => {
@@ -828,6 +828,13 @@ describe('utility types', () => {
 				expect(test1).toBe(true);
 			});
 		});
+
+		describe('null schema', () => {
+			test('should have the _raw property', () => {
+				const test1: Equals<InferDocumentObject<null>, { _raw: MvRecord }> = true;
+				expect(test1).toBe(true);
+			});
+		});
 	});
 
 	describe('InferModelObject', () => {
@@ -931,11 +938,7 @@ describe('utility types', () => {
 				const schema1 = new Schema({ isoTimeProp: { type: 'ISOTime', path: '1' } });
 				const test1: Equals<
 					InferModelObject<typeof schema1>,
-					{
-						_id: string;
-						__v: string;
-						isoTimeProp: ISOTime | null;
-					}
+					{ _id: string; __v: string; isoTimeProp: ISOTime | null }
 				> = true;
 				expect(test1).toBe(true);
 
@@ -1246,6 +1249,16 @@ describe('utility types', () => {
 						documentArraySchemaOptional: { docStringProp: string | null }[];
 						documentArraySchemaRequired: { docStringProp: string }[];
 					}
+				> = true;
+				expect(test1).toBe(true);
+			});
+		});
+
+		describe('null schema', () => {
+			test('should have the _raw property', () => {
+				const test1: Equals<
+					InferModelObject<null>,
+					{ _id: string; __v: string; _raw: MvRecord }
 				> = true;
 				expect(test1).toBe(true);
 			});
