@@ -39,17 +39,17 @@ export interface QueryConstructorOptions<TSchema extends Schema | null> {
 
 export interface FilterOperators<TValue> {
 	/** Equal */
-	$eq?: TValue | null;
+	$eq?: TValue;
 	/** Greater than */
-	$gt?: TValue;
+	$gt?: NonNullable<TValue>;
 	/** Greater than or equal to */
-	$gte?: TValue;
+	$gte?: NonNullable<TValue>;
 	/** Less than */
-	$lt?: TValue;
+	$lt?: NonNullable<TValue>;
 	/** Less than or equal to */
-	$lte?: TValue;
+	$lte?: NonNullable<TValue>;
 	/** Not equal */
-	$ne?: TValue | null;
+	$ne?: TValue;
 	/** String containing */
 	$contains?: TValue extends string ? string : never;
 	/** String starts with */
@@ -57,9 +57,9 @@ export interface FilterOperators<TValue> {
 	/** String ends with */
 	$endsWith?: TValue extends string ? string : never;
 	/** In list */
-	$in?: readonly (TValue | null)[];
+	$in?: readonly TValue[];
 	/** Not in list */
-	$nin?: readonly (TValue | null)[];
+	$nin?: readonly TValue[];
 }
 
 export interface RootFilterOperators<TSchema extends Schema | null> {
@@ -69,11 +69,7 @@ export interface RootFilterOperators<TSchema extends Schema | null> {
 	$or?: readonly Filter<TSchema>[];
 }
 
-export type Condition<TValue> =
-	| TValue
-	| null
-	| readonly (TValue | null)[]
-	| FilterOperators<TValue>;
+export type Condition<TValue> = TValue | readonly TValue[] | FilterOperators<TValue>;
 
 /** Infer the type of a dictionary */
 type InferDictionaryType<TDictionaryDefinition extends DictionaryDefinition> =
@@ -95,7 +91,7 @@ type InferDictionaryType<TDictionaryDefinition extends DictionaryDefinition> =
 
 /** Infer the type of additional schema dictionaries */
 type InferDictionariesType<TDictionariesOption extends DictionariesOption> = {
-	[K in keyof TDictionariesOption]: InferDictionaryType<TDictionariesOption[K]>;
+	[K in keyof TDictionariesOption]: InferDictionaryType<TDictionariesOption[K]> | null;
 };
 
 /** Type which will produce a flattened document of only scalars with dictionaries */
@@ -110,7 +106,7 @@ export type SchemaFilter<TSchema extends Schema | null> = (TSchema extends Schem
 >
 	? FlattenedDocumentDictionaries<TSchema> &
 			InferDictionariesType<TDictionariesOption> extends infer O
-		? { [Key in keyof O]?: Condition<NonNullable<O[Key]>> }
+		? { [Key in keyof O]?: Condition<O[Key]> }
 		: never
 	: Record<never, never>) & { _id?: Condition<string> };
 export type SchemaFilterKeys<TSchema extends Schema | null> = Extract<
@@ -267,7 +263,7 @@ class Query<TSchema extends Schema | null> {
 				return this.formatConditionList(queryProperty, '=', queryValue, 'or');
 			}
 
-			if (typeof queryValue !== 'object') {
+			if (typeof queryValue !== 'object' || queryValue === null) {
 				// assume equality if queryValue is not an object
 				return this.formatCondition(queryProperty, '=', queryValue);
 			}
@@ -383,7 +379,7 @@ class Query<TSchema extends Schema | null> {
 	private formatConstant(property: string, constant: unknown): string {
 		if (constant == null) {
 			// convert null to empty string
-			return '';
+			return '""';
 		}
 
 		const constantToFormat = this.transformToQuery(property, constant);
@@ -463,8 +459,12 @@ class Query<TSchema extends Schema | null> {
 		}
 	}
 
-	/** Validate that a "like" condition does not contain quotes */
+	/** Validate that a "like" condition does not contain quotes and is not null */
 	private validateLikeCondition(value: unknown): void {
+		if (value == null) {
+			throw new InvalidParameterError({ parameterName: 'value' });
+		}
+
 		const stringValue = String(value);
 
 		if (stringValue.includes(`'`) || stringValue.includes(`"`)) {
