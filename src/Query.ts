@@ -34,7 +34,7 @@ export interface QueryConstructorOptions<TSchema extends Schema | null> {
 	/** Sort criteria */
 	sort?: SortCriteria<TSchema>;
 	/** Return only the indicated properties */
-	projection?: string[];
+	projection?: readonly string[];
 }
 
 export interface FilterOperators<TValue> {
@@ -57,19 +57,19 @@ export interface FilterOperators<TValue> {
 	/** String ends with */
 	$endsWith?: TValue extends string ? string : never;
 	/** In list */
-	$in?: TValue[];
+	$in?: readonly TValue[];
 	/** Not in list */
-	$nin?: TValue[];
+	$nin?: readonly TValue[];
 }
 
 export interface RootFilterOperators<TSchema extends Schema | null> {
 	/** Used to combine conditions with an and */
-	$and?: Filter<TSchema>[];
+	$and?: readonly Filter<TSchema>[];
 	/** Used to combine conditions with an or */
-	$or?: Filter<TSchema>[];
+	$or?: readonly Filter<TSchema>[];
 }
 
-export type Condition<TValue> = TValue | TValue[] | FilterOperators<TValue>;
+export type Condition<TValue> = TValue | readonly TValue[] | FilterOperators<TValue>;
 
 /** Infer the type of a dictionary */
 type InferDictionaryType<TDictionaryDefinition extends DictionaryDefinition> =
@@ -119,7 +119,10 @@ export type Filter<TSchema extends Schema | null> = RootFilterOperators<TSchema>
 	SchemaFilter<TSchema>;
 
 /** Sort criteria */
-export type SortCriteria<TSchema extends Schema | null> = [SchemaFilterKeys<TSchema>, -1 | 1][];
+export type SortCriteria<TSchema extends Schema | null> = readonly [
+	SchemaFilterKeys<TSchema>,
+	-1 | 1,
+][];
 
 export type QueryExecutionOptions = DbSubroutineSetupOptions;
 export interface QueryExecutionResult {
@@ -160,7 +163,7 @@ class Query<TSchema extends Schema | null> {
 	private readonly skip?: number | null;
 
 	/** Specify the projection attribute in result set */
-	private readonly projection: string[] | null;
+	private readonly projection: readonly string[] | null;
 
 	/** Number of conditions in the query */
 	private conditionCount = 0;
@@ -343,7 +346,7 @@ class Query<TSchema extends Schema | null> {
 	private formatConditionList(
 		property: string,
 		operator: string,
-		valueList: unknown[],
+		valueList: readonly unknown[],
 		joinString: string,
 	): string {
 		if (valueList.length === 0) {

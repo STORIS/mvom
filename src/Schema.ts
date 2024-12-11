@@ -247,7 +247,7 @@ class Schema<
 	}
 
 	/** Transform the paths to positions */
-	public transformPathsToDbPositions(paths: string[]): number[] {
+	public transformPathsToDbPositions(paths: readonly string[]): number[] {
 		if (paths.length === 0) {
 			return [];
 		}

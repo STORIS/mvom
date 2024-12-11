@@ -1699,8 +1699,8 @@ describe('utility types', () => {
 			const test1: Equals<
 				Filter<typeof schema>,
 				{
-					$and?: Filter<typeof schema>[];
-					$or?: Filter<typeof schema>[];
+					$and?: readonly Filter<typeof schema>[];
+					$or?: readonly Filter<typeof schema>[];
 					stringProp?: Condition<string>;
 					_id?: Condition<string>;
 				}
@@ -1713,8 +1713,8 @@ describe('utility types', () => {
 			const test1: Equals<
 				Filter<typeof schema>,
 				{
-					$and?: Filter<typeof schema>[];
-					$or?: Filter<typeof schema>[];
+					$and?: readonly Filter<typeof schema>[];
+					$or?: readonly Filter<typeof schema>[];
 					stringDictionary?: Condition<string>;
 					_id?: Condition<string>;
 				}
@@ -1730,8 +1730,8 @@ describe('utility types', () => {
 			const test1: Equals<
 				Filter<typeof schema>,
 				{
-					$and?: Filter<typeof schema>[];
-					$or?: Filter<typeof schema>[];
+					$and?: readonly Filter<typeof schema>[];
+					$or?: readonly Filter<typeof schema>[];
 					stringProp?: Condition<string>;
 					stringDictionary?: Condition<string>;
 					_id?: Condition<string>;
@@ -1749,8 +1749,8 @@ describe('utility types', () => {
 			const test1: Equals<
 				Filter<typeof schema>,
 				{
-					$and?: Filter<typeof schema>[];
-					$or?: Filter<typeof schema>[];
+					$and?: readonly Filter<typeof schema>[];
+					$or?: readonly Filter<typeof schema>[];
 					hasDictionary?: Condition<string>;
 					_id?: Condition<string>;
 				}
@@ -1773,8 +1773,8 @@ describe('utility types', () => {
 			const test1: Equals<
 				Filter<typeof schema>,
 				{
-					$and?: Filter<typeof schema>[];
-					$or?: Filter<typeof schema>[];
+					$and?: readonly Filter<typeof schema>[];
+					$or?: readonly Filter<typeof schema>[];
 					'embedded.hasDictionary'?: Condition<string>;
 					'schema.hasDictionary'?: Condition<string>;
 					_id?: Condition<string>;
@@ -1807,8 +1807,8 @@ describe('utility types', () => {
 			const test1: Equals<
 				Filter<typeof schema>,
 				{
-					$and?: Filter<typeof schema>[];
-					$or?: Filter<typeof schema>[];
+					$and?: readonly Filter<typeof schema>[];
+					$or?: readonly Filter<typeof schema>[];
 					stringDictionary?: Condition<string>;
 					stringDictionaryExplicit?: Condition<string>;
 					numberDictionary?: Condition<number>;
@@ -1967,8 +1967,8 @@ describe('utility types', () => {
 			const test1: Equals<
 				Filter<typeof schema>,
 				{
-					$and?: Filter<typeof schema>[];
-					$or?: Filter<typeof schema>[];
+					$and?: readonly Filter<typeof schema>[];
+					$or?: readonly Filter<typeof schema>[];
 					booleanOptional?: Condition<boolean>;
 					booleanRequired?: Condition<boolean>;
 					stringOptional?: Condition<string>;
@@ -2013,7 +2013,10 @@ describe('utility types', () => {
 				stringProp: { type: 'string', path: '1', dictionary: 'STRING_PROP' },
 			});
 
-			const test1: Equals<SortCriteria<typeof schema>, ['stringProp' | '_id', -1 | 1][]> = true;
+			const test1: Equals<
+				SortCriteria<typeof schema>,
+				readonly ['stringProp' | '_id', -1 | 1][]
+			> = true;
 			expect(test1).toBe(true);
 		});
 
@@ -2021,7 +2024,7 @@ describe('utility types', () => {
 			const schema = new Schema({}, { dictionaries: { stringDictionary: 'STRING_DICTIONARY' } });
 			const test1: Equals<
 				SortCriteria<typeof schema>,
-				['stringDictionary' | '_id', -1 | 1][]
+				readonly ['stringDictionary' | '_id', -1 | 1][]
 			> = true;
 			expect(test1).toBe(true);
 		});
@@ -2033,7 +2036,7 @@ describe('utility types', () => {
 			);
 			const test1: Equals<
 				SortCriteria<typeof schema>,
-				['stringProp' | 'stringDictionary' | '_id', -1 | 1][]
+				readonly ['stringProp' | 'stringDictionary' | '_id', -1 | 1][]
 			> = true;
 			expect(test1).toBe(true);
 		});
@@ -2044,7 +2047,10 @@ describe('utility types', () => {
 				noDictionary: { type: 'string', path: '2' },
 			});
 
-			const test1: Equals<SortCriteria<typeof schema>, ['hasDictionary' | '_id', -1 | 1][]> = true;
+			const test1: Equals<
+				SortCriteria<typeof schema>,
+				readonly ['hasDictionary' | '_id', -1 | 1][]
+			> = true;
 			expect(test1).toBe(true);
 		});
 
@@ -2062,7 +2068,7 @@ describe('utility types', () => {
 
 			const test1: Equals<
 				SortCriteria<typeof schema>,
-				['embedded.hasDictionary' | 'schema.hasDictionary' | '_id', -1 | 1][]
+				readonly ['embedded.hasDictionary' | 'schema.hasDictionary' | '_id', -1 | 1][]
 			> = true;
 			expect(test1).toBe(true);
 		});
@@ -2090,7 +2096,7 @@ describe('utility types', () => {
 			);
 			const test1: Equals<
 				SortCriteria<typeof schema>,
-				[
+				readonly [
 					(
 						| 'stringDictionary'
 						| 'stringDictionaryExplicit'
@@ -2251,7 +2257,7 @@ describe('utility types', () => {
 
 			const test1: Equals<
 				SortCriteria<typeof schema>,
-				[
+				readonly [
 					(
 						| 'booleanOptional'
 						| 'booleanRequired'
