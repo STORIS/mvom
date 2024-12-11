@@ -39,7 +39,7 @@ export interface QueryConstructorOptions<TSchema extends Schema | null> {
 
 export interface FilterOperators<TValue> {
 	/** Equal */
-	$eq?: TValue;
+	$eq?: TValue | null;
 	/** Greater than */
 	$gt?: TValue;
 	/** Greater than or equal to */
@@ -49,7 +49,7 @@ export interface FilterOperators<TValue> {
 	/** Less than or equal to */
 	$lte?: TValue;
 	/** Not equal */
-	$ne?: TValue;
+	$ne?: TValue | null;
 	/** String containing */
 	$contains?: TValue extends string ? string : never;
 	/** String starts with */
@@ -57,9 +57,9 @@ export interface FilterOperators<TValue> {
 	/** String ends with */
 	$endsWith?: TValue extends string ? string : never;
 	/** In list */
-	$in?: readonly TValue[];
+	$in?: readonly (TValue | null)[];
 	/** Not in list */
-	$nin?: readonly TValue[];
+	$nin?: readonly (TValue | null)[];
 }
 
 export interface RootFilterOperators<TSchema extends Schema | null> {
@@ -69,7 +69,11 @@ export interface RootFilterOperators<TSchema extends Schema | null> {
 	$or?: readonly Filter<TSchema>[];
 }
 
-export type Condition<TValue> = TValue | readonly TValue[] | FilterOperators<TValue>;
+export type Condition<TValue> =
+	| TValue
+	| null
+	| readonly (TValue | null)[]
+	| FilterOperators<TValue>;
 
 /** Infer the type of a dictionary */
 type InferDictionaryType<TDictionaryDefinition extends DictionaryDefinition> =
@@ -274,24 +278,24 @@ class Query<TSchema extends Schema | null> {
 					case '$eq':
 						return this.formatCondition(queryProperty, '=', mvValue);
 					case '$gt':
-						return this.formatCondition(queryProperty, '>', mvValue);
+						return this.formatNonNullableCondition(queryProperty, '>', mvValue);
 					case '$gte':
-						return this.formatCondition(queryProperty, '>=', mvValue);
+						return this.formatNonNullableCondition(queryProperty, '>=', mvValue);
 					case '$lt':
-						return this.formatCondition(queryProperty, '<', mvValue);
+						return this.formatNonNullableCondition(queryProperty, '<', mvValue);
 					case '$lte':
-						return this.formatCondition(queryProperty, '<=', mvValue);
+						return this.formatNonNullableCondition(queryProperty, '<=', mvValue);
 					case '$ne':
 						return this.formatCondition(queryProperty, '#', mvValue);
 					case '$contains':
 						this.validateLikeCondition(mvValue);
-						return this.formatCondition(queryProperty, 'like', `...'${mvValue}'...`);
+						return this.formatNonNullableCondition(queryProperty, 'like', `...'${mvValue}'...`);
 					case '$startsWith':
 						this.validateLikeCondition(mvValue);
-						return this.formatCondition(queryProperty, 'like', `'${mvValue}'...`);
+						return this.formatNonNullableCondition(queryProperty, 'like', `'${mvValue}'...`);
 					case '$endsWith':
 						this.validateLikeCondition(mvValue);
-						return this.formatCondition(queryProperty, 'like', `...'${mvValue}'`);
+						return this.formatNonNullableCondition(queryProperty, 'like', `...'${mvValue}'`);
 					case '$in':
 						return this.formatConditionList(queryProperty, '=', mvValue as unknown[], 'or');
 					case '$nin':
@@ -332,6 +336,18 @@ class Query<TSchema extends Schema | null> {
 			.join(' ');
 	}
 
+	/**
+	 * Format a conditional expression which prohibits null values
+	 * @throws {@link InvalidParameterError} An invalid parameter was passed to the function
+	 */
+	private formatNonNullableCondition(property: string, operator: string, value: unknown): string {
+		if (value == null) {
+			throw new InvalidParameterError({ parameterName: 'value' });
+		}
+
+		return this.formatCondition(property, operator, value);
+	}
+
 	/** Format a conditional expression */
 	private formatCondition(property: string, operator: string, value: unknown): string {
 		this.conditionCount += 1;
@@ -365,6 +381,11 @@ class Query<TSchema extends Schema | null> {
 	 * @throws {@link Error} Passed constant parameter contains both single and double quotes
 	 */
 	private formatConstant(property: string, constant: unknown): string {
+		if (constant == null) {
+			// convert null to empty string
+			return '';
+		}
+
 		const constantToFormat = this.transformToQuery(property, constant);
 
 		if (
