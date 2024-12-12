@@ -137,6 +137,92 @@ describe('constructor', () => {
 				new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
 			}).toThrow(InvalidParameterError);
 		});
+
+		describe('prohibited null value operators', () => {
+			const propertyName = 'property-name';
+			const propertyDictionary = 'property-dictionary';
+
+			const schema = new Schema({
+				[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+			});
+
+			test('should throw InvalidParameterError if $gt operator is used with null value', () => {
+				const selectionCritieria: Filter<typeof schema> = {
+					// @ts-expect-error: Testing invalid input
+					[propertyName]: { $gt: null },
+				};
+
+				expect(() => {
+					new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
+				}).toThrow(InvalidParameterError);
+			});
+
+			test('should throw InvalidParameterError if $gte operator is used with null value', () => {
+				const selectionCritieria: Filter<typeof schema> = {
+					// @ts-expect-error: Testing invalid input
+					[propertyName]: { $gte: null },
+				};
+
+				expect(() => {
+					new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
+				}).toThrow(InvalidParameterError);
+			});
+
+			test('should throw InvalidParameterError if $lt operator is used with null value', () => {
+				const selectionCritieria: Filter<typeof schema> = {
+					// @ts-expect-error: Testing invalid input
+					[propertyName]: { $lt: null },
+				};
+
+				expect(() => {
+					new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
+				}).toThrow(InvalidParameterError);
+			});
+
+			test('should throw InvalidParameterError if $lte operator is used with null value', () => {
+				const selectionCritieria: Filter<typeof schema> = {
+					// @ts-expect-error: Testing invalid input
+					[propertyName]: { $lte: null },
+				};
+
+				expect(() => {
+					new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
+				}).toThrow(InvalidParameterError);
+			});
+
+			test('should throw InvalidParameterError if $contains operator is used with null value', () => {
+				const selectionCritieria: Filter<typeof schema> = {
+					// @ts-expect-error: Testing invalid input
+					[propertyName]: { $contains: null },
+				};
+
+				expect(() => {
+					new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
+				}).toThrow(InvalidParameterError);
+			});
+
+			test('should throw InvalidParameterError if $startsWith operator is used with null value', () => {
+				const selectionCritieria: Filter<typeof schema> = {
+					// @ts-expect-error: Testing invalid input
+					[propertyName]: { $startsWith: null },
+				};
+
+				expect(() => {
+					new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
+				}).toThrow(InvalidParameterError);
+			});
+
+			test('should throw InvalidParameterError if $endsWith operator is used with null value', () => {
+				const selectionCritieria: Filter<typeof schema> = {
+					// @ts-expect-error: Testing invalid input
+					[propertyName]: { $endsWith: null },
+				};
+
+				expect(() => {
+					new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
+				}).toThrow(InvalidParameterError);
+			});
+		});
 	});
 });
 
@@ -192,6 +278,39 @@ describe('exec', () => {
 				);
 			});
 
+			test('should construct and execute query with equality condition and null value', async () => {
+				const propertyName = 'property-name';
+				const propertyValue = null;
+				const propertyDictionary = 'property-dictionary';
+
+				const schema = new Schema({
+					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+				});
+				const selectionCritieria: Filter<typeof schema> = {
+					[propertyName]: propertyValue,
+				};
+
+				const query = new Query(
+					connectionMock,
+					schema,
+					filename,
+					logHandlerMock,
+					selectionCritieria,
+				);
+				expect(await query.exec()).toEqual(dbQueryResult);
+
+				const expectedQuery = `select ${filename} with ${propertyDictionary} = ""`;
+				expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
+					'find',
+					{
+						filename,
+						projection: null,
+						queryCommand: expectedQuery,
+					},
+					{},
+				);
+			});
+
 			test('should construct and execute query with in condition', async () => {
 				const propertyName = 'property-name';
 				const propertyValue1 = 'property-value1';
@@ -215,6 +334,40 @@ describe('exec', () => {
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with (${propertyDictionary} = "${propertyValue1}" or ${propertyDictionary} = "${propertyValue2}")`;
+				expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
+					'find',
+					{
+						filename,
+						projection: null,
+						queryCommand: expectedQuery,
+					},
+					{},
+				);
+			});
+
+			test('should construct and execute query with in condition and null value', async () => {
+				const propertyName = 'property-name';
+				const propertyValue1 = 'property-value1';
+				const propertyValue2 = null;
+				const propertyDictionary = 'property-dictionary';
+
+				const schema = new Schema({
+					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+				});
+				const selectionCritieria: Filter<typeof schema> = {
+					[propertyName]: [propertyValue1, propertyValue2],
+				};
+
+				const query = new Query(
+					connectionMock,
+					schema,
+					filename,
+					logHandlerMock,
+					selectionCritieria,
+				);
+				expect(await query.exec()).toEqual(dbQueryResult);
+
+				const expectedQuery = `select ${filename} with (${propertyDictionary} = "${propertyValue1}" or ${propertyDictionary} = "")`;
 				expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
@@ -251,6 +404,40 @@ describe('exec', () => {
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} = "${propertyValue}"`;
+				expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
+					'find',
+					{
+						filename,
+						projection: null,
+						queryCommand: expectedQuery,
+					},
+					{},
+				);
+			});
+
+			test('should construct and execute query with equality condition and null value', async () => {
+				const propertyName = 'property-name';
+				const propertyValue = null;
+				const propertyDictionary = 'property-dictionary';
+
+				const schema = new Schema({
+					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+				});
+				const selectionCritieria: Filter<typeof schema> = {
+					[propertyName]: { $eq: propertyValue },
+				};
+
+				const query = new Query(
+					connectionMock,
+					schema,
+					filename,
+					logHandlerMock,
+					selectionCritieria,
+				);
+
+				expect(await query.exec()).toEqual(dbQueryResult);
+
+				const expectedQuery = `select ${filename} with ${propertyDictionary} = ""`;
 				expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
@@ -353,6 +540,40 @@ describe('exec', () => {
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with (${propertyDictionary} = "${propertyValue1}" or ${propertyDictionary} = "${propertyValue2}")`;
+				expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
+					'find',
+					{
+						filename,
+						projection: null,
+						queryCommand: expectedQuery,
+					},
+					{},
+				);
+			});
+
+			test('should construct and execute query with in condition and null value', async () => {
+				const propertyName = 'property-name';
+				const propertyValue1 = 'property-value1';
+				const propertyValue2 = null;
+				const propertyDictionary = 'property-dictionary';
+
+				const schema = new Schema({
+					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+				});
+				const selectionCritieria: Filter<typeof schema> = {
+					[propertyName]: { $in: [propertyValue1, propertyValue2] },
+				};
+
+				const query = new Query(
+					connectionMock,
+					schema,
+					filename,
+					logHandlerMock,
+					selectionCritieria,
+				);
+				expect(await query.exec()).toEqual(dbQueryResult);
+
+				const expectedQuery = `select ${filename} with (${propertyDictionary} = "${propertyValue1}" or ${propertyDictionary} = "")`;
 				expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
@@ -556,6 +777,40 @@ describe('exec', () => {
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with ${propertyDictionary} # "${propertyValue}"`;
+				expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
+					'find',
+					{
+						filename,
+						projection: null,
+						queryCommand: expectedQuery,
+					},
+					{},
+				);
+			});
+
+			test('should construct and execute query with not equal condition and null value', async () => {
+				const propertyName = 'property-name';
+				const propertyValue = null;
+				const propertyDictionary = 'property-dictionary';
+
+				const schema = new Schema({
+					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+				});
+				const selectionCritieria: Filter<typeof schema> = {
+					[propertyName]: { $ne: propertyValue },
+				};
+
+				const query = new Query(
+					connectionMock,
+					schema,
+					filename,
+					logHandlerMock,
+					selectionCritieria,
+				);
+
+				expect(await query.exec()).toEqual(dbQueryResult);
+
+				const expectedQuery = `select ${filename} with ${propertyDictionary} # ""`;
 				expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
@@ -800,6 +1055,40 @@ describe('exec', () => {
 				expect(await query.exec()).toEqual(dbQueryResult);
 
 				const expectedQuery = `select ${filename} with (${propertyDictionary} # "${propertyValue1}" and ${propertyDictionary} # "${propertyValue2}")`;
+				expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
+					'find',
+					{
+						filename,
+						projection: null,
+						queryCommand: expectedQuery,
+					},
+					{},
+				);
+			});
+
+			test('should construct and execute query with not in condition and null value', async () => {
+				const propertyName = 'property-name';
+				const propertyValue1 = 'property-value1';
+				const propertyValue2 = null;
+				const propertyDictionary = 'property-dictionary';
+
+				const schema = new Schema({
+					[propertyName]: { type: 'string', path: 1, dictionary: propertyDictionary },
+				});
+				const selectionCritieria: Filter<typeof schema> = {
+					[propertyName]: { $nin: [propertyValue1, propertyValue2] },
+				};
+
+				const query = new Query(
+					connectionMock,
+					schema,
+					filename,
+					logHandlerMock,
+					selectionCritieria,
+				);
+				expect(await query.exec()).toEqual(dbQueryResult);
+
+				const expectedQuery = `select ${filename} with (${propertyDictionary} # "${propertyValue1}" and ${propertyDictionary} # "")`;
 				expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 					'find',
 					{
@@ -1701,7 +1990,7 @@ describe('utility types', () => {
 				{
 					$and?: readonly Filter<typeof schema>[];
 					$or?: readonly Filter<typeof schema>[];
-					stringProp?: Condition<string>;
+					stringProp?: Condition<string | null>;
 					_id?: Condition<string>;
 				}
 			> = true;
@@ -1715,7 +2004,7 @@ describe('utility types', () => {
 				{
 					$and?: readonly Filter<typeof schema>[];
 					$or?: readonly Filter<typeof schema>[];
-					stringDictionary?: Condition<string>;
+					stringDictionary?: Condition<string | null>;
 					_id?: Condition<string>;
 				}
 			> = true;
@@ -1732,8 +2021,8 @@ describe('utility types', () => {
 				{
 					$and?: readonly Filter<typeof schema>[];
 					$or?: readonly Filter<typeof schema>[];
-					stringProp?: Condition<string>;
-					stringDictionary?: Condition<string>;
+					stringProp?: Condition<string | null>;
+					stringDictionary?: Condition<string | null>;
 					_id?: Condition<string>;
 				}
 			> = true;
@@ -1751,7 +2040,7 @@ describe('utility types', () => {
 				{
 					$and?: readonly Filter<typeof schema>[];
 					$or?: readonly Filter<typeof schema>[];
-					hasDictionary?: Condition<string>;
+					hasDictionary?: Condition<string | null>;
 					_id?: Condition<string>;
 				}
 			> = true;
@@ -1775,8 +2064,8 @@ describe('utility types', () => {
 				{
 					$and?: readonly Filter<typeof schema>[];
 					$or?: readonly Filter<typeof schema>[];
-					'embedded.hasDictionary'?: Condition<string>;
-					'schema.hasDictionary'?: Condition<string>;
+					'embedded.hasDictionary'?: Condition<string | null>;
+					'schema.hasDictionary'?: Condition<string | null>;
 					_id?: Condition<string>;
 				}
 			> = true;
@@ -1809,13 +2098,13 @@ describe('utility types', () => {
 				{
 					$and?: readonly Filter<typeof schema>[];
 					$or?: readonly Filter<typeof schema>[];
-					stringDictionary?: Condition<string>;
-					stringDictionaryExplicit?: Condition<string>;
-					numberDictionary?: Condition<number>;
-					booleanDictionary?: Condition<boolean>;
-					isoCalendarDateDictionary?: Condition<ISOCalendarDate>;
-					isoTimeDictionary?: Condition<ISOTime>;
-					isoCalendarDateTimeDictionary?: Condition<ISOCalendarDateTime>;
+					stringDictionary?: Condition<string | null>;
+					stringDictionaryExplicit?: Condition<string | null>;
+					numberDictionary?: Condition<number | null>;
+					booleanDictionary?: Condition<boolean | null>;
+					isoCalendarDateDictionary?: Condition<ISOCalendarDate | null>;
+					isoTimeDictionary?: Condition<ISOTime | null>;
+					isoCalendarDateTimeDictionary?: Condition<ISOCalendarDateTime | null>;
 					_id?: Condition<string>;
 				}
 			> = true;
@@ -1922,6 +2211,7 @@ describe('utility types', () => {
 								type: 'number',
 								path: '22',
 								dictionary: 'DOCUMENT_ARRAY_NUMBER_REQUIRED',
+								required: true,
 							},
 						},
 					],
@@ -1969,37 +2259,37 @@ describe('utility types', () => {
 				{
 					$and?: readonly Filter<typeof schema>[];
 					$or?: readonly Filter<typeof schema>[];
-					booleanOptional?: Condition<boolean>;
+					booleanOptional?: Condition<boolean | null>;
 					booleanRequired?: Condition<boolean>;
-					stringOptional?: Condition<string>;
+					stringOptional?: Condition<string | null>;
 					stringRequired?: Condition<string>;
-					numberOptional?: Condition<number>;
+					numberOptional?: Condition<number | null>;
 					numberRequired?: Condition<number>;
-					isoCalendarDateOptional?: Condition<ISOCalendarDate>;
+					isoCalendarDateOptional?: Condition<ISOCalendarDate | null>;
 					isoCalendarDateRequired?: Condition<ISOCalendarDate>;
-					isoTimeOptional?: Condition<ISOTime>;
+					isoTimeOptional?: Condition<ISOTime | null>;
 					isoTimeRequired?: Condition<ISOTime>;
-					isoCalendarDateTimeOptional?: Condition<ISOCalendarDateTime>;
+					isoCalendarDateTimeOptional?: Condition<ISOCalendarDateTime | null>;
 					isoCalendarDateTimeRequired?: Condition<ISOCalendarDateTime>;
-					arrayOptional?: Condition<string>;
+					arrayOptional?: Condition<string | null>;
 					arrayRequired?: Condition<string>;
-					nestedArrayOptional?: Condition<string>;
+					nestedArrayOptional?: Condition<string | null>;
 					nestedArrayRequired?: Condition<string>;
-					'embeddedOptional.innerEmbeddedProp'?: Condition<string>;
+					'embeddedOptional.innerEmbeddedProp'?: Condition<string | null>;
 					'embeddedRequired.innerEmbeddedProp'?: Condition<string>;
-					'documentArrayOptional.docStringProp'?: Condition<string>;
-					'documentArrayOptional.docNumberProp'?: Condition<number>;
+					'documentArrayOptional.docStringProp'?: Condition<string | null>;
+					'documentArrayOptional.docNumberProp'?: Condition<number | null>;
 					'documentArrayRequired.docStringProp'?: Condition<string>;
 					'documentArrayRequired.docNumberProp'?: Condition<number>;
-					'documentArraySchemaOptional.docStringProp'?: Condition<string>;
+					'documentArraySchemaOptional.docStringProp'?: Condition<string | null>;
 					'documentArraySchemaRequired.docStringProp'?: Condition<string>;
-					stringDictionary?: Condition<string>;
-					stringDictionaryExplicit?: Condition<string>;
-					numberDictionary?: Condition<number>;
-					booleanDictionary?: Condition<boolean>;
-					isoCalendarDateDictionary?: Condition<ISOCalendarDate>;
-					isoTimeDictionary?: Condition<ISOTime>;
-					isoCalendarDateTimeDictionary?: Condition<ISOCalendarDateTime>;
+					stringDictionary?: Condition<string | null>;
+					stringDictionaryExplicit?: Condition<string | null>;
+					numberDictionary?: Condition<number | null>;
+					booleanDictionary?: Condition<boolean | null>;
+					isoCalendarDateDictionary?: Condition<ISOCalendarDate | null>;
+					isoTimeDictionary?: Condition<ISOTime | null>;
+					isoCalendarDateTimeDictionary?: Condition<ISOCalendarDateTime | null>;
 					_id?: Condition<string>;
 				}
 			> = true;
