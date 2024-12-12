@@ -264,7 +264,7 @@ class Query<TSchema extends Schema | null> {
 			}
 
 			if (typeof queryValue !== 'object' || queryValue === null) {
-				// assume equality if queryValue is not an object
+				// assume equality if queryValue is not an object or is equal null
 				return this.formatCondition(queryProperty, '=', queryValue);
 			}
 
