@@ -1177,7 +1177,7 @@ describe('exec', () => {
 			});
 		});
 
-		test('should join multiple implicit conditions with and', async () => {
+		test('should join multiple implicit conditions with "and"', async () => {
 			const propertyName1 = 'property-name1';
 			const propertyValue1 = 'property-value1';
 			const propertyDictionary1 = 'property-dictionary1';
@@ -1210,7 +1210,40 @@ describe('exec', () => {
 			);
 		});
 
-		test('should join multiple explicit conditions with and', async () => {
+		test('should join multiple implicit conditions with "and" and null values', async () => {
+			const propertyName1 = 'property-name1';
+			const propertyValue1 = null;
+			const propertyDictionary1 = 'property-dictionary1';
+			const propertyName2 = 'property-name2';
+			const propertyValue2 = null;
+			const propertyDictionary2 = 'property-dictionary2';
+
+			const schema = new Schema({
+				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
+				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
+			});
+
+			const selectionCritieria: Filter<typeof schema> = {
+				[propertyName1]: propertyValue1,
+				[propertyName2]: propertyValue2,
+			};
+
+			const query = new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
+			expect(await query.exec()).toEqual(dbQueryResult);
+
+			const expectedQuery = `select ${filename} with (${propertyDictionary1} = "" and ${propertyDictionary2} = "")`;
+			expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
+				'find',
+				{
+					filename,
+					projection: null,
+					queryCommand: expectedQuery,
+				},
+				{},
+			);
+		});
+
+		test('should join multiple explicit conditions with "and"', async () => {
 			const propertyName1 = 'property-name1';
 			const propertyValue1 = 'property-value1';
 			const propertyDictionary1 = 'property-dictionary1';
@@ -1248,7 +1281,45 @@ describe('exec', () => {
 			);
 		});
 
-		test('should join multiple explicit conditions with or', async () => {
+		test('should join multiple explicit conditions with "and" and null values', async () => {
+			const propertyName1 = 'property-name1';
+			const propertyValue1 = null;
+			const propertyDictionary1 = 'property-dictionary1';
+			const propertyName2 = 'property-name2';
+			const propertyValue2 = null;
+			const propertyDictionary2 = 'property-dictionary2';
+
+			const schema = new Schema({
+				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
+				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
+			});
+			const selectionCritieria: Filter<typeof schema> = {
+				$and: [
+					{
+						[propertyName1]: propertyValue1,
+					},
+					{
+						[propertyName2]: propertyValue2,
+					},
+				],
+			};
+
+			const query = new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
+			expect(await query.exec()).toEqual(dbQueryResult);
+
+			const expectedQuery = `select ${filename} with (${propertyDictionary1} = "" and ${propertyDictionary2} = "")`;
+			expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
+				'find',
+				{
+					filename,
+					projection: null,
+					queryCommand: expectedQuery,
+				},
+				{},
+			);
+		});
+
+		test('should join multiple explicit conditions with "or"', async () => {
 			const propertyName1 = 'property-name1';
 			const propertyValue1 = 'property-value1';
 			const propertyDictionary1 = 'property-dictionary1';
@@ -1275,6 +1346,44 @@ describe('exec', () => {
 			expect(await query.exec()).toEqual(dbQueryResult);
 
 			const expectedQuery = `select ${filename} with (${propertyDictionary1} = "${propertyValue1}" or ${propertyDictionary2} = "${propertyValue2}")`;
+			expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
+				'find',
+				{
+					filename,
+					projection: null,
+					queryCommand: expectedQuery,
+				},
+				{},
+			);
+		});
+
+		test('should join multiple explicit conditions with "or" and null values', async () => {
+			const propertyName1 = 'property-name1';
+			const propertyValue1 = null;
+			const propertyDictionary1 = 'property-dictionary1';
+			const propertyName2 = 'property-name2';
+			const propertyValue2 = null;
+			const propertyDictionary2 = 'property-dictionary2';
+
+			const schema = new Schema({
+				[propertyName1]: { type: 'string', path: 1, dictionary: propertyDictionary1 },
+				[propertyName2]: { type: 'string', path: 2, dictionary: propertyDictionary2 },
+			});
+			const selectionCritieria: Filter<typeof schema> = {
+				$or: [
+					{
+						[propertyName1]: propertyValue1,
+					},
+					{
+						[propertyName2]: propertyValue2,
+					},
+				],
+			};
+
+			const query = new Query(connectionMock, schema, filename, logHandlerMock, selectionCritieria);
+			expect(await query.exec()).toEqual(dbQueryResult);
+
+			const expectedQuery = `select ${filename} with (${propertyDictionary1} = "" or ${propertyDictionary2} = "")`;
 			expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
 				'find',
 				{
