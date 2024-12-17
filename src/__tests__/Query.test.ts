@@ -2181,6 +2181,41 @@ describe('utility types', () => {
 			expect(test1).toBe(true);
 		});
 
+		test('should construct filter type excluding arrays that do not have a dictionary defined', () => {
+			const schema = new Schema({
+				hasArrayDictionary: [{ type: 'string', path: '1', dictionary: 'STRING_PROP' }],
+				noArrayDictionary: [{ type: 'string', path: '2' }],
+				hasNestedDictionary: [[{ type: 'string', path: '3', dictionary: 'NESTED_STRING_PROP' }]],
+				noNestedDictionary: [[{ type: 'string', path: '4' }]],
+				documentArray: [
+					{
+						hasDictionary: { type: 'string', path: '5', dictionary: 'STRING_PROP' },
+						noDictionary: { type: 'string', path: '6' },
+					},
+				],
+				documentArraySchema: [
+					new Schema({
+						hasDictionary: { type: 'string', path: '7', dictionary: 'STRING_PROP' },
+						noDictionary: { type: 'string', path: '8' },
+					}),
+				],
+			});
+
+			const test1: Equals<
+				Filter<typeof schema>,
+				{
+					$and?: readonly Filter<typeof schema>[];
+					$or?: readonly Filter<typeof schema>[];
+					hasArrayDictionary?: Condition<string | null>;
+					hasNestedDictionary?: Condition<string | null>;
+					'documentArray.hasDictionary'?: Condition<string | null>;
+					'documentArraySchema.hasDictionary'?: Condition<string | null>;
+					_id?: Condition<string>;
+				}
+			> = true;
+			expect(test1).toBe(true);
+		});
+
 		test('should construct filter type from all possible dictionary formats', () => {
 			const schema = new Schema(
 				{},
@@ -2468,6 +2503,42 @@ describe('utility types', () => {
 			const test1: Equals<
 				SortCriteria<typeof schema>,
 				readonly ['embedded.hasDictionary' | 'schema.hasDictionary' | '_id', -1 | 1][]
+			> = true;
+			expect(test1).toBe(true);
+		});
+
+		test('should construct sort criteria excluding arrays that do not have a dictionary defined', () => {
+			const schema = new Schema({
+				hasArrayDictionary: [{ type: 'string', path: '1', dictionary: 'STRING_PROP' }],
+				noArrayDictionary: [{ type: 'string', path: '2' }],
+				hasNestedDictionary: [[{ type: 'string', path: '3', dictionary: 'NESTED_STRING_PROP' }]],
+				noNestedDictionary: [[{ type: 'string', path: '4' }]],
+				documentArray: [
+					{
+						hasDictionary: { type: 'string', path: '5', dictionary: 'STRING_PROP' },
+						noDictionary: { type: 'string', path: '6' },
+					},
+				],
+				documentArraySchema: [
+					new Schema({
+						hasDictionary: { type: 'string', path: '7', dictionary: 'STRING_PROP' },
+						noDictionary: { type: 'string', path: '8' },
+					}),
+				],
+			});
+
+			const test1: Equals<
+				SortCriteria<typeof schema>,
+				readonly [
+					(
+						| 'hasArrayDictionary'
+						| 'hasNestedDictionary'
+						| 'documentArray.hasDictionary'
+						| 'documentArraySchema.hasDictionary'
+						| '_id'
+					),
+					-1 | 1,
+				][]
 			> = true;
 			expect(test1).toBe(true);
 		});

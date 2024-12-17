@@ -5,10 +5,10 @@ import type { MvRecord } from '../../types';
 import EmbeddedType from '../EmbeddedType';
 
 describe('cast', () => {
-	const definition: SchemaDefinition = {
+	const definition = {
 		prop1: { type: 'string', path: '2' },
 		prop2: { type: 'number', path: '3', dbDecimals: 2 },
-	};
+	} satisfies SchemaDefinition;
 	const valueSchema = new Schema(definition);
 	const embeddedType = new EmbeddedType(valueSchema);
 
@@ -36,10 +36,10 @@ describe('cast', () => {
 });
 
 describe('get', () => {
-	const definition: SchemaDefinition = {
+	const definition = {
 		prop1: { type: 'string', path: '2' },
 		prop2: { type: 'number', path: '3', dbDecimals: 2 },
-	};
+	} satisfies SchemaDefinition;
 	const valueSchema = new Schema(definition);
 	const embeddedType = new EmbeddedType(valueSchema);
 
@@ -54,10 +54,10 @@ describe('get', () => {
 });
 
 describe('set', () => {
-	const definition: SchemaDefinition = {
+	const definition = {
 		prop1: { type: 'string', path: '2' },
 		prop2: { type: 'number', path: '3', dbDecimals: 2 },
-	};
+	} satisfies SchemaDefinition;
 	const valueSchema = new Schema(definition);
 	const embeddedType = new EmbeddedType(valueSchema);
 
@@ -75,10 +75,10 @@ describe('set', () => {
 });
 
 describe('validate', () => {
-	const definition: SchemaDefinition = {
+	const definition = {
 		prop1: { type: 'string', path: '2', required: true },
 		prop2: { type: 'number', path: '3', dbDecimals: 2, required: true },
-	};
+	} satisfies SchemaDefinition;
 	const valueSchema = new Schema(definition);
 	const embeddedType = new EmbeddedType(valueSchema);
 

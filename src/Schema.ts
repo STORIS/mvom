@@ -126,6 +126,22 @@ type InferRequiredType<TScalar, TType> = TScalar extends { required: true } ? TT
 type InferStringType<TString extends SchemaTypeDefinitionString> =
 	TString['enum'] extends readonly (infer E)[] ? E : string;
 
+/**
+ * Infer the output type of an array schema definition
+ *
+ * Allows a constraint to be specified to filter the output to only include scalar arrays of a specific type
+ */
+type InferArraySchemaType<
+	TSchemaTypeDefinition extends SchemaTypeDefinitionArray,
+	TConstraint,
+> = TSchemaTypeDefinition extends [infer TArrayDefinition]
+	? TArrayDefinition extends SchemaTypeDefinitionScalar
+		? TArrayDefinition extends TConstraint
+			? InferSchemaType<TArrayDefinition, TConstraint>[]
+			: never
+		: InferSchemaType<TArrayDefinition, TConstraint>[]
+	: never;
+
 /** Infer the output type of a schema type definition */
 type InferSchemaType<TSchemaTypeDefinition, TConstraint> =
 	TSchemaTypeDefinition extends SchemaTypeDefinitionBoolean
@@ -143,7 +159,7 @@ type InferSchemaType<TSchemaTypeDefinition, TConstraint> =
 							: TSchemaTypeDefinition extends Schema<infer TSubSchemaDefinition>
 								? InferDocumentObject<Schema<TSubSchemaDefinition>, TConstraint>
 								: TSchemaTypeDefinition extends SchemaTypeDefinitionArray
-									? InferSchemaType<TSchemaTypeDefinition[0], TConstraint>[]
+									? InferArraySchemaType<TSchemaTypeDefinition, TConstraint>
 									: TSchemaTypeDefinition extends SchemaDefinition
 										? InferDocumentObject<Schema<TSchemaTypeDefinition>, TConstraint>
 										: never;

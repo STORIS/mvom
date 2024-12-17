@@ -73,10 +73,10 @@ describe('constructor', () => {
 
 describe('createSubdocumentFromRecord', () => {
 	test('should create a new subdocument from the provided record', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			prop1: { type: 'string', path: '3' },
 			prop2: { type: 'number', path: '4', dbDecimals: 2 },
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition);
 
 		const document = Document.createSubdocumentFromRecord(schema, [
@@ -91,9 +91,9 @@ describe('createSubdocumentFromRecord', () => {
 	});
 
 	test('should create a new subdocument from the provided record with array schema properties', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			arrayProp: [{ type: 'string', path: '3' }],
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition);
 
 		const document = Document.createSubdocumentFromRecord(schema, [
@@ -108,9 +108,9 @@ describe('createSubdocumentFromRecord', () => {
 	});
 
 	test('should create a new subdocument from the provided record with array schema properties and sparse arrays', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			arrayProp: [{ type: 'string', path: '3' }],
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition);
 
 		const document = Document.createSubdocumentFromRecord(schema, [
@@ -125,9 +125,9 @@ describe('createSubdocumentFromRecord', () => {
 	});
 
 	test('should create a new subdocument from the provided record with nested array schema properties', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			nestedArrayProp: [[{ type: 'string', path: '3' }]],
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition);
 
 		const document = Document.createSubdocumentFromRecord(schema, [
@@ -148,9 +148,9 @@ describe('createSubdocumentFromRecord', () => {
 	});
 
 	test('should create a new subdocument from the provided record with nested array schema properties and sparse arrays', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			nestedArrayProp: [[{ type: 'string', path: '3' }]],
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition);
 
 		const document = Document.createSubdocumentFromRecord(schema, [
@@ -171,7 +171,7 @@ describe('createSubdocumentFromRecord', () => {
 	});
 
 	test('should create a new subdocument with a subdocument array from the provided record', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			subdocumentArray: [
 				{
 					prop1: { type: 'string', path: '3' },
@@ -179,7 +179,7 @@ describe('createSubdocumentFromRecord', () => {
 					prop3: [{ type: 'string', path: '5' }],
 				},
 			],
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition);
 
 		const document = Document.createSubdocumentFromRecord(schema, [
@@ -204,7 +204,7 @@ describe('createSubdocumentFromRecord', () => {
 	});
 
 	test('should create a new subdocument with a subdocument array from the provided record and sparse arrays', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			subdocumentArray: [
 				{
 					prop1: { type: 'string', path: '3' },
@@ -212,7 +212,7 @@ describe('createSubdocumentFromRecord', () => {
 					prop3: [{ type: 'string', path: '5' }],
 				},
 			],
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition);
 
 		const document = Document.createSubdocumentFromRecord(schema, [
@@ -239,10 +239,10 @@ describe('createSubdocumentFromRecord', () => {
 
 describe('createSubdocumentFromData', () => {
 	test('should create a new subdocument from the provided data', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			prop1: { type: 'string', path: '1' },
 			prop2: { type: 'number', path: '2', dbDecimals: 2 },
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition);
 
 		const document = Document.createSubdocumentFromData(schema, { prop1: 'foo', prop2: 1.23 });
@@ -254,10 +254,10 @@ describe('createSubdocumentFromData', () => {
 
 describe('createDocumentFromRecordString', () => {
 	test('should create a new document from the provided record string', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			prop1: { type: 'string', path: '3' },
 			prop2: { type: 'number', path: '4', dbDecimals: 2 },
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition);
 
 		const document = Document.createDocumentFromRecordString(
@@ -271,9 +271,9 @@ describe('createDocumentFromRecordString', () => {
 	});
 
 	test('should create a new document with an array from the provided record string', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			arrayProp: [{ type: 'string', path: '3' }],
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition);
 
 		const document = Document.createDocumentFromRecordString(
@@ -286,9 +286,9 @@ describe('createDocumentFromRecordString', () => {
 	});
 
 	test('should create a new document with an array from the provided record string with sparse data', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			arrayProp: [{ type: 'string', path: '3' }],
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition);
 
 		const document = Document.createDocumentFromRecordString(
@@ -301,9 +301,9 @@ describe('createDocumentFromRecordString', () => {
 	});
 
 	test('should create a new document with a nested array from the provided record string', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			nestedArrayProp: [[{ type: 'string', path: '3' }]],
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition);
 
 		const document = Document.createDocumentFromRecordString(
@@ -319,9 +319,9 @@ describe('createDocumentFromRecordString', () => {
 	});
 
 	test('should create a new document with a nested array from the provided record string with sparse data', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			nestedArrayProp: [[{ type: 'string', path: '3' }]],
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition);
 
 		const document = Document.createDocumentFromRecordString(
@@ -337,7 +337,7 @@ describe('createDocumentFromRecordString', () => {
 	});
 
 	test('should create a new document with a subdocument array from the provided record string', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			subdocumentArray: [
 				{
 					prop1: { type: 'string', path: '3' },
@@ -345,7 +345,7 @@ describe('createDocumentFromRecordString', () => {
 					prop3: [{ type: 'string', path: '5' }],
 				},
 			],
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition);
 
 		const document = Document.createDocumentFromRecordString(
@@ -363,7 +363,7 @@ describe('createDocumentFromRecordString', () => {
 	});
 
 	test('should create a new document with a subdocument array from the provided record string with sparse data', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			subdocumentArray: [
 				{
 					prop1: { type: 'string', path: '3' },
@@ -371,7 +371,7 @@ describe('createDocumentFromRecordString', () => {
 					prop3: [{ type: 'string', path: '5' }],
 				},
 			],
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition);
 
 		const document = Document.createDocumentFromRecordString(
@@ -389,9 +389,9 @@ describe('createDocumentFromRecordString', () => {
 	});
 
 	test('should create a new document from the provided record string containing only values', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			prop1: [{ type: 'string', path: '1' }],
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition);
 
 		const document = Document.createDocumentFromRecordString(
@@ -404,9 +404,9 @@ describe('createDocumentFromRecordString', () => {
 	});
 
 	test('should create a new document from the provided record string containing only subvalues', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			prop1: [[{ type: 'string', path: '1' }]],
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition);
 
 		const document = Document.createDocumentFromRecordString(
@@ -419,14 +419,14 @@ describe('createDocumentFromRecordString', () => {
 	});
 
 	test('should create a new document from the provided record string using document arrays at subvalue positions', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			subdocumentArray: [
 				{
 					prop1: { type: 'string', path: '1.1' },
 					prop2: { type: 'number', path: '1.2', dbDecimals: 2 },
 				},
 			],
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition);
 
 		const document = Document.createDocumentFromRecordString(
@@ -496,7 +496,7 @@ describe('transformDocumentToRecord', () => {
 	});
 
 	test('should transform document with schema to record if properties are not defined', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			prop1: { type: 'string', path: '1' },
 			prop2: { type: 'number', path: '2', dbDecimals: 2 },
 			array: [{ type: 'string', path: '3' }],
@@ -511,10 +511,11 @@ describe('transformDocumentToRecord', () => {
 					prop2: { type: 'number', path: '8', dbDecimals: 2 },
 				},
 			],
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition);
 
 		const data = {};
+		// @ts-expect-error: intentionally invalid data to test behavior
 		const document = new DocumentSubclass(schema, { data });
 
 		const expected: MvRecord = [null, null, [], [], null, null, null, null];
@@ -522,7 +523,7 @@ describe('transformDocumentToRecord', () => {
 	});
 
 	test('should transform document with schema to record, retaining original record properties that are not mapped in schema', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			prop1: { type: 'string', path: '2' },
 			prop2: { type: 'number', path: '4', dbDecimals: 2 },
 			array: [{ type: 'string', path: '6' }],
@@ -537,7 +538,7 @@ describe('transformDocumentToRecord', () => {
 					prop2: { type: 'number', path: '16', dbDecimals: 2 },
 				},
 			],
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition);
 
 		const record = [
@@ -592,10 +593,10 @@ describe('transformDocumentToRecord', () => {
 	});
 
 	test('should transform subdocument to record, leaving all unmapped positions as undefined', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			prop1: { type: 'string', path: '2' },
 			prop2: { type: 'number', path: '4', dbDecimals: 2 },
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition);
 
 		const document = Document.createSubdocumentFromRecord(schema, [
@@ -612,14 +613,14 @@ describe('transformDocumentToRecord', () => {
 	});
 
 	test('should transform document arrays at subvalue position', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			subdocumentArray: [
 				{
 					prop1: { type: 'string', path: '1.1' },
 					prop2: { type: 'number', path: '1.2', dbDecimals: 2 },
 				},
 			],
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition);
 
 		const data = {
@@ -648,9 +649,9 @@ describe('buildForeignKeyDefinitions', () => {
 	});
 
 	test('should build foreign key definitions for strings', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			prop1: { type: 'string', path: '1', foreignKey: { entityName: 'entityName', file: 'FILE' } },
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition);
 
 		const document = new DocumentSubclass(schema, { data: { prop1: 'foo' } });
@@ -662,7 +663,7 @@ describe('buildForeignKeyDefinitions', () => {
 	});
 
 	test('should build multiple foreign key definitions for strings', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			prop1: {
 				type: 'string',
 				path: '1',
@@ -673,7 +674,7 @@ describe('buildForeignKeyDefinitions', () => {
 				path: '2',
 				foreignKey: { entityName: 'entityName2', file: 'FILE2' },
 			},
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition);
 
 		const document = new DocumentSubclass(schema, { data: { prop1: 'foo', prop2: 'bar' } });
@@ -686,10 +687,10 @@ describe('buildForeignKeyDefinitions', () => {
 	});
 
 	test('should consolidate foreign keys for duplicate files', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			prop1: { type: 'string', path: '1', foreignKey: { entityName: 'entityName', file: 'FILE' } },
 			prop2: { type: 'string', path: '2', foreignKey: { entityName: 'entityName', file: 'FILE' } },
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition);
 
 		const document = new DocumentSubclass(schema, { data: { prop1: 'foo', prop2: 'bar' } });
@@ -701,11 +702,11 @@ describe('buildForeignKeyDefinitions', () => {
 	});
 
 	test('should create multiple foreign key definitions for array content', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			prop1: [
 				{ type: 'string', path: '1', foreignKey: { entityName: 'entityName', file: 'FILE' } },
 			],
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition);
 
 		const document = new DocumentSubclass(schema, { data: { prop1: ['foo', 'bar'] } });
@@ -717,7 +718,7 @@ describe('buildForeignKeyDefinitions', () => {
 	});
 
 	test('should create foreign key definitions for document array content', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			documentArray: [
 				{
 					prop1: {
@@ -732,7 +733,7 @@ describe('buildForeignKeyDefinitions', () => {
 					},
 				},
 			],
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition);
 
 		const document = new DocumentSubclass(schema, {
@@ -752,13 +753,14 @@ describe('buildForeignKeyDefinitions', () => {
 	});
 
 	test('should build foreign key definitions for ids', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			prop1: { type: 'string', path: '1' },
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition, {
 			idForeignKey: { entityName: 'entityName', file: 'FILE' },
 		});
 
+		// @ts-expect-error: _id is not a valid Document property. See note regarding relocation in Document.ts.
 		const document = new DocumentSubclass(schema, { data: { _id: 'id', prop1: 'foo' } });
 
 		const expected: BuildForeignKeyDefinitionsResult[] = [
@@ -768,13 +770,13 @@ describe('buildForeignKeyDefinitions', () => {
 	});
 
 	test('should build foreign key definitions with multiple filenames', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			prop1: {
 				type: 'string',
 				path: '1',
 				foreignKey: { entityName: 'entityName', file: ['FILE1', 'FILE2'] },
 			},
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition);
 
 		const document = new DocumentSubclass(schema, { data: { prop1: 'foo' } });
@@ -795,14 +797,15 @@ describe('validate', () => {
 	});
 
 	describe('id matching validation', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			prop1: { type: 'string', path: '1' },
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition, {
 			idMatch: /^foo$/,
 		});
 
 		test('should return error if id match is specified and id does not match pattern', () => {
+			// @ts-expect-error: _id is not a valid Document property. See note regarding relocation in Document.ts.
 			const document = new DocumentSubclass(schema, { data: { _id: 'id', prop1: 'foo' } });
 
 			const expected = new Map([['_id', ['Document id does not match pattern']]]);
@@ -810,6 +813,7 @@ describe('validate', () => {
 		});
 
 		test('should not return error if id match is specified and id matches pattern', () => {
+			// @ts-expect-error: _id is not a valid Document property. See note regarding relocation in Document.ts.
 			const document = new DocumentSubclass(schema, { data: { _id: 'foo', prop1: 'foo' } });
 
 			const expected = new Map();
@@ -819,9 +823,9 @@ describe('validate', () => {
 
 	describe('schema type validation', () => {
 		test('should return error at property if schemaType validation fails', () => {
-			const definition: SchemaDefinition = {
+			const definition = {
 				prop1: { type: 'string', path: '1', required: true },
-			};
+			} satisfies SchemaDefinition;
 			const schema = new Schema(definition);
 			const document = new DocumentSubclass(schema, { record: [] });
 
@@ -830,9 +834,9 @@ describe('validate', () => {
 		});
 
 		test('should not return error at property if schemaType validation is successful', () => {
-			const definition: SchemaDefinition = {
+			const definition = {
 				prop1: { type: 'string', path: '1', required: true },
-			};
+			} satisfies SchemaDefinition;
 			const schema = new Schema(definition);
 			const document = new DocumentSubclass(schema, { record: ['foo'] });
 
@@ -882,7 +886,7 @@ describe('validate', () => {
 				prop1: [{ type: 'string', path: '21', required: true }],
 				prop2: { type: 'number', path: '22', dbDecimals: 2, required: true },
 			});
-			const definition: SchemaDefinition = {
+			const definition = {
 				passingProp: { type: 'string', path: '1', required: true },
 				failingProp: { type: 'number', path: '2', dbDecimals: 2, required: true },
 				passingArray: [{ type: 'string', path: '3', required: true }],
@@ -913,7 +917,7 @@ describe('validate', () => {
 				failingSchema,
 				passingSchemaDocumentArray: [passingDocumentArraySchema],
 				failingSchemaDocumentArray: [failingDocumentArraySchema],
-			};
+			} satisfies SchemaDefinition;
 			const schema = new Schema(definition);
 			const record = [
 				'55', // passingProp

@@ -2,6 +2,7 @@ import { mock, mockDeep } from 'jest-mock-extended';
 import { getError, NoErrorThrownError } from '#test/helpers';
 import mockDelimiters from '#test/mockDelimiters';
 import type {
+	IncrementOperation,
 	ModelDeleteByIdOptions,
 	ModelFindByIdOptions,
 	ModelFindOptions,
@@ -1319,6 +1320,75 @@ describe('type inference', () => {
 			// any other property should be unknown
 			const test4: Equals<Result['otherProp'], unknown> = true;
 			expect(test4).toBe(true);
+		});
+	});
+});
+
+describe('utility types', () => {
+	describe('IncrementOperation', () => {
+		test('should include number and embedded number types in path', () => {
+			const incrementSchema = new Schema({
+				boolean: { type: 'boolean', path: '1' },
+				string: { type: 'string', path: '2' },
+				number: { type: 'number', path: '3' },
+				isoCalendarDate: { type: 'ISOCalendarDate', path: '4' },
+				isoTime: { type: 'ISOTime', path: '5' },
+				isoCalendarDateTime: { type: 'ISOCalendarDateTime', path: '6' },
+				arrayNumber: [{ type: 'number', path: '7' }],
+				nestedArrayNumber: [[{ type: 'string', path: '8' }]],
+				schema: new Schema({
+					boolean: { type: 'boolean', path: '9' },
+					string: { type: 'string', path: '10' },
+					number: { type: 'number', path: '11' },
+					isoCalendarDate: { type: 'ISOCalendarDate', path: '12' },
+					isoTime: { type: 'ISOTime', path: '13' },
+					isoCalendarDateTime: { type: 'ISOCalendarDateTime', path: '14' },
+					arrayNumber: [{ type: 'number', path: '15' }],
+					nestedArrayNumber: [[{ type: 'string', path: '16' }]],
+				}),
+				embedded: {
+					boolean: { type: 'boolean', path: '17' },
+					string: { type: 'string', path: '18' },
+					number: { type: 'number', path: '19' },
+					isoCalendarDate: { type: 'ISOCalendarDate', path: '20' },
+					isoTime: { type: 'ISOTime', path: '21' },
+					isoCalendarDateTime: { type: 'ISOCalendarDateTime', path: '22' },
+					arrayNumber: [{ type: 'number', path: '23' }],
+					nestedArrayNumber: [[{ type: 'string', path: '24' }]],
+				},
+				documentArray: [
+					{
+						boolean: { type: 'boolean', path: '25' },
+						string: { type: 'string', path: '26' },
+						number: { type: 'number', path: '27' },
+						isoCalendarDate: { type: 'ISOCalendarDate', path: '28' },
+						isoTime: { type: 'ISOTime', path: '29' },
+						isoCalendarDateTime: { type: 'ISOCalendarDateTime', path: '30' },
+						arrayNumber: [{ type: 'number', path: '31' }],
+					},
+				],
+				documentArraySchema: [
+					new Schema({
+						boolean: { type: 'boolean', path: '32' },
+						string: { type: 'string', path: '33' },
+						number: { type: 'number', path: '34' },
+						isoCalendarDate: { type: 'ISOCalendarDate', path: '35' },
+						isoTime: { type: 'ISOTime', path: '36' },
+						isoCalendarDateTime: { type: 'ISOCalendarDateTime', path: '37' },
+						arrayNumber: [{ type: 'number', path: '38' }],
+					}),
+				],
+			});
+
+			const test1: Equals<
+				IncrementOperation<typeof incrementSchema>,
+				{
+					path: 'number' | 'schema.number' | 'embedded.number';
+					value: number;
+				}
+			> = true;
+
+			expect(test1).toBe(true);
 		});
 	});
 });
