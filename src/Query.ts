@@ -34,20 +34,20 @@ export interface QueryConstructorOptions<TSchema extends Schema | null> {
 	/** Sort criteria */
 	sort?: SortCriteria<TSchema>;
 	/** Return only the indicated properties */
-	projection?: string[];
+	projection?: readonly string[];
 }
 
 export interface FilterOperators<TValue> {
 	/** Equal */
 	$eq?: TValue;
 	/** Greater than */
-	$gt?: TValue;
+	$gt?: NonNullable<TValue>;
 	/** Greater than or equal to */
-	$gte?: TValue;
+	$gte?: NonNullable<TValue>;
 	/** Less than */
-	$lt?: TValue;
+	$lt?: NonNullable<TValue>;
 	/** Less than or equal to */
-	$lte?: TValue;
+	$lte?: NonNullable<TValue>;
 	/** Not equal */
 	$ne?: TValue;
 	/** String containing */
@@ -57,19 +57,19 @@ export interface FilterOperators<TValue> {
 	/** String ends with */
 	$endsWith?: TValue extends string ? string : never;
 	/** In list */
-	$in?: TValue[];
+	$in?: readonly TValue[];
 	/** Not in list */
-	$nin?: TValue[];
+	$nin?: readonly TValue[];
 }
 
 export interface RootFilterOperators<TSchema extends Schema | null> {
 	/** Used to combine conditions with an and */
-	$and?: Filter<TSchema>[];
+	$and?: readonly Filter<TSchema>[];
 	/** Used to combine conditions with an or */
-	$or?: Filter<TSchema>[];
+	$or?: readonly Filter<TSchema>[];
 }
 
-export type Condition<TValue> = TValue | TValue[] | FilterOperators<TValue>;
+export type Condition<TValue> = TValue | readonly TValue[] | FilterOperators<TValue>;
 
 /** Infer the type of a dictionary */
 type InferDictionaryType<TDictionaryDefinition extends DictionaryDefinition> =
@@ -91,7 +91,7 @@ type InferDictionaryType<TDictionaryDefinition extends DictionaryDefinition> =
 
 /** Infer the type of additional schema dictionaries */
 type InferDictionariesType<TDictionariesOption extends DictionariesOption> = {
-	[K in keyof TDictionariesOption]: InferDictionaryType<TDictionariesOption[K]>;
+	[K in keyof TDictionariesOption]: InferDictionaryType<TDictionariesOption[K]> | null;
 };
 
 /** Type which will produce a flattened document of only scalars with dictionaries */
@@ -106,7 +106,7 @@ export type SchemaFilter<TSchema extends Schema | null> = (TSchema extends Schem
 >
 	? FlattenedDocumentDictionaries<TSchema> &
 			InferDictionariesType<TDictionariesOption> extends infer O
-		? { [Key in keyof O]?: Condition<NonNullable<O[Key]>> }
+		? { [Key in keyof O]?: Condition<O[Key]> }
 		: never
 	: Record<never, never>) & { _id?: Condition<string> };
 export type SchemaFilterKeys<TSchema extends Schema | null> = Extract<
@@ -119,7 +119,10 @@ export type Filter<TSchema extends Schema | null> = RootFilterOperators<TSchema>
 	SchemaFilter<TSchema>;
 
 /** Sort criteria */
-export type SortCriteria<TSchema extends Schema | null> = [SchemaFilterKeys<TSchema>, -1 | 1][];
+export type SortCriteria<TSchema extends Schema | null> = readonly [
+	SchemaFilterKeys<TSchema>,
+	-1 | 1,
+][];
 
 export type QueryExecutionOptions = DbSubroutineSetupOptions;
 export interface QueryExecutionResult {
@@ -160,7 +163,7 @@ class Query<TSchema extends Schema | null> {
 	private readonly skip?: number | null;
 
 	/** Specify the projection attribute in result set */
-	private readonly projection: string[] | null;
+	private readonly projection: readonly string[] | null;
 
 	/** Number of conditions in the query */
 	private conditionCount = 0;
@@ -260,8 +263,8 @@ class Query<TSchema extends Schema | null> {
 				return this.formatConditionList(queryProperty, '=', queryValue, 'or');
 			}
 
-			if (typeof queryValue !== 'object') {
-				// assume equality if queryValue is not an object
+			if (typeof queryValue !== 'object' || queryValue === null) {
+				// assume equality if queryValue is not an object or is equal null
 				return this.formatCondition(queryProperty, '=', queryValue);
 			}
 
@@ -271,24 +274,24 @@ class Query<TSchema extends Schema | null> {
 					case '$eq':
 						return this.formatCondition(queryProperty, '=', mvValue);
 					case '$gt':
-						return this.formatCondition(queryProperty, '>', mvValue);
+						return this.formatNonNullableCondition(queryProperty, '>', mvValue);
 					case '$gte':
-						return this.formatCondition(queryProperty, '>=', mvValue);
+						return this.formatNonNullableCondition(queryProperty, '>=', mvValue);
 					case '$lt':
-						return this.formatCondition(queryProperty, '<', mvValue);
+						return this.formatNonNullableCondition(queryProperty, '<', mvValue);
 					case '$lte':
-						return this.formatCondition(queryProperty, '<=', mvValue);
+						return this.formatNonNullableCondition(queryProperty, '<=', mvValue);
 					case '$ne':
 						return this.formatCondition(queryProperty, '#', mvValue);
 					case '$contains':
 						this.validateLikeCondition(mvValue);
-						return this.formatCondition(queryProperty, 'like', `...'${mvValue}'...`);
+						return this.formatNonNullableCondition(queryProperty, 'like', `...'${mvValue}'...`);
 					case '$startsWith':
 						this.validateLikeCondition(mvValue);
-						return this.formatCondition(queryProperty, 'like', `'${mvValue}'...`);
+						return this.formatNonNullableCondition(queryProperty, 'like', `'${mvValue}'...`);
 					case '$endsWith':
 						this.validateLikeCondition(mvValue);
-						return this.formatCondition(queryProperty, 'like', `...'${mvValue}'`);
+						return this.formatNonNullableCondition(queryProperty, 'like', `...'${mvValue}'`);
 					case '$in':
 						return this.formatConditionList(queryProperty, '=', mvValue as unknown[], 'or');
 					case '$nin':
@@ -329,6 +332,18 @@ class Query<TSchema extends Schema | null> {
 			.join(' ');
 	}
 
+	/**
+	 * Format a conditional expression which prohibits null values
+	 * @throws {@link InvalidParameterError} An invalid parameter was passed to the function
+	 */
+	private formatNonNullableCondition(property: string, operator: string, value: unknown): string {
+		if (value == null) {
+			throw new InvalidParameterError({ parameterName: 'value' });
+		}
+
+		return this.formatCondition(property, operator, value);
+	}
+
 	/** Format a conditional expression */
 	private formatCondition(property: string, operator: string, value: unknown): string {
 		this.conditionCount += 1;
@@ -343,7 +358,7 @@ class Query<TSchema extends Schema | null> {
 	private formatConditionList(
 		property: string,
 		operator: string,
-		valueList: unknown[],
+		valueList: readonly unknown[],
 		joinString: string,
 	): string {
 		if (valueList.length === 0) {
@@ -362,6 +377,11 @@ class Query<TSchema extends Schema | null> {
 	 * @throws {@link Error} Passed constant parameter contains both single and double quotes
 	 */
 	private formatConstant(property: string, constant: unknown): string {
+		if (constant == null) {
+			// convert null to empty string
+			return '""';
+		}
+
 		const constantToFormat = this.transformToQuery(property, constant);
 
 		if (
@@ -439,8 +459,12 @@ class Query<TSchema extends Schema | null> {
 		}
 	}
 
-	/** Validate that a "like" condition does not contain quotes */
+	/** Validate that a "like" condition does not contain quotes and is not null */
 	private validateLikeCondition(value: unknown): void {
+		if (value == null) {
+			throw new InvalidParameterError({ parameterName: 'value' });
+		}
+
 		const stringValue = String(value);
 
 		if (stringValue.includes(`'`) || stringValue.includes(`"`)) {
