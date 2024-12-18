@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.1]
+
+- Ensure `Filter` and `SortCriteria` types omit properties for scalar arrays lacking dictionaries ([#856](https://github.com/STORIS/mvom/pull/856))
+
 ## [3.1.0]
 
 - Allow equality, inequality, in, and not in query operators to accept null conditional values ([#854](https://github.com/STORIS/mvom/pull/854))
@@ -229,7 +233,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The Schema constructor definitions no longer accept constructors for the `type` property in schema property definitions. Instead, the `type` will be string literals indicating the property's type (e.g. `'string'`).
 - Several exported types have been improved or renamed
 - There is no longer a default export from the library. The main export now includes named exports `Connection`, `Document`, `Schema`, and the various `Error` classes.
-- `createConnection` has been changed from a standalone exported function to a static method on the `Connection` class. This is now the only supported mechanism for instiantiating a `Connection`.
+- `createConnection` has been changed from a standalone exported function to a static method on the `Connection` class. This is now the only supported mechanism for instantiating a `Connection`.
 - `ConnectionManagerError` has been renamed as `MvisError` and its properties similarly renamed since the official Rocket product is "MVIS"
 
 ### Changed
@@ -525,7 +529,8 @@ We've graduated from Alpha to Beta! Semver has been updated so breaking vs. non-
 
 Initial alpha release of this library! Thanks for using it!
 
-[unreleased]: https://github.com/storis/mvom/compare/3.1.0...HEAD
+[unreleased]: https://github.com/storis/mvom/compare/3.1.1...HEAD
+[3.1.1]: https://github.com/storis/mvom/compare/3.1.0...3.1.1
 [3.1.0]: https://github.com/storis/mvom/compare/3.0.1...3.1.0
 [3.0.1]: https://github.com/storis/mvom/compare/3.0.0...3.0.1
 [3.0.0]: https://github.com/storis/mvom/compare/3.0.0-rc.6...3.0.0
