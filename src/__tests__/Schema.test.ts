@@ -32,8 +32,7 @@ import type { Equals, ISOCalendarDate, ISOCalendarDateTime, ISOTime, MvRecord } 
 describe('constructor', () => {
 	describe('errors', () => {
 		test('should throw InvalidParameterError if array definition contains multiple elements', () => {
-			const definition: SchemaDefinition = {
-				// @ts-expect-error: intentionally passing invalid argument to test
+			const definition = {
 				prop1: [
 					{ type: 'string', path: '1' },
 					{ type: 'string', path: '2' },
@@ -41,14 +40,14 @@ describe('constructor', () => {
 			};
 
 			expect(() => {
+				// @ts-expect-error: intentionally passing invalid argument to test
 				new Schema(definition);
 			}).toThrow(InvalidParameterError);
 		});
 
 		test('should throw InvalidParameterError if nested array definition contains multiple elements', () => {
-			const definition: SchemaDefinition = {
+			const definition = {
 				prop1: [
-					// @ts-expect-error: intentionally passing invalid argument to test
 					[
 						{ type: 'string', path: '1' },
 						{ type: 'string', path: '2' },
@@ -57,6 +56,7 @@ describe('constructor', () => {
 			};
 
 			expect(() => {
+				// @ts-expect-error: intentionally passing invalid argument to test
 				new Schema(definition);
 			}).toThrow(InvalidParameterError);
 		});
@@ -75,14 +75,14 @@ describe('constructor', () => {
 
 	describe('path setup', () => {
 		test('should construct a schema with all possible schemaTypes', () => {
-			const embeddedDefinition: SchemaDefinition = {
+			const embeddedDefinition = {
 				innerEmbeddedProp: { type: 'string', path: '9', dictionary: 'innerEmbeddedPropDict' },
-			};
-			const documentArrayDefinition: SchemaDefinition = {
+			} satisfies SchemaDefinition;
+			const documentArrayDefinition = {
 				docStringProp: { type: 'string', path: '12', dictionary: 'docStringPropDict' },
 				docNumberProp: { type: 'number', path: '13', dictionary: 'docNumberPropDict' },
-			};
-			const definition: SchemaDefinition = {
+			} satisfies SchemaDefinition;
+			const definition = {
 				stringProp: { type: 'string', path: '1', dictionary: 'stringPropDict' },
 				numberProp: { type: 'number', path: '2', dictionary: 'numberPropDict' },
 				booleanProp: { type: 'boolean', path: '3', dictionary: 'booleanPropDict' },
@@ -107,7 +107,7 @@ describe('constructor', () => {
 					},
 				],
 				documentArraySchemaProp: [new Schema(documentArrayDefinition)],
-			};
+			} satisfies SchemaDefinition;
 
 			const schema = new Schema(definition);
 			expect(schema.dictPaths.get('_id')).toEqual({
@@ -277,14 +277,14 @@ describe('constructor', () => {
 
 describe('getMvPaths', () => {
 	test('should return all multivalue paths', () => {
-		const embeddedDefinition: SchemaDefinition = {
+		const embeddedDefinition = {
 			innerEmbeddedProp: { type: 'string', path: '9' },
-		};
-		const documentArrayDefinition: SchemaDefinition = {
+		} satisfies SchemaDefinition;
+		const documentArrayDefinition = {
 			docStringProp: { type: 'string', path: '12' },
 			docNumberProp: { type: 'number', path: '13' },
-		};
-		const definition: SchemaDefinition = {
+		} satisfies SchemaDefinition;
+		const definition = {
 			stringProp: { type: 'string', path: '1' },
 			stringValueProp: { type: 'string', path: '14.2' },
 			numberProp: { type: 'number', path: '2' },
@@ -302,7 +302,7 @@ describe('getMvPaths', () => {
 				},
 			],
 			documentArraySchemaProp: [new Schema(documentArrayDefinition)],
-		};
+		} satisfies SchemaDefinition;
 		const schema = new Schema(definition);
 
 		const expected: number[][] = [
@@ -326,14 +326,14 @@ describe('getMvPaths', () => {
 });
 
 describe('transformPathsToDbPositions', () => {
-	const embeddedDefinition: SchemaDefinition = {
+	const embeddedDefinition = {
 		innerEmbeddedProp: { type: 'string', path: '9' },
-	};
-	const documentArrayDefinition: SchemaDefinition = {
+	} satisfies SchemaDefinition;
+	const documentArrayDefinition = {
 		docStringProp: { type: 'string', path: '12' },
 		docNumberProp: { type: 'number', path: '13' },
-	};
-	const definition: SchemaDefinition = {
+	} satisfies SchemaDefinition;
+	const definition = {
 		stringProp: { type: 'string', path: '1' },
 		stringValueProp: { type: 'string', path: '14.2' },
 		numberProp: { type: 'number', path: '2' },
@@ -351,7 +351,7 @@ describe('transformPathsToDbPositions', () => {
 			},
 		],
 		documentArraySchemaProp: [new Schema(documentArrayDefinition)],
-	};
+	} satisfies SchemaDefinition;
 	const schema = new Schema(definition);
 
 	test('should return no positions if path list is empty', () => {

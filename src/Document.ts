@@ -147,7 +147,10 @@ class Document<TSchema extends Schema | null> {
 				);
 	}
 
-	/** Build a list of foreign key definitions to be used by the database for foreign key validation */
+	/**
+	 * Build a list of foreign key definitions to be used by the database for foreign key validation
+	 * TODO: Foreign keys are a Model concept and not a Document concept. Relocate this logic.
+	 */
 	public buildForeignKeyDefinitions(): BuildForeignKeyDefinitionsResult[] {
 		if (this.#schema === null) {
 			return [];
@@ -206,6 +209,7 @@ class Document<TSchema extends Schema | null> {
 		const documentErrors = new Map<string, string[]>();
 
 		if (this.#schema !== null) {
+			// TODO: _id is a Model concept and not a Document concept. Relocate this logic.
 			if (
 				typeof this._id === 'string' &&
 				this.#schema.idMatch != null &&

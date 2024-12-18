@@ -6,10 +6,10 @@ import type { MvRecord } from '../../types';
 import DocumentArrayType from '../DocumentArrayType';
 
 describe('cast', () => {
-	const definition: SchemaDefinition = {
+	const definition = {
 		prop1: { type: 'string', path: '2' },
 		prop2: { type: 'number', path: '3', dbDecimals: 2 },
-	};
+	} satisfies SchemaDefinition;
 	const valueSchema = new Schema(definition);
 	const documentArrayType = new DocumentArrayType(valueSchema);
 
@@ -57,10 +57,10 @@ describe('cast', () => {
 });
 
 describe('get', () => {
-	const definition: SchemaDefinition = {
+	const definition = {
 		prop1: { type: 'string', path: '2' },
 		prop2: { type: 'number', path: '3', dbDecimals: 2 },
-	};
+	} satisfies SchemaDefinition;
 	const valueSchema = new Schema(definition);
 	const documentArrayType = new DocumentArrayType(valueSchema);
 
@@ -97,10 +97,10 @@ describe('get', () => {
 
 describe('set', () => {
 	test('should return a record with the subdocument array merged in', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			prop1: { type: 'string', path: '2' },
 			prop2: { type: 'number', path: '3', dbDecimals: 2 },
-		};
+		} satisfies SchemaDefinition;
 		const valueSchema = new Schema(definition);
 		const documentArrayType = new DocumentArrayType(valueSchema);
 
@@ -118,10 +118,10 @@ describe('set', () => {
 	});
 
 	test('should return a record with the subdocument array merged in and clear existing extra subdocument', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			prop1: { type: 'string', path: '2' },
 			prop2: { type: 'number', path: '3', dbDecimals: 2 },
-		};
+		} satisfies SchemaDefinition;
 		const valueSchema = new Schema(definition);
 		const documentArrayType = new DocumentArrayType(valueSchema);
 
@@ -143,10 +143,10 @@ describe('set', () => {
 	});
 
 	test('should return a record with the subdocument array merged in when the document has missing schema properties', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			prop1: { type: 'string', path: '2' },
 			prop2: { type: 'number', path: '3', dbDecimals: 2 },
-		};
+		} satisfies SchemaDefinition;
 		const valueSchema = new Schema(definition);
 		const documentArrayType = new DocumentArrayType(valueSchema);
 
@@ -162,10 +162,10 @@ describe('set', () => {
 	});
 
 	test('should return a record with the subdocument array merged in when the schema definition is using multi-part paths', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			prop1: { type: 'string', path: '2.1' },
 			prop2: { type: 'number', path: '2.2', dbDecimals: 2 },
-		};
+		} satisfies SchemaDefinition;
 		const valueSchema = new Schema(definition);
 		const documentArrayType = new DocumentArrayType(valueSchema);
 
@@ -189,10 +189,10 @@ describe('set', () => {
 	});
 
 	test('should return a record with the subdocument array merged in when the schema definition is using multi-part paths and clear existing extra subdocument', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			prop1: { type: 'string', path: '2.1' },
 			prop2: { type: 'number', path: '2.2', dbDecimals: 2 },
-		};
+		} satisfies SchemaDefinition;
 		const valueSchema = new Schema(definition);
 		const documentArrayType = new DocumentArrayType(valueSchema);
 
@@ -222,11 +222,11 @@ describe('set', () => {
 	});
 
 	test('should return a record with the subdocument array merged in when subdocuments include arrays', () => {
-		const definition: SchemaDefinition = {
+		const definition = {
 			prop1: { type: 'string', path: '2' },
 			prop2: { type: 'number', path: '3', dbDecimals: 2 },
 			prop3: [{ type: 'string', path: '4' }],
-		};
+		} satisfies SchemaDefinition;
 		const valueSchema = new Schema(definition);
 		const documentArrayType = new DocumentArrayType(valueSchema);
 
@@ -255,10 +255,10 @@ describe('set', () => {
 });
 
 describe('validate', () => {
-	const definition: SchemaDefinition = {
+	const definition = {
 		prop1: { type: 'string', path: '2', required: true },
 		prop2: { type: 'number', path: '3', dbDecimals: 2, required: true },
-	};
+	} satisfies SchemaDefinition;
 	const valueSchema = new Schema(definition);
 	const documentArrayType = new DocumentArrayType(valueSchema);
 
@@ -296,10 +296,10 @@ describe('validate', () => {
 
 describe('transformForeignKeyDefinitionsToDb', () => {
 	const foreignKeyDefinition = { file: 'FILE', entityName: 'FK_ENTITY' };
-	const definition: SchemaDefinition = {
+	const definition = {
 		prop1: { type: 'string', path: '2', foreignKey: foreignKeyDefinition },
 		prop2: { type: 'number', path: '3', dbDecimals: 2 },
-	};
+	} satisfies SchemaDefinition;
 	const valueSchema = new Schema(definition);
 	const documentArrayType = new DocumentArrayType(valueSchema);
 
