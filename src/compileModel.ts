@@ -430,19 +430,9 @@ const compileModel = <TSchema extends Schema | null>(
 		/** Save a document to the database */
 		public async save(options: ModelSaveOptions = {}): Promise<ModelCompositeValue<TSchema>> {
 			const { maxReturnPayloadSize, requestId, userDefined } = options;
-			if (this._id == null) {
-				throw new TypeError('_id value must be set prior to saving');
-			}
 
 			// validate data prior to saving
-			const validationErrors = this.validate();
-			if (validationErrors.size > 0) {
-				throw new DataValidationError({
-					validationErrors,
-					filename: Model.file,
-					recordId: this._id,
-				});
-			}
+			this.#validate();
 
 			try {
 				const data = await Model.connection.executeDbSubroutine(
@@ -489,6 +479,33 @@ const compileModel = <TSchema extends Schema | null>(
 						: attribute,
 				)
 				.join(am);
+		}
+
+		/** Validate the model instance */
+		#validate(): asserts this is { _id: string } {
+			if (this._id == null) {
+				throw new TypeError('_id value must be set prior to saving');
+			}
+
+			// validate data prior to saving
+			const validationErrors = this.validate();
+
+			// validate _id pattern
+			if (
+				typeof this._id === 'string' &&
+				schema?.idMatch != null &&
+				!schema.idMatch.test(this._id)
+			) {
+				validationErrors.set('_id', ['Model id does not match pattern']);
+			}
+
+			if (validationErrors.size > 0) {
+				throw new DataValidationError({
+					validationErrors,
+					filename: Model.file,
+					recordId: this._id,
+				});
+			}
 		}
 	};
 };

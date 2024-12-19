@@ -796,31 +796,6 @@ describe('validate', () => {
 		expect(document.validate()).toEqual(expected);
 	});
 
-	describe('id matching validation', () => {
-		const definition = {
-			prop1: { type: 'string', path: '1' },
-		} satisfies SchemaDefinition;
-		const schema = new Schema(definition, {
-			idMatch: /^foo$/,
-		});
-
-		test('should return error if id match is specified and id does not match pattern', () => {
-			// @ts-expect-error: _id is not a valid Document property. See note regarding relocation in Document.ts.
-			const document = new DocumentSubclass(schema, { data: { _id: 'id', prop1: 'foo' } });
-
-			const expected = new Map([['_id', ['Document id does not match pattern']]]);
-			expect(document.validate()).toEqual(expected);
-		});
-
-		test('should not return error if id match is specified and id matches pattern', () => {
-			// @ts-expect-error: _id is not a valid Document property. See note regarding relocation in Document.ts.
-			const document = new DocumentSubclass(schema, { data: { _id: 'foo', prop1: 'foo' } });
-
-			const expected = new Map();
-			expect(document.validate()).toEqual(expected);
-		});
-	});
-
 	describe('schema type validation', () => {
 		test('should return error at property if schemaType validation fails', () => {
 			const definition = {

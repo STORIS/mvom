@@ -209,15 +209,6 @@ class Document<TSchema extends Schema | null> {
 		const documentErrors = new Map<string, string[]>();
 
 		if (this.#schema !== null) {
-			// TODO: _id is a Model concept and not a Document concept. Relocate this logic.
-			if (
-				typeof this._id === 'string' &&
-				this.#schema.idMatch != null &&
-				!this.#schema.idMatch.test(this._id)
-			) {
-				documentErrors.set('_id', ['Document id does not match pattern']);
-			}
-
 			Array.from(this.#schema.paths).forEach(([keyPath, schemaType]) => {
 				const originalValue: unknown = getIn(this, keyPath, null);
 				// cast to complex data type if necessary
