@@ -1095,6 +1095,152 @@ describe('save', () => {
 				{},
 			);
 		});
+
+		test('should build and pass foreign key definitions', async () => {
+			const embeddedSchema = new Schema({
+				embeddedStringProp: {
+					type: 'string',
+					path: 3,
+					foreignKey: { entityName: 'embeddedEntityName', file: 'EMBEDDED_FILE' },
+				},
+			});
+			const foreignKeySchema = new Schema(
+				{
+					stringProp: {
+						type: 'string',
+						path: 1,
+						foreignKey: { entityName: 'entityName', file: 'STRING_FILE' },
+					},
+					nested: {
+						nestedStringProp: {
+							type: 'string',
+							path: 2,
+							foreignKey: { entityName: 'nestedEntityName', file: 'NESTED_FILE' },
+						},
+					},
+					embedded: embeddedSchema,
+					array: [
+						{
+							type: 'string',
+							path: 4,
+							foreignKey: { entityName: 'arrayEntityName', file: 'ARRAY_FILE' },
+						},
+					],
+					nestedArray: [
+						[
+							{
+								type: 'string',
+								path: 5,
+								foreignKey: { entityName: 'nestedArrayEntityName', file: 'NESTED_ARRAY_FILE' },
+							},
+						],
+					],
+					documentArray: [
+						{
+							documentArrayStringProp: {
+								type: 'string',
+								path: 6,
+								foreignKey: { entityName: 'documentArrayEntityName', file: 'DOCUMENT_ARRAY_FILE' },
+							},
+						},
+					],
+				},
+				{ idForeignKey: { entityName: 'idEntityName', file: 'ID_FILE' } },
+			);
+
+			const Model = compileModel(
+				connectionMock,
+				foreignKeySchema,
+				filename,
+				mockDelimiters,
+				logHandlerMock,
+			);
+
+			const id = 'id';
+			const stringPropValue = 'stringPropValue';
+			const nestedStringPropValue = 'nestedStringPropValue';
+			const embeddedStringPropValue = 'embeddedStringPropValue';
+			const arrayValue = 'arrayValue';
+			const nestedArrayValue = 'nestedArrayValue';
+			const documentArrayValue = 'documentArrayValue';
+
+			const version = '1';
+			const model = new Model({
+				_id: id,
+				data: {
+					stringProp: stringPropValue,
+					nested: { nestedStringProp: nestedStringPropValue },
+					embedded: { embeddedStringProp: embeddedStringPropValue },
+					array: [arrayValue],
+					nestedArray: [[nestedArrayValue]],
+					documentArray: [{ documentArrayStringProp: documentArrayValue }],
+				},
+			});
+
+			const record = `${stringPropValue}${am}${nestedStringPropValue}${am}${embeddedStringPropValue}${am}${arrayValue}${am}${nestedArrayValue}${am}${documentArrayValue}`;
+
+			connectionMock.executeDbSubroutine.mockResolvedValue({
+				result: {
+					_id: id,
+					__v: version,
+					record,
+				},
+			});
+			const result = await model.save();
+
+			expect(result).toBeInstanceOf(Model);
+			expect(result._id).toBe(id);
+			expect(result.__v).toBe(version);
+			expect(result.stringProp).toBe(stringPropValue);
+			expect(result.nested.nestedStringProp).toBe(nestedStringPropValue);
+			expect(result.embedded.embeddedStringProp).toBe(embeddedStringPropValue);
+			expect(result.array).toEqual([arrayValue]);
+			expect(result.nestedArray).toEqual([[nestedArrayValue]]);
+			expect(result.documentArray).toEqual([{ documentArrayStringProp: documentArrayValue }]);
+			expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
+				'save',
+				{
+					filename,
+					id,
+					__v: null,
+					record,
+					foreignKeyDefinitions: [
+						{
+							filename: ['STRING_FILE'],
+							entityName: 'entityName',
+							entityIds: [stringPropValue],
+						},
+						{
+							filename: ['NESTED_FILE'],
+							entityName: 'nestedEntityName',
+							entityIds: [nestedStringPropValue],
+						},
+						{
+							filename: ['EMBEDDED_FILE'],
+							entityName: 'embeddedEntityName',
+							entityIds: [embeddedStringPropValue],
+						},
+						{ filename: ['ARRAY_FILE'], entityName: 'arrayEntityName', entityIds: [arrayValue] },
+						{
+							filename: ['NESTED_ARRAY_FILE'],
+							entityName: 'nestedArrayEntityName',
+							entityIds: [nestedArrayValue],
+						},
+						{
+							filename: ['DOCUMENT_ARRAY_FILE'],
+							entityName: 'documentArrayEntityName',
+							entityIds: [documentArrayValue],
+						},
+						{
+							filename: ['ID_FILE'],
+							entityName: 'idEntityName',
+							entityIds: [id],
+						},
+					],
+				},
+				{},
+			);
+		});
 	});
 });
 

@@ -806,23 +806,6 @@ describe('buildForeignKeyDefinitions', () => {
 		expect(document.buildForeignKeyDefinitions()).toEqual(expected);
 	});
 
-	test('should build foreign key definitions for ids', () => {
-		const definition = {
-			prop1: { type: 'string', path: '1' },
-		} satisfies SchemaDefinition;
-		const schema = new Schema(definition, {
-			idForeignKey: { entityName: 'entityName', file: 'FILE' },
-		});
-
-		// @ts-expect-error: _id is not a valid Document property. See note regarding relocation in Document.ts.
-		const document = new DocumentSubclass(schema, { data: { _id: 'id', prop1: 'foo' } });
-
-		const expected: BuildForeignKeyDefinitionsResult[] = [
-			{ filename: ['FILE'], entityName: 'entityName', entityIds: ['id'] },
-		];
-		expect(document.buildForeignKeyDefinitions()).toEqual(expected);
-	});
-
 	test('should build foreign key definitions with multiple filenames', () => {
 		const definition = {
 			prop1: {

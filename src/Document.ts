@@ -1,9 +1,11 @@
 import { assignIn, cloneDeep, get as getIn, set as setIn } from 'lodash';
 import { TransformDataError } from './errors';
-import ForeignKeyDbTransformer from './ForeignKeyDbTransformer';
 import type Schema from './Schema';
 import type { InferDocumentObject } from './Schema';
 import type { DbServerDelimiters, DeepOptionalNullable, MvRecord } from './types';
+
+/** U2 does not allow pound signs in filenames so we can use it to separate filename/entityName combinations */
+const FOREIGN_KEY_SEPARATOR = '#';
 
 // #region Types
 /** Type of data property for constructing a document dependent upon the schema */
@@ -156,8 +158,6 @@ class Document<TSchema extends Schema | null> {
 			return [];
 		}
 
-		// U2 does not allow pound signs in filenames so we can use it to separate filename/entityName combinations
-		const separator = '#';
 		const definitionMap = Array.from(this.#schema.paths).reduce(
 			(foreignKeyDefinitions, [keyPath, schemaType]) => {
 				const value = getIn(this, keyPath, null);
@@ -165,7 +165,7 @@ class Document<TSchema extends Schema | null> {
 				// Deduplicate foreign key definitions by using a filename / entity name combination
 				// We could deduplicate using just the filename but ignoring the entity name could result in confusing error messages
 				definitions.forEach(({ filename, entityId, entityName }) => {
-					const key = `${filename}${separator}${entityName}`;
+					const key = `${filename}${FOREIGN_KEY_SEPARATOR}${entityName}`;
 					const accumulatedEntityIds = foreignKeyDefinitions.get(key) ?? new Set<string>();
 					// For array types we may need to validate multiple foreign keys
 					accumulatedEntityIds.add(entityId);
@@ -177,26 +177,15 @@ class Document<TSchema extends Schema | null> {
 			new Map<string, Set<string>>(),
 		);
 
-		if (this.#schema.idForeignKey != null) {
-			const foreignKeyDbTransformer = new ForeignKeyDbTransformer(this.#schema.idForeignKey);
-			const definitions = foreignKeyDbTransformer.transform(this._id);
-			definitions.forEach(({ filename, entityId, entityName }) => {
-				const key = `${filename}${separator}${entityName}`;
-				const accumulatedEntityIds = definitionMap.get(key) ?? new Set<string>();
-				accumulatedEntityIds.add(entityId);
-				definitionMap.set(key, accumulatedEntityIds);
-			});
-		}
-
 		return Array.from(definitionMap).reduce<BuildForeignKeyDefinitionsResult[]>(
 			(acc, [key, value]) => {
-				const keyParts = key.split(separator);
+				const keyParts = key.split(FOREIGN_KEY_SEPARATOR);
 				const fileName = keyParts[0];
 				// If an array of filenames was provided, when we transformed the array into a string above, commas
 				// would have been inserted between each filename. Split the string back into an array.
 				const filename = fileName.split(',');
 				// Just incase the entity name included a pound sign, rejoin
-				const entityName = keyParts.slice(1).join(separator);
+				const entityName = keyParts.slice(1).join(FOREIGN_KEY_SEPARATOR);
 				acc.push({ filename, entityName, entityIds: Array.from(value) });
 				return acc;
 			},

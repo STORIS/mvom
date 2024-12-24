@@ -1,7 +1,12 @@
 import type Connection from './Connection';
-import type { DocumentConstructorOptions, DocumentData } from './Document';
+import type {
+	BuildForeignKeyDefinitionsResult,
+	DocumentConstructorOptions,
+	DocumentData,
+} from './Document';
 import Document from './Document';
 import { DataValidationError } from './errors';
+import ForeignKeyDbTransformer from './ForeignKeyDbTransformer';
 import type LogHandler from './LogHandler';
 import Query, { type Filter, type QueryConstructorOptions } from './Query';
 import type Schema from './Schema';
@@ -442,7 +447,7 @@ const compileModel = <TSchema extends Schema | null>(
 						id: this._id,
 						__v: this.__v,
 						record: this.#convertToMvString(),
-						foreignKeyDefinitions: this.buildForeignKeyDefinitions(),
+						foreignKeyDefinitions: this.#buildForeignKeyDefinitions(),
 					},
 					{
 						...(maxReturnPayloadSize != null && { maxReturnPayloadSize }),
@@ -506,6 +511,26 @@ const compileModel = <TSchema extends Schema | null>(
 					recordId: this._id,
 				});
 			}
+		}
+
+		/** Build a list of foreign key definitions to be used by the database for foreign key validation */
+		#buildForeignKeyDefinitions(): BuildForeignKeyDefinitionsResult[] {
+			const foreignKeyDefinitions = this.buildForeignKeyDefinitions();
+
+			if (schema?.idForeignKey != null) {
+				const foreignKeyDbTransformer = new ForeignKeyDbTransformer(schema.idForeignKey);
+				const definitions = foreignKeyDbTransformer
+					.transform(this._id)
+					.map(({ filename, entityName, entityId }) => ({
+						filename: ensureArray(filename),
+						entityName,
+						entityIds: [entityId],
+					}));
+
+				foreignKeyDefinitions.push(...definitions);
+			}
+
+			return foreignKeyDefinitions;
 		}
 	};
 };
