@@ -1,5 +1,6 @@
 import { cloneDeep, isPlainObject, set as setIn } from 'lodash';
 import Document from '../Document';
+import type { ForeignKeyDbDefinition } from '../ForeignKeyDbTransformer';
 import type Schema from '../Schema';
 import type { MvRecord } from '../types';
 import BaseSchemaType from './BaseSchemaType';
@@ -53,6 +54,16 @@ class EmbeddedType<TSchema extends Schema> extends BaseSchemaType {
 	public validate(document: Document<TSchema>): Map<string, string[]> {
 		// - validation against the embedded document will return a single object with 0 to n keys - only those with keys indicate errors;
 		return document.validate();
+	}
+
+	/** Create an array of foreign key definitions that will be validated before save */
+	public override transformForeignKeyDefinitionsToDb(
+		document: Document<TSchema>,
+	): ForeignKeyDbDefinition[] {
+		const documentForeignKeyDefinitions = document.buildForeignKeyDefinitions();
+		return documentForeignKeyDefinitions.flatMap(({ filename, entityName, entityIds }) =>
+			entityIds.map((entityId) => ({ filename, entityName, entityId })),
+		);
 	}
 }
 

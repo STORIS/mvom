@@ -701,6 +701,60 @@ describe('buildForeignKeyDefinitions', () => {
 		expect(document.buildForeignKeyDefinitions()).toEqual(expected);
 	});
 
+	test('should create foreign key definitions for nested object', () => {
+		const definition = {
+			nested: {
+				prop1: {
+					type: 'string',
+					path: '1',
+					foreignKey: { entityName: 'entityName', file: ['FILE1', 'FILE2'] },
+				},
+				prop2: {
+					type: 'string',
+					path: '2',
+					foreignKey: { entityName: 'entityName', file: 'FILE2' },
+				},
+			},
+		} satisfies SchemaDefinition;
+		const schema = new Schema(definition);
+
+		const document = new DocumentSubclass(schema, {
+			data: { nested: { prop1: 'foo', prop2: 'bar' } },
+		});
+
+		const expected: BuildForeignKeyDefinitionsResult[] = [
+			{ filename: ['FILE1', 'FILE2'], entityName: 'entityName', entityIds: ['foo'] },
+			{ filename: ['FILE2'], entityName: 'entityName', entityIds: ['bar'] },
+		];
+		expect(document.buildForeignKeyDefinitions()).toEqual(expected);
+	});
+
+	test('should create foreign key definitions for embedded content', () => {
+		const innerDefinition = {
+			prop1: {
+				type: 'string',
+				path: '1',
+				foreignKey: { entityName: 'entityName', file: ['FILE1', 'FILE2'] },
+			},
+			prop2: { type: 'string', path: '2', foreignKey: { entityName: 'entityName', file: 'FILE2' } },
+		} satisfies SchemaDefinition;
+		const innerSchema = new Schema(innerDefinition);
+		const definition = {
+			embedded: innerSchema,
+		} satisfies SchemaDefinition;
+		const schema = new Schema(definition);
+
+		const document = new DocumentSubclass(schema, {
+			data: { embedded: { prop1: 'foo', prop2: 'bar' } },
+		});
+
+		const expected: BuildForeignKeyDefinitionsResult[] = [
+			{ filename: ['FILE1', 'FILE2'], entityName: 'entityName', entityIds: ['foo'] },
+			{ filename: ['FILE2'], entityName: 'entityName', entityIds: ['bar'] },
+		];
+		expect(document.buildForeignKeyDefinitions()).toEqual(expected);
+	});
+
 	test('should create multiple foreign key definitions for array content', () => {
 		const definition = {
 			prop1: [
