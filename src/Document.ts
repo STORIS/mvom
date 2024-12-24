@@ -149,10 +149,7 @@ class Document<TSchema extends Schema | null> {
 				);
 	}
 
-	/**
-	 * Build a list of foreign key definitions to be used by the database for foreign key validation
-	 * TODO: Foreign keys are a Model concept and not a Document concept. Relocate this logic.
-	 */
+	/** Build a list of foreign key definitions to be used by the database for foreign key validation */
 	public buildForeignKeyDefinitions(): BuildForeignKeyDefinitionsResult[] {
 		if (this.#schema === null) {
 			return [];
