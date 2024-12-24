@@ -38,7 +38,6 @@ import type {
 	DbSubroutineInputIncrement,
 	DbSubroutineInputOptionsMap,
 	DbSubroutineInputSave,
-	DbSubroutineOutputErrorForeignKey,
 	DbSubroutinePayload,
 	DbSubroutineResponseError,
 	DbSubroutineResponseTypes,
@@ -441,7 +440,7 @@ class Connection {
 		}
 
 		if ('errorCode' in response.data.output) {
-			const errorCode = Number(response.data.output.errorCode);
+			const { errorCode } = response.data.output;
 			switch (errorCode) {
 				case dbErrors.foreignKeyValidation.code: {
 					const { filename, id } = options as DbSubroutineInputSave;
@@ -449,8 +448,7 @@ class Connection {
 						`foreign key violations found when saving record ${id} to ${filename}`,
 					);
 					throw new ForeignKeyValidationError({
-						foreignKeyValidationErrors: (response.data.output as DbSubroutineOutputErrorForeignKey)
-							.foreignKeyValidationErrors,
+						foreignKeyValidationErrors: response.data.output.foreignKeyValidationErrors,
 						filename,
 						recordId: id,
 					});
