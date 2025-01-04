@@ -4,7 +4,7 @@ import DbServerError from '../DbServerError';
 // use one of the codes from the errors table
 const dbError = Object.values(dbErrors)[0];
 
-test('should instantiate error with expected instance properties', (): void => {
+test('should instantiate error with expected instance properties', () => {
 	const error = new DbServerError({ errorCode: dbError.code });
 	const expected = {
 		name: 'DbServerError',
@@ -13,7 +13,7 @@ test('should instantiate error with expected instance properties', (): void => {
 	expect(error).toMatchObject(expected);
 });
 
-test('should allow for override of message', (): void => {
+test('should allow for override of message', () => {
 	const message = 'foo';
 	const error = new DbServerError({
 		message,
@@ -22,8 +22,9 @@ test('should allow for override of message', (): void => {
 	expect(error.message).toEqual(message);
 });
 
-test('should use default message if errorCode is not found', (): void => {
-	const error = new DbServerError({ errorCode: NaN }); // use NaN as a proxy for a number because it really should never be there
+test('should use default message if errorCode is not found', () => {
+	// @ts-expect-error: intentionally passing an invalid error code
+	const error = new DbServerError({ errorCode: -9999 });
 	const expectedMessage = 'Unknown database server error';
 	expect(error.message).toEqual(expectedMessage);
 });

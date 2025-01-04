@@ -1,4 +1,5 @@
 import { dbErrors } from '../constants';
+import type { DbErrorCodes } from '../constants';
 import BaseError from './BaseError';
 
 interface DbServerErrorConstructorOptionsMessage {
@@ -6,7 +7,7 @@ interface DbServerErrorConstructorOptionsMessage {
 }
 
 interface DbServerErrorConstructorOptionsCode {
-	errorCode: number | string;
+	errorCode: DbErrorCodes;
 }
 
 type DbServerErrorConstructorOptions =
@@ -21,7 +22,7 @@ class DbServerError extends BaseError {
 		const message =
 			'message' in options
 				? options.message
-				: (Object.values(dbErrors).find((errorObj) => errorObj.code === +options.errorCode)
+				: (Object.values(dbErrors).find((errorObj) => errorObj.code === options.errorCode)
 						?.message ?? 'Unknown database server error');
 
 		super(message, name);
