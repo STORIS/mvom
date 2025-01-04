@@ -748,52 +748,69 @@ describe('readFileContentsById', () => {
 });
 
 describe('save', () => {
-	test('should throw TypeError if _id is not set', async () => {
-		const Model = compileModel(connectionMock, schema, filename, mockDelimiters, logHandlerMock);
+	describe('errors', () => {
+		test('should throw TypeError if _id is not set', async () => {
+			const Model = compileModel(connectionMock, schema, filename, mockDelimiters, logHandlerMock);
 
-		const model = new Model({ record: '' });
+			const model = new Model({ record: '' });
 
-		await expect(model.save()).rejects.toThrow(TypeError);
-	});
+			await expect(model.save()).rejects.toThrow(TypeError);
+		});
 
-	test('should reject save if validation is not successful', async () => {
-		const Model = compileModel(connectionMock, schema, filename, mockDelimiters, logHandlerMock);
+		test('should reject save if validation is not successful', async () => {
+			const Model = compileModel(connectionMock, schema, filename, mockDelimiters, logHandlerMock);
 
-		const id = 'id';
-		// @ts-expect-error: intentionally invalid data to trigger validation failure
-		const model = new Model({ _id: id, data: { prop1: 1337 } });
-		model.validate = () => new Map([['prop1', ['Not good']]]);
+			const id = 'id';
+			// @ts-expect-error: intentionally invalid data to trigger validation failure
+			const model = new Model({ _id: id, data: { prop1: 'prop1', prop2: 'not-a-number-bad' } });
 
-		await expect(model.save()).rejects.toThrow(DataValidationError);
-	});
+			await expect(model.save()).rejects.toThrow(DataValidationError);
+		});
 
-	test('should catch, enrich, and rethrow errors returned from database operations', async () => {
-		const Model = compileModel(connectionMock, schema, filename, mockDelimiters, logHandlerMock);
-
-		const id = 'id';
-		const model = new Model({ _id: id, data: { prop1: 'prop1-value', prop2: 123 } });
-
-		const err = new Error('Test error');
-		connectionMock.executeDbSubroutine.mockRejectedValue(err);
-
-		const error = await getError<Error & { other: unknown }>(async () => model.save());
-
-		expect(error).not.toBeInstanceOf(NoErrorThrownError);
-		expect(error).toBeInstanceOf(Error);
-		expect(error.other).toEqual({ filename, _id: id });
-		expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
-			'save',
-			{
+		test('should reject save if _id validation is not successful', async () => {
+			const idSchema = new Schema(schemaDefinition, { idMatch: /^valid-id$/ });
+			const Model = compileModel(
+				connectionMock,
+				idSchema,
 				filename,
-				id,
-				__v: null,
-				record: `prop1-value${am}123`,
-				foreignKeyDefinitions: [
-					{ entityIds: ['prop1-value'], entityName: 'prop1', filename: ['FK_FILE'] },
-				],
-			},
-			{},
-		);
+				mockDelimiters,
+				logHandlerMock,
+			);
+
+			const id = 'invalid-id';
+			const model = new Model({ _id: id, data: { prop1: 'prop1-value', prop2: 123 } });
+
+			await expect(model.save()).rejects.toThrow(DataValidationError);
+		});
+
+		test('should catch, enrich, and rethrow errors returned from database operations', async () => {
+			const Model = compileModel(connectionMock, schema, filename, mockDelimiters, logHandlerMock);
+
+			const id = 'id';
+			const model = new Model({ _id: id, data: { prop1: 'prop1-value', prop2: 123 } });
+
+			const err = new Error('Test error');
+			connectionMock.executeDbSubroutine.mockRejectedValue(err);
+
+			const error = await getError<Error & { other: unknown }>(async () => model.save());
+
+			expect(error).not.toBeInstanceOf(NoErrorThrownError);
+			expect(error).toBeInstanceOf(Error);
+			expect(error.other).toEqual({ filename, _id: id });
+			expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
+				'save',
+				{
+					filename,
+					id,
+					__v: null,
+					record: `prop1-value${am}123`,
+					foreignKeyDefinitions: [
+						{ entityIds: ['prop1-value'], entityName: 'prop1', filename: ['FK_FILE'] },
+					],
+				},
+				{},
+			);
+		});
 	});
 
 	describe('success', () => {
@@ -1037,6 +1054,191 @@ describe('save', () => {
 					],
 				},
 				{ maxReturnPayloadSize, userDefined, requestId },
+			);
+		});
+
+		test('should save and return new model instance with valid id pattern match', async () => {
+			const idSchema = new Schema(schemaDefinition, { idMatch: /^valid-id$/ });
+			const Model = compileModel(
+				connectionMock,
+				idSchema,
+				filename,
+				mockDelimiters,
+				logHandlerMock,
+			);
+
+			const id = 'valid-id';
+			const version = '1';
+			const model = new Model({ _id: id, data: { prop1: 'prop1-value', prop2: 123 } });
+
+			connectionMock.executeDbSubroutine.mockResolvedValue({
+				result: { _id: id, __v: version, record: `prop1-value${am}123` },
+			});
+			const result = await model.save();
+
+			expect(result).toBeInstanceOf(Model);
+			expect(result._id).toBe(id);
+			expect(result.__v).toBe(version);
+			expect(result.prop1).toBe('prop1-value');
+			expect(result.prop2).toBe(123);
+			expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
+				'save',
+				{
+					filename,
+					id,
+					__v: null,
+					record: `prop1-value${am}123`,
+					foreignKeyDefinitions: [
+						{ entityIds: ['prop1-value'], entityName: 'prop1', filename: ['FK_FILE'] },
+					],
+				},
+				{},
+			);
+		});
+
+		test('should build and pass foreign key definitions', async () => {
+			const embeddedSchema = new Schema({
+				embeddedStringProp: {
+					type: 'string',
+					path: 3,
+					foreignKey: { entityName: 'embeddedEntityName', file: 'EMBEDDED_FILE' },
+				},
+			});
+			const foreignKeySchema = new Schema(
+				{
+					stringProp: {
+						type: 'string',
+						path: 1,
+						foreignKey: { entityName: 'entityName', file: 'STRING_FILE' },
+					},
+					nested: {
+						nestedStringProp: {
+							type: 'string',
+							path: 2,
+							foreignKey: { entityName: 'nestedEntityName', file: 'NESTED_FILE' },
+						},
+					},
+					embedded: embeddedSchema,
+					array: [
+						{
+							type: 'string',
+							path: 4,
+							foreignKey: { entityName: 'arrayEntityName', file: 'ARRAY_FILE' },
+						},
+					],
+					nestedArray: [
+						[
+							{
+								type: 'string',
+								path: 5,
+								foreignKey: { entityName: 'nestedArrayEntityName', file: 'NESTED_ARRAY_FILE' },
+							},
+						],
+					],
+					documentArray: [
+						{
+							documentArrayStringProp: {
+								type: 'string',
+								path: 6,
+								foreignKey: { entityName: 'documentArrayEntityName', file: 'DOCUMENT_ARRAY_FILE' },
+							},
+						},
+					],
+				},
+				{ idForeignKey: { entityName: 'idEntityName', file: 'ID_FILE' } },
+			);
+
+			const Model = compileModel(
+				connectionMock,
+				foreignKeySchema,
+				filename,
+				mockDelimiters,
+				logHandlerMock,
+			);
+
+			const id = 'id';
+			const stringPropValue = 'stringPropValue';
+			const nestedStringPropValue = 'nestedStringPropValue';
+			const embeddedStringPropValue = 'embeddedStringPropValue';
+			const arrayValue = 'arrayValue';
+			const nestedArrayValue = 'nestedArrayValue';
+			const documentArrayValue = 'documentArrayValue';
+
+			const version = '1';
+			const model = new Model({
+				_id: id,
+				data: {
+					stringProp: stringPropValue,
+					nested: { nestedStringProp: nestedStringPropValue },
+					embedded: { embeddedStringProp: embeddedStringPropValue },
+					array: [arrayValue],
+					nestedArray: [[nestedArrayValue]],
+					documentArray: [{ documentArrayStringProp: documentArrayValue }],
+				},
+			});
+
+			const record = `${stringPropValue}${am}${nestedStringPropValue}${am}${embeddedStringPropValue}${am}${arrayValue}${am}${nestedArrayValue}${am}${documentArrayValue}`;
+
+			connectionMock.executeDbSubroutine.mockResolvedValue({
+				result: {
+					_id: id,
+					__v: version,
+					record,
+				},
+			});
+			const result = await model.save();
+
+			expect(result).toBeInstanceOf(Model);
+			expect(result._id).toBe(id);
+			expect(result.__v).toBe(version);
+			expect(result.stringProp).toBe(stringPropValue);
+			expect(result.nested.nestedStringProp).toBe(nestedStringPropValue);
+			expect(result.embedded.embeddedStringProp).toBe(embeddedStringPropValue);
+			expect(result.array).toEqual([arrayValue]);
+			expect(result.nestedArray).toEqual([[nestedArrayValue]]);
+			expect(result.documentArray).toEqual([{ documentArrayStringProp: documentArrayValue }]);
+			expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
+				'save',
+				{
+					filename,
+					id,
+					__v: null,
+					record,
+					foreignKeyDefinitions: [
+						{
+							filename: ['STRING_FILE'],
+							entityName: 'entityName',
+							entityIds: [stringPropValue],
+						},
+						{
+							filename: ['NESTED_FILE'],
+							entityName: 'nestedEntityName',
+							entityIds: [nestedStringPropValue],
+						},
+						{
+							filename: ['EMBEDDED_FILE'],
+							entityName: 'embeddedEntityName',
+							entityIds: [embeddedStringPropValue],
+						},
+						{ filename: ['ARRAY_FILE'], entityName: 'arrayEntityName', entityIds: [arrayValue] },
+						{
+							filename: ['NESTED_ARRAY_FILE'],
+							entityName: 'nestedArrayEntityName',
+							entityIds: [nestedArrayValue],
+						},
+						{
+							filename: ['DOCUMENT_ARRAY_FILE'],
+							entityName: 'documentArrayEntityName',
+							entityIds: [documentArrayValue],
+						},
+						{
+							filename: ['ID_FILE'],
+							entityName: 'idEntityName',
+							entityIds: [id],
+						},
+					],
+				},
+				{},
 			);
 		});
 	});

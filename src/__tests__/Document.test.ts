@@ -701,6 +701,60 @@ describe('buildForeignKeyDefinitions', () => {
 		expect(document.buildForeignKeyDefinitions()).toEqual(expected);
 	});
 
+	test('should create foreign key definitions for nested object', () => {
+		const definition = {
+			nested: {
+				prop1: {
+					type: 'string',
+					path: '1',
+					foreignKey: { entityName: 'entityName', file: ['FILE1', 'FILE2'] },
+				},
+				prop2: {
+					type: 'string',
+					path: '2',
+					foreignKey: { entityName: 'entityName', file: 'FILE2' },
+				},
+			},
+		} satisfies SchemaDefinition;
+		const schema = new Schema(definition);
+
+		const document = new DocumentSubclass(schema, {
+			data: { nested: { prop1: 'foo', prop2: 'bar' } },
+		});
+
+		const expected: BuildForeignKeyDefinitionsResult[] = [
+			{ filename: ['FILE1', 'FILE2'], entityName: 'entityName', entityIds: ['foo'] },
+			{ filename: ['FILE2'], entityName: 'entityName', entityIds: ['bar'] },
+		];
+		expect(document.buildForeignKeyDefinitions()).toEqual(expected);
+	});
+
+	test('should create foreign key definitions for embedded content', () => {
+		const innerDefinition = {
+			prop1: {
+				type: 'string',
+				path: '1',
+				foreignKey: { entityName: 'entityName', file: ['FILE1', 'FILE2'] },
+			},
+			prop2: { type: 'string', path: '2', foreignKey: { entityName: 'entityName', file: 'FILE2' } },
+		} satisfies SchemaDefinition;
+		const innerSchema = new Schema(innerDefinition);
+		const definition = {
+			embedded: innerSchema,
+		} satisfies SchemaDefinition;
+		const schema = new Schema(definition);
+
+		const document = new DocumentSubclass(schema, {
+			data: { embedded: { prop1: 'foo', prop2: 'bar' } },
+		});
+
+		const expected: BuildForeignKeyDefinitionsResult[] = [
+			{ filename: ['FILE1', 'FILE2'], entityName: 'entityName', entityIds: ['foo'] },
+			{ filename: ['FILE2'], entityName: 'entityName', entityIds: ['bar'] },
+		];
+		expect(document.buildForeignKeyDefinitions()).toEqual(expected);
+	});
+
 	test('should create multiple foreign key definitions for array content', () => {
 		const definition = {
 			prop1: [
@@ -752,23 +806,6 @@ describe('buildForeignKeyDefinitions', () => {
 		expect(document.buildForeignKeyDefinitions()).toEqual(expected);
 	});
 
-	test('should build foreign key definitions for ids', () => {
-		const definition = {
-			prop1: { type: 'string', path: '1' },
-		} satisfies SchemaDefinition;
-		const schema = new Schema(definition, {
-			idForeignKey: { entityName: 'entityName', file: 'FILE' },
-		});
-
-		// @ts-expect-error: _id is not a valid Document property. See note regarding relocation in Document.ts.
-		const document = new DocumentSubclass(schema, { data: { _id: 'id', prop1: 'foo' } });
-
-		const expected: BuildForeignKeyDefinitionsResult[] = [
-			{ filename: ['FILE'], entityName: 'entityName', entityIds: ['id'] },
-		];
-		expect(document.buildForeignKeyDefinitions()).toEqual(expected);
-	});
-
 	test('should build foreign key definitions with multiple filenames', () => {
 		const definition = {
 			prop1: {
@@ -794,31 +831,6 @@ describe('validate', () => {
 
 		const expected = new Map();
 		expect(document.validate()).toEqual(expected);
-	});
-
-	describe('id matching validation', () => {
-		const definition = {
-			prop1: { type: 'string', path: '1' },
-		} satisfies SchemaDefinition;
-		const schema = new Schema(definition, {
-			idMatch: /^foo$/,
-		});
-
-		test('should return error if id match is specified and id does not match pattern', () => {
-			// @ts-expect-error: _id is not a valid Document property. See note regarding relocation in Document.ts.
-			const document = new DocumentSubclass(schema, { data: { _id: 'id', prop1: 'foo' } });
-
-			const expected = new Map([['_id', ['Document id does not match pattern']]]);
-			expect(document.validate()).toEqual(expected);
-		});
-
-		test('should not return error if id match is specified and id matches pattern', () => {
-			// @ts-expect-error: _id is not a valid Document property. See note regarding relocation in Document.ts.
-			const document = new DocumentSubclass(schema, { data: { _id: 'foo', prop1: 'foo' } });
-
-			const expected = new Map();
-			expect(document.validate()).toEqual(expected);
-		});
 	});
 
 	describe('schema type validation', () => {
