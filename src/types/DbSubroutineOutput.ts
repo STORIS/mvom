@@ -1,3 +1,4 @@
+import type { DbErrorCodes, DbErrors } from '../constants';
 import type { ForeignKeyValidationErrorData } from '../errors/ForeignKeyValidationError';
 
 export interface DbDocument {
@@ -6,41 +7,41 @@ export interface DbDocument {
 	record: string;
 }
 
-export interface DbSubroutineResponse<TOutput> {
+interface DbSubroutineResponse<TOutput> {
 	output: TOutput;
 }
 
-export interface DbSubroutineOutputDeleteById {
+interface DbSubroutineOutputDeleteById {
 	result: DbDocument | null;
 }
-export type DbSubroutineResponseDeleteById = DbSubroutineResponse<DbSubroutineOutputDeleteById>;
+type DbSubroutineResponseDeleteById = DbSubroutineResponse<DbSubroutineOutputDeleteById>;
 
 export interface DbSubroutineOutputFind {
 	count: number;
 	documents: DbDocument[];
 }
-export type DbSubroutineResponseFind = DbSubroutineResponse<DbSubroutineOutputFind>;
+type DbSubroutineResponseFind = DbSubroutineResponse<DbSubroutineOutputFind>;
 
-export interface DbSubroutineOutputFindById {
+interface DbSubroutineOutputFindById {
 	result: DbDocument | null;
 }
-export type DbSubroutineResponseFindById = DbSubroutineResponse<DbSubroutineOutputFindById>;
+type DbSubroutineResponseFindById = DbSubroutineResponse<DbSubroutineOutputFindById>;
 
-export interface DbSubroutineOutputFindByIds {
+interface DbSubroutineOutputFindByIds {
 	result: (DbDocument | null)[];
 }
-export type DbSubroutineResponseFindByIds = DbSubroutineResponse<DbSubroutineOutputFindByIds>;
+type DbSubroutineResponseFindByIds = DbSubroutineResponse<DbSubroutineOutputFindByIds>;
 
-export interface DbSubroutineOutputIncrement {
+interface DbSubroutineOutputIncrement {
 	originalDocument: DbDocument;
 	updatedDocument: DbDocument;
 }
-export type DbSubroutineResponseIncrement = DbSubroutineResponse<DbSubroutineOutputIncrement>;
+type DbSubroutineResponseIncrement = DbSubroutineResponse<DbSubroutineOutputIncrement>;
 
-export interface DbSubroutineOutputReadFileContentsById {
+interface DbSubroutineOutputReadFileContentsById {
 	result: string;
 }
-export type DbSubroutineResponseReadFileContentsById =
+type DbSubroutineResponseReadFileContentsById =
 	DbSubroutineResponse<DbSubroutineOutputReadFileContentsById>;
 
 /** Characters which delimit strings on multivalue database server */
@@ -63,19 +64,18 @@ export interface DbServerLimits {
 	/** Maximum length of a query */
 	maxSentenceLength: number;
 }
-export interface DbSubroutineOutputGetServerInfo {
+interface DbSubroutineOutputGetServerInfo {
 	date: number;
 	time: number;
 	delimiters: DbServerDelimiters;
 	limits: DbServerLimits;
 }
-export type DbSubroutineResponseGetServerInfo =
-	DbSubroutineResponse<DbSubroutineOutputGetServerInfo>;
+type DbSubroutineResponseGetServerInfo = DbSubroutineResponse<DbSubroutineOutputGetServerInfo>;
 
-export interface DbSubroutineOutputSave {
+interface DbSubroutineOutputSave {
 	result: DbDocument;
 }
-export type DbSubroutineResponseSave = DbSubroutineResponse<DbSubroutineOutputSave>;
+type DbSubroutineResponseSave = DbSubroutineResponse<DbSubroutineOutputSave>;
 
 export type DbSubroutineResponseTypes =
 	| DbSubroutineResponseDeleteById
@@ -98,17 +98,19 @@ export interface DbSubroutineResponseTypesMap {
 	save: DbSubroutineResponseSave;
 }
 
-export interface DbSubroutineOutputErrorBase {
-	errorCode: string;
-}
-export type DbSubroutineResponseErrorBase = DbSubroutineResponse<DbSubroutineOutputErrorBase>;
+type ForeignKeyValidationErrorCode = DbErrors['foreignKeyValidation']['code'];
+type BaseErrorCodes = Exclude<DbErrorCodes, ForeignKeyValidationErrorCode>;
 
-export interface DbSubroutineOutputErrorForeignKey extends DbSubroutineOutputErrorBase {
-	errorCode: '14';
+interface DbSubroutineOutputErrorBase {
+	errorCode: BaseErrorCodes;
+}
+type DbSubroutineResponseErrorBase = DbSubroutineResponse<DbSubroutineOutputErrorBase>;
+
+interface DbSubroutineOutputErrorForeignKey {
+	errorCode: ForeignKeyValidationErrorCode;
 	foreignKeyValidationErrors: ForeignKeyValidationErrorData[];
 }
-export type DbSubroutineResponseErrorForeignKey =
-	DbSubroutineResponse<DbSubroutineOutputErrorForeignKey>;
+type DbSubroutineResponseErrorForeignKey = DbSubroutineResponse<DbSubroutineOutputErrorForeignKey>;
 
 export type DbSubroutineResponseError =
 	| DbSubroutineResponseErrorBase

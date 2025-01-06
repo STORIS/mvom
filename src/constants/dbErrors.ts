@@ -3,7 +3,7 @@ interface DbError {
 	message: string;
 }
 
-const dbErrors: Record<string, DbError> = {
+const dbErrors = {
 	malformedInput: { code: 1, message: 'Malformed input passed to db server' },
 	unsupportedAction: { code: 2, message: 'Database server does not support the passed action' },
 	deployment: { code: 3, message: 'Error in database server feature deployment' },
@@ -31,6 +31,9 @@ const dbErrors: Record<string, DbError> = {
 	recordWriteUnknown: { code: 19, message: 'Unknown error writing database record' },
 	maxPayloadExceeded: { code: 20, message: 'Maximum return payload size exceeded' },
 	recordNotFound: { code: 21, message: 'Database record not found' },
-};
+} as const satisfies Record<string, DbError>;
+
+export type DbErrors = typeof dbErrors;
+export type DbErrorCodes = DbErrors[keyof DbErrors]['code'];
 
 export default dbErrors;
