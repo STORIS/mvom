@@ -1,3 +1,4 @@
+import type { ForeignKeyDbDefinition } from 'src/ForeignKeyDbTransformer';
 import Document from '../../Document';
 import Schema from '../../Schema';
 import type { SchemaDefinition } from '../../Schema';
@@ -103,5 +104,27 @@ describe('validate', () => {
 
 		const validationResults = embeddedType.validate(value);
 		expect(validationResults.size).toBe(0);
+	});
+});
+
+describe('transformForeignKeyDefinitionsToDb', () => {
+	const foreignKeyDefinition = { file: 'FILE', entityName: 'FK_ENTITY' };
+	const definition = {
+		prop1: { type: 'string', path: '2', foreignKey: foreignKeyDefinition },
+		prop2: { type: 'number', path: '3', dbDecimals: 2 },
+	} satisfies SchemaDefinition;
+	const valueSchema = new Schema(definition);
+	const embeddedType = new EmbeddedType(valueSchema);
+
+	test('should return an array of foreign key definitions for the subdocument', () => {
+		const originalRecord: MvRecord = ['unrelated'];
+		const value = Document.createSubdocumentFromRecord(valueSchema, originalRecord);
+		value.prop1 = 'foo';
+		value.prop2 = 1.23;
+
+		const expected: ForeignKeyDbDefinition[] = [
+			{ filename: ['FILE'], entityId: 'foo', entityName: 'FK_ENTITY' },
+		];
+		expect(embeddedType.transformForeignKeyDefinitionsToDb(value)).toEqual(expected);
 	});
 });

@@ -1,7 +1,12 @@
 import type Connection from './Connection';
-import type { DocumentConstructorOptions, DocumentData } from './Document';
+import type {
+	BuildForeignKeyDefinitionsResult,
+	DocumentConstructorOptions,
+	DocumentData,
+} from './Document';
 import Document from './Document';
 import { DataValidationError } from './errors';
+import ForeignKeyDbTransformer from './ForeignKeyDbTransformer';
 import type LogHandler from './LogHandler';
 import Query, { type Filter, type QueryConstructorOptions } from './Query';
 import type Schema from './Schema';
@@ -430,19 +435,9 @@ const compileModel = <TSchema extends Schema | null>(
 		/** Save a document to the database */
 		public async save(options: ModelSaveOptions = {}): Promise<ModelCompositeValue<TSchema>> {
 			const { maxReturnPayloadSize, requestId, userDefined } = options;
-			if (this._id == null) {
-				throw new TypeError('_id value must be set prior to saving');
-			}
 
 			// validate data prior to saving
-			const validationErrors = this.validate();
-			if (validationErrors.size > 0) {
-				throw new DataValidationError({
-					validationErrors,
-					filename: Model.file,
-					recordId: this._id,
-				});
-			}
+			this.#validate();
 
 			try {
 				const data = await Model.connection.executeDbSubroutine(
@@ -452,7 +447,7 @@ const compileModel = <TSchema extends Schema | null>(
 						id: this._id,
 						__v: this.__v,
 						record: this.#convertToMvString(),
-						foreignKeyDefinitions: this.buildForeignKeyDefinitions(),
+						foreignKeyDefinitions: this.#buildForeignKeyDefinitions(),
 					},
 					{
 						...(maxReturnPayloadSize != null && { maxReturnPayloadSize }),
@@ -489,6 +484,53 @@ const compileModel = <TSchema extends Schema | null>(
 						: attribute,
 				)
 				.join(am);
+		}
+
+		/** Validate the model instance */
+		#validate(): asserts this is { _id: string } {
+			if (this._id == null) {
+				throw new TypeError('_id value must be set prior to saving');
+			}
+
+			// validate data prior to saving
+			const validationErrors = this.validate();
+
+			// validate _id pattern
+			if (
+				typeof this._id === 'string' &&
+				schema?.idMatch != null &&
+				!schema.idMatch.test(this._id)
+			) {
+				validationErrors.set('_id', ['Model id does not match pattern']);
+			}
+
+			if (validationErrors.size > 0) {
+				throw new DataValidationError({
+					validationErrors,
+					filename: Model.file,
+					recordId: this._id,
+				});
+			}
+		}
+
+		/** Build a list of foreign key definitions to be used by the database for foreign key validation */
+		#buildForeignKeyDefinitions(): BuildForeignKeyDefinitionsResult[] {
+			const foreignKeyDefinitions = this.buildForeignKeyDefinitions();
+
+			if (schema?.idForeignKey != null) {
+				const foreignKeyDbTransformer = new ForeignKeyDbTransformer(schema.idForeignKey);
+				const definitions = foreignKeyDbTransformer
+					.transform(this._id)
+					.map(({ filename, entityName, entityId }) => ({
+						filename: ensureArray(filename),
+						entityName,
+						entityIds: [entityId],
+					}));
+
+				foreignKeyDefinitions.push(...definitions);
+			}
+
+			return foreignKeyDefinitions;
 		}
 	};
 };
