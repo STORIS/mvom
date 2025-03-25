@@ -91,7 +91,8 @@ export type DbSubroutineResponseTypes =
 	| DbSubroutineResponseIncrement
 	| DbSubroutineResponseReadFileContentsById
 	| DbSubroutineResponseGetServerInfo
-	| DbSubroutineResponseSave;
+	| DbSubroutineResponseSave
+	| DbSubroutineResponseCheckForRecordLock;
 
 export interface DbSubroutineResponseTypesMap {
 	deleteById: DbSubroutineResponseDeleteById;
