@@ -15,8 +15,9 @@ if udoGetProperty(options, 'id', recordId, type) then
   go returnFromSub
 end
 
+isLocked = @false
 lockStatus = recordLocked(filename, recordId)
-isLocked = lockStatus ne 0
+if lockStatus ne 0 then isLocked = @true
 if udoSetProperty(output, 'result', isLocked) then
   call error_handler(ERROR_UDO, output)
   go returnFromSub
