@@ -395,6 +395,15 @@ const compileModel = <TSchema extends Schema | null>(
 			return data.result;
 		}
 
+		public static async checkForRecordLockById(id: string): Promise<boolean> {
+			const data = await this.connection.executeDbSubroutine('checkForRecordLockById', {
+				filename: this.file,
+				id,
+			});
+
+			return data.result;
+		}
+
 		/** Create a new Model instance from a record string */
 		static #createModelFromRecordString(
 			recordString: string,
