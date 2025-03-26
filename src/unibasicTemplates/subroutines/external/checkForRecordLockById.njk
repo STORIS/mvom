@@ -17,7 +17,9 @@ end
 
 isLocked = @false
 lockStatus = recordLocked(filename, recordId)
-if lockStatus ne 0 then isLocked = @true
+if lockStatus ne 0 then
+  isLocked = @true
+end
 
 if udoSetProperty(output, 'result', isLocked) then
   call error_handler(ERROR_UDO, output)
