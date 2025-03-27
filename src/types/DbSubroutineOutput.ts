@@ -45,7 +45,7 @@ type DbSubroutineResponseReadFileContentsById =
 	DbSubroutineResponse<DbSubroutineOutputReadFileContentsById>;
 
 interface DbSubroutineOutputCheckForRecordLock {
-	result: boolean;
+	result: number;
 }
 type DbSubroutineResponseCheckForRecordLock =
 	DbSubroutineResponse<DbSubroutineOutputCheckForRecordLock>;
