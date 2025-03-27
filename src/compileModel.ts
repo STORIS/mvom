@@ -418,7 +418,7 @@ const compileModel = <TSchema extends Schema | null>(
 				},
 			);
 
-			return data.result !== 0;
+			return data.result !== 1;
 		}
 
 		/** Create a new Model instance from a record string */

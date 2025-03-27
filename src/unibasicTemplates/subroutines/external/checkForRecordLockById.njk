@@ -15,14 +15,40 @@ if udoGetProperty(options, 'id', recordId, type) then
   go returnFromSub
 end
 
-lockStatus = recordLocked(filename, recordId)
+* open the file
+open filename to f.file on error
+  call error_handler(ERROR_FILE_OPEN, output)
+  go returnFromSub
+end else
+  call error_handler(ERROR_FILE_OPEN, output)
+  go returnFromSub
+end
 
+lockStatus = 0
+
+readu record from f.file, recordId on error
+  call error_handler(ERROR_RECORD_READ, output)
+  go closeAndReturnFromSub
+end locked
+  lockStatus = 1
+end then
+  lockStatus = 0
+end
+
+release f.file, recordId on error null
+close f.file on error null
+
+# set results property
 if udoSetProperty(output, 'result', lockStatus) then
   call error_handler(ERROR_UDO, output)
   go returnFromSub
 end
 
 go returnFromSub
+
+closeAndReturnFromSub:
+close f.file on error null
+* fall through to return
 
 returnFromSub:
 return; * returning to caller
