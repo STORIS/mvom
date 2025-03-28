@@ -74,6 +74,30 @@ describe('_id accessors', () => {
 	});
 });
 
+describe('checkForRecordLockById', () => {
+	test.each`
+		lockResult | expected
+		${0}       | ${true}
+		${1}       | ${false}
+		${-1}      | ${false}
+	`('should return $expected when lockResult is $lockResult', async ({ lockResult, expected }) => {
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters, logHandlerMock);
+
+		const id = 'id';
+		connectionMock.executeDbSubroutine.mockResolvedValue({ result: lockResult });
+
+		expect(await Model.checkForRecordLockById(id)).toBe(expected);
+		expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
+			'checkForRecordLockById',
+			{
+				filename,
+				id,
+			},
+			{},
+		);
+	});
+});
+
 describe('deleteById', () => {
 	test('should return null if database returns null', async () => {
 		const Model = compileModel(connectionMock, schema, filename, mockDelimiters, logHandlerMock);

@@ -185,6 +185,31 @@ const compileModel = <TSchema extends Schema | null>(
 			});
 		}
 
+		/**
+		 * Check to see if a record is locked by another user/process
+		 * @returns `true` when record is locked
+		 */
+		public static async checkForRecordLockById(
+			id: string,
+			options: CheckForRecordLockByIdOptions = {},
+		): Promise<boolean> {
+			const { maxReturnPayloadSize, requestId, userDefined } = options;
+			const data = await this.connection.executeDbSubroutine(
+				'checkForRecordLockById',
+				{
+					filename: this.file,
+					id,
+				},
+				{
+					...(maxReturnPayloadSize != null && { maxReturnPayloadSize }),
+					...(requestId != null && { requestId }),
+					...(userDefined != null && { userDefined }),
+				},
+			);
+
+			return data.result === 0;
+		}
+
 		/** Delete a document */
 		public static async deleteById(
 			id: string,
@@ -394,31 +419,6 @@ const compileModel = <TSchema extends Schema | null>(
 			);
 
 			return data.result;
-		}
-
-		/**
-		 * Check to see if a record is locked by another user/process
-		 * @returns `true` when record is locked
-		 */
-		public static async checkForRecordLockById(
-			id: string,
-			options: CheckForRecordLockByIdOptions = {},
-		): Promise<boolean> {
-			const { maxReturnPayloadSize, requestId, userDefined } = options;
-			const data = await this.connection.executeDbSubroutine(
-				'checkForRecordLockById',
-				{
-					filename: this.file,
-					id,
-				},
-				{
-					...(maxReturnPayloadSize != null && { maxReturnPayloadSize }),
-					...(requestId != null && { requestId }),
-					...(userDefined != null && { userDefined }),
-				},
-			);
-
-			return data.result !== 1;
 		}
 
 		/** Create a new Model instance from a record string */
