@@ -97,7 +97,7 @@ export type IncrementOperation<TSchema extends Schema | null> = TSchema extends 
 	: never;
 export type ModelReadFileContentsByIdOptions = ModelDatabaseExecutionOptions;
 export type ModelSaveOptions = ModelDatabaseExecutionOptions;
-export type CheckForRecordLockByIdOptions = ModelDatabaseExecutionOptions;
+export type ModelCheckForRecordLockByIdOptions = ModelDatabaseExecutionOptions;
 // #endregion
 
 /** Define a new model */
@@ -191,7 +191,7 @@ const compileModel = <TSchema extends Schema | null>(
 		 */
 		public static async checkForRecordLockById(
 			id: string,
-			options: CheckForRecordLockByIdOptions = {},
+			options: ModelCheckForRecordLockByIdOptions = {},
 		): Promise<boolean> {
 			const { maxReturnPayloadSize, requestId, userDefined } = options;
 			const data = await this.connection.executeDbSubroutine(
@@ -207,7 +207,7 @@ const compileModel = <TSchema extends Schema | null>(
 				},
 			);
 
-			return data.result === 0;
+			return data.result !== 0;
 		}
 
 		/** Delete a document */
