@@ -7,15 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.2.0]
+
+### Added
+
+- Add a `checkForRecordLockById` static method to `Model` ([#904](https://github.com/STORIS/mvom/pull/904))
+- Improve database error types and handling ([#860](https://github.com/STORIS/mvom/pull/860))
+- Relocate ID checks from `Document` to `Model` ([#859](https://github.com/STORIS/mvom/pull/859))
+
 ## [3.1.1]
+
+### Fixed
 
 - Ensure `Filter` and `SortCriteria` types omit properties for scalar arrays lacking dictionaries ([#856](https://github.com/STORIS/mvom/pull/856))
 
 ## [3.1.0]
 
+### Added
+
 - Allow equality, inequality, in, and not in query operators to accept null conditional values ([#854](https://github.com/STORIS/mvom/pull/854))
 
 ## [3.0.1]
+
+### Fixed
 
 - Improve inferred types for `_raw` property ([#820](https://github.com/STORIS/mvom/pull/820))
 
@@ -529,7 +543,8 @@ We've graduated from Alpha to Beta! Semver has been updated so breaking vs. non-
 
 Initial alpha release of this library! Thanks for using it!
 
-[unreleased]: https://github.com/storis/mvom/compare/3.1.1...HEAD
+[unreleased]: https://github.com/storis/mvom/compare/3.2.0...HEAD
+[3.2.0]: https://github.com/storis/mvom/compare/3.1.1...3.2.0
 [3.1.1]: https://github.com/storis/mvom/compare/3.1.0...3.1.1
 [3.1.0]: https://github.com/storis/mvom/compare/3.0.1...3.1.0
 [3.0.1]: https://github.com/storis/mvom/compare/3.0.0...3.0.1
