@@ -1,0 +1,38 @@
+subroutine mvom_checkForRecordLockById(options, output)
+* check if there is a record locked on file *
+{% include "../../constants/udo.njk" %}
+{% include "../../constants/error.njk" %}
+
+* get the filename from the options
+if udoGetProperty(options, 'filename', filename, type) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go returnFromSub
+end
+
+* get the recordId from the options
+if udoGetProperty(options, 'id', recordId, type) then
+  call error_handler(ERROR_MALFORMED_INPUT, output)
+  go returnFromSub
+end
+
+* open the file
+open filename to f.file on error
+  call error_handler(ERROR_FILE_OPEN, output)
+  go returnFromSub
+end else
+  call error_handler(ERROR_FILE_OPEN, output)
+  go returnFromSub
+end
+
+result = recordlocked(f.file, recordId)
+
+close f.file on error null
+
+* set the result property
+if udoSetProperty(output, 'result', result) then
+  call error_handler(ERROR_UDO, output)
+  go returnFromSub
+end
+
+returnFromSub:
+return; * returning to caller

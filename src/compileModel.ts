@@ -97,6 +97,7 @@ export type IncrementOperation<TSchema extends Schema | null> = TSchema extends 
 	: never;
 export type ModelReadFileContentsByIdOptions = ModelDatabaseExecutionOptions;
 export type ModelSaveOptions = ModelDatabaseExecutionOptions;
+export type ModelCheckForRecordLockByIdOptions = ModelDatabaseExecutionOptions;
 // #endregion
 
 /** Define a new model */
@@ -182,6 +183,31 @@ const compileModel = <TSchema extends Schema | null>(
 					`error transforming data -- file: ${Model.file}; _id: ${this._id}; class: ${error.transformClass}; value: ${error.transformValue}`,
 				);
 			});
+		}
+
+		/**
+		 * Check to see if a record is locked by another user/process
+		 * @returns `true` when record is locked
+		 */
+		public static async checkForRecordLockById(
+			id: string,
+			options: ModelCheckForRecordLockByIdOptions = {},
+		): Promise<boolean> {
+			const { maxReturnPayloadSize, requestId, userDefined } = options;
+			const data = await this.connection.executeDbSubroutine(
+				'checkForRecordLockById',
+				{
+					filename: this.file,
+					id,
+				},
+				{
+					...(maxReturnPayloadSize != null && { maxReturnPayloadSize }),
+					...(requestId != null && { requestId }),
+					...(userDefined != null && { userDefined }),
+				},
+			);
+
+			return data.result !== 0;
 		}
 
 		/** Delete a document */

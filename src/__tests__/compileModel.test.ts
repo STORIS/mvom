@@ -3,6 +3,7 @@ import { getError, NoErrorThrownError } from '#test/helpers';
 import mockDelimiters from '#test/mockDelimiters';
 import type {
 	IncrementOperation,
+	ModelCheckForRecordLockByIdOptions,
 	ModelDeleteByIdOptions,
 	ModelFindByIdOptions,
 	ModelFindOptions,
@@ -71,6 +72,52 @@ describe('_id accessors', () => {
 		const model = new Model({ record: '' });
 
 		expect(Object.keys(model)).toContain('_id');
+	});
+});
+
+describe('checkForRecordLockById', () => {
+	test.each`
+		lockResult | expected
+		${0}       | ${false}
+		${1}       | ${true}
+		${-1}      | ${true}
+	`('should return $expected when lockResult is $lockResult', async ({ lockResult, expected }) => {
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters, logHandlerMock);
+
+		const id = 'id';
+		connectionMock.executeDbSubroutine.mockResolvedValue({ result: lockResult });
+
+		expect(await Model.checkForRecordLockById(id)).toBe(expected);
+		expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
+			'checkForRecordLockById',
+			{
+				filename,
+				id,
+			},
+			{},
+		);
+	});
+
+	test('should pass setup options', async () => {
+		const Model = compileModel(connectionMock, schema, filename, mockDelimiters, logHandlerMock);
+
+		const id = 'id';
+		connectionMock.executeDbSubroutine.mockResolvedValue({ result: 1 });
+
+		const userDefined = { option1: 'foo', option2: 'bar', option3: 'biz' };
+		const maxReturnPayloadSize = 1000;
+		const options: ModelCheckForRecordLockByIdOptions = {
+			maxReturnPayloadSize,
+			requestId,
+			userDefined,
+		};
+
+		expect(await Model.checkForRecordLockById(id, options)).toBe(true);
+		expect(connectionMock.executeDbSubroutine).toHaveBeenCalledWith(
+			'checkForRecordLockById',
+			{ filename, id },
+			{ userDefined, maxReturnPayloadSize, requestId },
+		);
 	});
 });
 

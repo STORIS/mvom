@@ -44,6 +44,12 @@ interface DbSubroutineOutputReadFileContentsById {
 type DbSubroutineResponseReadFileContentsById =
 	DbSubroutineResponse<DbSubroutineOutputReadFileContentsById>;
 
+interface DbSubroutineOutputCheckForRecordLock {
+	result: number;
+}
+type DbSubroutineResponseCheckForRecordLock =
+	DbSubroutineResponse<DbSubroutineOutputCheckForRecordLock>;
+
 /** Characters which delimit strings on multivalue database server */
 export interface DbServerDelimiters {
 	/** Record mark */
@@ -85,7 +91,8 @@ export type DbSubroutineResponseTypes =
 	| DbSubroutineResponseIncrement
 	| DbSubroutineResponseReadFileContentsById
 	| DbSubroutineResponseGetServerInfo
-	| DbSubroutineResponseSave;
+	| DbSubroutineResponseSave
+	| DbSubroutineResponseCheckForRecordLock;
 
 export interface DbSubroutineResponseTypesMap {
 	deleteById: DbSubroutineResponseDeleteById;
@@ -96,6 +103,7 @@ export interface DbSubroutineResponseTypesMap {
 	readFileContentsById: DbSubroutineResponseReadFileContentsById;
 	getServerInfo: DbSubroutineResponseGetServerInfo;
 	save: DbSubroutineResponseSave;
+	checkForRecordLockById: DbSubroutineResponseCheckForRecordLock;
 }
 
 type ForeignKeyValidationErrorCode = DbErrors['foreignKeyValidation']['code'];

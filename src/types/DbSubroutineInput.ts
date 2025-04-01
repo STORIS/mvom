@@ -86,6 +86,11 @@ export interface DbSubroutineInputSave {
 	foreignKeyDefinitions: BuildForeignKeyDefinitionsResult[];
 }
 
+export interface DbSubroutineInputCheckForRecordLock {
+	filename: string;
+	id: string;
+}
+
 export type DbActionSubroutineInputTypes = DbSubroutinePayload<
 	| DbSubroutineInputDeleteById
 	| DbSubroutineInputFind
@@ -94,6 +99,7 @@ export type DbActionSubroutineInputTypes = DbSubroutinePayload<
 	| DbSubroutineInputIncrement
 	| DbSubroutineInputReadFileContentsById
 	| DbSubroutineInputGetServerInfo
+	| DbSubroutineInputCheckForRecordLock
 >;
 
 export interface DbSubroutineInputOptionsMap {
@@ -105,4 +111,5 @@ export interface DbSubroutineInputOptionsMap {
 	readFileContentsById: DbSubroutineInputReadFileContentsById;
 	getServerInfo: DbSubroutineInputGetServerInfo;
 	save: DbSubroutineInputSave;
+	checkForRecordLockById: DbSubroutineInputCheckForRecordLock;
 }
