@@ -62,10 +62,19 @@ describe('transformToQuery', () => {
 		expect(isoCalendarDateDataTransformer.transformToQuery(value)).toBe('');
 	});
 
-	test('should return the number of days since the multivalue epoch', () => {
+	test('should return the date in the yyyy-MM-dd format', () => {
 		const isoCalendarDateDataTransformer = new ISOCalendarDateDataTransformer();
 
 		const value = '2022-02-27';
-		expect(isoCalendarDateDataTransformer.transformToQuery(value)).toBe('19782');
+		expect(isoCalendarDateDataTransformer.transformToQuery(value)).toBe('2022-02-27');
+	});
+
+	test('should throw a TransformDataError when value is not a string', () => {
+		const isoCalendarDateDataTransformer = new ISOCalendarDateDataTransformer();
+
+		const value = 12345;
+		expect(() => isoCalendarDateDataTransformer.transformToQuery(value)).toThrow(
+			TransformDataError,
+		);
 	});
 });
