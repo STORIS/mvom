@@ -77,4 +77,15 @@ describe('transformToQuery', () => {
 			TransformDataError,
 		);
 	});
+
+	test.each(['12345', 'stringValue', '2025-02-30', '1', 'delete data'])(
+		'should throw a TransformDataError when value is not a valid ISOCalendarDate',
+		(value) => {
+			const isoCalendarDateDataTransformer = new ISOCalendarDateDataTransformer();
+
+			expect(() => isoCalendarDateDataTransformer.transformToQuery(value)).toThrow(
+				TransformDataError,
+			);
+		},
+	);
 });

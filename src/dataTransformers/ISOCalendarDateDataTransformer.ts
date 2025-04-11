@@ -60,7 +60,14 @@ class ISOCalendarDateDataTransformer implements DataTransformer {
 			});
 		}
 
-		return format(this.parseISOCalendarDate(value), ISOCalendarDateFormat);
+		try {
+			return format(this.parseISOCalendarDate(value), ISOCalendarDateFormat);
+		} catch (error) {
+			throw new TransformDataError({
+				transformClass: this.constructor.name,
+				transformValue: value,
+			});
+		}
 	}
 
 	/** Parse ISOCalendarDate string into date */
