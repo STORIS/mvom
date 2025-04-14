@@ -47,9 +47,27 @@ class ISOCalendarDateDataTransformer implements DataTransformer {
 		return String(differenceInDays(this.parseISOCalendarDate(value), mvEpoch));
 	}
 
-	/** Transform query constants to internal u2 date format */
+	/** Transform query constants to ISOCalendarDate format */
 	public transformToQuery(value: unknown): string {
-		return value === '' || value == null ? '' : this.transformToDb(value);
+		if (value === '' || value == null) {
+			return '';
+		}
+
+		if (typeof value !== 'string') {
+			throw new TransformDataError({
+				transformClass: this.constructor.name,
+				transformValue: value,
+			});
+		}
+
+		try {
+			return format(this.parseISOCalendarDate(value), ISOCalendarDateFormat);
+		} catch (error) {
+			throw new TransformDataError({
+				transformClass: this.constructor.name,
+				transformValue: value,
+			});
+		}
 	}
 
 	/** Parse ISOCalendarDate string into date */

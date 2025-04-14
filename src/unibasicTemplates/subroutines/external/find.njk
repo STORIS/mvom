@@ -3,6 +3,9 @@ subroutine mvom_find(options, output)
 {% include "../../constants/udo.njk" %}
 {% include "../../constants/error.njk" %}
 
+* save the systems date format
+systemDateFormat = system(36)
+
 * get the filename from the options
 if udoGetProperty(options, 'filename', filename, type) then
   call error_handler(ERROR_MALFORMED_INPUT, output)
@@ -31,8 +34,15 @@ if udoGetProperty(options, 'skip', skip, type) then
   skip = 0
 end
 
+* change date.format to 2
+execute 'date.format 2'
+
 * execute the query
 udtexecute queryCommand returning errorCodes
+
+* set date.format back
+execute 'date.format ':systemDateFormat
+
 if @system.return.code lt 0 then
   call error_handler(ERROR_QUERY, output)
   go returnFromSub
