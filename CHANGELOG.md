@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.2.1]
+
+### Fixed
+
+- Query dates consistently using ISO Date format to avoid issues with use of internal dates sometimes being parsed ([#907](https://github.com/STORIS/mvom/pull/907))
+
 ## [3.2.0]
 
 ### Added
@@ -543,7 +549,8 @@ We've graduated from Alpha to Beta! Semver has been updated so breaking vs. non-
 
 Initial alpha release of this library! Thanks for using it!
 
-[unreleased]: https://github.com/storis/mvom/compare/3.2.0...HEAD
+[unreleased]: https://github.com/storis/mvom/compare/3.2.1...HEAD
+[3.2.1]: https://github.com/storis/mvom/compare/3.2.0...3.2.1
 [3.2.0]: https://github.com/storis/mvom/compare/3.1.1...3.2.0
 [3.1.1]: https://github.com/storis/mvom/compare/3.1.0...3.1.1
 [3.1.0]: https://github.com/storis/mvom/compare/3.0.1...3.1.0
