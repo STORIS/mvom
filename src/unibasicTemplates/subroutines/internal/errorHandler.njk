@@ -1,8 +1,9 @@
 subroutine error_handler(errorCode, output)
+{% include "../../constants/udo.njk" %}
 
 * note that this routine intentionally does not react to udo errors because it could
 * potentially result in an unending sequence of errors
 
-x = udoSetProperty(output, 'errorCode', errorCode)
+x = udoSetProperty(output, 'errorCode', errorCode, UDO_NUMBER)
 
 return
