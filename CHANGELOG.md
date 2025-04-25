@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.2.2]
+
+### Fixed
+
+- Force cast of error code to numeric in `error_handler` UniBasic subroutine to ensure that comparison checks in JavaScript are working with the same data type ([#910](https://github.com/STORIS/mvom/pull/910))
+
 ## [3.2.1]
 
 ### Fixed
@@ -549,7 +555,8 @@ We've graduated from Alpha to Beta! Semver has been updated so breaking vs. non-
 
 Initial alpha release of this library! Thanks for using it!
 
-[unreleased]: https://github.com/storis/mvom/compare/3.2.1...HEAD
+[unreleased]: https://github.com/storis/mvom/compare/3.2.2...HEAD
+[3.2.2]: https://github.com/storis/mvom/compare/3.2.1...3.2.2
 [3.2.1]: https://github.com/storis/mvom/compare/3.2.0...3.2.1
 [3.2.0]: https://github.com/storis/mvom/compare/3.1.1...3.2.0
 [3.1.1]: https://github.com/storis/mvom/compare/3.1.0...3.1.1
