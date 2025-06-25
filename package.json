@@ -76,7 +76,7 @@
     "jest-when": "3.7.0",
     "npm-run-all2": "6.2.6",
     "nunjucks": "3.2.4",
-    "prettier": "3.6.0",
+    "prettier": "3.6.1",
     "rimraf": "6.0.1",
     "typescript": "5.8.3"
   },
