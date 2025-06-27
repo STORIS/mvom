@@ -257,7 +257,7 @@ class Connection {
 
 		if (validateDeployment) {
 			this.logHandler.info('Validating deployment');
-			await this.validateDeployment();
+			await this.validateDeployment({ requestId });
 		} else {
 			this.logHandler.info('Skipping deployment validation');
 		}
@@ -317,7 +317,11 @@ class Connection {
 		try {
 			response = await this.axiosInstance.post<
 				DbSubroutineResponseTypes | DbSubroutineResponseError
-			>(this.subroutineName, { input: data }, { headers: { 'X-MVIS-Trace-Id': requestId } });
+			>(
+				this.subroutineName,
+				{ input: data },
+				{ headers: { 'X-MVIS-Trace-Id': requestId, 'x-request-id': requestId } },
+			);
 		} catch (err) {
 			return axios.isAxiosError(err) ? this.handleAxiosError(err) : this.handleUnexpectedError(err);
 		}
@@ -373,8 +377,8 @@ class Connection {
 	}
 
 	/** Validate the multivalue subroutine deployment */
-	private async validateDeployment(): Promise<void> {
-		const isValid = await this.deploymentManager.validateDeployment();
+	private async validateDeployment({ requestId }: RequestOptions): Promise<void> {
+		const isValid = await this.deploymentManager.validateDeployment({ requestId });
 		if (!isValid) {
 			// prevent connection attempt if features are invalid
 			this.logHandler.info('MVIS has not been configured for use with MVOM');
