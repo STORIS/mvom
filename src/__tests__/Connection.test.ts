@@ -389,6 +389,7 @@ describe('executeDbSubroutine', () => {
 				expect.objectContaining({
 					headers: expect.objectContaining({
 						'X-MVIS-Trace-Id': expect.stringContaining(requestId),
+						'x-request-id': expect.stringContaining(requestId),
 					}),
 				}),
 			)
@@ -502,7 +503,7 @@ describe('executeDbSubroutine', () => {
 					teardownOptions: {},
 				},
 			},
-			{ headers: { 'X-MVIS-Trace-Id': 'randomUuid' } },
+			{ headers: { 'X-MVIS-Trace-Id': 'randomUuid', 'x-request-id': 'randomUuid' } },
 		);
 	});
 
