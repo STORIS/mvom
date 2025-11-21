@@ -28,13 +28,22 @@ interface DeploymentManagerConstructorOptions {
 	httpsAgent?: https.Agent;
 }
 
-export interface DeployOptions {
+interface RequestOptions {
+	/** Optional request ID for tracing */
+	requestId?: string;
+}
+
+type AuthenticateOptions = RequestOptions;
+
+export interface DeployOptions extends RequestOptions {
 	/**
 	 * Create directory when deploying
 	 * @defaultValue false
 	 */
 	createDir?: boolean;
 }
+
+type ValidateDeploymentOptions = RequestOptions;
 
 interface AuthenticateResult {
 	Cookie: string;
@@ -173,8 +182,8 @@ class DeploymentManager {
 	}
 
 	/** Validate that the MVOM main subroutine is available */
-	public async validateDeployment(): Promise<boolean> {
-		const headers = await this.authenticate();
+	public async validateDeployment({ requestId }: ValidateDeploymentOptions = {}): Promise<boolean> {
+		const headers = await this.authenticate({ requestId });
 
 		const [isRestDefinitionValid, isCatalogValid] = await Promise.all([
 			this.validateRestDefinition(headers),
@@ -194,9 +203,9 @@ class DeploymentManager {
 
 	/** Deploy the MVOM main subroutine to MVIS */
 	public async deploy(sourceDir: string, options: DeployOptions = {}): Promise<void> {
-		const { createDir = false } = options;
+		const { createDir = false, requestId } = options;
 
-		const headers = await this.authenticate();
+		const headers = await this.authenticate({ requestId });
 
 		const [isRestDefinitionValid, isCatalogValid] = await Promise.all([
 			this.validateRestDefinition(headers),
@@ -213,11 +222,14 @@ class DeploymentManager {
 	}
 
 	/** Authenticate to MVIS admin and return headers needed for subsequent API calls */
-	private async authenticate(): Promise<AuthenticationHeaders> {
+	private async authenticate({ requestId }: AuthenticateOptions): Promise<AuthenticationHeaders> {
 		this.logHandler.debug('Authenticating to MVIS Admin');
 
 		const authResponse = await this.axiosInstance.get('user', {
-			headers: { authorization: `Basic ${this.authorization}` },
+			headers: {
+				authorization: `Basic ${this.authorization}`,
+				...(requestId != null && { 'x-request-id': requestId, 'x-MVIS-Trace-Id': requestId }),
+			},
 		});
 
 		const cookies = authResponse.headers['set-cookie'];
@@ -240,6 +252,8 @@ class DeploymentManager {
 		return {
 			Cookie: cookies.join('; '),
 			'X-XSRF-TOKEN': xsrfToken,
+			'x-request-id': requestId,
+			'x-MVIS-Trace-Id': requestId,
 		};
 	}
 

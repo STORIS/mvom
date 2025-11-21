@@ -271,6 +271,53 @@ describe('validateDeployment', () => {
 			headers: { Cookie: expectedCookie, 'X-XSRF-TOKEN': expectedXsrfToken },
 		});
 	});
+
+	test('should provide the requestId and trace headers if a requestId is provided', async () => {
+		when<any, any[]>(mockedAxiosInstance.get)
+			.calledWith('user', expect.anything())
+			.mockResolvedValue({
+				data: {},
+				headers: { 'set-cookie': [expectedCookie] },
+			})
+			.calledWith(`manager/rest/${account}/subroutines`, expect.anything())
+			.mockResolvedValue({ data: { subroutineName: { name: subroutineName } } })
+			.calledWith(`manager/rest/${account}/ctlgprograms`, expect.anything())
+			.mockResolvedValue({ data: { ctlgprograms: [subroutineName] } });
+
+		const deploymentManager = DeploymentManager.createDeploymentManager(
+			mvisAdminUrl,
+			account,
+			username,
+			password,
+			logHandler,
+		);
+
+		await deploymentManager.validateDeployment();
+
+		expect(mockedAxiosInstance.get).toHaveBeenCalledWith('user', {
+			headers: {
+				authorization: `Basic ${expectedAuthorization}`,
+				'x-request-id': undefined,
+				'x-MVIS-Trace-Id': undefined,
+			},
+		});
+		expect(mockedAxiosInstance.get).toHaveBeenCalledWith(`manager/rest/${account}/subroutines`, {
+			headers: {
+				Cookie: expectedCookie,
+				'X-XSRF-TOKEN': expectedXsrfToken,
+				'x-request-id': undefined,
+				'x-MVIS-Trace-Id': undefined,
+			},
+		});
+		expect(mockedAxiosInstance.get).toHaveBeenCalledWith(`manager/rest/${account}/ctlgprograms`, {
+			headers: {
+				Cookie: expectedCookie,
+				'X-XSRF-TOKEN': expectedXsrfToken,
+				'x-request-id': undefined,
+				'x-MVIS-Trace-Id': undefined,
+			},
+		});
+	});
 });
 
 describe('deploy', () => {
@@ -457,20 +504,41 @@ describe('deploy', () => {
 
 		const sourceDir = 'source_directory';
 
-		await deploymentManager.deploy(sourceDir);
+		await deploymentManager.deploy(sourceDir, { requestId: 'request-id' });
 		expect(mockedAxiosInstance.get).toHaveBeenCalledTimes(4);
 		expect(mockedAxiosInstance.get).toHaveBeenCalledWith('user', {
-			headers: { authorization: `Basic ${expectedAuthorization}` },
+			headers: {
+				authorization: `Basic ${expectedAuthorization}`,
+				'x-request-id': 'request-id',
+				'x-MVIS-Trace-Id': 'request-id',
+			},
 		});
 		expect(mockedAxiosInstance.get).toHaveBeenCalledWith(`manager/rest/${account}/subroutines`, {
-			headers: { Cookie: expectedCookie, 'X-XSRF-TOKEN': expectedXsrfToken },
+			headers: {
+				Cookie: expectedCookie,
+				'X-XSRF-TOKEN': expectedXsrfToken,
+				'x-request-id': 'request-id',
+				'x-MVIS-Trace-Id': 'request-id',
+			},
 		});
 		expect(mockedAxiosInstance.get).toHaveBeenCalledWith(`manager/rest/${account}/ctlgprograms`, {
-			headers: { Cookie: expectedCookie, 'X-XSRF-TOKEN': expectedXsrfToken },
+			headers: {
+				Cookie: expectedCookie,
+				'X-XSRF-TOKEN': expectedXsrfToken,
+				'x-request-id': 'request-id',
+				'x-MVIS-Trace-Id': 'request-id',
+			},
 		});
 		expect(mockedAxiosInstance.get).toHaveBeenCalledWith(
 			`manager/rest/${account}/loadsubroutine/${subroutineName}`,
-			{ headers: { Cookie: expectedCookie, 'X-XSRF-TOKEN': expectedXsrfToken } },
+			{
+				headers: {
+					Cookie: expectedCookie,
+					'X-XSRF-TOKEN': expectedXsrfToken,
+					'x-request-id': 'request-id',
+					'x-MVIS-Trace-Id': 'request-id',
+				},
+			},
 		);
 
 		expect(mockedAxiosInstance.post).not.toHaveBeenCalled();
