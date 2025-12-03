@@ -4,6 +4,11 @@ test('should return an array if passed an array', () => {
 	expect(ensureArray(['foo', 'bar'])).toEqual(['foo', 'bar']);
 });
 
+test('should return the same array reference when passed an array', () => {
+	const input = ['foo', 'bar'];
+	expect(ensureArray(input)).toBe(input); // referential equality
+});
+
 test('should return an empty array if no value passed', () => {
 	expect(ensureArray()).toEqual([]);
 });
