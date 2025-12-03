@@ -1,6 +1,6 @@
 const ensureArray = <T>(value?: T | readonly T[]): T[] => {
 	if (Array.isArray(value)) {
-		return [...value];
+		return value;
 	}
 
 	if (typeof value === 'undefined') {
