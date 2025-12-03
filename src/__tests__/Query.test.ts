@@ -2403,7 +2403,7 @@ describe('utility types', () => {
 				{
 					$and?: readonly Filter<typeof schema>[];
 					$or?: readonly Filter<typeof schema>[];
-					booleanOptional?: Condition<boolean | null>;
+					booleanOptional?: Condition<boolean>;
 					booleanRequired?: Condition<boolean>;
 					stringOptional?: Condition<string | null>;
 					stringRequired?: Condition<string>;

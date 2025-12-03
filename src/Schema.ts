@@ -145,7 +145,7 @@ type InferArraySchemaType<
 /** Infer the output type of a schema type definition */
 type InferSchemaType<TSchemaTypeDefinition, TConstraint> =
 	TSchemaTypeDefinition extends SchemaTypeDefinitionBoolean
-		? InferRequiredType<TSchemaTypeDefinition, boolean>
+		? boolean
 		: TSchemaTypeDefinition extends SchemaTypeDefinitionString
 			? InferRequiredType<TSchemaTypeDefinition, InferStringType<TSchemaTypeDefinition>>
 			: TSchemaTypeDefinition extends SchemaTypeDefinitionNumber

@@ -502,12 +502,9 @@ describe('utility types', () => {
 			});
 
 			test('should infer boolean type', () => {
-				// not required should be nullable
+				// boolean fields always return boolean (null is transformed to false)
 				const schema1 = new Schema({ booleanProp: { type: 'boolean', path: '1' } });
-				const test1: Equals<
-					InferDocumentObject<typeof schema1>,
-					{ booleanProp: boolean | null }
-				> = true;
+				const test1: Equals<InferDocumentObject<typeof schema1>, { booleanProp: boolean }> = true;
 				expect(test1).toBe(true);
 
 				// required should not be nullable
@@ -801,7 +798,7 @@ describe('utility types', () => {
 				const test1: Equals<
 					InferDocumentObject<typeof schema>,
 					{
-						booleanOptional: boolean | null;
+						booleanOptional: boolean;
 						booleanRequired: boolean;
 						stringOptional: string | null;
 						stringRequired: string;
@@ -896,11 +893,11 @@ describe('utility types', () => {
 			});
 
 			test('should infer boolean type', () => {
-				// not required should be nullable
+				// boolean fields always return boolean (null is transformed to false)
 				const schema1 = new Schema({ booleanProp: { type: 'boolean', path: '1' } });
 				const test1: Equals<
 					InferModelObject<typeof schema1>,
-					{ _id: string; __v: string; booleanProp: boolean | null }
+					{ _id: string; __v: string; booleanProp: boolean }
 				> = true;
 				expect(test1).toBe(true);
 
@@ -1226,7 +1223,7 @@ describe('utility types', () => {
 					{
 						_id: string;
 						__v: string;
-						booleanOptional: boolean | null;
+						booleanOptional: boolean;
 						booleanRequired: boolean;
 						stringOptional: string | null;
 						stringRequired: string;
@@ -1317,7 +1314,7 @@ describe('utility types', () => {
 			const test1: Equals<
 				FlattenDocument<typeof schema>,
 				{
-					booleanOptional: boolean | null;
+					booleanOptional: boolean;
 					booleanRequired: boolean;
 					stringOptional: string | null;
 					stringRequired: string;

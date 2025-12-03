@@ -1061,7 +1061,7 @@ describe('utility types', () => {
 			const test1: Equals<
 				DocumentData<typeof schema>,
 				{
-					boolean?: boolean | null;
+					boolean: boolean;
 					string?: string | null;
 					number?: number | null;
 					isoCalendarDate?: ISOCalendarDate | null;
@@ -1123,7 +1123,7 @@ describe('utility types', () => {
 			const test1: Equals<
 				DocumentData<typeof schema>,
 				{
-					booleanOptional?: boolean | null;
+					booleanOptional: boolean;
 					booleanRequired: boolean;
 					stringOptional?: string | null;
 					stringRequired: string;
