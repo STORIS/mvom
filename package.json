@@ -1,8 +1,9 @@
 {
   "name": "mvom",
   "private": true,
+  "deprecated": "This package is no longer maintained. MVOM has been internalized and is no longer supported as an open-source project.",
   "version": "3.2.2",
-  "description": "Multivalue Object Mapper",
+  "description": "Multivalue Object Mapper [DEPRECATED - No longer maintained]",
   "main": "index.js",
   "engines": {
     "node": ">=18"

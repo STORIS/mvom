@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Repository Archived
+    url: https://github.com/STORIS/mvom
+    about: This repository is no longer maintained and has been archived. We are not accepting new issues or pull requests.
