@@ -1,5 +1,16 @@
 # MVOM
 
+> [!WARNING]
+> **This repository is no longer maintained and has been archived.**
+>
+> MVOM has been internalized into our internal monorepo and is no longer being maintained as an open-source project. This repository is kept available for historical reference only.
+>
+> - No further updates, bug fixes, or security patches will be provided
+> - Issues and pull requests will not be accepted
+> - The npm package has been deprecated
+>
+> If you are currently using MVOM, we recommend evaluating alternative solutions or forking this repository if you need to maintain it independently.
+
 <div align="center">
 
 MVOM (**M**ulti**V**alue **O**bject **M**apper) is a library which provides the ability to access MultiValue databases (e.g. [Unidata](https://www.rocketsoftware.com/products/rocket-unidata-0), [Universe](https://www.rocketsoftware.com/products/rocket-universe-0)) using applications written for Node.js. It allows consumers to model MultiValue data with a declarative schema which transforms between MultiValue data structures and objects and allows for data validations on save.

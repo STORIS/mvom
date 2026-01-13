@@ -1,5 +1,24 @@
 # Contributing to MVOM
 
+> [!WARNING]
+> **This repository is no longer maintained and has been archived.**
+>
+> MVOM has been internalized into our internal monorepo and is no longer accepting contributions. This file is kept for historical reference only.
+>
+> We are not accepting:
+> - Pull requests
+> - Bug reports
+> - Feature requests
+> - Any other contributions
+>
+> Thank you for your past interest in contributing to MVOM.
+
+---
+
+## Historical Information
+
+The information below is kept for historical reference only.
+
 If you're reading this, you're awesome! Thank you for helping us make this project great and being a part of the open source community. Here are a few guidelines that will help you along the way.
 
 ## Code of Conduct

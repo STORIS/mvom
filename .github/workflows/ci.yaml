@@ -1,8 +1,8 @@
+# DISABLED - Repository archived
+# This workflow has been disabled because the repository is no longer maintained
 name: CI
 
 on:
-  push:
-
   workflow_dispatch:
 
 jobs:
